@@ -1,0 +1,18 @@
+node_modules
+
+# Output
+/dist
+
+# Vite+
+/.vite
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+
+# Vite
+vite.config.ts.timestamp-*
