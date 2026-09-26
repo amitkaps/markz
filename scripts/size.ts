@@ -17,6 +17,8 @@ const result = await build({
 	build: {
 		write: false,
 		minify: true,
+		// `minify` alone mangles and compresses but keeps the layout; this removes whitespace too.
+		rolldownOptions: { output: { minify: true } },
 		lib: { entry: 'src/index.ts', formats: ['es'], fileName: 'index' }
 	}
 });

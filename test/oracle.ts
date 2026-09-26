@@ -20,7 +20,7 @@
  *
  * Raw HTML stays disallowed, as it is in markz. Examples that use it are excluded anyway.
  */
-import { micromark } from 'micromark';
+import { micromark, parse, postprocess, preprocess } from 'micromark';
 import { gfm, gfmHtml } from 'micromark-extension-gfm';
 import { directive, directiveHtml, type Handle } from 'micromark-extension-directive';
 
@@ -48,9 +48,11 @@ const shape: Handle = function (d) {
 	return true;
 };
 
+const extensions = [gfm(), directive()];
+
 export function reference(markdown: string): string {
 	return micromark(markdown, {
-		extensions: [gfm(), directive()],
+		extensions,
 		htmlExtensions: [gfmHtml(), directiveHtml({ '*': shape })],
 		allowDangerousProtocol: true
 	});
@@ -85,4 +87,24 @@ export function normalize(html: string): string {
 		.join('')
 		.replace(/[‘’“”–—…]/g, (c) => SMART[c]!)
 		.trim();
+}
+
+/** @prose
+ * ## Tokens
+ *
+ * What the oracle recognised in an example: each token it opened, with its source text. The
+ * example list reads these to tell which examples use syntax the dialect cuts, and which have no
+ * inline syntax at all, rather than keeping those lists by hand.
+ */
+export interface Token {
+	type: string;
+	text: string;
+}
+
+export function tokens(markdown: string): Token[] {
+	const chunks = preprocess()(markdown, undefined, true);
+	const events = postprocess(parse({ extensions }).document().write(chunks));
+	return events
+		.filter(([kind]) => kind === 'enter')
+		.map(([, t]) => ({ type: t.type, text: markdown.slice(t.start.offset, t.end.offset) }));
 }
