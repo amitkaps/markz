@@ -68,6 +68,16 @@ describe('metadata', () => {
 		expect(source.slice(range.start, range.end)).toBe('a: 1');
 	});
 
+	it('is not metadata when a line between the rules is not metadata', () => {
+		const doc = parse('---\n\n## foo\n\n---\n');
+		expect(doc.metadata).toBeUndefined();
+		expect([...doc.children(doc.root)].map((n) => doc.type(n))).toEqual([
+			'thematicBreak',
+			'heading',
+			'thematicBreak'
+		]);
+	});
+
 	it('is only metadata at the very start, and only when closed', () => {
 		expect(parse('\n---\na: 1\n---\n').metadata).toBeUndefined();
 		const unclosed = parse('---\na: 1\n');

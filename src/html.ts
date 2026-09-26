@@ -6,8 +6,8 @@
  * The markup is micromark's for everything markz shares with GFM, so the oracle can compare them,
  * and syntax.md's shapes for the rest.
  *
- * It grows with the passes (`prose/plan.md`, steps 4–5). A node type it can't write yet is an
- * error rather than silent output, so the oracle harness reports it as a failure.
+ * A node type it has no case for is an error rather than silent output, so a new node type can't
+ * reach a page unwritten.
  */
 import { type Attributes, type Document, type NodeId } from './ast';
 import { parse } from './parse';
@@ -85,6 +85,26 @@ function render(doc: Document, node: NodeId): string {
 			return block
 				? `<pre${attributes(a)}><code class="language-math math-display">${escape(value)}</code></pre>\n`
 				: `<code class="language-math math-inline">${escape(value)}</code>`;
+		}
+		case 'emphasis':
+			return `<em>${children(doc, node)}</em>`;
+		case 'strong':
+			return `<strong>${children(doc, node)}</strong>`;
+		case 'delete':
+			return `<del>${children(doc, node)}</del>`;
+		case 'inlineCode':
+			return `<code>${escape(doc.data(node, 'inlineCode').value)}</code>`;
+		case 'break':
+			return '<br />\n';
+		case 'expression':
+			return escape(doc.source.slice(doc.start(node), doc.end(node)));
+		case 'link': {
+			const { destination, title } = doc.data(node, 'link');
+			return `<a href="${url(destination)}"${titled(title)}${attributes(a)}>${children(doc, node)}</a>`;
+		}
+		case 'image': {
+			const { destination, title, alt } = doc.data(node, 'image');
+			return `<img src="${url(destination, true)}" alt="${escape(alt)}"${titled(title)}${attributes(a)} />`;
 		}
 		case 'table':
 			return table(doc, node, a);
@@ -164,13 +184,39 @@ function attributes(a: Attributes | undefined, classes: string[] = [], skipId = 
 	return out;
 }
 
-function unsafe(value: string): boolean {
+/** @prose
+ * ## URLs
+ *
+ * A destination is written percent-encoded, as micromark writes it: ASCII that is safe in a URL
+ * stays, an existing `%XX` stays, and everything else is UTF-8 encoded. An unsafe scheme writes
+ * an empty URL, so the element keeps its content and loses only the link.
+ */
+function url(value: string, image = false): string {
+	if (unsafe(value, image)) return '';
+	let out = '';
+	for (let i = 0; i < value.length; i++) {
+		const c = value[i]!;
+		const code = value.charCodeAt(i);
+		if (c === '%' && /^[\da-fA-F]{2}$/.test(value.slice(i + 1, i + 3))) out += c;
+		else if (code < 128) out += /[!#$&-;=?-Z_a-z~]/.test(c) ? c : encodeURIComponent(c);
+		else if (code >= 0xd800 && code <= 0xdbff && /[\udc00-\udfff]/.test(value[i + 1] ?? '')) {
+			out += encodeURIComponent(c + value[++i]);
+		} else if (code >= 0xd800 && code <= 0xdfff) out += '%EF%BF%BD';
+		else out += encodeURIComponent(c);
+	}
+	return escape(out);
+}
+
+const titled = (title: string | null) => (title === null ? '' : ` title="${escape(title)}"`);
+
+function unsafe(value: string, image = true): boolean {
 	// Browsers ignore whitespace and control characters inside a scheme.
 	// eslint-disable-next-line no-control-regex
 	const v = value.replace(/[\u0000- ]/g, '').toLowerCase();
 	return (
 		/^(?:javascript|vbscript):/.test(v) ||
-		(v.startsWith('data:') && !/^data:image\/(?:png|gif|jpe?g|webp|avif|bmp)[;,]/.test(v))
+		(v.startsWith('data:') &&
+			!(image && /^data:image\/(?:png|gif|jpe?g|webp|avif|bmp)[;,]/.test(v)))
 	);
 }
 

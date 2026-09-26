@@ -64,14 +64,15 @@ export function reference(markdown: string): string {
  * What counts as the same output. Whitespace runs outside `<pre>` collapse to one space, and a
  * space next to a block-level tag goes, so line layout never fails a test. A space between inline
  * tags (`<em>a</em> <em>b</em>`) is content and stays. Smart punctuation goes back to straight
- * characters, since micromark doesn't do it and markz always does. `<pre>` content is compared
- * exactly.
+ * characters, since micromark doesn't do it and markz always does; a double quote goes back to
+ * `&quot;`, as micromark escapes it. Heading ids go too, since
+ * micromark writes none; markz's are tested on their own. `<pre>` content is compared exactly.
  */
 const SMART: Record<string, string> = {
 	'‘': "'",
 	'’': "'",
-	'“': '"',
-	'”': '"',
+	'“': '&quot;',
+	'”': '&quot;',
 	'–': '--',
 	'—': '---',
 	'…': '...'
@@ -85,6 +86,7 @@ export function normalize(html: string): string {
 		.split(/(<pre[\s>][\s\S]*?<\/pre>)/)
 		.map((part, i) => (i % 2 === 1 ? part : part.replace(/\s+/g, ' ').replace(BLOCK_TAG, '$1')))
 		.join('')
+		.replace(/(<h[1-6])((?: [\w-]+="[^"]*")*?) id="[^"]*"/g, '$1$2')
 		.replace(/[‘’“”–—…]/g, (c) => SMART[c]!)
 		.trim();
 }

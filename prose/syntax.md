@@ -20,7 +20,7 @@ are numeric ones.
 | Construct         | Syntax                                          | Notes                                                                                                    |
 | ----------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | Paragraph         | text separated by a blank line                  |                                                                                                          |
-| Heading           | `#` to `######`, then a space                   | Ids are generated, and `{#id}` overrides them ([Heading ids](#heading-ids)).                             |
+| Heading           | `#` to `######`, then a space                   | Every heading gets an id, and `{#id}` sets it ([Headings](#headings)).                                   |
 | Strong            | `**text**`                                      |                                                                                                          |
 | Emphasis          | `_text_`                                        |                                                                                                          |
 | Strikethrough     | `~~text~~`                                      |                                                                                                          |
@@ -82,28 +82,25 @@ an element Markdown itself made and a directive would have to wrap or reinvent t
 - **Words and phrases** use a text directive: `:span[word]{.highlight}`. There is no djot-style
   `word{.x}` or `[span]{.x}`.
 
-### Heading ids
-
-Every heading gets an id. An explicit `{#id}` wins. Otherwise the id is generated with GitHub's
-algorithm ([spec](spec.md#heading-ids)).
-
-- Generated ids skip every explicit id in the document, so a generated `pricing` can't take the
-  name an explicit `{#pricing}` claimed. Generated duplicates get `-1`, `-2`, …
-- Explicit duplicates aren't resolved, as in djot: the HTML keeps both, and the browser uses the
-  first. Each duplicate adds a diagnostic.
-
 ### Emphasis rules
 
-The markers are GFM's. The rules for where they may open and close are djot's, not CommonMark's
-17:
+The markers are GFM's: `_emphasis_`, `**strong**` and `~~strikethrough~~`. Where a run may open
+or close follows CommonMark's flanking rules, without the rest of its 17:
 
-- An opener can't be followed by whitespace, and a closer can't be preceded by whitespace.
-- `_` never opens or closes inside a word, so `snake_case_name` stays text. `**` may appear inside
-  a word.
-- There is no rule of 3, and delimiter runs don't split.
+- A run can't open before whitespace, or before punctuation that follows a letter, and the mirror
+  image for closing. `_` never opens or closes inside a word, so `snake_case_name` stays text.
+  `**` may appear inside a word.
+- A closer takes the nearest open run of its own kind. There is no rule of 3, and runs don't
+  split: `***`, `____` and `~~~` are text, and `**foo****` doesn't nest.
+- **`*emphasis*` where formatters write it.** Prettier and oxfmt write `_` for emphasis except in
+  two places, where `_` can't work: emphasis inside `_…_` (`_foo *bar* baz_`) and emphasis
+  touching a letter or digit (`a*b*c`). markz accepts `*` in exactly those two, so it never
+  rejects formatted output. Anywhere else a `*…*` pair stays text and is reported, like `__…__`
+  and `~…~`.
 
-On ordinary text this matches GFM. Where it disagrees, differential fuzzing against micromark
-finds the case, and it is either fixed or listed here.
+On ordinary text this matches GFM. Where it disagrees, the spec examples and differential fuzzing
+against micromark find the case, and it is either fixed or listed here: the examples that need a
+run split, such as `****foo****`, are excluded.
 
 ### Lists
 
@@ -115,6 +112,44 @@ finds the case, and it is either fixed or listed here.
 
 The optional closing `#`s (`## Title ##`) are accepted and stripped, as GFM does. A heading is a
 single line.
+
+Every heading gets an id, settled as the heading is parsed. No id depends on a later heading, so
+none changes once it is written, which keeps streaming simple:
+
+- **`{#id}` on the line above sets it exactly**, giving an anchor that survives renaming the
+  heading. If an earlier heading already has that id, both keep it, the browser uses the first,
+  and the later one is reported.
+- **Otherwise it is generated** with GitHub's algorithm, and numbered `-1`, `-2`, … past any id
+  already used, explicit or generated.
+
+The algorithm:
+
+1. Take the heading's plain text: text and inline-code values, with escapes and numeric
+   references decoded, punctuation curled, and `\ ` as a space. Link text counts; URLs, image alt
+   text, math and expressions don't.
+2. Lowercase it.
+3. Remove every character that isn't a letter, mark, number, space, `_` or `-`. Letters in any
+   script are kept, and there is no NFKC normalization, as on GitHub.
+4. Trim, then turn each run of whitespace into `-`.
+5. If nothing is left, use `section`.
+6. If the id is taken, try `-1`, `-2`, … until one is free.
+
+These cases are the contract, and the tests hold to them:
+
+| Heading                              | id               |
+| ------------------------------------ | ---------------- |
+| `## Foo`                             | `foo`            |
+| `## Foo`                             | `foo-1`          |
+| `## Foo 1`                           | `foo-1-1`        |
+| `## Café au lait`                    | `café-au-lait`   |
+| `## शुरुआत करें`                     | `शुरुआत-करें`    |
+| `## 日本語の見出し`                  | `日本語の見出し` |
+| `## 1. Rename`                       | `1-rename`       |
+| `## See [docs](https://example.com)` | `see-docs`       |
+| `## ???`                             | `section`        |
+
+In a document of its own, a heading whose text looks like a suffix keeps it, and the second
+`foo` goes past it: `# foo-1`, `# foo`, `# foo` give `foo-1`, `foo`, `foo-2`.
 
 ### Comments
 
@@ -129,8 +164,10 @@ comments too.
 ### Metadata
 
 A document can open with a metadata block: key/value pairs between `---` lines, starting at
-offset 0 (what other tools call frontmatter). Without a closing `---` line there is no block,
-and the first `---` is a thematic break. markz parses it into `doc.metadata`, a flat object,
+offset 0 (what other tools call frontmatter). It is a metadata block only when a closing `---`
+line follows, every line between looks like metadata (`key:`, a comment, an indented line or a
+blank line), and at least one is a `key:` line. Otherwise the first `---` is a thematic break, so a document that opens with a rule
+keeps its content. markz parses it into `doc.metadata`, a flat object,
 and keeps the block's range.
 
 The rule is JSON-like, with quotes optional: one `key: value` per line, where a value that doesn't
@@ -186,7 +223,12 @@ attribute syntax above:
 - **text**: `:name[label]`, `:name{attrs}` or `:name[label]{attrs}`. A label or attributes is
   required, so `hello :world` and `10:30` stay plain text: a colon in prose is never special, and
   the parser knows it has a directive as soon as it reaches the `[` or `{`. A bare `:name` is not
-  a construct in markz, so it gets no diagnostic.
+  a construct in markz, so it gets no diagnostic. This is the fix for micromark's long-standing
+  complaint ([directive#33](https://github.com/micromark/micromark-extension-directive/issues/33)),
+  where bare `:name` swallows prose.
+- A name starts with a letter, so `localhost:8000` is never a directive. A text directive may
+  start inside a word (`H:sub[2]O`), as in micromark, since the label or attributes already make
+  it deliberate; it can't start straight after another `:`.
 - **leaf**: `::name[label]{attrs}`, on a line of its own. A bare `::name` is allowed, since the
   line can't be prose.
 - **container**: `:::name[label]{attrs}` … `:::`. The closing fence needs at least as many colons
@@ -335,14 +377,15 @@ attribute values.
 | `...`               | `…`                                                                  |
 
 - Whether a quote opens or closes is decided by the character before it: start of text,
-  whitespace, an opening bracket or a dash means it opens.
+  whitespace, an opening bracket, a dash, another quote or an emphasis marker means it opens.
+- A run of more than three hyphens is split into em and en dashes with the same count.
 - `\"`, `\'`, `\-` and `\.` keep the straight character.
 - The text node's `value` holds the typographic character, and its range still covers the
   source characters. `value` and `textContent()` are the rendered text: escapes and numeric
   references decoded, punctuation curled. What the author typed is always
   `source.slice(start, end)`, and a consumer that needs the source uses that.
-- Heading ids are slugged from the typographic text. Quotes and dashes are punctuation, so they
-  drop out.
+- Heading ids are made from the typographic text. Quotes and dashes are punctuation, so they
+  drop out, and `Don't` and `Don’t` give the same id.
 
 ## Not supported
 
@@ -360,7 +403,7 @@ Each of these stays literal text and adds a diagnostic suggesting the supported 
 | Named character references (`&copy;`, `&amp;`, `&nbsp;`)                                     | the character itself (`©`, `&`), or `\ ` for a non-breaking space | Files are UTF-8, `html()` escapes `&` and `<` itself, and the table of 2,125 names is about 12 KB gzip.                                                                     |
 | Two trailing spaces as a line break                                                          | `\` at end of line, or `{.verse}` on a poem                       | Invisible syntax.                                                                                                                                                           |
 | `__strong__`                                                                                 | `**strong**`                                                      | One marker. oxfmt rewrites it.                                                                                                                                              |
-| `*emphasis*`                                                                                 | `_emphasis_`                                                      | One marker, and the source of most emphasis edge cases. oxfmt rewrites it.                                                                                                  |
+| `*emphasis*`, except inside `_…_` or touching a letter ([Emphasis rules](#emphasis-rules))   | `_emphasis_`                                                      | One marker, and the source of most emphasis edge cases. oxfmt rewrites it.                                                                                                  |
 | `***`, `___`, `* * *` rules                                                                  | `---`                                                             | One marker.                                                                                                                                                                 |
 | `~single~` strikethrough                                                                     | `~~text~~`                                                        | One marker. oxfmt rewrites it.                                                                                                                                              |
 | Trailing heading attributes (`## Title {#id}`)                                               | `{#id}` on the line above                                         | Under djot's rule this `{…}` belongs to the word "Title".                                                                                                                   |

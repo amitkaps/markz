@@ -5,21 +5,13 @@
  *   resolves to `syntax.md`.
  * - the oracle, against the spec's own HTML on every included example, and against `syntax.md`'s
  *   directive shapes, so a normalization or configuration bug can't hide behind it.
- * - markz's `html()` against the oracle. Until the inline pass (`prose/plan.md`, step 5), only
- *   on block-only examples, and every parsed document also satisfies the tree invariants.
+ * - markz's `html()` against the oracle, on every included example, each parsed document also
+ *   satisfying the tree invariants.
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vite-plus/test';
 import { html } from '../src/index';
-import {
-	all,
-	blockOnly,
-	cuts,
-	excludedExamples,
-	excludedSections,
-	included,
-	oracleDiffers
-} from './examples';
+import { all, cuts, excludedExamples, excludedSections, included, oracleDiffers } from './examples';
 import { normalize, reference } from './oracle';
 import { expectTree } from './tree';
 import { parse } from '../src/index';
@@ -89,7 +81,7 @@ describe('oracle directive shape', () => {
 });
 
 describe('markz', () => {
-	it.each(included.filter(blockOnly))('$suite $example ($section)', (e) => {
+	it.each(included)('$suite $example ($section)', (e) => {
 		expectTree(parse(e.markdown));
 		expect(normalize(html(e.markdown))).toBe(normalize(reference(e.markdown)));
 	});

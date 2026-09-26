@@ -89,53 +89,13 @@ existing documents and habits carry over, and oxfmt's output is already canonica
 diagnostic to `doc.diagnostics` with its range and the supported form ("setext heading: use `#`").
 Editors and prose's checks can show these. The parser never guesses.
 
+**Every heading gets an id, as part of the dialect.** CommonMark defines headings but not ids, so
+every renderer adds them its own way or not at all. markz uses GitHub's algorithm, so base's
+anchors and prose's checks keep working, and a `{#id}` line sets one by hand. An id is settled as
+its heading is parsed, against the ids used so far, so it never depends on a later heading. The
+rules and the contract cases are in [`syntax.md`](syntax.md#headings).
+
 There are no parser options.
-
-## Heading IDs
-
-Every heading gets an id. CommonMark defines headings but not ids, so every renderer adds them
-its own way or not at all: marked and markdown-it add none, and GitHub uses its own slugger. markz
-builds ids into the dialect, as djot does:
-
-- **An explicit id wins.** `{#pricing}` on the line above the heading ([`syntax.md`](syntax.md#attributes))
-  gives an anchor that survives renaming the heading. Explicit ids aren't deduplicated: the HTML
-  keeps both and the browser uses the first, as in djot. Each duplicate adds a diagnostic.
-- **Otherwise the id is generated,** after parsing, from the heading's text. Generated ids skip every
-  explicit id in the document and are deduplicated among themselves.
-
-The generator is GitHub's algorithm (github-slugger's), matching what base already ships:
-
-1. Take the heading's text content: text and inline-code values, with numeric references and escapes decoded, and `\ ` as a space.
-   Link text counts, but URLs, image alt text, math and expressions do not.
-2. Lowercase it.
-3. Remove every character that isn't a letter, mark, number, space, `_` or `-`. Letters are
-   Unicode letters in any script, so they are kept. No NFKC normalization, which GitHub doesn't do.
-4. Trim, then turn each run of whitespace into `-`.
-5. If the result is empty, use `section`.
-6. If the slug is taken, try `-1`, `-2`, … until one is free. A heading whose own text slugs to
-   `foo-1` therefore can't collide with the suffix given to a second `foo`.
-
-These golden cases, carried over from base's tests, are the contract for generated ids:
-
-| Heading                              | id               |
-| ------------------------------------ | ---------------- |
-| `## Foo`                             | `foo`            |
-| `## Foo`                             | `foo-1`          |
-| `## Foo 1`                           | `foo-1-1`        |
-| `## Café au lait`                    | `café-au-lait`   |
-| `## शुरुआत करें`                     | `शुरुआत-करें`    |
-| `## 日本語の見出し`                  | `日本語の見出し` |
-| `## 1. Rename`                       | `1-rename`       |
-| `## See [docs](https://example.com)` | `see-docs`       |
-| `## ???`                             | `section`        |
-
-And in a document of its own, a heading whose text looks like a suffix:
-
-| Heading   | id      |
-| --------- | ------- |
-| `# foo-1` | `foo-1` |
-| `# foo`   | `foo`   |
-| `# foo`   | `foo-2` |
 
 ## AST
 
@@ -250,7 +210,9 @@ Rules:
   a link's destination, the metadata block, a directive's label, and every attribute block.
 - **Text nodes map to source, not just to their value.** `value` is the rendered text: decoded
   (`&#169;` → `©`, `\*` → `*`) and with smart punctuation (`"` → `“`). `start`/`end` cover the raw
-  characters. A consumer scanning for syntax of its
+  characters. A soft line break is a `\n` in the text before it, whose range covers the line
+  ending, never the next line's container prefix, so one text node spans lines only where the
+  source has nothing between them. A consumer scanning for syntax of its
   own reads `source.slice(start, end)`, so a decoded escape can't shift its columns.
 - **Containers with prefixed lines** (blockquotes, list items) span from their first
   marker to the end of their last content. The `> ` and indentation prefixes inside that span
@@ -270,23 +232,23 @@ markz has its own parser. It is written for this one dialect, runs in linear tim
 backtracking, and emits straight into the flat AST:
 
 ```text
-source → block pass (lines → containers, leaves) → inline pass (per leaf) → heading ids → flat AST + diagnostics → html()
+source → block pass (lines → containers, leaves; the inline pass per leaf, as it closes) → flat AST + diagnostics → html()
 ```
 
 **Everything is built in.** Directives, expressions, math, attributes, raw blocks, metadata,
 smart punctuation and heading ids are cases in the same two scanners. They aren't plug-ins
 layered on a CommonMark core, because a fixed dialect needs no extension points. That also keeps
 precedence in one place: `${…}` binding tighter than emphasis is just the order of the inline
-scanner's cases. Heading ids are the one step after the passes, because a generated id has to
-avoid an explicit `{#id}` that may appear later. That step walks the heading list, not the
-source.
+scanner's cases. There is nothing after the two passes: a heading's id is settled when the
+heading closes, against the ids used so far.
 
 **No backtracking, as in djot.** The cuts in the [dialect](#markdown-dialect) remove every
 construct whose meaning depends on text after it. What remains is openers (`[`, `_`, `**`, `` ` ``,
 `$`, `${`, and `{` after a `)`) that either close or turn out to be text:
 
-- **Openers go on a stack.** An opener still unmatched at the end of its block becomes text by
-  patching the output. The input is never read again.
+- **Openers go on a stack.** The inline pass keeps what it has read as a linked list of items. A
+  closer wraps the items since its opener into one node; an opener still unmatched at the end of
+  its block is text. The input is never read again.
 - **Scans that can fail are bounded.** A link destination `](…`, an attribute block `{…}` or an
   autolink `<…>` is scanned forward once. Each records the furthest point where it failed, so later
   scans stop there, and a line full of unclosed `](` stays linear.
@@ -433,12 +395,11 @@ markdown-exit and Comark. The unified/remark ecosystem stays out.
     JavaScript that still closes; the regex-literal limit
   - attributes: the three placements, text fallbacks such as `{a, b}`, and oxfmt's blank line
     before headings
-- **Heading ids:** explicit ids win, generated ids skip explicit ones, and explicit duplicates
-  produce diagnostics.
 - **No backtracking:** adversarial inputs (unclosed `](`, `{`, `<` and `_` repeated thousands of
   times) parse in linear time.
-- **Heading ids:** the golden tables above, verbatim, plus apostrophes and quotes, which slug
-  the same straight or curled (`Don't` and `Don’t` both give `dont`).
+- **Heading ids:** `syntax.md`'s contract cases, verbatim, plus apostrophes and quotes, which
+  slug the same straight or curled (`Don't` and `Don’t` both give `dont`), and a reused explicit
+  id producing a diagnostic.
 - **Offsets** are asserted against known source, never against rendered output. This includes
   escapes, numeric references, astral characters, CRLF and nested containers.
 - **Tree structure:** parent, child and sibling invariants.

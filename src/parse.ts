@@ -1,8 +1,8 @@
 /** @prose
  * # Parse
  *
- * Source text to `Document`: the block pass, which runs the inline pass on each leaf as it
- * closes, then heading ids (spec: Parser foundation). A leading BOM is part of the source and
+ * Source text to `Document`, in the block pass, which runs the inline pass on each leaf and
+ * settles each heading's id as it closes (spec: Parser foundation). Nothing runs after it. A leading BOM is part of the source and
  * falls before the root's start.
  */
 import { Builder, type Document } from './ast';

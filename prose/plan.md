@@ -57,41 +57,39 @@ invariants every later step's documents are checked against.
 
 Rejected constructs (setext, indented code, `~~~`, HTML, reference definitions, lazy lines) are recognised in the same scan. Each becomes paragraph text plus a diagnostic in the place it is met.
 
-`html()` in `src/html.ts` writes every block node. `src/inline.ts` is a placeholder that writes each content line as one text node. Tests assert exact offsets, and the oracle checks every block-only example: one where micromark finds no inline token and none of markz's own inline openers appear. `pnpm size` now removes whitespace too, so it measures real minified output (8.5 KB gzip after this step).
+`html()` in `src/html.ts` writes every block node. Tests assert exact offsets, and until step 5 the oracle checked every example with no inline syntax. `pnpm size` removes whitespace too, so it measures real minified output (8.5 KB gzip after this step).
 
-### 5. Inline pass
+### 5. Inline pass, with heading ids — done
 
-`src/inline.ts`, run per leaf, in one linear pass. Again, every inline construct is a case in the same scanner:
+`src/inline.ts`, run on each leaf as it closes, in one pass. Every inline construct is a case in the same scanner:
 
 - inline code, `${…}` expressions and `$…$` math, which bind tightest
 - text directives (`:name[label]{…}`)
 - links and images (inline form only) with an optional `{…}` directly after, and `<…>` autolinks. Expressions inside destinations and attribute values are found by the same `${` scanner.
-- strong (`**`) / emphasis (`_`) / strikethrough (`~~`) with the djot-style flanking rules
-- backslash escapes, numeric references and `\` hard breaks
+- strong (`**`), emphasis (`_`, and `*` where formatters write it) and strikethrough (`~~`), by CommonMark's flanking with no rule of 3 and no run splitting
+- backslash escapes, numeric references, `\` hard breaks and `\ ` non-breaking spaces
 - smart punctuation on text: quotes by the character before them, `--`, `---`, `...`
+- the rejected forms (raw HTML, named references, reference links and definitions, `*a*`, `__a__`, `~a~`), kept as text and reported
 
-Openers go on a stack, and unmatched ones become text by patching the output. Failed scans record how far they got, so no input is read twice. Text nodes keep their decoded `value` and their raw source range. The whole filtered oracle suite runs from here on, with directives also checked against `micromark-extension-directive`, and visdown's examples as fixtures.
+What has been read is a linked list of items, and a closer wraps the items since its opener into one node. Text nodes keep their decoded `value` and their raw source range. The inline pass returns the leaf's plain text, and the block pass settles a heading's id from it as the heading closes, against the ids used so far, so there is no step after the passes. The whole filtered oracle suite runs from here on: every included example matches. Bundle: 12.9 KB gzip.
 
-### 6. Heading ids
-
-This is the last step of `parse()` itself, not a separate utility. Explicit `{#id}`s are already on their headings from the block pass. Generated ids are then assigned in document order with GitHub's algorithm (`src/slug.ts`), skipping every explicit id. This one step runs after the passes because a heading's generated id has to avoid an explicit id that may appear later in the document. It walks the list of headings, not the source, so it isn't backtracking. Duplicate explicit ids produce diagnostics. The spec's golden table is the test.
-
-### 7. Diagnostics
+### 6. Diagnostics
 
 Every row of the "Not supported" table in `syntax.md` gets a test: the input stays text, and a diagnostic carries the range and the supported form.
 
-### 8. Traversal and position utilities
+### 7. Traversal and position utilities
 
 Public API, kept minimal: `parse`, `html`, `walk` (`enter`/`exit`), `textContent`, `position`. Lines are 1-based and columns are 0-based. Nothing else is exported until a consumer needs it.
 
-### 9. Robustness and fuzzing
+### 8. Robustness and fuzzing
 
 - A grammar-based generator of documents in the shared grammar, fed to the oracle.
 - Malformed input, CRLF and lone `\r`, BOM, and astral-plane offsets.
-- Adversarial unclosed openers, with a timing check that fails on super-linear growth.
+- Adversarial unclosed openers, with a timing check that fails on super-linear growth. Code spans and math already record a failed scan; link destinations, `<!--` and attribute blocks don't yet.
+- Unclosed `${` is quadratic today: 80,000 of them in one paragraph take about 100 s, 16 times the time for 4 times the input. One failed scan doesn't settle later ones (`${a ${b}` has a valid second expression), so the fix is to reuse the failed scan's brace depths for every `${` it passed, rather than a flag.
 - A multi-MB document that guards against quadratic behaviour.
 
-### 10. Benchmarks and bundle size
+### 9. Benchmarks and bundle size
 
 `bench/` (not published): parse throughput and AST memory versus micromark, markdown-it, marked, markdown-exit and Comark. The size gate is already in CI; this step adds the comparisons.
 

@@ -80,6 +80,8 @@ class BlockParser {
 	readonly stack: Container[] = [];
 	leaf: Leaf | null = null;
 	pending: Pending | null = null;
+	/** Every heading id so far, explicit or generated. */
+	readonly ids = new Set<string>();
 
 	// The line being read, and a cursor into it. `tab` is how many columns of the tab at `pos` are
 	// still unread, when a container prefix ended in the middle of one.
@@ -116,8 +118,10 @@ class BlockParser {
 	 * ## Metadata
 	 *
 	 * A `---` line at the very start opens a metadata block, and the next `---` line closes it. The
-	 * closing line is found by one forward scan; without it the first line is an ordinary
-	 * thematic break and the document is read from there.
+	 * closing line is found by one forward scan, and every line between must look like metadata
+	 * (`key:`, a comment, an indented line or a blank one), with at least one key. Otherwise the first line is an ordinary
+	 * thematic break and the document is read from there, so a page that opens with a rule never
+	 * loses its content to a metadata block.
 	 */
 	metadata(start: number): number {
 		const { src } = this;
@@ -133,6 +137,10 @@ class BlockParser {
 		let bodyEnd = match.index;
 		if (bodyEnd > bodyStart)
 			bodyEnd -= src[bodyEnd - 2] === '\r' && src[bodyEnd - 1] === '\n' ? 2 : 1;
+		// Every line must look like metadata, and one must be a key: `# Title` alone is a heading.
+		const lines = src.slice(bodyStart, bodyEnd).split(/\r\n|\r|\n/);
+		const key = (l: string) => /^[A-Za-z_][\w-]*:(?:[ \t]|$)/.test(l);
+		if (!lines.some(key) || !lines.every((l) => key(l) || /^(?:$|#|[ \t])/.test(l))) return start;
 		const value = parseMetadata(src, bodyStart, bodyEnd, (d) => this.b.diagnose(d));
 		this.b.leaf('metadata', start, end, { value, range: { start: bodyStart, end: bodyEnd } });
 		this.top.children++;
@@ -354,8 +362,10 @@ class BlockParser {
 	 * ## Headings
 	 *
 	 * `#` to `######`, a space, and one line of content. A closing run of `#`s after a space is
-	 * stripped. An explicit id comes from a `{#id}` line above; heading ids are otherwise generated
-	 * after both passes.
+	 * stripped. The id is settled as the heading closes, against the ids used so far: a `{#id}`
+	 * line above gives it exactly (reported if an earlier heading has it), and otherwise it is
+	 * slugged from the heading's text and numbered past any id already taken. No id depends on
+	 * a later heading, so none changes once written.
 	 */
 	heading(at: number, depth: number, end: number): void {
 		const attributes = this.enter(false);
@@ -365,14 +375,27 @@ class BlockParser {
 		const closing = /(?:^|[ \t])#+$/.exec(this.src.slice(from, end));
 		if (closing) to = from + closing.index;
 		while (to > from && isSpace(this.src.charCodeAt(to - 1))) to--;
-		const id = attributes?.items.findLast((a) => a.key === 'id')?.value;
-		const node = this.b.open('heading', at, {
-			depth: depth as 1 | 2 | 3 | 4 | 5 | 6,
-			id: id ?? '',
-			idExplicit: id !== undefined
-		});
-		inline(this.b, this.src, [{ start: from, end: to }]);
+		const explicit = attributes?.items.findLast((a) => a.key === 'id');
+		const data = { depth: depth as 1 | 2 | 3 | 4 | 5 | 6, id: '', idExplicit: !!explicit };
+		const node = this.b.open('heading', at, data);
+		const text = inline(this.b, this.src, [{ start: from, end: to }]);
 		this.b.close(end);
+		if (explicit) {
+			data.id = explicit.value;
+			if (this.ids.has(data.id)) {
+				this.report(
+					explicit.start,
+					explicit.end,
+					`id \`${data.id}\` is already used by an earlier heading`,
+					'a different id'
+				);
+			}
+		} else {
+			const base = slug(text);
+			data.id = base;
+			for (let n = 1; this.ids.has(data.id); n++) data.id = `${base}-${n}`;
+		}
+		this.ids.add(data.id);
 		this.leafNode(node, end, attributes);
 	}
 
@@ -671,7 +694,7 @@ class BlockParser {
 		this.b.open('tableRow', start);
 		for (const cell of cells(this.src, start, end).slice(0, columns)) {
 			this.b.open('tableCell', cell.start);
-			inline(this.b, this.src, [cell]);
+			inline(this.b, this.src, [cell], true);
 			this.b.close(cell.end);
 		}
 		this.b.close(end);
@@ -928,4 +951,21 @@ function delimiterRow(src: string, start: number, end: number): Align[] | null {
 		align.push(m[1] && m[2] ? 'center' : m[1] ? 'left' : m[2] ? 'right' : null);
 	}
 	return align;
+}
+
+/** @prose
+ * ## Heading ids
+ *
+ * GitHub's algorithm, on the heading's plain text: lowercased, with every character that isn't a
+ * letter, mark, number, space, `_` or `-` removed, trimmed, and each run of whitespace turned into
+ * `-`. Letters in any script stay. A heading with nothing left is `section`.
+ */
+function slug(text: string): string {
+	return (
+		text
+			.toLowerCase()
+			.replace(/[^\p{L}\p{M}\p{N}\s_-]/gu, '')
+			.trim()
+			.replace(/\s+/g, '-') || 'section'
+	);
 }
