@@ -11,6 +11,8 @@ import { prose } from '@amitkaps/prose';
 
 const generated = ['dist/**'];
 const vendored = ['test/spec/*.json'];
+// The site's generated files. `vp` reads this config for the whole workspace, `docs/` included.
+const site = ['docs/.svelte-kit/**', 'docs/build/**', 'docs/worker-configuration.d.ts'];
 
 export default defineConfig({
 	plugins: process.env.VITEST ? [] : [prose()],
@@ -32,7 +34,8 @@ export default defineConfig({
 		printWidth: 100,
 		trailingComma: 'none',
 		sortPackageJson: true,
-		ignorePatterns: [...generated, ...vendored, 'pnpm-lock.yaml', 'CHANGELOG.md']
+		svelte: { indentScriptAndStyle: true },
+		ignorePatterns: [...generated, ...vendored, ...site, 'pnpm-lock.yaml', 'CHANGELOG.md']
 	},
 
 	// Oxlint — `vp lint` / `vp check`.
@@ -40,7 +43,7 @@ export default defineConfig({
 		plugins: ['typescript', 'unicorn', 'import'],
 		categories: { correctness: 'error' },
 		options: { typeAware: true, typeCheck: true },
-		ignorePatterns: generated
+		ignorePatterns: [...generated, ...site]
 	},
 
 	// Vitest — `vp test`.

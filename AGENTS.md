@@ -11,6 +11,11 @@ Read **`prose/spec.md`** first — it is the design for markz.
   shares with GFM. Don't let "same as GFM" leak past the constructs `syntax.md` lists. When the
   oracle disagrees with `syntax.md`, exclude the example with its `syntax.md` reason
   (`test/examples.ts`) rather than bending the parser.
+- `docs/` is the site (markz.amitkaps.com): a private workspace package, trimmed from base, that
+  renders the README and `prose/` with this commit's markz and builds the Conformance page from
+  the test harness. It is a consumer, never part of the package: its dependencies (Svelte,
+  wrangler) must not reach the library. `pnpm docs` runs it; CI checks, tests and builds it, and
+  deploys it from `main`.
 - The invariant: unsupported syntax stays literal text and produces a diagnostic. It is never
   silently reinterpreted as a different supported construct.
 

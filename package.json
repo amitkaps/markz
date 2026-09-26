@@ -24,7 +24,8 @@
 		"test": "vp test --run",
 		"prepublishOnly": "vp pack",
 		"size": "node scripts/size.ts",
-		"report": "node scripts/report.ts"
+		"docs": "pnpm --filter markz-docs dev",
+		"docs:build": "pnpm --filter markz-docs build"
 	},
 	"devDependencies": {
 		"@amitkaps/prose": "https://github.com/amitkaps/prose/releases/download/v0.1.0/amitkaps-prose-0.1.0.tgz",
