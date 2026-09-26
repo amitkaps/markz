@@ -32,3 +32,5 @@ pnpm install
 ```
 
 `dev` (watch build), `build`, `check` (format, lint, typecheck) and `test` are the whole interface.
+`pnpm report` writes `report/conformance.html`, a page showing every spec example against the
+oracle.

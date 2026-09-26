@@ -2,6 +2,7 @@ node_modules
 
 # Output
 /dist
+/report
 
 # Vite+
 /.vite

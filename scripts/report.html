@@ -1,0 +1,800 @@
+<meta charset="utf-8" />
+<title>markz Conformance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+	rel="stylesheet"
+	href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+/>
+<style>
+	:root {
+		--ground: #f4f6f9;
+		--surface: #ffffff;
+		--ink: #192130;
+		--muted: #586377;
+		--rule: #d7dde6;
+		--code: #eef1f6;
+		--accent: #2a55b8;
+		--pass: #1b7a4b;
+		--pass-soft: #d9eee2;
+		--fail: #b3342b;
+		--fail-soft: #f6dedb;
+		--pending: #5f6878;
+		--pending-soft: #e4e8ee;
+		--excluded: #85650f;
+		--excluded-soft: #f2e8cc;
+		--mark: #ffe08a;
+		--sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+		--mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+		color-scheme: light;
+	}
+	@media (prefers-color-scheme: dark) {
+		:root:not([data-theme='light']) {
+			--ground: #11151c;
+			--surface: #181d26;
+			--ink: #e3e8f0;
+			--muted: #97a1b3;
+			--rule: #2b3240;
+			--code: #1f252f;
+			--accent: #86a6f2;
+			--pass: #5fc28e;
+			--pass-soft: #1b3727;
+			--fail: #f07d73;
+			--fail-soft: #43231f;
+			--pending: #9ea7b6;
+			--pending-soft: #283040;
+			--excluded: #dcbb5f;
+			--excluded-soft: #3a311a;
+			--mark: #6b5415;
+			color-scheme: dark;
+		}
+	}
+	:root[data-theme='dark'] {
+		--ground: #11151c;
+		--surface: #181d26;
+		--ink: #e3e8f0;
+		--muted: #97a1b3;
+		--rule: #2b3240;
+		--code: #1f252f;
+		--accent: #86a6f2;
+		--pass: #5fc28e;
+		--pass-soft: #1b3727;
+		--fail: #f07d73;
+		--fail-soft: #43231f;
+		--pending: #9ea7b6;
+		--pending-soft: #283040;
+		--excluded: #dcbb5f;
+		--excluded-soft: #3a311a;
+		--mark: #6b5415;
+		color-scheme: dark;
+	}
+
+	* {
+		box-sizing: border-box;
+	}
+	body {
+		margin: 0;
+		background: var(--ground);
+		color: var(--ink);
+		font: 15px/1.55 var(--sans);
+		padding-inline: 16px;
+		padding-block: 32px 64px;
+	}
+	.page {
+		max-width: 1180px;
+		margin: 0 auto;
+		display: grid;
+		gap: 40px;
+	}
+	h1,
+	h2 {
+		margin: 0;
+		text-wrap: balance;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+	}
+	h1 {
+		font-size: 30px;
+		line-height: 1.15;
+	}
+	h1 code {
+		font-family: var(--mono);
+		font-weight: 500;
+	}
+	h2 {
+		font-size: 17px;
+	}
+	p {
+		margin: 0;
+	}
+	.eyebrow {
+		font: 500 12px/1 var(--mono);
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--muted);
+	}
+	header {
+		display: grid;
+		gap: 10px;
+		max-width: 68ch;
+	}
+	.lede {
+		color: var(--muted);
+	}
+	.meta {
+		font: 13px/1.4 var(--mono);
+		color: var(--muted);
+	}
+	section {
+		display: grid;
+		gap: 14px;
+		min-width: 0;
+	}
+	.section-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 8px 16px;
+	}
+	.hint {
+		color: var(--muted);
+		font-size: 13px;
+	}
+
+	/* Summary */
+	.stats {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+		gap: 12px;
+	}
+	.stat {
+		display: grid;
+		gap: 4px;
+		padding: 14px 16px;
+		background: var(--surface);
+		border: 1px solid var(--rule);
+		border-top: 3px solid var(--tone);
+		border-radius: 6px;
+		text-align: left;
+		font: inherit;
+		color: inherit;
+		cursor: pointer;
+	}
+	.stat[aria-pressed='false'] {
+		opacity: 0.45;
+	}
+	.stat .n {
+		font: 600 28px/1.1 var(--sans);
+		font-variant-numeric: tabular-nums;
+		color: var(--tone);
+	}
+	.stat .label {
+		font-weight: 600;
+	}
+	.stat .what {
+		color: var(--muted);
+		font-size: 13px;
+	}
+	.bar {
+		display: flex;
+		height: 10px;
+		border-radius: 5px;
+		overflow: hidden;
+		background: var(--pending-soft);
+	}
+	.bar span {
+		background: var(--tone);
+	}
+	.pass {
+		--tone: var(--pass);
+		--soft: var(--pass-soft);
+	}
+	.fail {
+		--tone: var(--fail);
+		--soft: var(--fail-soft);
+	}
+	.pending {
+		--tone: var(--pending);
+		--soft: var(--pending-soft);
+	}
+	.excluded {
+		--tone: var(--excluded);
+		--soft: var(--excluded-soft);
+	}
+
+	/* Tables */
+	.table-wrap {
+		overflow-x: auto;
+		background: var(--surface);
+		border: 1px solid var(--rule);
+		border-radius: 6px;
+	}
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		font-variant-numeric: tabular-nums;
+	}
+	th,
+	td {
+		padding: 8px 12px;
+		text-align: left;
+		border-bottom: 1px solid var(--rule);
+		white-space: nowrap;
+	}
+	tr:last-child td {
+		border-bottom: 0;
+	}
+	th {
+		font-size: 12px;
+		font-weight: 500;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--muted);
+	}
+	td.num,
+	th.num {
+		text-align: right;
+	}
+	td.bar-cell {
+		width: 40%;
+		min-width: 140px;
+	}
+	.suite {
+		font: 12px var(--mono);
+		color: var(--muted);
+	}
+	tbody tr {
+		cursor: pointer;
+	}
+	tbody tr:hover td {
+		background: var(--code);
+	}
+	tbody tr.active td {
+		background: var(--code);
+		box-shadow: inset 0 0 0 0 var(--accent);
+	}
+	td.zero {
+		color: var(--rule);
+	}
+
+	/* Filters */
+	.filters {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		align-items: center;
+	}
+	.filters input,
+	.filters select,
+	.chip {
+		font: 14px var(--sans);
+		color: var(--ink);
+		background: var(--surface);
+		border: 1px solid var(--rule);
+		border-radius: 6px;
+		padding: 6px 10px;
+	}
+	.filters input {
+		flex: 1 1 220px;
+		min-width: 0;
+	}
+	.filters select {
+		max-width: 100%;
+	}
+	.chip {
+		cursor: pointer;
+	}
+	.chip[aria-pressed='true'] {
+		border-color: var(--accent);
+		color: var(--accent);
+	}
+	button:focus-visible,
+	input:focus-visible,
+	select:focus-visible,
+	summary:focus-visible,
+	tr:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
+	.count {
+		color: var(--muted);
+		font-size: 13px;
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* Examples */
+	.list {
+		display: grid;
+		gap: 6px;
+	}
+	details.ex {
+		background: var(--surface);
+		border: 1px solid var(--rule);
+		border-left: 3px solid var(--tone);
+		border-radius: 6px;
+		min-width: 0;
+	}
+	details.ex > summary {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 4px 12px;
+		padding: 9px 14px;
+		cursor: pointer;
+		list-style: none;
+	}
+	details.ex > summary::-webkit-details-marker {
+		display: none;
+	}
+	.num-label {
+		font: 500 14px var(--mono);
+		font-variant-numeric: tabular-nums;
+		min-width: 5ch;
+	}
+	.pill {
+		font-size: 12px;
+		font-weight: 600;
+		letter-spacing: 0.03em;
+		padding: 1px 8px;
+		border-radius: 999px;
+		background: var(--soft);
+		color: var(--tone);
+	}
+	.why {
+		color: var(--muted);
+		font-size: 13px;
+	}
+	.preview {
+		flex: 1 1 200px;
+		min-width: 0;
+		font: 13px var(--mono);
+		color: var(--muted);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.body {
+		display: grid;
+		gap: 12px;
+		padding: 0 14px 14px;
+	}
+	.panes {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+		gap: 10px;
+	}
+	.pane {
+		display: grid;
+		gap: 4px;
+		align-content: start;
+		min-width: 0;
+	}
+	.pane h3 {
+		margin: 0;
+		font-size: 12px;
+		font-weight: 500;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--muted);
+	}
+	pre {
+		margin: 0;
+		padding: 10px 12px;
+		background: var(--code);
+		border-radius: 4px;
+		font: 13px/1.5 var(--mono);
+		overflow-x: auto;
+		white-space: pre;
+		tab-size: 4;
+	}
+	pre.wrap {
+		white-space: pre-wrap;
+		word-break: break-all;
+	}
+	.ws {
+		color: var(--muted);
+		opacity: 0.7;
+	}
+	mark {
+		background: var(--mark);
+		color: inherit;
+	}
+	.diagnostics {
+		margin: 0;
+		padding-left: 18px;
+		font: 13px/1.5 var(--mono);
+	}
+	.empty {
+		padding: 24px;
+		text-align: center;
+		color: var(--muted);
+		background: var(--surface);
+		border: 1px dashed var(--rule);
+		border-radius: 6px;
+	}
+	.more {
+		justify-self: center;
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.stat,
+		.chip {
+			transition: opacity 0.15s;
+		}
+	}
+</style>
+
+<div class="page">
+	<header>
+		<p class="eyebrow">CommonMark 0.31.2 · GFM · oracle: micromark</p>
+		<h1><code>markz</code> conformance</h1>
+		<p class="lede">
+			Every spec example, parsed by markz and by micromark with GFM and directives, compared after
+			whitespace and smart punctuation are normalized. Examples that use syntax the dialect cuts are
+			excluded with their <code>syntax.md</code> reason.
+		</p>
+		<p class="meta" id="meta"></p>
+	</header>
+
+	<section aria-labelledby="summary-h">
+		<h2 id="summary-h" hidden>Summary</h2>
+		<div class="stats" id="stats"></div>
+		<div class="bar" id="overall" role="img"></div>
+	</section>
+
+	<section aria-labelledby="sections-h">
+		<div class="section-head">
+			<h2 id="sections-h">By section</h2>
+			<p class="hint">Select a section to filter the examples below.</p>
+		</div>
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr>
+						<th>Section</th>
+						<th class="bar-cell">Status</th>
+						<th class="num">Pass</th>
+						<th class="num">Fail</th>
+						<th class="num">Pending</th>
+						<th class="num">Excluded</th>
+					</tr>
+				</thead>
+				<tbody id="sections"></tbody>
+			</table>
+		</div>
+	</section>
+
+	<section aria-labelledby="reasons-h">
+		<div class="section-head">
+			<h2 id="reasons-h">Excluded, by <code>syntax.md</code> reason</h2>
+			<p class="hint">Select a reason to see its examples.</p>
+		</div>
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr>
+						<th>Reason</th>
+						<th class="num">Examples</th>
+					</tr>
+				</thead>
+				<tbody id="reasons"></tbody>
+			</table>
+		</div>
+	</section>
+
+	<section aria-labelledby="examples-h">
+		<div class="section-head">
+			<h2 id="examples-h">Examples</h2>
+			<p class="count" id="count" aria-live="polite"></p>
+		</div>
+		<div class="filters">
+			<input id="search" type="search" placeholder="Search Markdown, or #232" aria-label="Search" />
+			<select id="section" aria-label="Section"></select>
+			<select id="reason" aria-label="Exclusion reason"></select>
+			<button class="chip" id="reset" type="button">Clear filters</button>
+		</div>
+		<div class="list" id="list"></div>
+	</section>
+</div>
+
+<script type="application/json" id="data">
+	"__DATA__"
+</script>
+<script>
+	const { generated, commit, rows } = JSON.parse(document.getElementById('data').textContent);
+	const STATUSES = ['fail', 'pass', 'pending', 'excluded'];
+	const LABEL = { pass: 'Pass', fail: 'Fail', pending: 'Pending', excluded: 'Excluded' };
+	const WHAT = {
+		pass: 'markz writes what the oracle writes',
+		fail: 'markz differs from the oracle',
+		pending: 'has inline syntax, compared once the inline pass lands',
+		excluded: 'uses syntax the dialect cuts or changes'
+	};
+	const PAGE = 100;
+
+	const state = { statuses: new Set(STATUSES), section: '', reason: '', search: '', limit: PAGE };
+	const $ = (id) => document.getElementById(id);
+	const el = (tag, attrs = {}, ...kids) => {
+		const node = document.createElement(tag);
+		for (const [k, v] of Object.entries(attrs)) {
+			if (k === 'class') node.className = v;
+			else if (k.startsWith('on')) node.addEventListener(k.slice(2), v);
+			else node.setAttribute(k, v);
+		}
+		node.append(...kids.filter((k) => k !== null && k !== undefined));
+		return node;
+	};
+	const tally = (list) => {
+		const t = { pass: 0, fail: 0, pending: 0, excluded: 0 };
+		for (const r of list) t[r.status]++;
+		return t;
+	};
+	const bar = (t, total) => {
+		const b = el('div', { class: 'bar', role: 'img' });
+		b.setAttribute('aria-label', STATUSES.map((s) => `${t[s]} ${s}`).join(', '));
+		for (const s of ['pass', 'fail', 'pending', 'excluded']) {
+			if (t[s]) b.append(el('span', { class: s, style: `width:${(100 * t[s]) / total}%` }));
+		}
+		return b;
+	};
+
+	$('meta').textContent =
+		`${rows.length} examples · generated ${new Date(generated).toLocaleString()}${commit ? ` · ${commit}` : ''}`;
+
+	// Summary tiles double as status filters.
+	const all = tally(rows);
+	for (const s of STATUSES) {
+		$('stats').append(
+			el(
+				'button',
+				{
+					class: `stat ${s}`,
+					type: 'button',
+					'aria-pressed': 'true',
+					'data-status': s,
+					onclick: (e) => {
+						const on = state.statuses.has(s);
+						if (on) state.statuses.delete(s);
+						else state.statuses.add(s);
+						e.currentTarget.setAttribute('aria-pressed', String(!on));
+						state.limit = PAGE;
+						render();
+					}
+				},
+				el('span', { class: 'n' }, String(all[s])),
+				el('span', { class: 'label' }, LABEL[s]),
+				el('span', { class: 'what' }, WHAT[s])
+			)
+		);
+	}
+	$('overall').replaceWith(bar(all, rows.length));
+
+	// Sections, in spec order.
+	const sections = [];
+	for (const r of rows) {
+		const key = `${r.suite}:${r.section}`;
+		if (!sections.some((s) => s.key === key))
+			sections.push({ key, suite: r.suite, name: r.section });
+	}
+	for (const s of sections) {
+		const list = rows.filter((r) => `${r.suite}:${r.section}` === s.key);
+		const t = tally(list);
+		const cell = (n) => el('td', { class: n ? 'num' : 'num zero' }, String(n));
+		$('sections').append(
+			el(
+				'tr',
+				{
+					tabindex: '0',
+					'data-key': s.key,
+					onclick: () => pickSection(s.key),
+					onkeydown: (e) =>
+						(e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), pickSection(s.key))
+				},
+				el('td', {}, s.name, ' ', s.suite === 'gfm' ? el('span', { class: 'suite' }, 'gfm') : null),
+				el('td', { class: 'bar-cell' }, bar(t, list.length)),
+				cell(t.pass),
+				cell(t.fail),
+				cell(t.pending),
+				cell(t.excluded)
+			)
+		);
+	}
+
+	// Exclusion reasons, most examples first.
+	const reasons = new Map();
+	for (const r of rows) if (r.reason) reasons.set(r.reason, (reasons.get(r.reason) ?? 0) + 1);
+	const byCount = [...reasons].sort((a, b) => b[1] - a[1]);
+	for (const [reason, n] of byCount) {
+		$('reasons').append(
+			el(
+				'tr',
+				{
+					tabindex: '0',
+					onclick: () => pickReason(reason),
+					onkeydown: (e) =>
+						(e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), pickReason(reason))
+				},
+				el('td', {}, reason),
+				el('td', { class: 'num' }, String(n))
+			)
+		);
+	}
+
+	$('section').append(el('option', { value: '' }, 'All sections'));
+	for (const s of sections) {
+		$('section').append(
+			el('option', { value: s.key }, `${s.name}${s.suite === 'gfm' ? ' (gfm)' : ''}`)
+		);
+	}
+	$('reason').append(el('option', { value: '' }, 'Any reason'));
+	for (const [reason] of byCount) $('reason').append(el('option', { value: reason }, reason));
+
+	function pickSection(key) {
+		state.section = state.section === key ? '' : key;
+		$('section').value = state.section;
+		state.limit = PAGE;
+		render();
+		$('examples-h').scrollIntoView({ behavior: 'smooth', block: 'start' });
+	}
+	function pickReason(reason) {
+		state.reason = reason;
+		$('reason').value = reason;
+		state.statuses = new Set(STATUSES);
+		for (const b of document.querySelectorAll('.stat')) b.setAttribute('aria-pressed', 'true');
+		state.limit = PAGE;
+		render();
+		$('examples-h').scrollIntoView({ behavior: 'smooth', block: 'start' });
+	}
+	$('section').addEventListener('change', (e) => {
+		state.section = e.target.value;
+		state.limit = PAGE;
+		render();
+	});
+	$('reason').addEventListener('change', (e) => {
+		state.reason = e.target.value;
+		state.limit = PAGE;
+		render();
+	});
+	$('search').addEventListener('input', (e) => {
+		state.search = e.target.value.trim();
+		state.limit = PAGE;
+		render();
+	});
+	$('reset').addEventListener('click', () => {
+		Object.assign(state, {
+			statuses: new Set(STATUSES),
+			section: '',
+			reason: '',
+			search: '',
+			limit: PAGE
+		});
+		$('section').value = '';
+		$('reason').value = '';
+		$('search').value = '';
+		for (const b of document.querySelectorAll('.stat')) b.setAttribute('aria-pressed', 'true');
+		render();
+	});
+
+	// Markdown with tabs and trailing spaces made visible, as the spec prints them.
+	function source(text) {
+		const pre = el('pre', {});
+		for (const line of text.split('\n')) {
+			const [, body, trailing] = /^(.*?)([ \t]*)$/.exec(line);
+			for (const part of body.split(/(\t)/)) {
+				pre.append(part === '\t' ? el('span', { class: 'ws' }, '→\t') : part);
+			}
+			if (trailing)
+				pre.append(el('span', { class: 'ws' }, trailing.replace(/ /g, '·').replace(/\t/g, '→\t')));
+			pre.append('\n');
+		}
+		return pre;
+	}
+	function marked(a, b) {
+		let i = 0;
+		while (i < a.length && a[i] === b[i]) i++;
+		const pre = el('pre', { class: 'wrap' }, a.slice(0, i));
+		if (i < a.length) pre.append(el('mark', {}, a.slice(i)));
+		return pre;
+	}
+	function pane(title, ...content) {
+		return el('div', { class: 'pane' }, el('h3', {}, title), ...content);
+	}
+	function detail(r) {
+		const body = el(
+			'div',
+			{ class: 'body' },
+			el(
+				'div',
+				{ class: 'panes' },
+				pane('Markdown', source(r.markdown)),
+				pane('micromark (oracle)', el('pre', {}, r.oracle)),
+				pane('markz', el('pre', {}, r.markz))
+			)
+		);
+		if (r.normalized) {
+			const [oracle, markz] = r.normalized;
+			body.append(
+				el(
+					'div',
+					{ class: 'panes' },
+					pane('Oracle, normalized, from the first difference', marked(oracle, markz)),
+					pane('markz, normalized, from the first difference', marked(markz, oracle))
+				)
+			);
+		}
+		if (r.diagnostics.length) {
+			body.append(
+				pane(
+					'Diagnostics',
+					el('ul', { class: 'diagnostics' }, ...r.diagnostics.map((d) => el('li', {}, d)))
+				)
+			);
+		}
+		return body;
+	}
+	function row(r) {
+		const d = el(
+			'details',
+			{ class: `ex ${r.status}` },
+			el(
+				'summary',
+				{},
+				el('span', { class: 'num-label' }, `#${r.example}`),
+				el('span', { class: 'pill' }, LABEL[r.status]),
+				el(
+					'span',
+					{},
+					r.section,
+					' ',
+					r.suite === 'gfm' ? el('span', { class: 'suite' }, 'gfm') : null
+				),
+				r.reason ? el('span', { class: 'why' }, r.reason) : null,
+				el('span', { class: 'preview' }, r.markdown.replace(/\n/g, '⏎ '))
+			)
+		);
+		d.addEventListener('toggle', () => {
+			if (d.open && d.children.length === 1) d.append(detail(r));
+		});
+		return d;
+	}
+
+	function render() {
+		const q = state.search.toLowerCase();
+		const number = /^#?(\d+)$/.exec(q)?.[1];
+		const shown = rows.filter(
+			(r) =>
+				state.statuses.has(r.status) &&
+				(!state.section || `${r.suite}:${r.section}` === state.section) &&
+				(!state.reason || r.reason === state.reason) &&
+				(!q || (number ? String(r.example) === number : r.markdown.toLowerCase().includes(q)))
+		);
+		shown.sort((a, b) => STATUSES.indexOf(a.status) - STATUSES.indexOf(b.status));
+		for (const tr of $('sections').children)
+			tr.classList.toggle('active', tr.dataset.key === state.section);
+		$('count').textContent = `${shown.length} of ${rows.length}`;
+		const list = $('list');
+		list.replaceChildren();
+		if (shown.length === 0) {
+			list.append(el('p', { class: 'empty' }, 'No examples match these filters.'));
+			return;
+		}
+		for (const r of shown.slice(0, state.limit)) list.append(row(r));
+		if (shown.length > state.limit) {
+			list.append(
+				el(
+					'button',
+					{
+						class: 'chip more',
+						type: 'button',
+						onclick: () => {
+							state.limit += PAGE;
+							render();
+						}
+					},
+					`Show ${Math.min(PAGE, shown.length - state.limit)} more`
+				)
+			);
+		}
+	}
+	render();
+</script>
