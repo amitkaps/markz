@@ -1,7 +1,7 @@
 # Syntax
 
 This is markz's dialect, one construct per row. It keeps GFM's everyday symbols, uses directives as its one extension syntax (with
-`{…}` attributes in a few fixed places), and adds frontmatter, math and `${…}` expressions. It cuts
+`{…}` attributes in a few fixed places), and adds a metadata block, math and `${…}` expressions. It cuts
 everything that makes Markdown need backtracking. There is one way to write each thing. The
 rendered site is the primary target. A markz document stays readable on GitHub, but it doesn't
 have to render identically there. Anything markz rejects stays literal text and adds an entry to
@@ -118,56 +118,56 @@ single line.
 only thing kept from HTML. prose's Markdown notes need it (`<!-- @note … -->`), and GitHub hides
 comments too. A comment in the middle of a line is text.
 
-### Frontmatter
+### Metadata
 
-A small subset of YAML, fenced by `---` lines starting at offset 0. markz parses it into
-`doc.frontmatter`, a flat object, and keeps the raw text and its range as well. Every document
-markz accepts has the same value when parsed as YAML 1.2, and anything whose YAML 1.2 value markz
-can't reproduce is rejected rather than read differently. A consumer that needs more
-can pass the raw text to a full YAML parser.
+A document can open with a metadata block: key/value pairs between `---` lines, starting at
+offset 0 (what other tools call frontmatter). markz parses it into `doc.metadata`, a flat object,
+and keeps the block's range.
+
+The rule is JSON-like, with quotes optional: one `key: value` per line, where a value that doesn't
+look like anything else is a string as written.
 
 ```yaml
 ---
-# a full-line comment
+# a comment
 title: Sales Report
 summary: 'Make it yours: Cloudflare, secrets.'
-permalink: sales # a trailing comment
 order: 2
 draft: false
 date: 2026-09-26
 image:
-tags:
-  - svelte
-  - vite
+tags: [svelte, vite]
 ---
 ```
 
-| Form                                                           | Value                                                                                                                                      |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `key: plain text`                                              | string. It can't contain `: `, and it can't start with a YAML special character (`[ { & * ! \| > ' " % @` and backtick). Quote it instead. |
-| `key: 'single'`                                                | string, with `''` as an escaped quote                                                                                                      |
-| `key: "double"`                                                | string, with the escapes `\"`, `\\`, `\n`, `\t` and `\uXXXX`                                                                               |
-| `42`, `-3`, `1.5`                                              | number. No hex, exponents or `.inf`.                                                                                                       |
-| `true`, `false`                                                | boolean. `yes` and `no` stay strings, as in YAML 1.2.                                                                                      |
-| `key:` with nothing after, or `key: null`                      | `null`                                                                                                                                     |
-| `2026-09-26`                                                   | string, which the consumer's schema validates or converts                                                                                  |
-| `key:`, then indented `- item` lines                           | a list of scalars, each following the rules above                                                                                          |
-| `# …`, on its own line or after a value with a space before it | a comment                                                                                                                                  |
+| Value              | Result                                                       |
+| ------------------ | ------------------------------------------------------------ |
+| nothing, or `null` | `null`                                                       |
+| `true`, `false`    | boolean                                                      |
+| `42`, `-3`, `1.5`  | number                                                       |
+| `"text"`           | string, with JSON's escapes                                  |
+| `'text'`           | string, with `''` for a quote and no other escapes           |
+| `[a, 2, "b, c"]`   | a list of values by these same rules, one line, no nesting   |
+| anything else      | string, as written: `Sales Report`, `2026-09-26`, `C# notes` |
 
-Keys are `[A-Za-z_][A-Za-z0-9_-]*`.
+- **Keys** are `[A-Za-z_][A-Za-z0-9_-]*`, and a key appears once.
+- **Comments:** a line starting with `#`, or ` #` after a value, as in YAML.
+- **Both quote styles** are accepted because formatters pick one by configuration (oxfmt writes
+  single quotes in this repo and double quotes by default). Quote a value that would otherwise
+  read as something else (`"true"`, `"42"`), that contains `: `, or that starts with a
+  character YAML reserves (`{ & * ! | > % @`, a backtick, or `- `). In a list, also quote an item
+  that contains `,`, `[` or `]`.
+- **YAML look-alikes are errors, not strings.** The block is still YAML to GitHub, editors,
+  formatters and any YAML parser, and every block markz accepts has the same value under YAML
+  1.2. So a plain value YAML would read differently gets a diagnostic, not a silent string:
+  `True`, `FALSE`, `~`, `Null`, `+1`, `.5`, `1e3`, `0x1F`, `.inf`. Write the canonical form or
+  quote it.
+- **Everything else in YAML is out:** indented lines (nested maps, `- item` lists, multi-line
+  strings), `|` and `>`, `{a: b}`, anchors, aliases and tags. Each gets a diagnostic, and its key
+  is skipped. Of two duplicate keys, the first wins and the second gets a diagnostic.
 
-A plain value that YAML 1.2's core schema reads as a null, boolean or number, in a form other than
-those above, is rejected with a diagnostic rather than kept as a string: `~`, `Null`, `True`,
-`FALSE`, `+1`, `.5`, `1.`, `1e3`, `0x1F`, `0o17`, `.inf`, `.nan`. Quote it to keep it a string.
-
-Not in the subset: nested maps, flow `[a, b]` and `{a: b}`, multi-line strings (`|`, `>`),
-anchors and aliases, tags (`!!str`), and tabs used for indentation. For any of these, and for a
-duplicate key, markz adds a diagnostic and skips the key. The first of two duplicate keys wins.
-
-This covers every frontmatter block in base, visdown and amitkaps.github.io today. Those are 7
-keys, all flat scalars, with base's planned `tags` as the only list. `yaml`, which base and
-visdown already use, becomes the dev-only test oracle, as micromark is for the Markdown: every
-subset document must give the same object from both.
+markz is not a YAML parser. The `yaml` package is its dev-only test oracle, as micromark is for
+the Markdown: every accepted block must give the same object from both.
 
 ### Directives
 
@@ -334,7 +334,7 @@ Each of these stays literal text and adds a diagnostic suggesting the supported 
 | Attributes after words, inline code or emphasis (`word{.x}`), and djot spans (`[text]{.x}`)  | `:span[text]{.x}`                                                 | Directives already wrap inline text, so one way. Keeping `{` special only after a `)` means braces in prose are plain text.                                                 |
 | MDX: JSX and bare `{…}` expressions                                                          | directives, `${…}`                                                | A `{` is only attributes where the rules above say so.                                                                                                                      |
 | Footnotes (`[^label]`, `[^label]: text`)                                                     | a text directive, such as `:note[text]`                           | A reference can't be resolved until the whole document is read, as with reference links. Nothing we write uses them.                                                        |
-| TOML frontmatter (`+++`)                                                                     | YAML                                                              | One format.                                                                                                                                                                 |
+| TOML metadata (`+++`)                                                                        | a `---` metadata block                                            | One format.                                                                                                                                                                 |
 | Lazy continuation lines (a quoted or listed paragraph continuing without `>` or indentation) | `>` on every line, or indent to the item's content column         | Lazy lines are the main reason CommonMark's block structure depends on context. Formatters already write them out in full.                                                  |
 
 ## Canonical form

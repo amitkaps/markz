@@ -3,7 +3,7 @@
  *
  * Small, opinionated Markdown: one fixed dialect (GFM's everyday syntax without the parts that
  * need backtracking, plus directives with `{…}` attributes, math, `${…}` expressions and YAML
- * frontmatter), one compact source-mapped AST, and `html()` output,
+ * metadata), one compact source-mapped AST, and `html()` output,
  * with no options. This is the package entry point: the public API lives here and nothing else is
  * importable.
  */
@@ -17,8 +17,8 @@ export type {
 	DataType,
 	Destination,
 	Diagnostic,
-	FrontmatterScalar,
-	FrontmatterValue,
+	MetadataScalar,
+	MetadataValue,
 	NodeData,
 	NodeId,
 	NodeType,
