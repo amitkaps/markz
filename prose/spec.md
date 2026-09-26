@@ -256,8 +256,16 @@ markz has its own parser. It is written for this one dialect, runs in linear tim
 backtracking, and emits straight into the flat AST:
 
 ```text
-source → block pass (lines → containers, leaves) → inline pass (per leaf) → flat AST + ids + diagnostics → html()
+source → block pass (lines → containers, leaves) → inline pass (per leaf) → heading ids → flat AST + diagnostics → html()
 ```
+
+**Everything is built in.** Directives, expressions, math, attributes, raw blocks, frontmatter,
+smart punctuation and heading ids are cases in the same two scanners. They aren't plug-ins
+layered on a CommonMark core, because a fixed dialect needs no extension points. That also keeps
+precedence in one place: `${…}` binding tighter than emphasis is just the order of the inline
+scanner's cases. Heading ids are the one step after the passes, because a generated id has to
+avoid an explicit `{#id}` that may appear later. That step walks the heading list, not the
+source.
 
 **No backtracking, as in djot.** The cuts in the [dialect](#markdown-dialect) remove every
 construct whose meaning depends on text after it. What remains is openers (`[`, `_`, `**`, `` ` ``,
@@ -402,7 +410,7 @@ markdown-exit and Comark. The unified/remark ecosystem stays out.
   generated from the shared grammar.
 - **Rejected syntax:** every row of the "Not supported" table in [`syntax.md`](syntax.md) stays
   text and produces its diagnostic.
-- **Extensions:**
+- **Constructs beyond GFM:**
   - directives, against `micromark-extension-directive`
   - frontmatter: every row of the subset table in `syntax.md`, each checked against the `yaml`
     package

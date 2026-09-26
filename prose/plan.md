@@ -37,61 +37,54 @@ Before any parsing code, set up the differential harness in `test/oracle.ts`:
 
 ### 4. Block pass
 
-`src/block.ts`, a line-by-line scan into containers and leaves, in one linear pass:
+`src/block.ts`, a line-by-line scan into containers and leaves, in one linear pass. Every block construct in `syntax.md` is a case in this scan. There are no plug-ins and no extension layer:
 
-- containers: blockquote, list, listItem
-- leaves: paragraph, ATX heading, fenced code (including ` ```=format ` raw blocks), thematic break, table, footnote definition, comment, frontmatter, `$$` math, and directive fences
-- block-attribute lines, attached to the next block
-- the frontmatter subset, parsed line by line in `src/frontmatter.ts` into a flat object
+- containers: blockquote, list, listItem, and container directives (`:::name` … `:::`)
+- leaves: paragraph, ATX heading, fenced code (including ` ```=format ` raw blocks), thematic break, table, footnote definition, comment, `$$` math, and leaf directives (`::name`)
+- block-attribute lines, attached to the next block. A heading's explicit `{#id}` is recorded here.
+- frontmatter at offset 0, parsed line by line into a flat object by the YAML-subset rules
 
-There is no indented code, setext, HTML block or lazy continuation. A rejected construct becomes paragraph text plus a diagnostic.
+Rejected constructs (setext, indented code, `~~~`, HTML, reference definitions, lazy lines) are recognised in the same scan. Each becomes paragraph text plus a diagnostic in the place it is met.
 
-Build the first cut of `html()` in `src/html.ts` alongside it. Tests assert exact offsets, and the oracle checks block-only examples.
+`html()` in `src/html.ts` grows alongside, one node type at a time. Tests assert exact offsets, and the oracle checks block-only examples.
 
 ### 5. Inline pass
 
-`src/inline.ts`, run per leaf, in one linear pass:
+`src/inline.ts`, run per leaf, in one linear pass. Again, every inline construct is a case in the same scanner:
 
-- inline code, `${…}` expressions and inline math, which bind tightest
-- links and images (inline form only) with an optional `{…}` directly after, `<…>` autolinks, and footnote references
+- inline code, `${…}` expressions and `$…$` math, which bind tightest
+- text directives (`:name[label]{…}`)
+- links and images (inline form only) with an optional `{…}` directly after, `<…>` autolinks, and footnote references. Expressions inside destinations and attribute values are found by the same `${` scanner.
 - strong (`**`) / emphasis (`_`) / strikethrough (`~~`) with the djot-style flanking rules
 - backslash escapes, numeric references and `\` hard breaks
 - smart punctuation on text: quotes by the character before them, `--`, `---`, `...`
 
-Openers go on a stack, and unmatched ones become text by patching the output. Failed scans record how far they got, so no input is read twice. Text nodes keep their decoded `value` and their raw source range. The whole filtered oracle suite runs from here on.
+Openers go on a stack, and unmatched ones become text by patching the output. Failed scans record how far they got, so no input is read twice. Text nodes keep their decoded `value` and their raw source range. The whole filtered oracle suite runs from here on, with directives also checked against `micromark-extension-directive`, and visdown's examples as fixtures.
 
-### 6. Extensions
+### 6. Heading ids
 
-- **Directives**, all three kinds, with attributes and expression ranges, checked against `micromark-extension-directive`.
-- **Expressions** inside link destinations and directive attributes.
-- `html()` output for math, expressions and directives, as `syntax.md` describes.
+This is the last step of `parse()` itself, not a separate utility. Explicit `{#id}`s are already on their headings from the block pass. Generated ids are then assigned in document order with GitHub's algorithm (`src/slug.ts`), skipping every explicit id. This one step runs after the passes because a heading's generated id has to avoid an explicit id that may appear later in the document. It walks the list of headings, not the source, so it isn't backtracking. Duplicate explicit ids produce diagnostics. The spec's golden table is the test.
 
-Test with visdown's examples.
-
-### 7. Heading IDs
-
-Explicit `{#id}`s first, then generated ids in `src/slug.ts`, using GitHub's algorithm. Generated ids skip explicit ones, and duplicate explicit ids produce diagnostics. The spec's golden table is the test.
-
-### 8. Diagnostics
+### 7. Diagnostics
 
 Every row of the "Not supported" table in `syntax.md` gets a test: the input stays text, and a diagnostic carries the range and the supported form.
 
-### 9. Traversal and position utilities
+### 8. Traversal and position utilities
 
 Public API, kept minimal: `parse`, `parsePartial`, `html`, `walk` (`enter`/`exit`), `textContent`, `position`. Lines are 1-based and columns are 0-based. Nothing else is exported until a consumer needs it.
 
-### 10. Robustness and fuzzing
+### 9. Robustness and fuzzing
 
 - A grammar-based generator of documents in the shared grammar, fed to the oracle.
 - Malformed input, CRLF and lone `\r`, BOM, and astral-plane offsets.
 - Adversarial unclosed openers, with a timing check that fails on super-linear growth.
 - A multi-MB document that guards against quadratic behaviour.
 
-### 11. Partial parsing
+### 10. Partial parsing
 
 `parsePartial(source)` works in Comark's model. It parses an incomplete prefix again and closes unterminated inline constructs and directive fences at the tail, with honest offsets and a `partial` flag. The test runs `parsePartial` on every prefix of the fixtures and checks for a valid tree.
 
-### 12. Benchmarks and bundle size
+### 11. Benchmarks and bundle size
 
 `bench/` (not published): parse throughput and AST memory versus micromark, markdown-it, marked, markdown-exit and Comark. The size gate goes into CI.
 
