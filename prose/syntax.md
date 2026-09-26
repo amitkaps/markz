@@ -11,19 +11,25 @@ The cuts and the attribute rules follow [djot](https://github.com/jgm/djot#ratio
 reasons are in the [spec](spec.md#markdown-dialect).
 
 A document is made of three parts, in this order: [Metadata](#metadata), then [Block](#block)
-constructs, which hold [Inline](#inline) content. Every construct below opens by saying where its
-rule comes from:
+constructs, which hold [Inline](#inline) content. Every construct below opens with its origin: the
+earliest layer that defines it. The layers build on each other in this order: CommonMark, then
+GFM, which extends it, then micromark-extension-directive, then djot. Math is outside the chain,
+with pandoc's and GitHub's delimiters in GitHub's HTML shape.
 
-- **As GFM:** the same syntax and result as GFM. micromark is the oracle, and this is the only
-  place "same as GFM" applies.
-- **As GFM, except:** GFM's construct with the listed cuts. Each cut is a row of
-  [Not supported](#not-supported).
-- **From djot, micromark-extension-directive or GitHub:** that source's rule, with any difference
-  named.
+- **As CommonMark** or **As GFM:** the same syntax and result. micromark with GFM is the oracle,
+  and these constructs are the only place "the same as GFM" applies.
+- **As CommonMark, except** or **As GFM, except:** that construct with the listed cuts. Each cut
+  is a row of [Not supported](#not-supported).
+- **From micromark-extension-directive, djot or pandoc,** or **As GitHub:** that source's rule,
+  with any difference named.
 - **markz:** markz's own rule, given in full.
 
-The test suite is organised the same way: every construct here has examples, and every example
-belongs to one construct or to a row of Not supported.
+This page explains the dialect, and the [grammar](#grammar) states it. Each construct has a stable
+id, set by the `{#id}` line above its heading. The grammar and the test suite refer to constructs
+by that id: every construct has examples, and every example belongs to one construct or to a row
+of Not supported, keyed by its warning code.
+
+{#metadata}
 
 ## Metadata
 
@@ -85,9 +91,11 @@ the Markdown: every accepted block must give the same object from both.
 
 ## Block
 
+{#paragraph}
+
 ### Paragraphs
 
-**As GFM, except** that a paragraph never continues lazily into a blockquote or list item (see
+**As CommonMark, except** that a paragraph never continues lazily into a blockquote or list item (see
 Blockquotes and Lists).
 
 - Text separated by a blank line.
@@ -102,9 +110,11 @@ Moko kahan dhundhe re bande
 Main to tere paas mein
 ```
 
+{#heading}
+
 ### Headings
 
-**As GFM, except** that only the `#` form exists, and **markz** gives every heading an id.
+**As CommonMark, except** that only the `#` form exists, and **markz** gives every heading an id.
 
 `#` to `######`, then a space, and one line of content. The optional closing `#`s
 (`## Title ##`) are accepted and stripped, as GFM does.
@@ -147,13 +157,17 @@ These cases are the contract, and the tests hold to them:
 In a document of its own, a heading whose text looks like a suffix keeps it, and the second
 `foo` goes past it: `# foo-1`, `# foo`, `# foo` give `foo-1`, `foo`, `foo-2`.
 
+{#blockquote}
+
 ### Blockquotes
 
-**As GFM, except** that `>` starts every line. A line without it ends the blockquote.
+**As CommonMark, except** that `>` starts every line. A line without it ends the blockquote.
+
+{#list}
 
 ### Lists
 
-**As GFM, except** that there are no lazy continuation lines.
+**As CommonMark, except** that there are no lazy continuation lines, and **from GFM**, task items.
 
 | Construct    | Syntax                              | Notes                                                                                                    |
 | ------------ | ----------------------------------- | -------------------------------------------------------------------------------------------------------- |
@@ -164,12 +178,16 @@ In a document of its own, a heading whose text looks like a suffix keeps it, and
 - Content that continues a list item is indented to that item's content column.
 - Tight and loose lists follow GFM: a blank line between items makes the list loose.
 
+{#code-block}
+
 ### Code blocks
 
-**As GFM, except** that the fence is backticks only.
+**As CommonMark, except** that the fence is backticks only.
 
 ` ``` ` or longer, then an info string. The first word is `lang` and the rest is `meta`. Nest by
 using a longer fence.
+
+{#raw-block}
 
 ### Raw blocks
 
@@ -194,6 +212,8 @@ backtracking:
 - Raw blocks are trusted content: see [the spec's security section](spec.md#security).
 - On GitHub a raw block shows as a code block.
 
+{#math-block}
+
 ### Math blocks
 
 **As GitHub.** `$$` fences on lines of their own. The node holds the raw TeX, and markz doesn't
@@ -201,18 +221,24 @@ typeset it. `html()` writes `<pre><code class="language-math math-display">`, an
 KaTeX or Temml. A ` ```math ` fence stays an ordinary code block with `lang: "math"`, and its HTML
 is already the `language-math` shape.
 
+{#table}
+
 ### Tables
 
 **As GFM.** A pipe table with a `---` delimiter row. `:---`, `:---:` and `---:` set alignment.
 
+{#thematic-break}
+
 ### Thematic breaks
 
-**As GFM, except** that the marker is `---` only.
+**As CommonMark, except** that the marker is `---` only.
+
+{#directive}
 
 ### Directives
 
 **From micromark-extension-directive.** Leaf and container directives are blocks; text
-directives are in [Inline](#text-directives). The trailing `{…}` follows the
+directives are in [Inline](#text-directive). The trailing `{…}` follows the
 [attribute syntax](#attributes).
 
 - **leaf**: `::name[label]{attrs}`, on a line of its own. A bare `::name` is allowed, since the
@@ -258,6 +284,8 @@ Body **here**.
 A consumer's own fold, such as visdown's Svelte codegen, maps names to components and labels to
 their props.
 
+{#attributes}
+
 ### Attributes
 
 **From djot**, in fewer places. Directives are the universal extension syntax: components,
@@ -285,7 +313,7 @@ wrap or reinvent that element:
 | Directly after an image or link, with no space | that image or link | `width`, `class`, `target`, `rel`                              |
 
 This section defines the syntax for all three; the inline placements are also listed under
-[Links and images](#links-and-images) and [Text directives](#text-directives).
+[Links and images](#link) and [Text directives](#text-directive).
 
 - **Syntax:** `#id`, `.class` and `key=value`, with `key="a quoted value"` for spaces. Classes
   accumulate. For other keys, a later value wins. Values may contain `${…}`.
@@ -303,6 +331,8 @@ This section defines the syntax for all three; the inline placements are also li
 - **Words and phrases** use a text directive: `:span[word]{.highlight}`. There is no djot-style
   `word{.x}` or `[span]{.x}`.
 
+{#comment}
+
 ### Comments
 
 **markz.** `<!-- … -->` on lines of its own becomes a `comment` node, which `html()` never
@@ -315,10 +345,12 @@ and GitHub hides comments too.
 
 ## Inline
 
+{#emphasis}
+
 ### Emphasis
 
-**As GFM, except** for the markers and the rules below. The markers are GFM's: `_emphasis_`,
-`**strong**` and `~~strikethrough~~`. Where a run may open or close follows CommonMark's flanking
+**As CommonMark, except** for the markers and the rules below, and **from GFM**,
+`~~strikethrough~~`. The markers are `_emphasis_`, `**strong**` and `~~strikethrough~~`. Where a run may open or close follows CommonMark's flanking
 rules, without the rest of its 17:
 
 - A run can't open before whitespace, or before punctuation that follows a letter, and the mirror
@@ -338,13 +370,17 @@ On ordinary text this matches GFM. Where it disagrees, the spec examples and dif
 against micromark find the case, and it is either fixed or listed here: the examples that need a
 run split, such as `****foo****`, differ by design.
 
+{#inline-code}
+
 ### Inline code
 
-**As GFM.** `` `code` ``, ` `` a ` b `` `: any number of backticks.
+**As CommonMark.** `` `code` ``, ` `` a ` b `` `: any number of backticks.
+
+{#link}
 
 ### Links and images
 
-**As GFM, except** that only the inline form exists.
+**As CommonMark, except** that only the inline form exists.
 
 | Construct | Syntax                                          | Notes                                                                  |
 | --------- | ----------------------------------------------- | ---------------------------------------------------------------------- |
@@ -354,6 +390,8 @@ run split, such as `****foo****`, differ by design.
 
 A `{…}` directly after the `)` of a link or image, with no space, is its
 [attributes](#attributes): `![hero](hero.png){.wide width=600}`.
+
+{#text-directive}
 
 ### Text directives
 
@@ -393,12 +431,16 @@ They are still `directive` nodes in the AST, so a consumer's fold sees them like
 is no `:del`, because `~~text~~` already writes `<del>`: an edit is `~~old~~ :ins[new]`. The names
 apply to text directives only. `::sup` and `:::mark` are ordinary divs.
 
+{#inline-math}
+
 ### Inline math
 
 **From pandoc**, in GitHub's HTML shape. `$…$`: the opening `$` is followed by a non-space
 character, and the closing `$` follows a non-space character and isn't followed by a digit, so
 `costs $5 and $10` stays text. `${` always starts an expression and never math. The node holds the
 raw TeX, and `html()` writes `<code class="language-math math-inline">`.
+
+{#expression}
 
 ### Expressions
 
@@ -420,15 +462,19 @@ that holds the code and its range. markz never evaluates it.
   expression early. Write it as `}`, or move the regex out of the document.
 - `html()` writes the literal source text, escaped.
 
+{#line-break}
+
 ### Line breaks
 
-**As GFM, except** that `\` at the end of a line is the only hard break. It is visible and
+**As CommonMark, except** that `\` at the end of a line is the only hard break. It is visible and
 explicit, and GitHub renders it too. Any other line ending inside a paragraph is a soft break. For
-a poem, see `{.verse}` under [Paragraphs](#paragraphs).
+a poem, see `{.verse}` under [Paragraphs](#paragraph).
+
+{#escape}
 
 ### Escapes and references
 
-**As GFM, except** that there are no named character references, and **from djot**, `\ ` is a
+**As CommonMark, except** that there are no named character references, and **from djot**, `\ ` is a
 non-breaking space.
 
 - A backslash before any ASCII punctuation character is that character: `\*`, `\_`, `\$`, `\{`, …
@@ -436,6 +482,8 @@ non-breaking space.
 - `&` is ordinary text: write it literally, and `html()` escapes it.
 - `\` followed by a space is a non-breaking space (U+00A0): `10\ km`, `Dr.\ Smith`. GFM keeps both
   characters as text. In a heading id it counts as a space.
+
+{#smart-punctuation}
 
 ### Smart punctuation
 
@@ -530,6 +578,20 @@ oxfmt keeps the attribute syntax, with two quirks the rules above absorb:
 One case needs care. For two adjacent lists, oxfmt keeps them apart by switching the marker
 (`-` then `*`, `1.` then `1)`). That is why markz accepts all of GFM's list markers. Rejecting
 `*` or `)` would reject oxfmt's own output.
+
+## Grammar
+
+[`test/grammar.ts`](../test/grammar.ts) states the dialect as data. For each construct it holds
+the id, the part, the origin, the productions in EBNF, and the side rules EBNF can't state:
+container prefixes, fence lengths, emphasis flanking, which block a line opens first. A form cut
+above has no production. It is a Not supported row, keyed by its warning code.
+
+The productions say what markz accepts, not how it reads it. On their own they are ambiguous, as
+every Markdown grammar is, and the side rules settle each choice. The parser is written by hand
+as the one reading of both: a single pass, deterministic, with lookahead that is bounded or
+remembers where it failed ([spec](spec.md#parser-foundation)). The tests hold the grammar to this
+page, with the same constructs, parts and origins, and from plan step 15 the fuzzer generates
+documents from it.
 
 ## Pending decisions
 

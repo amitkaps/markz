@@ -16,8 +16,10 @@ export interface Row {
 	id: string;
 	number: number;
 	part: Part;
-	/** The `syntax.md` construct or Not supported row the example is filed under. */
+	/** The construct id or Not supported code the example is filed under. */
 	section: string;
+	/** What the page shows for it: the construct's `syntax.md` heading, or the code. */
+	title: string;
 	/** The upstream suite's own section. */
 	upstream: string | null;
 	/** How it is checked: `oracle`, `differs`, `not supported` or `expected`. */

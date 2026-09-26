@@ -10,6 +10,7 @@
  */
 import { check, examples } from '../../../../test/examples';
 import { normalize } from '../../../../test/oracle';
+import { title } from '../../../../test/syntax';
 import type { Row } from '../site';
 
 export function conformance(): Row[] {
@@ -22,6 +23,7 @@ export function conformance(): Row[] {
 			number: e.number,
 			part: e.part,
 			section: e.section,
+			title: title(e.section),
 			upstream: e.upstream,
 			kind: e.kind,
 			markdown: e.markdown,

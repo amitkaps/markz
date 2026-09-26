@@ -124,9 +124,9 @@ warnings (`duplicate-id`, `orphan-attributes`, `comment-trailing-text`, `metadat
 under their construct. Tests and examples key on codes, never on wording: every code must be
 named in `syntax.md`, and each row's "Write instead" must be its code's.
 
-### 11. The grammar
+### 11. The grammar — done
 
-The dialect as data, in `test/` so it never ships: each construct with a stable id, its part, its
+The dialect as data, in `test/grammar.ts` so it never ships: each construct with a stable id, its part, its
 origin and its productions in EBNF style, with the rules EBNF can't state (container prefixes,
 fence lengths, emphasis matching) as named side rules. The origin names the earliest layer that
 defines the construct, in order: CommonMark, GFM, micromark-extension-directive, djot, then
@@ -135,6 +135,13 @@ constructs by id, so rewording a heading breaks nothing, and the step 15 fuzzer 
 documents from the productions. `spec.md` states the parsing invariant: single pass,
 deterministic, grammar-directed, with bounded local lookahead, where every lookahead is bounded
 or remembers its failure.
+
+Each construct's id is a `{#id}` line above its `syntax.md` heading, which markz itself renders
+as the heading's anchor. The tests check the grammar is well formed (every name defined, every
+production reachable from `document`) and that it matches `syntax.md`: the same 22 ids, in order,
+under the same parts, each opening with its origin's lead. Renaming a heading now breaks nothing.
+Most constructs are relabelled "As CommonMark": GFM adds only tables, strikethrough and task
+items to what markz keeps. The Conformance page shows each construct's heading from its id.
 
 ### 12. Extension suites
 
@@ -165,7 +172,7 @@ Public API, kept minimal: `parse`, `html`, `walk` (`enter`/`exit`), `textContent
 
 ### 15. Robustness and fuzzing
 
-- A grammar-based generator of documents in the shared grammar, fed to the oracle.
+- A generator of documents from `test/grammar.ts`'s productions and side rules, fed to the oracle.
 - Malformed input, CRLF and lone `\r`, BOM, and astral-plane offsets.
 - Adversarial unclosed openers, with a timing check that fails on super-linear growth. Code spans and math already record a failed scan; link destinations, `<!--` and attribute blocks don't yet.
 - Unclosed `${` is quadratic today: 80,000 of them in one paragraph take about 100 s, 16 times the time for 4 times the input. One failed scan doesn't settle later ones (`${a ${b}` has a valid second expression), so the fix is to reuse the failed scan's brace depths for every `${` it passed, rather than a flag.

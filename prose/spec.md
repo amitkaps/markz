@@ -93,7 +93,7 @@ Editors and prose's checks can show these. The parser never guesses.
 every renderer adds them its own way or not at all. markz uses GitHub's algorithm, so base's
 anchors and prose's checks keep working, and a `{#id}` line sets one by hand. An id is settled as
 its heading is parsed, against the ids used so far, so it never depends on a later heading. The
-rules and the contract cases are in [`syntax.md`](syntax.md#headings).
+rules and the contract cases are in [`syntax.md`](syntax.md#heading).
 
 There are no parser options.
 
@@ -254,6 +254,24 @@ construct whose meaning depends on text after it. What remains is openers (`[`, 
   scans stop there, and a line full of unclosed `](` stays linear.
 - **Block attributes are one line**, so the block pass never looks ahead.
 
+**The grammar states the dialect, and the parser is its one reading.** [`syntax.md`](syntax.md)
+explains the dialect, and `test/grammar.ts` states it: each construct's productions in EBNF, plus
+the side rules EBNF can't state (container prefixes, fence lengths, flanking, which block a line
+opens first). The productions alone are ambiguous, as every Markdown grammar is, and the side
+rules settle each choice. The parser isn't generated from the grammar. It is written by hand and
+keeps one invariant:
+
+- **Single pass:** the block pass reads each line once, and the inline pass reads each leaf once,
+  as it closes.
+- **Deterministic:** at every point the side rules allow exactly one reading. No alternative is
+  tried and undone.
+- **Grammar-directed:** every case in the two scanners is a construct of the grammar or a Not
+  supported form, and every construct is a case.
+- **Bounded local lookahead:** a scan ahead either stays within the line (a fence, an attribute
+  line, a table's delimiter row) or records where it failed, so no character is scanned more than
+  a constant number of times. Unclosed `${` breaks this today, and [plan](plan.md) step 15 fixes
+  it.
+
 **micromark is the test oracle, not a runtime dependency.** It is thoroughly tested, and nothing
 we write would beat it at full CommonMark compliance. The dialect doesn't need full compliance. It
 needs to be _identical to GFM on the constructs they share_, and micromark with
@@ -381,8 +399,11 @@ markdown-exit and Comark. The unified/remark ecosystem stays out.
 ## Testing
 
 - **One set of examples, filed by the dialect:** every example, upstream or markz's own, is filed
-  under a construct of [`syntax.md`](syntax.md) or a Not supported row, and every construct and
-  row has examples. Where an example comes from is a label, not a category.
+  under a construct's id or a Not supported row's warning code, and every construct and row has
+  examples. Where an example comes from is a label, not a category.
+- **The grammar:** `test/grammar.ts` is well formed (every name defined, every production
+  reachable) and matches [`syntax.md`](syntax.md): the same construct ids in the same order, under
+  the same parts, each opening with its origin.
 - **Differential against micromark + GFM:** every CommonMark and GFM spec example in a shared
   construct must give identical `html()` output, compared with smart punctuation normalized back
   to straight characters. So must fuzzed documents generated from the shared grammar. An example

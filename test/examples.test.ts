@@ -11,7 +11,8 @@ import { describe, expect, it } from 'vite-plus/test';
 import { parse } from '../src/index';
 import { check, examples, listed, type Example } from './examples';
 import { WARNINGS } from '../src/warnings';
-import { constructs, named, rows } from './syntax';
+import { CONSTRUCTS } from './grammar';
+import { named, rows } from './syntax';
 import { expectTree } from './tree';
 
 describe('warning codes', () => {
@@ -25,8 +26,8 @@ describe('warning codes', () => {
 });
 
 describe('filing', () => {
-	it.each(Object.values(constructs).flat())('construct %s has examples', (name) => {
-		expect(examples.some((e) => e.section === name)).toBe(true);
+	it.each(CONSTRUCTS.map((c) => c.id))('construct %s has examples', (id) => {
+		expect(examples.some((e) => e.section === id)).toBe(true);
 	});
 
 	it.each(rows.map((r) => r.code))('row %s has examples', (code) => {
