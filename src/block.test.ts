@@ -145,7 +145,7 @@ describe('directives', () => {
 
 	it('are text when the line has more on it', () => {
 		expect(html('::a[x]{.y} z\n')).toBe('<p>::a[x]{.y} z</p>\n');
-		expect(messages('::a[x]{.y} z\n')).toEqual([]);
+		expect(messages('::a[x]{.y} z\n')).toEqual(['attributes after inline text']);
 	});
 });
 

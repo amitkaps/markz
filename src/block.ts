@@ -121,10 +121,16 @@ class BlockParser {
 	 * closing line is found by one forward scan, and every line between must look like metadata
 	 * (`key:`, a comment, an indented line or a blank one), with at least one key. Otherwise the first line is an ordinary
 	 * thematic break and the document is read from there, so a page that opens with a rule never
-	 * loses its content to a metadata block.
+	 * loses its content to a metadata block. A closed `+++` block is TOML, which stays text and is
+	 * reported.
 	 */
 	metadata(start: number): number {
 		const { src } = this;
+		const toml = /\+\+\+[ \t]*(?:\r\n|\r|\n)[^]*?^\+\+\+[ \t]*$/my;
+		toml.lastIndex = start;
+		if (toml.test(src)) {
+			this.report(start, toml.lastIndex, 'TOML metadata', 'a `---` metadata block');
+		}
 		const first = /---[ \t]*(?:\r\n|\r|\n)/y;
 		first.lastIndex = start;
 		if (!first.test(src)) return start;
@@ -306,8 +312,9 @@ class BlockParser {
 		const item = this.listItem(cols, next);
 		if (item !== NONE_OPENED) return item === OPENED;
 		if (c === ':' && this.directive(next, end)) return false;
-		if (c === '{' && !paragraph && this.leaf?.kind !== 'table' && this.attributeLine(next, end)) {
-			return false;
+		if (c === '{' && !paragraph && this.leaf?.kind !== 'table') {
+			if (this.attributeLine(next, end)) return false;
+			this.multilineAttributes(next, end);
 		}
 		this.text(next, end);
 		return false;
@@ -365,7 +372,8 @@ class BlockParser {
 	 * stripped. The id is settled as the heading closes, against the ids used so far: a `{#id}`
 	 * line above gives it exactly (reported if an earlier heading has it), and otherwise it is
 	 * slugged from the heading's text and numbered past any id already taken. No id depends on
-	 * a later heading, so none changes once written.
+	 * a later heading, so none changes once written. A trailing `{#id}` is kramdown's and Pandoc's
+	 * form, not ours: it stays part of the text and is reported.
 	 */
 	heading(at: number, depth: number, end: number): void {
 		const attributes = this.enter(false);
@@ -375,6 +383,14 @@ class BlockParser {
 		const closing = /(?:^|[ \t])#+$/.exec(this.src.slice(from, end));
 		if (closing) to = from + closing.index;
 		while (to > from && isSpace(this.src.charCodeAt(to - 1))) to--;
+		const brace = this.src.lastIndexOf(' {', to) + 1;
+		if (
+			brace > from &&
+			this.src[to - 1] === '}' &&
+			parseAttributes(this.src, brace, to)?.end === to
+		) {
+			this.report(brace, to, 'trailing heading attributes', '`{#id}` on the line above');
+		}
 		const explicit = attributes?.items.findLast((a) => a.key === 'id');
 		const data = { depth: depth as 1 | 2 | 3 | 4 | 5 | 6, id: '', idExplicit: !!explicit };
 		const node = this.b.open('heading', at, data);
@@ -629,6 +645,23 @@ class BlockParser {
 		return true;
 	}
 
+	/**
+	 * A `{` line that doesn't parse but would if the following lines up to a `}` were joined onto
+	 * it. The lines stay a paragraph; this only reports them.
+	 */
+	multilineAttributes(at: number, end: number): void {
+		const { src } = this;
+		if (src.lastIndexOf('}', end) >= at) return;
+		const close = src.indexOf('}', end);
+		if (close < 0) return;
+		const joined = src.slice(at, close + 1);
+		if (/\n[ \t]*\r?\n/.test(joined)) return;
+		const flat = joined.replace(/[\r\n]/g, ' ');
+		if (parseAttributes(flat, 0, flat.length)?.end === flat.length) {
+			this.report(at, close + 1, 'multi-line attributes', 'one line');
+		}
+	}
+
 	/** Pending attributes whose container is closing become text. */
 	flushPending(depth: number): void {
 		const pending = this.pending;
@@ -786,7 +819,12 @@ class BlockParser {
 		let i = end;
 		while (this.src[i] === ' ') i++;
 		if (i - end >= 2)
-			this.report(end, i, 'two trailing spaces as a line break', '`\\` at end of line');
+			this.report(
+				end,
+				i,
+				'two trailing spaces as a line break',
+				'`\\` at end of line, or `{.verse}` on a poem'
+			);
 	}
 
 	/** @prose

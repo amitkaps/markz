@@ -297,8 +297,8 @@ const out = html(markdown); // or html(doc)
 ```
 
 - `parse(source): Document`
-- `doc.diagnostics`: rejected syntax, each `{ start, end, message, instead }`, where `instead` is
-  the supported form
+- `doc.diagnostics`: rejected syntax in source order, each `{ start, end, message, instead }`,
+  where `instead` is the supported form, as `syntax.md`'s "Not supported" table writes it
 - `html(source | Document): string`
 - `walk(doc, { enter?, exit? })`
 - `textContent(doc, node): string`, the rendered text (escapes decoded, punctuation curled) that

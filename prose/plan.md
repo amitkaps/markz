@@ -73,9 +73,15 @@ Rejected constructs (setext, indented code, `~~~`, HTML, reference definitions, 
 
 What has been read is a linked list of items, and a closer wraps the items since its opener into one node. Text nodes keep their decoded `value` and their raw source range. The inline pass returns the leaf's plain text, and the block pass settles a heading's id from it as the heading closes, against the ids used so far, so there is no step after the passes. The whole filtered oracle suite runs from here on: every included example matches. Bundle: 12.9 KB gzip.
 
-### 6. Diagnostics
+### 6. Diagnostics — done
 
-Every row of the "Not supported" table in `syntax.md` gets a test: the input stays text, and a diagnostic carries the range and the supported form.
+Every row of the "Not supported" table in `syntax.md` has cases in `src/diagnostics.test.ts`,
+which reads the table itself: the input stays text, each diagnostic covers exactly the rejected
+characters, and its `instead` is the row's "Write instead" cell. Quiet cases hold the look-alikes
+(`[sic]`, braces, `10:30`, a URL as a link's text) to no report. Diagnostics are in source order.
+This step added the reports that were missing: bare URLs, relative autolinks, JSX, footnotes,
+`+++` metadata, trailing heading attributes, multi-line attributes and attributes after inline
+text.
 
 ### 7. Traversal and position utilities
 
