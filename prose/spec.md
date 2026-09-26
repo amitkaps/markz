@@ -37,7 +37,11 @@ requirements. markz must not import anything from them.
   [Performance and size](#performance-and-size))
 - Opinionated, with no configuration
 - TypeScript-first
-- Identical to GFM on the constructs it shares with GFM, with micromark as the test oracle
+- Identical to GFM on the constructs it shares with GFM, and only those. micromark is the test
+  oracle for that intersection, not a specification of markz: where `syntax.md` cuts or changes a
+  construct, markz follows `syntax.md`
+- Unsupported syntax stays literal text and produces a diagnostic. It is never silently read as a
+  different, supported construct
 - Parsed in linear time with no backtracking, as djot is
 - A compact, flat AST that can't be changed after parsing
 - Exact source offsets on every node
