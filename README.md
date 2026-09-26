@@ -3,7 +3,7 @@
 > **markz — small, opinionated Markdown.**
 
 A standalone Markdown package for TypeScript/JavaScript: one fixed dialect (GFM's everyday syntax
-without the parts that need backtracking, plus directives with `{…}` attributes, math, `${…}` expressions and YAML frontmatter), a compact flat source-mapped AST,
+without the parts that need backtracking, plus directives with `{…}` attributes, math, `${…}` expressions and a metadata block), a compact flat source-mapped AST,
 HTML output, and no configuration. Make the Markdown decision
 once; use markz everywhere.
 

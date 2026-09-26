@@ -76,13 +76,13 @@ describe('Builder and Document', () => {
 		expectTree(doc);
 	});
 
-	it('exposes frontmatter from the root’s first child', () => {
+	it('exposes metadata from the root’s first child', () => {
 		const b = new Builder('---\na: 1\n---\n');
-		b.leaf('frontmatter', 0, 13, { value: { a: 1 }, raw: 'a: 1\n', range: { start: 4, end: 9 } });
+		b.leaf('metadata', 0, 13, { value: { a: 1 }, range: { start: 4, end: 9 } });
 		b.setAttributes(1, { start: 0, end: 0, items: [] });
 		const doc = b.finish();
-		expect(doc.frontmatter).toEqual({ a: 1 });
-		expect(new Builder('').finish().frontmatter).toBeUndefined();
+		expect(doc.metadata).toEqual({ a: 1 });
+		expect(new Builder('').finish().metadata).toBeUndefined();
 	});
 
 	it('names every type in code order', () => {

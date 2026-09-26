@@ -9,7 +9,7 @@ The output is built with `vp pack` (tsdown, driven by the `pack` section of [`vi
 - ESM only: `dist/index.js` plus `dist/index.d.ts`, and `exports` in `package.json` points at both.
 - One entry, `src/index.ts`. Anything not re-exported from it is private.
 - `sideEffects: false`, so consumers can tree-shake `html`, `walk`, `textContent` and `position`.
-- No runtime dependencies. `micromark`, `micromark-extension-gfm` and `micromark-extension-directive` are `devDependencies`, as the test oracle, and `yaml` is the frontmatter oracle.
+- No runtime dependencies. `micromark`, `micromark-extension-gfm` and `micromark-extension-directive` are `devDependencies`, as the test oracle, and `yaml` is the metadata oracle.
 - `prepublishOnly` runs `vp pack`, so a publish can never ship a stale `dist/`.
 - `pnpm size` (`scripts/size.ts`) bundles and minifies the entry and fails above 20 KB gzip. CI runs it on every PR, from step 3 on, so growth shows in the PR that causes it.
 
@@ -26,7 +26,7 @@ Vite+ library skeleton, CI, prose tooling, placeholder `parse()`.
 attributes. `Builder` is how the parser writes the tree: an open-node stack, constant-time append
 through a `lastChild` array only the builder keeps, and arrays that grow by doubling. `finish()`
 hands over a read-only `Document` with `children(node)` as a generator, `data(node, type)` as the
-checked accessor, `attributes`, `frontmatter` and `diagnostics`. `test/tree.ts` holds the tree
+checked accessor, `attributes`, `metadata` and `diagnostics`. `test/tree.ts` holds the tree
 invariants every later step's documents are checked against.
 
 ### 3. Oracle harness — done
@@ -53,7 +53,7 @@ invariants every later step's documents are checked against.
 - containers: blockquote, list, listItem, and container directives (`:::name` … `:::`)
 - leaves: paragraph, ATX heading, fenced code (including ` ```=format ` raw blocks), thematic break, table, comment, `$$` math, and leaf directives (`::name`)
 - block-attribute lines, attached to the next block. A heading's explicit `{#id}` is recorded here.
-- frontmatter at offset 0, parsed line by line into a flat object by the YAML-subset rules
+- the metadata block at offset 0, parsed line by line into a flat object by `syntax.md`'s value rules
 
 Rejected constructs (setext, indented code, `~~~`, HTML, reference definitions, lazy lines) are recognised in the same scan. Each becomes paragraph text plus a diagnostic in the place it is met.
 

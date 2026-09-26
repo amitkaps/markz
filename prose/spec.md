@@ -3,7 +3,7 @@
 markz is a small, opinionated Markdown package for TypeScript/JavaScript, used the way marked is:
 one install, `parse` for the AST and `html` for output. It has one fixed dialect (GFM's everyday syntax without
 the parts that need backtracking, plus directives with `{…}` attributes, math, `${…}`
-expressions and YAML frontmatter), one compact AST that can't be changed
+expressions and a metadata block), one compact AST that can't be changed
 after parsing and maps back to the source, and no parser options. Projects stop choosing and
 configuring a Markdown stack. They render with markz, or fold its AST into whatever they need.
 
@@ -24,11 +24,11 @@ documentation sites, blogs, editors, notebooks and compilers alike.
 Three projects exist today, and each already works around its Markdown stack. They are the
 requirements. markz must not import anything from them.
 
-| Project     | Uses today                                                       | Needs from markz                                                                                                                                                                                                           |
-| ----------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **base**    | `marked` + a regex frontmatter split + `yaml`                    | Frontmatter as a parsed object, plus its raw text and range. GitHub-style heading ids that are unique per page, in any script (today a custom `marked` renderer). HTML output.                                             |
-| **visdown** | `unified` + `remark-parse` + `remark-gfm` + `remark-frontmatter` | A read-only fold from the AST into its own Svelte template tree. Code fences with lang and the exact body range. `${…}` as a parsed node, so Markdown can't break inside an expression. Frontmatter range for YAML errors. |
-| **prose**   | `markdown-exit` to render; regexes for checks                    | HTML output with no raw HTML. Inline code spans, links (destination and range), headings with GitHub-compatible slugs, and paragraph line ranges, all mapped back to lines in the source file.                             |
+| Project     | Uses today                                                       | Needs from markz                                                                                                                                                                                                            |
+| ----------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **base**    | `marked` + a regex frontmatter split + `yaml`                    | Metadata as a parsed object, plus its range. GitHub-style heading ids that are unique per page, in any script (today a custom `marked` renderer). HTML output.                                                              |
+| **visdown** | `unified` + `remark-parse` + `remark-gfm` + `remark-frontmatter` | A read-only fold from the AST into its own Svelte template tree. Code fences with lang and the exact body range. `${…}` as a parsed node, so Markdown can't break inside an expression. Metadata range for error locations. |
+| **prose**   | `markdown-exit` to render; regexes for checks                    | HTML output with no raw HTML. Inline code spans, links (destination and range), headings with GitHub-compatible slugs, and paragraph line ranges, all mapped back to lines in the source file.                              |
 
 ## Core principles
 
@@ -52,7 +52,7 @@ requirements. markz must not import anything from them.
 
 markz's dialect keeps GFM's everyday symbols and cuts the constructs that need backtracking. It uses
 directives as its one extension syntax, with `{…}` attributes in a few fixed places, and adds
-frontmatter, math and `${…}` expressions. There is
+a metadata block, math and `${…}` expressions. There is
 one way to write each thing. Every construct, what it's limited to, and what's left out is listed
 in [`syntax.md`](syntax.md). This section gives the reasons.
 
@@ -201,7 +201,7 @@ Only nodes that the syntax requires and that consumers use:
 
 ````text
 document
-frontmatter          parsed flat object (a YAML subset), raw text, value range
+metadata             parsed flat object (JSON-like, quotes optional), block range
 comment              `<!-- … -->` on lines of its own; never rendered
 heading              depth, id, idExplicit
 paragraph
@@ -232,7 +232,7 @@ each with its source range. They're kept in a side table, so the common case (no
 costs nothing.
 
 Changes from the earlier list: `task` became `listItem.checked`, because a task is a property of
-an item. `frontmatter`, `comment`, `raw`, `math` and `expression` are added. `html`, `definition`
+an item. `metadata`, `comment`, `raw`, `math` and `expression` are added. `html`, `definition`
 and the footnote nodes are gone, because HTML is only possible in explicit raw blocks, and reference
 links and footnotes aren't in the dialect. Both would need the whole document read before a
 reference could be resolved.
@@ -247,7 +247,7 @@ Rules:
 - **A node's range covers its markers.** A heading includes `##`, a fence includes both fences, and a
   link includes `[`, `](…)`. The trailing line ending is excluded.
 - **Content ranges** are exposed as extra fields where consumers need them: a code block's body,
-  a link's destination, frontmatter's YAML, a directive's label, and every attribute block.
+  a link's destination, the metadata block, a directive's label, and every attribute block.
 - **Text nodes map to source, not just to their value.** `value` is the rendered text: decoded
   (`&#169;` → `©`, `\*` → `*`) and with smart punctuation (`"` → `“`). `start`/`end` cover the raw
   characters. A consumer scanning for syntax of its
@@ -273,7 +273,7 @@ backtracking, and emits straight into the flat AST:
 source → block pass (lines → containers, leaves) → inline pass (per leaf) → heading ids → flat AST + diagnostics → html()
 ```
 
-**Everything is built in.** Directives, expressions, math, attributes, raw blocks, frontmatter,
+**Everything is built in.** Directives, expressions, math, attributes, raw blocks, metadata,
 smart punctuation and heading ids are cases in the same two scanners. They aren't plug-ins
 layered on a CommonMark core, because a fixed dialect needs no extension points. That also keeps
 precedence in one place: `${…}` binding tighter than emphasis is just the order of the inline
@@ -426,8 +426,8 @@ markdown-exit and Comark. The unified/remark ecosystem stays out.
   text and produces its diagnostic.
 - **Constructs beyond GFM:**
   - directives, against `micromark-extension-directive`
-  - frontmatter: every row of the subset table in `syntax.md`, each checked against the `yaml`
-    package, and every rejected scalar (`~`, `True`, `1e3`, …) giving a diagnostic, not a string
+  - metadata: every row of the value table in `syntax.md`, each checked against the `yaml`
+    package, and every YAML look-alike (`~`, `True`, `1e3`, …) giving a diagnostic, not a string
   - math, including `$` used as currency
   - expressions: nesting, strings, comments, escapes, and emphasis inside `${…}`; malformed
     JavaScript that still closes; the regex-literal limit

@@ -16,7 +16,7 @@
  */
 export const T = {
 	document: 0,
-	frontmatter: 1,
+	metadata: 1,
 	comment: 2,
 	heading: 3,
 	paragraph: 4,
@@ -64,12 +64,12 @@ export interface Range {
  * are decoded or stripped of container prefixes (`> ` inside a blockquote) are stored as strings;
  * everything else is a range, so the source stays the one copy of the text.
  */
-export type FrontmatterScalar = string | number | boolean | null;
-export type FrontmatterValue = FrontmatterScalar | FrontmatterScalar[];
+export type MetadataScalar = string | number | boolean | null;
+export type MetadataValue = MetadataScalar | MetadataScalar[];
 
 export interface NodeData {
-	/** The flat object (the YAML subset), and the range of the YAML between the fences. */
-	frontmatter: { value: Record<string, FrontmatterValue>; raw: string; range: Range };
+	/** The flat object, and the range of the lines between the `---` fences. */
+	metadata: { value: Record<string, MetadataValue>; range: Range };
 	heading: { depth: 1 | 2 | 3 | 4 | 5 | 6; id: string; idExplicit: boolean };
 	/** Decoded text; the node's range covers the raw characters. */
 	text: { value: string };
@@ -201,11 +201,11 @@ export class Document {
 		return this.#store.attributes[node];
 	}
 
-	/** The frontmatter object, which can only be the root's first child. */
-	get frontmatter(): Readonly<Record<string, FrontmatterValue>> | undefined {
+	/** The metadata object, which can only be the root's first child. */
+	get metadata(): Readonly<Record<string, MetadataValue>> | undefined {
 		const first = this.firstChild(this.root);
-		return first !== NONE && this.type(first) === 'frontmatter'
-			? this.data(first, 'frontmatter').value
+		return first !== NONE && this.type(first) === 'metadata'
+			? this.data(first, 'metadata').value
 			: undefined;
 	}
 }
