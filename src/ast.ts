@@ -312,6 +312,8 @@ export class Builder {
 			data: this.#data,
 			attributes: this.#attributes
 		};
+		// A paragraph's inline diagnostics are found when it closes, after later block ones.
+		this.#diagnostics.sort((a, b) => a.start - b.start);
 		return new Document(this.#source, store, this.#diagnostics);
 	}
 

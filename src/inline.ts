@@ -12,7 +12,14 @@
  * that either close or stay text: the pass builds a linked list of items, and a match wraps the
  * items between opener and closer into one node, so nothing is read twice.
  */
-import { type Attributes, type Builder, type NodeData, type NodeType, type Range } from './ast';
+import {
+	type Attributes,
+	type Builder,
+	type Diagnostic,
+	type NodeData,
+	type NodeType,
+	type Range
+} from './ast';
 import { parseAttributes } from './attributes';
 import { unescape } from './chars';
 import { scanExpression } from './expression';
@@ -23,6 +30,7 @@ export function inline(b: Builder, source: string, lines: readonly Range[], cell
 	const pass = new InlinePass(b, source, lines, cell);
 	const list = pass.scan(0, pass.text.length);
 	pass.emit(list);
+	for (const d of pass.urls) b.diagnose(d);
 	return plainText(list.first, false);
 }
 
@@ -50,6 +58,8 @@ interface Item {
 	order: number;
 	/** A bracket that can no longer make a link, because a link already closed inside it. */
 	inactive?: boolean;
+	/** A bracket's position in the joined text. */
+	at?: number;
 }
 
 interface List {
@@ -97,6 +107,8 @@ class InlinePass {
 	/** Openers waiting for a closer, by kind, and link brackets. */
 	stacks: Record<string, Item[]> = {};
 	brackets: Item[] = [];
+	/** Bare URLs, reported once the leaf is done unless a link turns out to hold them. */
+	urls: Diagnostic[] = [];
 
 	constructor(b: Builder, src: string, lines: readonly Range[], cell: boolean) {
 		this.b = b;
@@ -181,8 +193,10 @@ class InlinePass {
 			else if (c === ']') t = this.close(list, t, to);
 			else if (c === '_' || c === '*' || c === '~') t = this.delimiter(list, t, from, to);
 			else if (c === ':' && this.directive(list, t, to)) t = this.directiveEnd;
+			else if (c === ':' || c === '.' || c === '@') t = this.url(list, t, from, to);
+			else if (c === '{') t = this.brace(list, t);
 			else if (c === '"' || c === "'") t = this.quote(list, t, from);
-			else if (c === '-' || c === '.') t = this.dashes(list, t, to);
+			else if (c === '-') t = this.dashes(list, t, to);
 			else {
 				let e = t + 1;
 				while (e < to && !SPECIAL.test(text[e]!)) e++;
@@ -276,7 +290,7 @@ class InlinePass {
 				t,
 				e,
 				`named character reference \`${m[0]}\``,
-				'the character itself, or a numeric reference'
+				'the character itself (`©`, `&`), or `\\ ` for a non-breaking space'
 			);
 			this.plain(list, t, e);
 			return e;
@@ -287,10 +301,13 @@ class InlinePass {
 		return e;
 	}
 
-	/** A paragraph opening with `[label]:` is a reference definition in GFM. */
+	/** A paragraph opening with `[label]:` is a reference definition in GFM, or with `[^label]:`
+	 * a footnote's. */
 	referenceDefinition(): void {
 		const m = /^\[(?:[^\]\\]|\\.)+\]:/.exec(this.text);
-		if (m) this.report(0, m[0].length, 'reference definition', 'an inline link, `[text](url)`');
+		if (!m) return;
+		if (m[0][1] === '^') this.report(0, m[0].length, 'footnote definition', FOOTNOTE);
+		else this.report(0, m[0].length, 'reference definition', 'inline links');
 	}
 
 	/** @prose
@@ -366,7 +383,9 @@ class InlinePass {
 	 *
 	 * `<scheme:…>` and `<address@host>` are autolinks. Anything shaped like an HTML tag, comment
 	 * or declaration is raw HTML, which the dialect cuts: the whole tag stays text, so nothing
-	 * inside it is read as Markdown, and it is reported. Any other `<` is text.
+	 * inside it is read as Markdown, and it is reported. A capitalised tag is reported as MDX's
+	 * JSX, and a relative autolink (`</docs/a>`), which has no scheme, as itself. Any other `<` is
+	 * text.
 	 */
 	angle(list: List, t: number, to: number): number {
 		const { text } = this;
@@ -395,7 +414,17 @@ class InlinePass {
 		const m = HTML.exec(text);
 		if (m && t + m[0].length <= to) {
 			const e = t + m[0].length;
-			this.report(t, e, 'raw HTML', 'a ```=html raw block, or directives and attributes');
+			// A capitalised tag is a JSX component, not HTML.
+			if (/^<\/?[A-Z]/.test(m[0])) this.report(t, e, 'JSX', 'directives, `${…}`');
+			else this.report(t, e, 'raw HTML', 'a ` ```=html ` raw block, or directives and attributes');
+			this.plain(list, t, e);
+			return e;
+		}
+		RELATIVE.lastIndex = t;
+		const r = RELATIVE.exec(text);
+		if (r && t + r[0].length <= to) {
+			const e = t + r[0].length;
+			this.report(t, e, 'relative autolink', '`[About](/about)`');
 			this.plain(list, t, e);
 			return e;
 		}
@@ -493,14 +522,16 @@ class InlinePass {
 	 * `[` and `![` wait on the bracket stack. At `]`, only the inline form `(destination "title")`
 	 * makes a link or image, optionally with `{…}` directly after the `)`. Emphasis openers inside
 	 * the brackets can't close outside them, and once a link closes, the brackets around it can't
-	 * make links. `[x][y]` and `[x][]` are reference links, which the dialect cuts: they stay text
-	 * and are reported. `[x]` alone is just text.
+	 * make links. `[x][y]` and `[x][]` are reference links and `[^x]` is a footnote, which the
+	 * dialect cuts: they stay text and are reported. `[x]` alone is just text, since `[sic]` is
+	 * prose; its definition, if it has one, is what gets reported.
 	 */
 	open(list: List, t: number): number {
 		const n = this.text[t] === '!' ? 2 : 1;
 		const item = {
 			...this.textItem(this.at(t), this.to(t + n), this.text.slice(t, t + n)),
-			opener: n === 2 ? '![' : '['
+			opener: n === 2 ? '![' : '[',
+			at: t
 		};
 		this.add(list, item);
 		this.brackets.push(item);
@@ -511,20 +542,11 @@ class InlinePass {
 		const bracket = this.brackets.pop();
 		const tail = this.text[t + 1] === '(' ? this.destination(t + 1, to) : null;
 		if (!bracket || bracket.inactive || !tail) {
-			if (bracket && !tail && this.text[t + 1] === '[') {
-				const e = this.text.indexOf(']', t + 2);
-				if (e >= 0 && e < to && !this.text.slice(t + 2, e).includes('[')) {
-					this.b.diagnose({
-						start: bracket.start,
-						end: this.to(e + 1),
-						message: 'reference link',
-						instead: 'an inline link, `[text](url)`'
-					});
-				}
-			}
+			if (bracket && !tail) this.referenceLink(bracket, t, to);
 			this.plain(list, t, t + 1);
 			return t + 1;
 		}
+		this.urls = this.urls.filter((d) => d.start < bracket.start);
 		for (const stack of Object.values(this.stacks)) {
 			while (stack.length && stack.at(-1)!.order > bracket.order) stack.pop();
 		}
@@ -556,6 +578,20 @@ class InlinePass {
 			}
 		}
 		return end;
+	}
+
+	/** A bracket that made no link: `[x][y]` and `[x][]` are reference links, `[^x]` a footnote. */
+	referenceLink(bracket: Item, t: number, to: number): void {
+		const { text } = this;
+		const at = bracket.at!;
+		if (bracket.opener === '[' && text[at + 1] === '^' && t > at + 2 && text[t + 1] !== ':') {
+			this.report(at, t + 1, 'footnote reference', FOOTNOTE);
+		} else if (text[t + 1] === '[') {
+			const e = text.indexOf(']', t + 2);
+			if (e >= 0 && e < to && !text.slice(t + 2, e).includes('[')) {
+				this.report(at, e + 1, 'reference link', 'inline links');
+			}
+		}
 	}
 
 	/**
@@ -703,6 +739,85 @@ class InlinePass {
 	}
 
 	/** @prose
+	 * ## Bare URLs and stray attributes
+	 *
+	 * GFM links `https://…`, `www.…` and `me@example.com` in running text; markz keeps them as
+	 * text and reports them. Each is found at its `:`, `.` or `@`, looking back at text already
+	 * scanned, and taken whole as text so nothing inside it is read as emphasis or punctuation.
+	 * One inside a link's text is the link's label, not a bare URL, so the reports wait until
+	 * the leaf is done and a link that closes drops the ones inside it.
+	 *
+	 * A `{…}` that parses as attributes but sits where none are allowed (after a word, code,
+	 * emphasis or `[text]`) stays text and is reported. Any other brace is prose.
+	 */
+	url(list: List, t: number, from: number, to: number): number {
+		const { text } = this;
+		const c = text[t]!;
+		const back = text.slice(Math.max(from, t - 64), t);
+		let start = -1;
+		let end = t;
+		if (c === ':') {
+			const m = /(?:^|[^\w])(https?)$/.exec(back);
+			if (m && text.startsWith('//', t + 1) && /[\w-]/.test(text[t + 3] ?? '')) {
+				start = t - m[1]!.length;
+			}
+		} else if (c === '.') {
+			const m = /(?:^|[^\w.])www$/.exec(back);
+			if (m && /[\w-]/.test(text[t + 1] ?? '')) start = t - 3;
+		} else {
+			const m = /(?:^|[^\w.+-])([\w.+-]+)$/.exec(back);
+			DOMAIN.lastIndex = t + 1;
+			if (m && DOMAIN.test(text)) {
+				start = t - m[1]!.length;
+				end = DOMAIN.lastIndex;
+			}
+		}
+		if (start < 0) {
+			if (c === '.') return this.dashes(list, t, to);
+			this.plain(list, t, t + 1);
+			return t + 1;
+		}
+		if (c !== '@') {
+			// Inside a bracket, a `]` may be the one that closes it.
+			const stop = this.brackets.length ? /[\s<\]]/ : /[\s<]/;
+			while (end < to && !stop.test(text[end]!)) end++;
+			// Trailing punctuation belongs to the sentence, and a `)` only when unbalanced.
+			for (;;) {
+				const last = text[end - 1]!;
+				const url = text.slice(start, end);
+				if (/[?!.,:*_~'"]/.test(last)) end--;
+				else if (last === ')' && url.split(')').length > url.split('(').length) end--;
+				else break;
+			}
+		}
+		end = Math.min(end, to);
+		this.urls.push({
+			start: this.at(start),
+			end: this.to(end),
+			message: 'bare URL',
+			instead: '`<https://…>` or `[text](url)`'
+		});
+		this.plain(list, t, end);
+		return end;
+	}
+
+	brace(list: List, t: number): number {
+		const before = this.text[t - 1];
+		const attributes =
+			before !== undefined && !/\s/.test(before)
+				? parseAttributes(this.src, this.at(t), this.lines[this.line(t)]!.end)
+				: null;
+		if (!attributes) {
+			this.plain(list, t, t + 1);
+			return t + 1;
+		}
+		const e = t + attributes.end - attributes.start;
+		this.report(t, e, 'attributes after inline text', '`:span[text]{.x}`');
+		this.plain(list, t, e);
+		return e;
+	}
+
+	/** @prose
 	 * ## Smart punctuation
 	 *
 	 * Straight quotes curl by the character before them: at the start, after whitespace, an
@@ -786,9 +901,12 @@ class InlinePass {
 }
 
 /** Characters that start a case in `scan`; everything else is plain text. */
-const SPECIAL = /[\n\\`$<&[\]!_*~:"'\-.]/;
+const SPECIAL = /[\n\\`$<&[\]!_*~:"'\-.@{]/;
 const ENTITY = /^&(?:#(\d{1,7})|#[xX]([\da-fA-F]{1,6})|([A-Za-z][A-Za-z\d]{1,31}));/;
 const NAME = /[A-Za-z][\w-]*/y;
+const FOOTNOTE = 'a text directive, such as `:note[text]`';
+const DOMAIN = /[A-Za-z\d](?:[\w-]*[A-Za-z\d])?(?:\.[A-Za-z\d](?:[\w-]*[A-Za-z\d])?)+/y;
+const RELATIVE = /<\.{0,2}\/[^\s<>]*>/y;
 const AUTOLINK = /<([A-Za-z][A-Za-z\d+.-]{1,31}:[^\s<>]*)>/y;
 const EMAIL =
 	/<([\w.!#$%&'*+/=?^`{|}~-]+@[A-Za-z\d](?:[A-Za-z\d-]{0,61}[A-Za-z\d])?(?:\.[A-Za-z\d](?:[A-Za-z\d-]{0,61}[A-Za-z\d])?)*)>/y;
