@@ -320,7 +320,7 @@ string and never touches the DOM.
   else, `<` and `&` in text are escaped, and comments are dropped.
 - **Smart punctuation** is already in the text values, so `html()` writes curly quotes and dashes
   without a pass of its own.
-- **Math, expressions and directives** are written in the shapes [`syntax.md`](syntax.md#supported-with-limits)
+- **Math, expressions and directives** are written in the shapes [`syntax.md`](syntax.md)
   gives for each.
 
 Framework output is not part of markz. Svelte, React and custom-element rendering are each a

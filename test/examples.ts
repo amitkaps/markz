@@ -4,7 +4,7 @@
  * The CommonMark and GFM spec examples markz is compared on, and the checked list of the ones it
  * isn't. An example is excluded because it uses syntax the dialect cuts or changes, and its reason
  * names that place in `syntax.md`: a row of the "Not supported" table (by the start of its first
- * cell) or a heading under "Supported, with limits". The oracle test checks that every reason
+ * cell) or a construct's heading under Metadata, Block or Inline. The oracle test checks that every reason
  * resolves, so the list can't drift from the dialect.
  *
  * Most exclusions aren't listed by hand. The oracle's tokens show which examples use a construct
@@ -45,12 +45,12 @@ export const excludedSections: Record<string, string> = {
 /** Keyed `suite:example`. */
 export const excludedExamples: Record<string, string> = {
 	// `\ ` is a non-breaking space in markz, a literal backslash and space in GFM.
-	'commonmark:13': 'Non-breaking space',
+	'commonmark:13': 'Escapes and references',
 	// Emphasis that needs a delimiter run split (`****`, `__foo_`), which markz doesn't do.
 	...Object.fromEntries(
 		[408, 417, 427, 444, 446, 454, 455, 457, 459, 464, 466].map((n) => [
 			`commonmark:${n}`,
-			'Emphasis rules'
+			'Emphasis'
 		])
 	),
 	// A paragraph continuing without its `>` or its item's indentation.

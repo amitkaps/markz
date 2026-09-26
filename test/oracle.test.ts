@@ -23,9 +23,10 @@ const section = (from: string, to: string) =>
 const notSupported = [
 	...section('Not supported', 'Canonical form').matchAll(/^\| (.+?) +\|/gm)
 ].map((m) => m[1]!);
-const withLimits = [
-	...section('Supported, with limits', 'Not supported').matchAll(/^### (.+)$/gm)
-].map((m) => m[1]!);
+/** The dialect's constructs: every `###` under Metadata, Block and Inline. */
+const constructs = ['Metadata', ...section('Block', 'Not supported').matchAll(/^### (.+)$/gm)].map(
+	(m) => (typeof m === 'string' ? m : m[1]!)
+);
 
 describe('exclusions', () => {
 	it.each(Object.entries({ ...excludedSections, ...excludedExamples }))(
@@ -37,13 +38,13 @@ describe('exclusions', () => {
 			);
 			expect(exists, `${key} is not in the ${suite} suite`).toBe(true);
 			const resolves =
-				notSupported.some((row) => row.startsWith(reason)) || withLimits.includes(reason);
+				notSupported.some((row) => row.startsWith(reason)) || constructs.includes(reason);
 			expect(resolves, `"${reason}" is not a row or heading in syntax.md`).toBe(true);
 		}
 	);
 
 	it.each(cuts.map(([reason]) => reason))('cut %s resolves to syntax.md', (reason) => {
-		expect(notSupported.some((row) => row.startsWith(reason)) || withLimits.includes(reason)).toBe(
+		expect(notSupported.some((row) => row.startsWith(reason)) || constructs.includes(reason)).toBe(
 			true
 		);
 	});
