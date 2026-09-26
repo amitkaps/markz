@@ -1,8 +1,8 @@
 # Inline
 
-Examples of markz's dialect, in the CommonMark spec's format (see `../examples.ts`). Each `##` is a heading of `prose/syntax.md`, and the tests fail if one isn't.
+Examples of markz's dialect, in the CommonMark spec's format (see `../examples.ts`). Each `##` is a construct id from `test/grammar.ts`, set by the `{#id}` line above its heading in `prose/syntax.md`, and the tests fail if one isn't.
 
-## Emphasis
+## emphasis
 
 ```example
 _a_ **b** ~~c~~
@@ -28,7 +28,7 @@ _a ${x * y} b_
 <p><em>a ${x * y} b</em></p>
 ```
 
-## Inline code
+## inline-code
 
 ```example
 `a` and `` b ` c `` and `${a}`
@@ -36,7 +36,7 @@ _a ${x * y} b_
 <p><code>a</code> and <code>b ` c</code> and <code>${a}</code></p>
 ```
 
-## Links and images
+## link
 
 ```example
 [docs](/docs){target=_blank} and ![hero](h.png){.wide width=600}
@@ -74,7 +74,7 @@ _a ${x * y} b_
 <p><a href="/u/$%7Bid%7D/edit">x</a></p>
 ```
 
-## Text directives
+## text-directive
 
 ```example
 :span[x]{.y} and :badge{n=3}
@@ -100,7 +100,7 @@ hello :world at 10:30, localhost:8000
 <p>hello :world at 10:30, localhost:8000</p>
 ```
 
-## Inline math
+## inline-math
 
 ```example
 $x^2$ and $a$
@@ -114,7 +114,7 @@ costs $5 and $10
 <p>costs $5 and $10</p>
 ```
 
-## Expressions
+## expression
 
 ```example
 ${f("}", `${"}"}`, /* } */ {a: 1})} after
@@ -128,7 +128,7 @@ ${a and \${b}
 <p>${a and ${b}</p>
 ```
 
-## Line breaks
+## line-break
 
 ```example
 a\
@@ -140,7 +140,7 @@ b
 c</p>
 ```
 
-## Escapes and references
+## escape
 
 ```example
 \*a\* 10\ km &#169; &#x2014; &#0;
@@ -154,7 +154,7 @@ a & b, a@b, x.y
 <p>a &amp; b, a@b, x.y</p>
 ```
 
-## Smart punctuation
+## smart-punctuation
 
 ```example
 "Hi," she said -- it's 1990--2000... --- done

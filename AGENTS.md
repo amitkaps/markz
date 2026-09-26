@@ -7,9 +7,11 @@ Read **`prose/spec.md`** first — it is the design for markz.
 - `vp` is a dev dependency — run it through the `pnpm run …` scripts, not a global install.
 - markz is one package: parser, AST utilities and `html()`. The dialect is `prose/syntax.md`. No framework renderers, no parser options, no
   unified/remark dependencies, and a 20 KB gzip budget (`prose/spec.md#performance-and-size`).
-- `syntax.md` is the specification, and micromark is only the oracle for the constructs markz
-  shares with GFM. Don't let "same as GFM" leak past the constructs `syntax.md` lists. Every
-  example is filed under a `syntax.md` construct or Not supported row (`test/examples.ts`). When
+- `syntax.md` explains the dialect and `test/grammar.ts` states it, with a stable id per construct
+  (`{#id}` above its heading). Each construct names its origin: CommonMark, GFM, directives,
+  djot, or markz's own. micromark is only the oracle for the constructs marked "As CommonMark" or
+  "As GFM"; don't let "same as GFM" leak past them. Every example is filed under a construct id
+  or a Not supported row's warning code (`test/examples.ts`). When
   the oracle disagrees with `syntax.md`, file the example as `differs` under the construct whose
   rule explains it, rather than bending the parser. markz's own examples go in
   `test/dialect/*.md`.

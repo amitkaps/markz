@@ -36,13 +36,18 @@
 	const totals = $derived(tally(rows));
 	const sections = $derived.by(() =>
 		PARTS.map((part) => {
-			const out: { name: string; t: Record<Status, number>; n: number; sources: Set<string> }[] =
-				[];
+			const out: {
+				name: string;
+				title: string;
+				t: Record<Status, number>;
+				n: number;
+				sources: Set<string>;
+			}[] = [];
 			for (const r of rows) {
 				if (r.part !== part) continue;
 				let s = out.find((x) => x.name === r.section);
 				if (!s) {
-					s = { name: r.section, t: tally([]), n: 0, sources: new Set() };
+					s = { name: r.section, title: r.title, t: tally([]), n: 0, sources: new Set() };
 					out.push(s);
 				}
 				s.t[r.status]++;
@@ -174,7 +179,7 @@
 				{#each list as s (s.name)}
 					<tr class:active={section === s.name}>
 						<td>
-							<button type="button" class="link" onclick={() => pick(s.name)}>{s.name}</button>
+							<button type="button" class="link" onclick={() => pick(s.name)}>{s.title}</button>
 							{#each [...s.sources] as source (source)}<span class="suite">{source}</span>{/each}
 						</td>
 						<td class="bar-cell">{@render bar(s.t, s.n)}</td>
@@ -202,7 +207,7 @@
 		<option value="">All constructs and rows</option>
 		{#each sections as { part, sections: list } (part)}
 			<optgroup label={part}>
-				{#each list as s (s.name)}<option value={s.name}>{s.name}</option>{/each}
+				{#each list as s (s.name)}<option value={s.name}>{s.title}</option>{/each}
 			</optgroup>
 		{/each}
 	</select>
@@ -215,7 +220,7 @@
 			<summary>
 				<span class="num-label">#{r.number}</span>
 				<span class="pill">{LABEL[r.status]}</span>
-				<span>{r.section} <span class="suite">{r.source}</span></span>
+				<span>{r.title} <span class="suite">{r.source}</span></span>
 				{#if r.problem}<span class="why">{r.problem}</span>{/if}
 				<span class="preview">{r.markdown.replace(/\n/g, '⏎ ')}</span>
 			</summary>

@@ -1,15 +1,27 @@
 /** @prose
  * # The dialect's outline
  *
- * `syntax.md` read as data: its three parts and the constructs under each, and the Not supported
- * rows by warning code. Every example is filed under a construct or a code, and the tests and the
- * site both take the outline from here. Rows are keyed by the code in their first column, never
- * by their wording, so the prose can be reworded freely.
+ * `syntax.md` read as data: each construct by the id on the `{#id}` line above its heading, and
+ * the Not supported rows by warning code. The grammar says which constructs exist and where they
+ * belong; this reads what the page says about them, so the tests can hold the two together. Nothing
+ * here depends on wording: headings, leads and cells can be reworded as long as the ids, the codes
+ * and the origin leads stay.
  */
 import syntax from '../prose/syntax.md?raw';
 import { type WarningCode } from '../src/index';
+import { construct } from './grammar';
 
 export type Part = 'Metadata' | 'Block' | 'Inline' | 'Not supported';
+
+/** A construct as `syntax.md` presents it. */
+export interface Anchor {
+	id: string;
+	title: string;
+	/** The `##` section it sits under. */
+	part: string;
+	/** The paragraph under the heading, which opens with the origin's lead. */
+	lead: string;
+}
 
 export interface Row {
 	code: WarningCode;
@@ -20,16 +32,41 @@ export interface Row {
 	group: string;
 }
 
+export const anchors: Anchor[] = [];
+{
+	const lines = syntax.split('\n');
+	let fence = '';
+	let part = '';
+	let id: string | null = null;
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i]!;
+		const ticks = /^(`{3,})/.exec(line)?.[1];
+		if (fence) {
+			if (ticks && ticks.length >= fence.length && line.trim() === ticks) fence = '';
+			continue;
+		}
+		if (ticks) fence = ticks;
+		else if (/^\{#[\w-]+\}$/.test(line)) id = line.slice(2, -1);
+		else if (/^#{2,3} /.test(line)) {
+			const title = line.replace(/^#+ /, '');
+			if (line.startsWith('## ')) part = title;
+			if (id) {
+				let j = i + 1;
+				while (lines[j] === '') j++;
+				const lead: string[] = [];
+				for (; lines[j]; j++) lead.push(lines[j]!);
+				anchors.push({ id, title, part, lead: lead.join(' ') });
+			}
+			id = null;
+		}
+	}
+}
+
+export const anchor = (id: string): Anchor | undefined => anchors.find((a) => a.id === id);
+
 // Between two known headings, since the samples in syntax.md contain `##` lines of their own.
 const between = (from: string, to: string) =>
 	syntax.split(`\n## ${from}\n`)[1]!.split(`\n## ${to}\n`)[0]!;
-const headings = (text: string) => [...text.matchAll(/^### (.+)$/gm)].map((m) => m[1]!);
-
-export const constructs: Record<Exclude<Part, 'Not supported'>, string[]> = {
-	Metadata: ['Metadata'],
-	Block: headings(between('Block', 'Inline')),
-	Inline: headings(between('Inline', 'Not supported'))
-};
 
 export const rows: Row[] = [];
 for (const block of between('Not supported', 'Canonical form').split(/^### /m).slice(1)) {
@@ -56,7 +93,8 @@ export const named = (code: string): boolean => syntax.includes(`\`${code}\``);
 
 /** Where a section belongs: a construct's part, or Not supported for a row's code. */
 export function part(section: string): Part | undefined {
-	for (const [p, names] of Object.entries(constructs))
-		if (names.includes(section)) return p as Part;
-	return row(section) ? 'Not supported' : undefined;
+	return construct(section)?.part ?? (row(section) ? 'Not supported' : undefined);
 }
+
+/** What the site shows for a section: the construct's heading, or the row's code. */
+export const title = (section: string): string => anchor(section)?.title ?? section;

@@ -1,8 +1,8 @@
 # Block
 
-Examples of markz's dialect, in the CommonMark spec's format (see `../examples.ts`). Each `##` is a heading of `prose/syntax.md`, and the tests fail if one isn't.
+Examples of markz's dialect, in the CommonMark spec's format (see `../examples.ts`). Each `##` is a construct id from `test/grammar.ts`, set by the `{#id}` line above its heading in `prose/syntax.md`, and the tests fail if one isn't.
 
-## Paragraphs
+## paragraph
 
 ```example
 {.verse}
@@ -13,7 +13,7 @@ Main to
 Main to</p>
 ```
 
-## Headings
+## heading
 
 Every heading gets an id: `{#id}` on the line above, or GitHub's slug numbered past the ids already used.
 
@@ -51,7 +51,7 @@ Every heading gets an id: `{#id}` on the line above, or GitHub's slug numbered p
 <h2 id="hello-world">Hello <em>world</em></h2>
 ```
 
-## Blockquotes
+## blockquote
 
 ```example
 > a
@@ -66,7 +66,7 @@ b</p>
 </blockquote>
 ```
 
-## Lists
+## list
 
 ```example
 - [x] done
@@ -106,7 +106,7 @@ b</p>
 </ul>
 ```
 
-## Code blocks
+## code-block
 
 `````example
 ````md
@@ -146,7 +146,7 @@ b
 </code></pre>
 `````
 
-## Raw blocks
+## raw-block
 
 ````example
 ```=html
@@ -160,7 +160,7 @@ b
 <b>hi</b>
 ````
 
-## Math blocks
+## math-block
 
 ```example
 $$
@@ -171,7 +171,7 @@ $$
 </code></pre>
 ```
 
-## Tables
+## table
 
 ```example
 intro
@@ -210,7 +210,7 @@ intro
 </table>
 ```
 
-## Thematic breaks
+## thematic-break
 
 ```example
 a
@@ -224,7 +224,7 @@ b
 <p>b</p>
 ```
 
-## Directives
+## directive
 
 ```example
 ::chart{data=sales type="bar"}
@@ -277,7 +277,7 @@ y
 {.y}
 ```
 
-## Attributes
+## attributes
 
 ```example
 {#pricing .center}
@@ -333,7 +333,7 @@ para
 <p src="data:image/png;base64,AA" ok="1">para</p>
 ```
 
-## Comments
+## comment
 
 ```example
 <!-- one -->

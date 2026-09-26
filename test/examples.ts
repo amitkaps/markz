@@ -1,8 +1,9 @@
 /** @prose
  * # Examples
  *
- * Every example markz is held to, in one shape and filed by the dialect: under a construct of
- * `syntax.md` (Metadata, Block, Inline) or under the Not supported row it exercises. Where an
+ * Every example markz is held to, in one shape and filed by the dialect: under a construct, by its
+ * id in `grammar.ts` (Metadata, Block, Inline), or under the Not supported row it exercises, by
+ * its warning code. Where an
  * example comes from is a label, not a category. The upstream suites (CommonMark, GFM) are checked
  * against the oracle; markz's own examples, in `dialect/*.md`, carry their expected output.
  *
@@ -35,7 +36,7 @@ export interface Example {
 	/** `commonmark:232`, or `markz:block:12` for the 12th example in `dialect/block.md`. */
 	id: string;
 	number: number;
-	/** The construct or Not supported row it is filed under. */
+	/** The construct id or Not supported code it is filed under. */
 	section: string;
 	part: Part;
 	/** The section of the upstream suite, for an upstream example. */
@@ -55,37 +56,37 @@ export interface Example {
  * form's row instead, whatever its section.
  */
 export const sections: Record<string, string> = {
-	'commonmark:Tabs': 'Lists',
-	'commonmark:Backslash escapes': 'Escapes and references',
-	'commonmark:Entity and numeric character references': 'Escapes and references',
-	'commonmark:Precedence': 'Lists',
-	'commonmark:Thematic breaks': 'Thematic breaks',
-	'commonmark:ATX headings': 'Headings',
-	'commonmark:Setext headings': 'Headings',
-	'commonmark:Indented code blocks': 'Code blocks',
-	'commonmark:Fenced code blocks': 'Code blocks',
-	'commonmark:HTML blocks': 'Raw blocks',
-	'commonmark:Link reference definitions': 'Links and images',
-	'commonmark:Paragraphs': 'Paragraphs',
-	'commonmark:Blank lines': 'Paragraphs',
-	'commonmark:Block quotes': 'Blockquotes',
-	'commonmark:List items': 'Lists',
-	'commonmark:Lists': 'Lists',
-	'commonmark:Inlines': 'Inline code',
-	'commonmark:Code spans': 'Inline code',
-	'commonmark:Emphasis and strong emphasis': 'Emphasis',
-	'commonmark:Links': 'Links and images',
-	'commonmark:Images': 'Links and images',
-	'commonmark:Autolinks': 'Links and images',
-	'commonmark:Raw HTML': 'Raw blocks',
-	'commonmark:Hard line breaks': 'Line breaks',
-	'commonmark:Soft line breaks': 'Line breaks',
-	'commonmark:Textual content': 'Paragraphs',
-	'gfm:Tables': 'Tables',
-	'gfm:Task list items': 'Lists',
-	'gfm:Strikethrough': 'Emphasis',
-	'gfm:Autolinks': 'Links and images',
-	'gfm:Disallowed Raw HTML': 'Raw blocks'
+	'commonmark:Tabs': 'list',
+	'commonmark:Backslash escapes': 'escape',
+	'commonmark:Entity and numeric character references': 'escape',
+	'commonmark:Precedence': 'list',
+	'commonmark:Thematic breaks': 'thematic-break',
+	'commonmark:ATX headings': 'heading',
+	'commonmark:Setext headings': 'heading',
+	'commonmark:Indented code blocks': 'code-block',
+	'commonmark:Fenced code blocks': 'code-block',
+	'commonmark:HTML blocks': 'raw-block',
+	'commonmark:Link reference definitions': 'link',
+	'commonmark:Paragraphs': 'paragraph',
+	'commonmark:Blank lines': 'paragraph',
+	'commonmark:Block quotes': 'blockquote',
+	'commonmark:List items': 'list',
+	'commonmark:Lists': 'list',
+	'commonmark:Inlines': 'inline-code',
+	'commonmark:Code spans': 'inline-code',
+	'commonmark:Emphasis and strong emphasis': 'emphasis',
+	'commonmark:Links': 'link',
+	'commonmark:Images': 'link',
+	'commonmark:Autolinks': 'link',
+	'commonmark:Raw HTML': 'raw-block',
+	'commonmark:Hard line breaks': 'line-break',
+	'commonmark:Soft line breaks': 'line-break',
+	'commonmark:Textual content': 'paragraph',
+	'gfm:Tables': 'table',
+	'gfm:Task list items': 'list',
+	'gfm:Strikethrough': 'emphasis',
+	'gfm:Autolinks': 'link',
+	'gfm:Disallowed Raw HTML': 'raw-block'
 };
 
 /** @prose
@@ -95,16 +96,16 @@ export const sections: Record<string, string> = {
  */
 export const listed: Record<string, string> = {
 	// `\ ` is a non-breaking space in markz, a literal backslash and space in GFM.
-	'commonmark:13': 'Escapes and references',
+	'commonmark:13': 'escape',
 	// Emphasis that needs a delimiter run split (`****`, `__foo_`), which markz doesn't do.
 	...Object.fromEntries(
 		[
 			408, 409, 413, 414, 415, 416, 417, 426, 427, 430, 431, 442, 443, 444, 445, 446, 447, 454, 455,
 			456, 457, 458, 459, 464, 465, 466, 467, 468
-		].map((n) => [`commonmark:${n}`, 'Emphasis'])
+		].map((n) => [`commonmark:${n}`, 'emphasis'])
 	),
 	// A run opened before a `[` can't close inside the brackets, even when they make no link.
-	'commonmark:523': 'Emphasis',
+	'commonmark:523': 'emphasis',
 	// A paragraph continuing without its `>` or its item's indentation.
 	...Object.fromEntries(
 		[93, 232, 233, 238, 247, 250, 251, 291, 292, 293, 312].map((n) => [
@@ -135,7 +136,7 @@ export const oracleDiffers: Record<string, string> = {
 const first = (t: Token) => t.text.trimStart()[0];
 
 export const cuts: [section: string, test: (t: Token) => boolean][] = [
-	['Comments', (t) => t.type === 'htmlFlow' && t.text.trimStart().startsWith('<!--')],
+	['comment', (t) => t.type === 'htmlFlow' && t.text.trimStart().startsWith('<!--')],
 	['jsx', (t) => /^html(?:Flow|Text)$/.test(t.type) && /^<\/?[A-Z][a-z]/.test(t.text.trimStart())],
 	['raw-html', (t) => t.type === 'htmlFlow' || t.type === 'htmlText'],
 	['setext-heading', (t) => t.type === 'setextHeading'],
@@ -156,7 +157,7 @@ function filed(
 	upstream: string | null
 ): Pick<Example, 'section' | 'part' | 'kind'> {
 	const p = part(section);
-	if (!p) throw new Error(`"${section}" is not a construct or row in syntax.md`);
+	if (!p) throw new Error(`"${section}" is not a construct id or a Not supported code`);
 	const kind: Kind =
 		p === 'Not supported' ? 'not supported' : upstream === section ? 'oracle' : 'differs';
 	return { section, part: p, kind };
@@ -195,7 +196,8 @@ function upstreamExample(
  * the Markdown, a `.` line, the expected HTML, and optionally a second `.` line and the text each
  * warning covers, one per line. Without that part, the example must warn about nothing. `→` is a
  * tab, `␣` a space that would otherwise be invisible at the end of a line, and `⏎` a line ending
- * inside a warning's text. Each example is filed under the nearest `##` heading.
+ * inside a warning's text. Each example is filed under the nearest `##` heading: a construct id
+ * or a warning code.
  */
 function dialect(file: string, text: string): Example[] {
 	const out: Example[] = [];

@@ -1,8 +1,8 @@
 # Metadata
 
-Examples of markz's dialect, in the CommonMark spec's format (see `../examples.ts`). Each `##` is a heading of `prose/syntax.md`, and the tests fail if one isn't.
+Examples of markz's dialect, in the CommonMark spec's format (see `../examples.ts`). Each `##` is a construct id from `test/grammar.ts`, set by the `{#id}` line above its heading in `prose/syntax.md`, and the tests fail if one isn't.
 
-## Metadata
+## metadata
 
 A closed block of `key:` lines is metadata, which `html()` doesn't write. Anything else is read as ordinary Markdown.
 
