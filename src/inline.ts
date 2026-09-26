@@ -71,7 +71,7 @@ interface List {
  * ## Emphasis kinds
  *
  * A delimiter run's kind is its character and length. `_`, `**` and `~~` are the dialect's;
- * `*` is accepted where formatters write it (syntax.md: Emphasis rules); `__` and `~` are rejected
+ * `*` is accepted where formatters write it (syntax.md: Emphasis); `__` and `~` are rejected
  * forms that are matched only to be reported. Runs of any other length are plain text.
  */
 const KINDS: Record<string, NodeType> = {

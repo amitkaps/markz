@@ -89,7 +89,7 @@ text.
 flagged, and `warnings` says that severity. Renamed before the API is published, so it costs
 nothing.
 
-### 8. `syntax.md` by the dialect's shape
+### 8. `syntax.md` by the dialect's shape — done
 
 Regroup `syntax.md` from how much is supported ("Fully supported", "Supported, with limits") to
 what the dialect is made of: Metadata, Block, Inline, then Not supported and Canonical form. Each
