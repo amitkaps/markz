@@ -15,4 +15,3 @@ export function unescape(text: string): string {
 
 /** A named character reference, which markz keeps as written and reports (syntax.md). */
 export const NAMED = /&[A-Za-z][A-Za-z\d]{1,31};/g;
-export const NAMED_INSTEAD = 'the character itself (`©`, `&`), or `\\ ` for a non-breaking space';

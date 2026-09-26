@@ -71,12 +71,14 @@ tags: [svelte, vite]
   that contains `,`, `[` or `]`.
 - **YAML look-alikes are errors, not strings.** The block is still YAML to GitHub, editors,
   formatters and any YAML parser, and every block markz accepts has the same value under YAML
-  1.2. So a plain value YAML would read differently gets a warning, not a silent string:
+  1.2. So a plain value YAML would read differently gets the warning `metadata-value`, not a
+  silent string:
   `True`, `FALSE`, `~`, `Null`, `+1`, `.5`, `1e3`, `0x1F`, `.inf`. Write the canonical form or
   quote it.
 - **Everything else in YAML is out:** indented lines (nested maps, `- item` lists, multi-line
-  strings), `|` and `>`, `{a: b}`, anchors, aliases and tags. Each gets a warning, and its key
-  is skipped. Of two duplicate keys, the first wins and the second gets a warning.
+  strings), `|` and `>`, `{a: b}`, anchors, aliases and tags. Each gets a warning
+  (`metadata-indented`, `metadata-line` or `metadata-value`), and its key is skipped. Of two
+  duplicate keys, the first wins and the second gets the warning `metadata-duplicate-key`.
 
 markz is not a YAML parser. The `yaml` package is its dev-only test oracle, as micromark is for
 the Markdown: every accepted block must give the same object from both.
@@ -112,7 +114,7 @@ none changes once it is written, which keeps streaming simple:
 
 - **`{#id}` on the line above sets it exactly**, giving an anchor that survives renaming the
   heading. If an earlier heading already has that id, both keep it, the browser uses the first,
-  and the later one is reported.
+  and the later one gets the warning `duplicate-id`.
 - **Otherwise it is generated** with GitHub's algorithm, and numbered `-1`, `-2`, … past any id
   already used, explicit or generated.
 
@@ -290,7 +292,7 @@ This section defines the syntax for all three; the inline placements are also li
 - **Block attributes:** blank lines may come between the `{…}` line and its block, because oxfmt
   inserts one before a heading. Consecutive `{…}` lines merge. A `{…}` line can't interrupt a
   paragraph or a table, where it is text. One with no block after it in its container stays text
-  and gets a warning.
+  and gets the warning `orphan-attributes`.
 - **On the element:** `html()` writes block attributes onto the block's own element: the `<p>`,
   `<h2>`, `<table>`, `<ul>`, `<blockquote>`, and `<pre>` for code and math.
 - **One line only.** djot lets attributes span lines, and markz doesn't. That keeps the block pass
@@ -308,7 +310,7 @@ renders. It is the only thing kept from HTML. prose's Markdown notes need it (`<
 and GitHub hides comments too.
 
 - It may span lines, and ends on the line with `-->`. Text after `-->` on that line is part of the
-  comment and gets a warning. An unclosed comment runs to the end of its container.
+  comment and gets the warning `comment-trailing-text`. An unclosed comment runs to the end of its container.
 - A comment that shares its first line with other text is inline, where it is text.
 
 ## Inline
@@ -461,46 +463,46 @@ attribute values.
 
 ## Not supported
 
-Each of these stays literal text and adds a warning over exactly its characters, with the
-supported form as `instead`, worded as the table's second column. They are cut on principle, not
+Each of these stays literal text and adds a warning over exactly its characters. The warning's
+`code` is the table's first column, and its `instead` is the "Write instead" column. They are cut on principle, not
 missing features: the Why column says what each would cost. Two look-alikes are ordinary prose, so
 they stay text without a report: a lone `[x]` (a reference link's definition is reported instead)
 and a bare `{…}`.
 
 ### Metadata forms
 
-| Syntax                | Write instead          | Why         |
-| --------------------- | ---------------------- | ----------- |
-| TOML metadata (`+++`) | a `---` metadata block | One format. |
+| Code            | Syntax                | Write instead          | Why         |
+| --------------- | --------------------- | ---------------------- | ----------- |
+| `toml-metadata` | TOML metadata (`+++`) | a `---` metadata block | One format. |
 
 ### Block forms
 
-| Syntax                                                                                       | Write instead                                             | Why                                                                                                                                       |
-| -------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Raw HTML blocks and inline tags                                                              | a ` ```=html ` raw block, or directives and attributes    | Seven HTML-block kinds and a tag grammar. HTML stays possible, but only where it's marked.                                                |
-| Setext headings (`Title` over `===` or `---`)                                                | `# Title`                                                 | A paragraph would turn into a heading when the next line is read.                                                                         |
-| Indented code blocks                                                                         | fenced code                                               | Indentation meaning code is what makes list indentation hard. The indented line is paragraph text, and never a heading or list inside it. |
-| `~~~` fences                                                                                 | a longer backtick fence                                   | One fence character.                                                                                                                      |
-| `***`, `___`, `* * *` rules                                                                  | `---`                                                     | One marker.                                                                                                                               |
-| Trailing heading attributes (`## Title {#id}`)                                               | `{#id}` on the line above                                 | Under djot's rule this `{…}` belongs to the word "Title".                                                                                 |
-| Multi-line attributes                                                                        | one line                                                  | Keeps the block pass free of lookahead.                                                                                                   |
-| Lazy continuation lines (a quoted or listed paragraph continuing without `>` or indentation) | `>` on every line, or indent to the item's content column | Lazy lines are the main reason CommonMark's block structure depends on context. Formatters already write them out in full.                |
+| Code                          | Syntax                                                                                       | Write instead                                             | Why                                                                                                                                       |
+| ----------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `raw-html`                    | Raw HTML blocks and inline tags                                                              | a ` ```=html ` raw block, or directives and attributes    | Seven HTML-block kinds and a tag grammar. HTML stays possible, but only where it's marked.                                                |
+| `setext-heading`              | Setext headings (`Title` over `===` or `---`)                                                | `# Title`                                                 | A paragraph would turn into a heading when the next line is read.                                                                         |
+| `indented-code`               | Indented code blocks                                                                         | fenced code                                               | Indentation meaning code is what makes list indentation hard. The indented line is paragraph text, and never a heading or list inside it. |
+| `tilde-fence`                 | `~~~` fences                                                                                 | a longer backtick fence                                   | One fence character.                                                                                                                      |
+| `rule-marker`                 | `***`, `___`, `* * *` rules                                                                  | `---`                                                     | One marker.                                                                                                                               |
+| `trailing-heading-attributes` | Trailing heading attributes (`## Title {#id}`)                                               | `{#id}` on the line above                                 | Under djot's rule this `{…}` belongs to the word "Title".                                                                                 |
+| `multiline-attributes`        | Multi-line attributes                                                                        | one line                                                  | Keeps the block pass free of lookahead.                                                                                                   |
+| `lazy-line`                   | Lazy continuation lines (a quoted or listed paragraph continuing without `>` or indentation) | `>` on every line, or indent to the item's content column | Lazy lines are the main reason CommonMark's block structure depends on context. Formatters already write them out in full.                |
 
 ### Inline forms
 
-| Syntax                                                                                      | Write instead                                                     | Why                                                                                                                                                                         |
-| ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Reference links: `[x][y]`, `[x][]`, `[y]: url`                                              | inline links                                                      | A link can't be resolved until the whole document is read, which breaks local parsing and streaming.                                                                        |
-| Footnotes (`[^label]`, `[^label]: text`)                                                    | a text directive, such as `:note[text]`                           | A reference can't be resolved until the whole document is read, as with reference links. Nothing we write uses them.                                                        |
-| Bare URLs (`https://…`, `www.…`, `me@example.com`)                                          | `<https://…>` or `[text](url)`                                    | GFM's largest construct, and the only one that has to look back at text already emitted: an email is known only at its `@`, and trailing punctuation is trimmed afterwards. |
-| Relative autolinks (`</docs/intro>`)                                                        | `[About](/about)`                                                 | An autolink needs a scheme, and `</about>` is a closing HTML tag, reported as raw HTML. A link should have real text.                                                       |
-| Named character references (`&copy;`, `&amp;`, `&nbsp;`)                                    | the character itself (`©`, `&`), or `\ ` for a non-breaking space | Files are UTF-8, `html()` escapes `&` and `<` itself, and the table of 2,125 names is about 12 KB gzip.                                                                     |
-| Two trailing spaces as a line break                                                         | `\` at end of line, or `{.verse}` on a poem                       | Invisible syntax.                                                                                                                                                           |
-| `__strong__`                                                                                | `**strong**`                                                      | One marker. oxfmt rewrites it.                                                                                                                                              |
-| `*emphasis*`, except inside `_…_` or touching a letter ([Emphasis](#emphasis))              | `_emphasis_`                                                      | One marker, and the source of most emphasis edge cases. oxfmt rewrites it.                                                                                                  |
-| `~single~` strikethrough                                                                    | `~~text~~`                                                        | One marker. oxfmt rewrites it.                                                                                                                                              |
-| Attributes after words, inline code or emphasis (`word{.x}`), and djot spans (`[text]{.x}`) | `:span[text]{.x}`                                                 | Directives already wrap inline text, so one way. Keeping `{` special only after a `)` means braces in prose are plain text.                                                 |
-| MDX: JSX (a capitalised tag, `<Chart />`) and bare `{…}` expressions                        | directives, `${…}`                                                | A `{` is only attributes where the rules above say so. Any other brace is prose, so a bare `{…}` stays text without a report.                                               |
+| Code                | Syntax                                                                                      | Write instead                                                     | Why                                                                                                                                                                         |
+| ------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `reference-link`    | Reference links: `[x][y]`, `[x][]`, `[y]: url`                                              | inline links                                                      | A link can't be resolved until the whole document is read, which breaks local parsing and streaming.                                                                        |
+| `footnote`          | Footnotes (`[^label]`, `[^label]: text`)                                                    | a text directive, such as `:note[text]`                           | A reference can't be resolved until the whole document is read, as with reference links. Nothing we write uses them.                                                        |
+| `bare-url`          | Bare URLs (`https://…`, `www.…`, `me@example.com`)                                          | `<https://…>` or `[text](url)`                                    | GFM's largest construct, and the only one that has to look back at text already emitted: an email is known only at its `@`, and trailing punctuation is trimmed afterwards. |
+| `relative-autolink` | Relative autolinks (`</docs/intro>`)                                                        | `[About](/about)`                                                 | An autolink needs a scheme, and `</about>` is a closing HTML tag, reported as raw HTML. A link should have real text.                                                       |
+| `named-reference`   | Named character references (`&copy;`, `&amp;`, `&nbsp;`)                                    | the character itself (`©`, `&`), or `\ ` for a non-breaking space | Files are UTF-8, `html()` escapes `&` and `<` itself, and the table of 2,125 names is about 12 KB gzip.                                                                     |
+| `trailing-spaces`   | Two trailing spaces as a line break                                                         | `\` at end of line, or `{.verse}` on a poem                       | Invisible syntax.                                                                                                                                                           |
+| `underscore-strong` | `__strong__`                                                                                | `**strong**`                                                      | One marker. oxfmt rewrites it.                                                                                                                                              |
+| `star-emphasis`     | `*emphasis*`, except inside `_…_` or touching a letter ([Emphasis](#emphasis))              | `_emphasis_`                                                      | One marker, and the source of most emphasis edge cases. oxfmt rewrites it.                                                                                                  |
+| `single-tilde`      | `~single~` strikethrough                                                                    | `~~text~~`                                                        | One marker. oxfmt rewrites it.                                                                                                                                              |
+| `inline-attributes` | Attributes after words, inline code or emphasis (`word{.x}`), and djot spans (`[text]{.x}`) | `:span[text]{.x}`                                                 | Directives already wrap inline text, so one way. Keeping `{` special only after a `)` means braces in prose are plain text.                                                 |
+| `jsx`               | MDX: JSX (a capitalised tag, `<Chart />`) and bare `{…}` expressions                        | directives, `${…}`                                                | A `{` is only attributes where the rules above say so. Any other brace is prose, so a bare `{…}` stays text without a report.                                               |
 
 ## Canonical form
 

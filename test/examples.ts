@@ -109,7 +109,7 @@ export const listed: Record<string, string> = {
 	...Object.fromEntries(
 		[93, 232, 233, 238, 247, 250, 251, 291, 292, 293, 312].map((n) => [
 			`commonmark:${n}`,
-			'Lazy continuation lines'
+			'lazy-line'
 		])
 	)
 };
@@ -136,19 +136,19 @@ const first = (t: Token) => t.text.trimStart()[0];
 
 export const cuts: [section: string, test: (t: Token) => boolean][] = [
 	['Comments', (t) => t.type === 'htmlFlow' && t.text.trimStart().startsWith('<!--')],
-	['MDX', (t) => /^html(?:Flow|Text)$/.test(t.type) && /^<\/?[A-Z][a-z]/.test(t.text.trimStart())],
-	['Raw HTML', (t) => t.type === 'htmlFlow' || t.type === 'htmlText'],
-	['Setext headings', (t) => t.type === 'setextHeading'],
-	['Indented code blocks', (t) => t.type === 'codeIndented'],
-	['`~~~` fences', (t) => t.type === 'codeFencedFenceSequence' && t.text[0] === '~'],
-	['Reference links', (t) => t.type === 'definition' || t.type === 'reference'],
-	['Bare URLs', (t) => t.type === 'literalAutolink'],
-	['Named character', (t) => t.type === 'characterReference' && !t.text.startsWith('&#')],
-	['Two trailing spaces', (t) => t.type === 'hardBreakTrailing'],
-	['`***`', (t) => t.type === 'thematicBreak' && first(t) !== '-'],
-	['`__strong__`', (t) => t.type === 'strongSequence' && t.text[0] === '_'],
-	['`*emphasis*`', (t) => t.type === 'emphasisSequence' && t.text[0] === '*'],
-	['`~single~`', (t) => t.type === 'strikethroughSequence' && t.text.length === 1]
+	['jsx', (t) => /^html(?:Flow|Text)$/.test(t.type) && /^<\/?[A-Z][a-z]/.test(t.text.trimStart())],
+	['raw-html', (t) => t.type === 'htmlFlow' || t.type === 'htmlText'],
+	['setext-heading', (t) => t.type === 'setextHeading'],
+	['indented-code', (t) => t.type === 'codeIndented'],
+	['tilde-fence', (t) => t.type === 'codeFencedFenceSequence' && t.text[0] === '~'],
+	['reference-link', (t) => t.type === 'definition' || t.type === 'reference'],
+	['bare-url', (t) => t.type === 'literalAutolink'],
+	['named-reference', (t) => t.type === 'characterReference' && !t.text.startsWith('&#')],
+	['trailing-spaces', (t) => t.type === 'hardBreakTrailing'],
+	['rule-marker', (t) => t.type === 'thematicBreak' && first(t) !== '-'],
+	['underscore-strong', (t) => t.type === 'strongSequence' && t.text[0] === '_'],
+	['star-emphasis', (t) => t.type === 'emphasisSequence' && t.text[0] === '*'],
+	['single-tilde', (t) => t.type === 'strikethroughSequence' && t.text.length === 1]
 ];
 
 function filed(
@@ -172,7 +172,7 @@ function upstreamExample(
 	let found = listed[id] ?? cuts.find(([, test]) => tokens(e.markdown).some(test))?.[0];
 	// Where markz accepts what the token looked like (`*` touching a word), it isn't a cut.
 	const cut = found && !listed[id] && row(found);
-	if (cut && !parse(e.markdown).warnings.some((w) => w.instead === cut.instead)) found = undefined;
+	if (cut && !parse(e.markdown).warnings.some((w) => w.code === cut.code)) found = undefined;
 	// `filed` calls an example "oracle" when it stays in its own construct.
 	const where = filed(found ?? home, found ? null : home);
 	return {
@@ -279,18 +279,18 @@ export function check(e: Example): Result {
 		return result(normalize(markz) === normalize(oracle!) ? null : 'differs from the oracle');
 	}
 	if (e.kind === 'differs') return result(null, 'differs');
-	const instead = e.part === 'Not supported' ? row(e.section)!.instead : null;
+	const code = e.part === 'Not supported' ? e.section : null;
 	if (e.kind === 'not supported') {
-		const fired = doc.warnings.some((w) => w.instead === instead);
-		return result(fired ? null : `no warning for "${e.section}"`);
+		const fired = doc.warnings.some((w) => w.code === code);
+		return result(fired ? null : `no \`${code}\` warning`);
 	}
 	if (markz.replace(/\n$/, '') !== e.html) return result('HTML differs from the expected');
 	const covered = doc.warnings.map((w) => e.markdown.slice(w.start, w.end));
 	if (JSON.stringify(covered) !== JSON.stringify(e.warnings)) {
 		return result(`warned over ${JSON.stringify(covered)}`);
 	}
-	if (instead && doc.warnings.some((w) => w.instead !== instead)) {
-		return result(`a warning's instead isn't the row's "${instead}"`);
+	if (code && doc.warnings.some((w) => w.code !== code)) {
+		return result(`a warning other than \`${code}\``);
 	}
 	return result(null);
 }

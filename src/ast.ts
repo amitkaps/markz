@@ -6,6 +6,7 @@
  * table. The parser fills a `Builder`, which hands over a `Document` once and is done: there is no
  * mutation API, so offsets can never drift from the source they point into (spec: AST).
  */
+import { WARNINGS, type WarningCode } from './warnings';
 
 /** @prose
  * ## Node types
@@ -118,8 +119,8 @@ export type DataType = keyof NodeData;
  * each item with its own range, in source order: the renderer applies "classes accumulate, a later
  * value wins" and the AST stays verbatim.
  *
- * A warning is rejected syntax that was kept as text: its range, what was wrong, and the
- * supported form from the "Write instead" column of `syntax.md`.
+ * A warning is syntax markz kept as text or read in its own way: a stable code from
+ * `warnings.ts`, its range, what was wrong, and the supported form to write instead.
  */
 export interface Attribute extends Range {
 	key: string;
@@ -131,6 +132,7 @@ export interface Attributes extends Range {
 }
 
 export interface Warning extends Range {
+	code: WarningCode;
 	message: string;
 	instead: string;
 }
@@ -295,8 +297,10 @@ export class Builder {
 		this.#attributes[node] = attributes;
 	}
 
-	warn(warning: Warning): void {
-		this.#warnings.push(warning);
+	/** A warning by its code; the message defaults to the code's, and `instead` is always its. */
+	warn(code: WarningCode, start: number, end: number, message?: string): void {
+		const [text, instead] = WARNINGS[code];
+		this.#warnings.push({ code, start, end, message: message ?? text, instead });
 	}
 
 	finish(): Document {

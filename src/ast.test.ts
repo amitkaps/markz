@@ -22,7 +22,7 @@ function build() {
 	b.close(13);
 	b.close(13);
 	b.close(13);
-	b.warn({ start: 8, end: 9, message: 'example', instead: 'nothing' });
+	b.warn('bare-url', 8, 9);
 	return { doc: b.finish(), heading, quote, paragraph };
 }
 
@@ -55,9 +55,15 @@ describe('Builder and Document', () => {
 		expect(doc.attributes(heading)).toBeUndefined();
 	});
 
-	it('keeps warnings', () => {
+	it('keeps warnings, with the code’s message and instead', () => {
 		expect(build().doc.warnings).toEqual([
-			{ start: 8, end: 9, message: 'example', instead: 'nothing' }
+			{
+				code: 'bare-url',
+				start: 8,
+				end: 9,
+				message: 'bare URL',
+				instead: '`<https://…>` or `[text](url)`'
+			}
 		]);
 	});
 

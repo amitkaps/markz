@@ -2,26 +2,35 @@
  * # The examples, checked
  *
  * Every example in `examples.ts`, whatever its source, must not fail. Around that, the filing is
- * held to `syntax.md`: every construct and every Not supported row has examples, the hand list
- * names real examples, and most upstream examples are still compared with the oracle, so a rule
- * that swallowed a suite would show.
+ * held to `syntax.md`: every warning code is named there, each Not supported row's "Write instead"
+ * is its code's, every construct and row has examples, the hand list names real examples, and
+ * most upstream examples are still compared with the oracle, so a rule that swallowed a suite
+ * would show.
  */
 import { describe, expect, it } from 'vite-plus/test';
 import { parse } from '../src/index';
 import { check, examples, listed, type Example } from './examples';
-import { constructs, rows } from './syntax';
+import { WARNINGS } from '../src/warnings';
+import { constructs, named, rows } from './syntax';
 import { expectTree } from './tree';
+
+describe('warning codes', () => {
+	it.each(Object.keys(WARNINGS))('%s is named in syntax.md', (code) => {
+		expect(named(code)).toBe(true);
+	});
+
+	it.each(rows)('row $code writes instead what the code does', (r) => {
+		expect(WARNINGS[r.code]?.[1]).toBe(r.instead);
+	});
+});
 
 describe('filing', () => {
 	it.each(Object.values(constructs).flat())('construct %s has examples', (name) => {
 		expect(examples.some((e) => e.section === name)).toBe(true);
 	});
 
-	it.each(rows.map((r) => r.syntax))('row %s has examples', (syntax) => {
-		const matching = examples.filter(
-			(e) => e.part === 'Not supported' && syntax.startsWith(e.section)
-		);
-		expect(matching.length).toBeGreaterThan(0);
+	it.each(rows.map((r) => r.code))('row %s has examples', (code) => {
+		expect(examples.some((e) => e.section === code)).toBe(true);
 	});
 
 	it.each(Object.keys(listed))('%s is a real example', (id) => {

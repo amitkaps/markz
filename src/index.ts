@@ -10,6 +10,7 @@
 export { parse } from './parse';
 export { html } from './html';
 export { Document, NONE } from './ast';
+export type { WarningCode } from './warnings';
 export type {
 	Align,
 	Attribute,

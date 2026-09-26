@@ -8,18 +8,15 @@
  * YAML has that the rule doesn't (indented lines, `|`, `{a: b}`, anchors). A line in error skips its
  * key; the rest of the block is still read.
  */
-import { type Warning, type MetadataScalar, type MetadataValue } from './ast';
-
-type Report = (warning: Warning) => void;
-
-const YAML = 'syntax.md: Metadata';
+import { type Builder, type MetadataScalar, type MetadataValue } from './ast';
+import { type WarningCode } from './warnings';
 
 /** Reads the lines between `start` and `end` (the fences excluded). */
 export function parseMetadata(
 	source: string,
 	start: number,
 	end: number,
-	report: Report
+	b: Pick<Builder, 'warn'>
 ): Record<string, MetadataValue> {
 	const value: Record<string, MetadataValue> = {};
 	// The key the previous line set, so an indented line after it can skip it.
@@ -28,26 +25,25 @@ export function parseMetadata(
 		let lineEnd = at;
 		while (lineEnd < end && source[lineEnd] !== '\n' && source[lineEnd] !== '\r') lineEnd++;
 		const line = source.slice(at, lineEnd);
-		const fail = (message: string, instead: string) =>
-			report({ start: at, end: lineEnd, message, instead });
+		const fail = (code: WarningCode, message?: string) => b.warn(code, at, lineEnd, message);
 
 		if (/^[ \t]/.test(line) && line.trim() !== '') {
-			fail(
-				'indented metadata line: nested values, lists and multi-line strings are not supported',
-				`a one-line value, or a [a, b] list (${YAML})`
-			);
+			fail('metadata-indented');
 			if (last !== null) delete value[last];
 			last = null;
 		} else if (line.trim() !== '' && line[0] !== '#') {
 			const match = /^([A-Za-z_][\w-]*):(?:[ \t]+|$)/.exec(line);
 			last = null;
-			if (!match) fail('not a `key: value` line', `key: value (${YAML})`);
+			if (!match) fail('metadata-line');
 			else if (Object.hasOwn(value, match[1]!)) {
-				fail(`duplicate metadata key \`${match[1]}\`; the first one wins`, 'each key once');
+				fail(
+					'metadata-duplicate-key',
+					`duplicate metadata key \`${match[1]}\`; the first one wins`
+				);
 			} else {
 				const result = parseValue(stripComment(line.slice(match[0].length)));
 				if (typeof result === 'string' && result.startsWith('!'))
-					fail(result.slice(1), `the canonical form, or quote the value (${YAML})`);
+					fail('metadata-value', result.slice(1));
 				else {
 					value[match[1]!] = (result as { value: MetadataValue }).value;
 					last = match[1]!;
