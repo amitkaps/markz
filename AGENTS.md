@@ -8,9 +8,11 @@ Read **`prose/spec.md`** first — it is the design for markz.
 - markz is one package: parser, AST utilities and `html()`. The dialect is `prose/syntax.md`. No framework renderers, no parser options, no
   unified/remark dependencies, and a 20 KB gzip budget (`prose/spec.md#performance-and-size`).
 - `syntax.md` is the specification, and micromark is only the oracle for the constructs markz
-  shares with GFM. Don't let "same as GFM" leak past the constructs `syntax.md` lists. When the
-  oracle disagrees with `syntax.md`, exclude the example with its `syntax.md` reason
-  (`test/examples.ts`) rather than bending the parser.
+  shares with GFM. Don't let "same as GFM" leak past the constructs `syntax.md` lists. Every
+  example is filed under a `syntax.md` construct or Not supported row (`test/examples.ts`). When
+  the oracle disagrees with `syntax.md`, file the example as `differs` under the construct whose
+  rule explains it, rather than bending the parser. markz's own examples go in
+  `test/dialect/*.md`.
 - `docs/` is the site (markz.amitkaps.com): a private workspace package, trimmed from base, that
   renders the README and `prose/` with this commit's markz and builds the Conformance page from
   the test harness. It is a consumer, never part of the package: its dependencies (Svelte,

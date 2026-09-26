@@ -6,19 +6,30 @@
  */
 export const REPO = 'https://github.com/amitkaps/markz';
 
-export type Status = 'pass' | 'fail' | 'excluded';
+export type Status = 'pass' | 'fail' | 'differs';
+export type Part = 'Metadata' | 'Block' | 'Inline' | 'Not supported';
+export const PARTS: Part[] = ['Metadata', 'Block', 'Inline', 'Not supported'];
 
 export interface Row {
-	suite: 'commonmark' | 'gfm';
-	example: number;
+	/** `commonmark`, `gfm`, or `markz` for markz's own examples. */
+	source: string;
+	id: string;
+	number: number;
+	part: Part;
+	/** The `syntax.md` construct or Not supported row the example is filed under. */
 	section: string;
+	/** The upstream suite's own section. */
+	upstream: string | null;
+	/** How it is checked: `oracle`, `differs`, `not supported` or `expected`. */
+	kind: string;
 	markdown: string;
 	status: Status;
-	/** The `syntax.md` reason, for an excluded example. */
-	reason: string | null;
-	oracle: string;
+	/** Why it fails. */
+	problem: string | null;
+	/** What markz is held to: the oracle's HTML, or markz's own expected HTML. */
+	expected: string;
 	markz: string;
 	/** Both outputs normalized, for a failing example. */
-	normalized: [oracle: string, markz: string] | null;
+	normalized: [expected: string, markz: string] | null;
 	warnings: string[];
 }
