@@ -12,24 +12,22 @@
 	let { data } = $props();
 	const rows = $derived(data.rows);
 
-	const STATUSES: Status[] = ['fail', 'pass', 'pending', 'excluded'];
+	const STATUSES: Status[] = ['fail', 'pass', 'excluded'];
 	const LABEL: Record<Status, string> = {
 		pass: 'Pass',
 		fail: 'Fail',
-		pending: 'Pending',
 		excluded: 'Excluded'
 	};
 	const WHAT: Record<Status, string> = {
 		pass: 'markz writes what the oracle writes',
 		fail: 'markz differs from the oracle',
-		pending: 'has inline syntax, compared from step 5',
 		excluded: 'uses syntax the dialect cuts or changes'
 	};
 	const PAGE = 100;
 
 	type Row = (typeof data.rows)[number];
 	const tally = (list: Row[]) => {
-		const t: Record<Status, number> = { pass: 0, fail: 0, pending: 0, excluded: 0 };
+		const t: Record<Status, number> = { pass: 0, fail: 0, excluded: 0 };
 		for (const r of list) t[r.status]++;
 		return t;
 	};
@@ -133,7 +131,7 @@
 
 {#snippet bar(t: Record<Status, number>, n: number)}
 	<div class="bar" role="img" aria-label={STATUSES.map((s) => `${t[s]} ${s}`).join(', ')}>
-		{#each ['pass', 'fail', 'pending', 'excluded'] as const as s (s)}
+		{#each ['pass', 'fail', 'excluded'] as const as s (s)}
 			{#if t[s]}<span class={s} style={width(t[s], n)}></span>{/if}
 		{/each}
 	</div>
@@ -173,7 +171,7 @@
 			<tr>
 				<th>Section</th>
 				<th class="bar-cell">Status</th>
-				{#each ['pass', 'fail', 'pending', 'excluded'] as const as s (s)}
+				{#each ['pass', 'fail', 'excluded'] as const as s (s)}
 					<th class="num">{LABEL[s]}</th>
 				{/each}
 			</tr>
@@ -188,7 +186,7 @@
 						{#if s.suite === 'gfm'}<span class="suite">gfm</span>{/if}
 					</td>
 					<td class="bar-cell">{@render bar(s.t, s.n)}</td>
-					{#each ['pass', 'fail', 'pending', 'excluded'] as const as st (st)}
+					{#each ['pass', 'fail', 'excluded'] as const as st (st)}
 						<td class="num" class:zero={!s.t[st]}>{s.t[st]}</td>
 					{/each}
 				</tr>
@@ -337,9 +335,6 @@
 	}
 	.fail {
 		--tone: var(--fail);
-	}
-	.pending {
-		--tone: var(--pending);
 	}
 	.excluded {
 		--tone: var(--excluded);

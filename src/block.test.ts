@@ -29,14 +29,15 @@ const first = (doc: Document, type: NodeType): NodeId => {
 const messages = (source: string) => parsed(source).diagnostics.map((d) => d.message);
 
 describe('ranges', () => {
-	it('cover markers, and never the line ending', () => {
+	it('cover markers, and a block never its line ending', () => {
 		expect(outline(parsed('# Title #\n\n> quote\n> more\n\n- a\n\n  b\n'))).toEqual([
 			'document "# Title #\\n\\n> quote\\n> more\\n\\n- a\\n\\n  b\\n"',
 			'  heading "# Title #"',
 			'    text "Title"',
 			'  blockquote "> quote\\n> more"',
 			'    paragraph "quote\\n> more"',
-			'      text "quote"',
+			// A soft break's text covers the line ending, and never the next line's `> `.
+			'      text "quote\\n"',
 			'      text "more"',
 			'  list "- a\\n\\n  b"',
 			'    listItem "- a\\n\\n  b"',
@@ -53,9 +54,10 @@ describe('ranges', () => {
 			'  heading "# A"',
 			'    text "A"',
 			'  paragraph "para\\rline"',
-			'    text "para"',
-			'    text "line"'
+			// One text node: the lines touch in the source, and the lone CR reads as `\n`.
+			'    text "para\\rline"'
 		]);
+		expect(doc.data(first(doc, 'text') + 2, 'text').value).toBe('para\nline');
 	});
 
 	it('give a code block its body range and a stripped value', () => {
@@ -184,7 +186,8 @@ describe('comments', () => {
 describe('rejected forms stay text and report', () => {
 	it.each([
 		['Title\n===\n', '<p>Title\n===</p>', 'setext heading underline'],
-		['Title\n---\n', '<p>Title\n---</p>', 'setext heading underline'],
+		// Still text, and text gets smart punctuation.
+		['Title\n---\n', '<p>Title\n—</p>', 'setext heading underline'],
 		['    code\n', '<p>code</p>', 'indented code block'],
 		['***\n', '<p>***</p>', '`***` rule'],
 		['* * *\n', '<p>* * *</p>', '`***` rule'],

@@ -6,7 +6,7 @@
  */
 export const REPO = 'https://github.com/amitkaps/markz';
 
-export type Status = 'pass' | 'fail' | 'pending' | 'excluded';
+export type Status = 'pass' | 'fail' | 'excluded';
 
 export interface Row {
 	suite: 'commonmark' | 'gfm';

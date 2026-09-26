@@ -46,6 +46,13 @@ export const excludedSections: Record<string, string> = {
 export const excludedExamples: Record<string, string> = {
 	// `\ ` is a non-breaking space in markz, a literal backslash and space in GFM.
 	'commonmark:13': 'Non-breaking space',
+	// Emphasis that needs a delimiter run split (`****`, `__foo_`), which markz doesn't do.
+	...Object.fromEntries(
+		[408, 417, 427, 444, 446, 454, 455, 457, 459, 464, 466].map((n) => [
+			`commonmark:${n}`,
+			'Emphasis rules'
+		])
+	),
 	// A paragraph continuing without its `>` or its item's indentation.
 	...Object.fromEntries(
 		[232, 233, 238, 247, 250, 251, 291, 292, 293, 312].map((n) => [
@@ -90,30 +97,6 @@ export const cuts: [reason: string, test: (t: Token) => boolean][] = [
 	['`*emphasis*`', (t) => t.type === 'emphasisSequence' && t.text[0] === '*'],
 	['`~single~` strikethrough', (t) => t.type === 'strikethroughSequence' && t.text.length === 1]
 ];
-
-/** @prose
- * ## Block-only examples
- *
- * Until the inline pass lands (`prose/plan.md`, step 5), markz is held to the oracle only on
- * examples with no inline syntax: none of the oracle's inline tokens, and none of the characters
- * that open markz's own inline constructs (`$` for math and expressions, `\ `, `{`).
- */
-const INLINE = new Set([
-	'autolink',
-	'characterEscape',
-	'characterReference',
-	'codeText',
-	'directiveText',
-	'emphasis',
-	'hardBreakEscape',
-	'label',
-	'strikethrough',
-	'strong'
-]);
-
-export function blockOnly(e: Example): boolean {
-	return !/[$]|\\ |\)\{/.test(e.markdown) && !tokens(e.markdown).some((t) => INLINE.has(t.type));
-}
 
 export function exclusion(e: Example): string | undefined {
 	const listed =
