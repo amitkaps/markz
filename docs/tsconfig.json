@@ -1,0 +1,19 @@
+{
+	"extends": "$app/tsconfig",
+	"compilerOptions": {
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		// The library's source, as `vite.config.ts` resolves it.
+		"paths": { "markz": ["../src/index.ts"] },
+		// `wrangler types` points Cloudflare.GlobalProps at the built worker, which
+		// drags .svelte-kit/cloudflare/_worker.js into the program once a build exists.
+		"checkJs": false,
+		"types": ["$app/types", "./worker-configuration.d.ts"]
+	},
+	"include": ["src", "vite.config.ts"]
+}

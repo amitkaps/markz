@@ -1,0 +1,31 @@
+{
+	"name": "markz-docs",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"imports": {
+		"#lib": "./src/lib/index.ts",
+		"#lib/*": "./src/lib/*"
+	},
+	"scripts": {
+		"dev": "vp dev",
+		"build": "vp build",
+		"check": "svelte-kit sync && wrangler types && vp check && svelte-check --tsconfig ./tsconfig.json",
+		"test": "vp test --run",
+		"deploy": "vp build && wrangler deploy",
+		"prepare": "svelte-kit sync && wrangler types"
+	},
+	"devDependencies": {
+		"@amitkaps/prose": "https://github.com/amitkaps/prose/releases/download/v0.1.0/amitkaps-prose-0.1.0.tgz",
+		"@sveltejs/adapter-cloudflare": "^8.0.0-next.6",
+		"@sveltejs/kit": "^3.0.0-next.29",
+		"svelte": "^5.57.1",
+		"svelte-check": "^4.6.0",
+		"typescript": "^6.0.3",
+		"vite-plus": "1.0.0-rc.0",
+		"wrangler": "^4.140.0"
+	},
+	"engines": {
+		"node": ">=26"
+	}
+}
