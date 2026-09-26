@@ -115,7 +115,28 @@ reported as lazy lines, named references in link destinations, titles and fence 
 weren't reported, `<DIV>` was reported as JSX, and an HTML-block opener with no complete tag
 (`<div class`, `<?php`) wasn't reported.
 
-### 10. Extension suites
+### 10. Warning codes — done
+
+Every warning has a stable `code` from one table, `src/warnings.ts`, which also holds its default
+message and `instead`; `Builder.warn(code, start, end, message?)` takes both from it. Each form
+`syntax.md` cuts has one code, in the new Code column of its Not supported table, and the other
+warnings (`duplicate-id`, `orphan-attributes`, `comment-trailing-text`, `metadata-*`) are named
+under their construct. Tests and examples key on codes, never on wording: every code must be
+named in `syntax.md`, and each row's "Write instead" must be its code's.
+
+### 11. The grammar
+
+The dialect as data, in `test/` so it never ships: each construct with a stable id, its part, its
+origin and its productions in EBNF style, with the rules EBNF can't state (container prefixes,
+fence lengths, emphasis matching) as named side rules. The origin names the earliest layer that
+defines the construct, in order: CommonMark, GFM, micromark-extension-directive, djot, then
+markz's own (math is pandoc's rule in GitHub's HTML shape). Examples and `syntax.md` refer to
+constructs by id, so rewording a heading breaks nothing, and the step 15 fuzzer generates
+documents from the productions. `spec.md` states the parsing invariant: single pass,
+deterministic, grammar-directed, with bounded local lookahead, where every lookahead is bounded
+or remembers its failure.
+
+### 12. Extension suites
 
 Upstream tests for what markz shares beyond the specs, each vendored from a pinned commit and
 checked against its own oracle, one PR per suite:
@@ -130,19 +151,19 @@ checked against its own oracle, one PR per suite:
 Tests of an oracle's options or API (directive handlers, `allowDangerousHtml`) are filtered out
 at import, with the reason in the suite's README.
 
-### 11. The site by the dialect
+### 13. The site by the dialect
 
 The Conformance page becomes Metadata, Block, Inline and Not supported, each opening to its
 constructs with their examples, sources and statuses. Summary cards above it: correctness now,
 then performance, size, robustness, a real-world corpus (warnings per file in the migrated
-Markdown), formatter agreement (oxfmt doesn't change the parse) and HTML safety as steps 13 and
-14 produce them.
+Markdown), formatter agreement (oxfmt doesn't change the parse) and HTML safety as steps 15 and
+16 produce them.
 
-### 12. Traversal and position utilities
+### 14. Traversal and position utilities
 
 Public API, kept minimal: `parse`, `html`, `walk` (`enter`/`exit`), `textContent`, `position`. Lines are 1-based and columns are 0-based. Nothing else is exported until a consumer needs it.
 
-### 13. Robustness and fuzzing
+### 15. Robustness and fuzzing
 
 - A grammar-based generator of documents in the shared grammar, fed to the oracle.
 - Malformed input, CRLF and lone `\r`, BOM, and astral-plane offsets.
@@ -150,7 +171,7 @@ Public API, kept minimal: `parse`, `html`, `walk` (`enter`/`exit`), `textContent
 - Unclosed `${` is quadratic today: 80,000 of them in one paragraph take about 100 s, 16 times the time for 4 times the input. One failed scan doesn't settle later ones (`${a ${b}` has a valid second expression), so the fix is to reuse the failed scan's brace depths for every `${` it passed, rather than a flag.
 - A multi-MB document that guards against quadratic behaviour.
 
-### 14. Benchmarks and bundle size
+### 16. Benchmarks and bundle size
 
 `bench/` (not published): parse throughput and AST memory versus micromark, markdown-it, marked, markdown-exit and Comark. The size gate is already in CI; this step adds the comparisons.
 

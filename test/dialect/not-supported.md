@@ -1,8 +1,8 @@
 # Not supported
 
-Each form `prose/syntax.md` cuts, under the start of its row. The text stays, and each listed warning's `instead` is the row's "Write instead" cell.
+Each form `prose/syntax.md` cuts, under its warning code. The text stays, and every warning an example raises has that code.
 
-## Raw HTML blocks and inline tags
+## raw-html
 
 ```example
 <div>
@@ -35,7 +35,7 @@ a <b>c</b> and <!-- x -->
 </about>
 ```
 
-## Setext headings
+## setext-heading
 
 ```example
 Title
@@ -57,7 +57,7 @@ Title
 ---
 ```
 
-## Indented code blocks
+## indented-code
 
 ```example
     code
@@ -78,7 +78,7 @@ para
 more
 ```
 
-## `~~~` fences
+## tilde-fence
 
 ```example
 ~~~
@@ -93,7 +93,7 @@ x
 ~~~
 ```
 
-## `***`, `___`, `* * *` rules
+## rule-marker
 
 ```example
 ***
@@ -111,7 +111,7 @@ ___
 * * *
 ```
 
-## Trailing heading attributes
+## trailing-heading-attributes
 
 ```example
 ## Title {#id}
@@ -121,7 +121,7 @@ ___
 {#id}
 ```
 
-## Multi-line attributes
+## multiline-attributes
 
 ```example
 {.a
@@ -135,7 +135,7 @@ ___
 {.a⏎.b}
 ```
 
-## Lazy continuation lines
+## lazy-line
 
 ```example
 > a
@@ -161,7 +161,7 @@ b
 b
 ```
 
-## Reference links
+## reference-link
 
 ```example
 [x][y] and [z][]
@@ -180,7 +180,7 @@ b
 [y]:
 ```
 
-## Footnotes
+## footnote
 
 ```example
 a claim[^1].
@@ -198,7 +198,7 @@ a claim[^1].
 [^1]:
 ```
 
-## Bare URLs
+## bare-url
 
 ```example
 see https://a.com/x_(y). ok
@@ -233,7 +233,7 @@ _at https://a.com_
 https://a.com
 ```
 
-## Relative autolinks
+## relative-autolink
 
 ```example
 go </docs/intro>
@@ -243,7 +243,7 @@ go </docs/intro>
 </docs/intro>
 ```
 
-## Named character references
+## named-reference
 
 ```example
 &copy; &amp; &nbsp;
@@ -255,7 +255,7 @@ go </docs/intro>
 &nbsp;
 ```
 
-## Two trailing spaces as a line break
+## trailing-spaces
 
 ```example
 a␣␣
@@ -267,7 +267,7 @@ b</p>
 ␣␣
 ```
 
-## `__strong__`
+## underscore-strong
 
 ```example
 __b__
@@ -277,7 +277,7 @@ __b__
 __b__
 ```
 
-## `*emphasis*`
+## star-emphasis
 
 ```example
 *a* and *b*
@@ -288,7 +288,7 @@ __b__
 *b*
 ```
 
-## `~single~` strikethrough
+## single-tilde
 
 ```example
 ~a~
@@ -298,7 +298,7 @@ __b__
 ~a~
 ```
 
-## Attributes after words
+## inline-attributes
 
 ```example
 word{.x}
@@ -325,7 +325,7 @@ word{.x}
 {.x}
 ```
 
-## MDX
+## jsx
 
 ```example
 <Chart data="x" /> and </Chart>
@@ -336,7 +336,7 @@ word{.x}
 </Chart>
 ```
 
-## TOML metadata
+## toml-metadata
 
 ```example
 +++

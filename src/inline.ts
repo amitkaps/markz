@@ -12,17 +12,11 @@
  * that either close or stay text: the pass builds a linked list of items, and a match wraps the
  * items between opener and closer into one node, so nothing is read twice.
  */
-import {
-	type Attributes,
-	type Builder,
-	type Warning,
-	type NodeData,
-	type NodeType,
-	type Range
-} from './ast';
+import { type Attributes, type Builder, type NodeData, type NodeType, type Range } from './ast';
 import { parseAttributes } from './attributes';
-import { NAMED, NAMED_INSTEAD, unescape } from './chars';
+import { NAMED, unescape } from './chars';
 import { scanExpression } from './expression';
+import { type WarningCode } from './warnings';
 
 /** Writes the inline nodes and returns their plain text, which a heading's id is made from. */
 export function inline(b: Builder, source: string, lines: readonly Range[], cell = false): string {
@@ -30,7 +24,7 @@ export function inline(b: Builder, source: string, lines: readonly Range[], cell
 	const pass = new InlinePass(b, source, lines, cell);
 	const list = pass.scan(0, pass.text.length);
 	pass.emit(list);
-	for (const d of pass.urls) b.warn(d);
+	for (const [start, end] of pass.urls) b.warn('bare-url', start, end);
 	return plainText(list.first, false);
 }
 
@@ -80,10 +74,10 @@ const KINDS: Record<string, NodeType> = {
 	'*2': 'strong',
 	'~2': 'delete'
 };
-const REJECTED: Record<string, [message: string, instead: string]> = {
-	_2: ['`__strong__`', '`**strong**`'],
-	'~1': ['`~single~` strikethrough', '`~~text~~`'],
-	'*1': ['`*emphasis*`', '`_emphasis_`']
+const REJECTED: Record<string, WarningCode> = {
+	_2: 'underscore-strong',
+	'~1': 'single-tilde',
+	'*1': 'star-emphasis'
 };
 
 const isSpace = (c: string | undefined) => c === undefined || /\s/.test(c);
@@ -108,7 +102,7 @@ class InlinePass {
 	stacks: Record<string, Item[]> = {};
 	brackets: Item[] = [];
 	/** Bare URLs, reported once the leaf is done unless a link turns out to hold them. */
-	urls: Warning[] = [];
+	urls: [start: number, end: number][] = [];
 
 	constructor(b: Builder, src: string, lines: readonly Range[], cell: boolean) {
 		this.b = b;
@@ -286,7 +280,7 @@ class InlinePass {
 		}
 		const e = t + m[0].length;
 		if (m[3]) {
-			this.report(t, e, `named character reference \`${m[0]}\``, NAMED_INSTEAD);
+			this.report('named-reference', t, e, `named character reference \`${m[0]}\``);
 			this.plain(list, t, e);
 			return e;
 		}
@@ -301,8 +295,8 @@ class InlinePass {
 	referenceDefinition(): void {
 		const m = /^\[(?:[^\]\\]|\\.)+\]:/.exec(this.text);
 		if (!m) return;
-		if (m[0][1] === '^') this.report(0, m[0].length, 'footnote definition', FOOTNOTE);
-		else this.report(0, m[0].length, 'reference definition', 'inline links');
+		if (m[0][1] === '^') this.report('footnote', 0, m[0].length, 'footnote definition');
+		else this.report('reference-link', 0, m[0].length, 'reference definition');
 	}
 
 	/** @prose
@@ -410,8 +404,7 @@ class InlinePass {
 		if (m && t + m[0].length <= to) {
 			const e = t + m[0].length;
 			// A PascalCase tag is a JSX component; `<DIV>` is still HTML.
-			if (/^<\/?[A-Z][a-z]/.test(m[0])) this.report(t, e, 'JSX', 'directives, `${…}`');
-			else this.report(t, e, 'raw HTML', 'a ` ```=html ` raw block, or directives and attributes');
+			this.report(/^<\/?[A-Z][a-z]/.test(m[0]) ? 'jsx' : 'raw-html', t, e);
 			this.plain(list, t, e);
 			return e;
 		}
@@ -420,7 +413,7 @@ class InlinePass {
 		const o = (t === 0 || text[t - 1] === '\n') && OPENER.exec(text);
 		if (o && t + o[0].length <= to) {
 			const e = t + o[0].length;
-			this.report(t, e, 'raw HTML', 'a ` ```=html ` raw block, or directives and attributes');
+			this.report('raw-html', t, e);
 			this.plain(list, t, e);
 			return e;
 		}
@@ -428,7 +421,7 @@ class InlinePass {
 		const r = RELATIVE.exec(text);
 		if (r && t + r[0].length <= to) {
 			const e = t + r[0].length;
-			this.report(t, e, 'relative autolink', '`[About](/about)`');
+			this.report('relative-autolink', t, e);
 			this.plain(list, t, e);
 			return e;
 		}
@@ -492,8 +485,7 @@ class InlinePass {
 			rejected = !inside && !touching;
 		}
 		if (rejected) {
-			const [message, instead] = REJECTED[kind]!;
-			this.b.warn({ start: opener.start, end: closer.end, message, instead });
+			this.b.warn(REJECTED[kind]!, opener.start, closer.end);
 			return;
 		}
 		this.wrap(list, opener, closer, this.nodeItem(KINDS[kind]!, opener.start, closer.end));
@@ -550,10 +542,10 @@ class InlinePass {
 			this.plain(list, t, t + 1);
 			return t + 1;
 		}
-		this.urls = this.urls.filter((d) => d.start < bracket.start);
+		this.urls = this.urls.filter(([start]) => start < bracket.start);
 		for (const m of this.text.slice(t + 1, tail.end).matchAll(NAMED)) {
 			const at = t + 1 + m.index;
-			this.report(at, at + m[0].length, `named character reference \`${m[0]}\``, NAMED_INSTEAD);
+			this.report('named-reference', at, at + m[0].length, `named character reference \`${m[0]}\``);
 		}
 		for (const stack of Object.values(this.stacks)) {
 			while (stack.length && stack.at(-1)!.order > bracket.order) stack.pop();
@@ -593,11 +585,11 @@ class InlinePass {
 		const { text } = this;
 		const at = bracket.at!;
 		if (bracket.opener === '[' && text[at + 1] === '^' && t > at + 2 && text[t + 1] !== ':') {
-			this.report(at, t + 1, 'footnote reference', FOOTNOTE);
+			this.report('footnote', at, t + 1, 'footnote reference');
 		} else if (text[t + 1] === '[') {
 			const e = text.indexOf(']', t + 2);
 			if (e >= 0 && e < to && !text.slice(t + 2, e).includes('[')) {
-				this.report(at, e + 1, 'reference link', 'inline links');
+				this.report('reference-link', at, e + 1);
 			}
 		}
 	}
@@ -799,12 +791,7 @@ class InlinePass {
 			}
 		}
 		end = Math.min(end, to);
-		this.urls.push({
-			start: this.at(start),
-			end: this.to(end),
-			message: 'bare URL',
-			instead: '`<https://…>` or `[text](url)`'
-		});
+		this.urls.push([this.at(start), this.to(end)]);
 		this.plain(list, t, end);
 		return end;
 	}
@@ -820,7 +807,7 @@ class InlinePass {
 			return t + 1;
 		}
 		const e = t + attributes.end - attributes.start;
-		this.report(t, e, 'attributes after inline text', '`:span[text]{.x}`');
+		this.report('inline-attributes', t, e);
 		this.plain(list, t, e);
 		return e;
 	}
@@ -860,8 +847,8 @@ class InlinePass {
 		return t + n;
 	}
 
-	report(t: number, e: number, message: string, instead: string): void {
-		this.b.warn({ start: this.at(t), end: this.to(e), message, instead });
+	report(code: WarningCode, t: number, e: number, message?: string): void {
+		this.b.warn(code, this.at(t), this.to(e), message);
 	}
 
 	/** @prose
@@ -912,7 +899,6 @@ class InlinePass {
 const SPECIAL = /[\n\\`$<&[\]!_*~:"'\-.@{]/;
 const ENTITY = /^&(?:#(\d{1,7})|#[xX]([\da-fA-F]{1,6})|([A-Za-z][A-Za-z\d]{1,31}));/;
 const NAME = /[A-Za-z][\w-]*/y;
-const FOOTNOTE = 'a text directive, such as `:note[text]`';
 const DOMAIN = /[A-Za-z\d](?:[\w-]*[A-Za-z\d])?(?:\.[A-Za-z\d](?:[\w-]*[A-Za-z\d])?)+/y;
 const RELATIVE = /<\.{0,2}\/[^\s<>]*>/y;
 const OPENER = /<(?:\/?[A-Za-z][A-Za-z\d-]*(?=[\s/>]|$)|\?|![A-Z]|!\[CDATA\[)/y;

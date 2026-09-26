@@ -14,9 +14,10 @@
  */
 import { type Attributes, type Builder, type NodeId, type Range, type Align } from './ast';
 import { parseAttributes } from './attributes';
-import { isSpace, NAMED, NAMED_INSTEAD, unescape } from './chars';
+import { isSpace, NAMED, unescape } from './chars';
 import { inline } from './inline';
 import { parseMetadata } from './metadata';
+import { type WarningCode } from './warnings';
 
 export function blocks(b: Builder, source: string, start: number): void {
 	new BlockParser(b, source).run(start);
@@ -129,7 +130,7 @@ class BlockParser {
 		const toml = /\+\+\+[ \t]*(?:\r\n|\r|\n)[^]*?^\+\+\+[ \t]*$/my;
 		toml.lastIndex = start;
 		if (toml.test(src)) {
-			this.report(start, toml.lastIndex, 'TOML metadata', 'a `---` metadata block');
+			this.report('toml-metadata', start, toml.lastIndex);
 		}
 		const first = /---[ \t]*(?:\r\n|\r|\n)/y;
 		first.lastIndex = start;
@@ -147,7 +148,7 @@ class BlockParser {
 		const lines = src.slice(bodyStart, bodyEnd).split(/\r\n|\r|\n/);
 		const key = (l: string) => /^[A-Za-z_][\w-]*:(?:[ \t]|$)/.test(l);
 		if (!lines.some(key) || !lines.every((l) => key(l) || /^(?:$|#|[ \t])/.test(l))) return start;
-		const value = parseMetadata(src, bodyStart, bodyEnd, (d) => this.b.warn(d));
+		const value = parseMetadata(src, bodyStart, bodyEnd, this.b);
 		this.b.leaf('metadata', start, end, { value, range: { start: bodyStart, end: bodyEnd } });
 		this.top.children++;
 		this.top.end = end;
@@ -216,12 +217,7 @@ class BlockParser {
 		const blank = this.blank();
 		if (matched < stack.length) {
 			if (leaf?.kind === 'paragraph' && !blank && !this.startsBlock()) {
-				this.report(
-					this.indent().next,
-					this.trimmedEnd(),
-					'lazy continuation line',
-					"`>` on every line, or indent to the item's content column"
-				);
+				this.report('lazy-line', this.indent().next, this.trimmedEnd());
 			}
 			this.closeLeaf();
 			while (stack.length > matched) this.closeContainer();
@@ -260,7 +256,7 @@ class BlockParser {
 
 		if (cols >= 4) {
 			if (!paragraph && this.leaf?.kind !== 'table') {
-				this.report(next, end, 'indented code block', 'fenced code');
+				this.report('indented-code', next, end);
 			}
 			this.text(next, end);
 			return false;
@@ -276,7 +272,7 @@ class BlockParser {
 			return true;
 		}
 		if (paragraph && /^(?:=+|-+)[ \t]*$/.test(src.slice(next, this.lineEnd))) {
-			this.report(next, end, 'setext heading underline', '`# Title`');
+			this.report('setext-heading', next, end);
 			this.text(next, end);
 			return false;
 		}
@@ -288,7 +284,7 @@ class BlockParser {
 		const fence = /^(`{3,}|~{3,})(.*)$/.exec(src.slice(next, this.lineEnd));
 		if (fence && (fence[1]![0] === '~' || !fence[2]!.includes('`'))) {
 			if (fence[1]![0] === '~') {
-				this.report(next, end, '`~~~` fence', 'a longer backtick fence');
+				this.report('tilde-fence', next, end);
 				this.text(next, end);
 			} else {
 				this.namedReferences(next + fence[1]!.length, end);
@@ -307,7 +303,7 @@ class BlockParser {
 				const attributes = this.enter(false);
 				this.leafNode(this.b.leaf('thematicBreak', next, end), end, attributes);
 			} else {
-				this.report(next, end, `\`${rule[1]!.repeat(3)}\` rule`, '`---`');
+				this.report('rule-marker', next, end, `\`${rule[1]!.repeat(3)}\` rule`);
 				this.text(next, end);
 			}
 			return false;
@@ -397,7 +393,7 @@ class BlockParser {
 			this.src[to - 1] === '}' &&
 			parseAttributes(this.src, brace, to)?.end === to
 		) {
-			this.report(brace, to, 'trailing heading attributes', '`{#id}` on the line above');
+			this.report('trailing-heading-attributes', brace, to);
 		}
 		const explicit = attributes?.items.findLast((a) => a.key === 'id');
 		const data = { depth: depth as 1 | 2 | 3 | 4 | 5 | 6, id: '', idExplicit: !!explicit };
@@ -408,10 +404,10 @@ class BlockParser {
 			data.id = explicit.value;
 			if (this.ids.has(data.id)) {
 				this.report(
+					'duplicate-id',
 					explicit.start,
 					explicit.end,
-					`id \`${data.id}\` is already used by an earlier heading`,
-					'a different id'
+					`id \`${data.id}\` is already used by an earlier heading`
 				);
 			}
 		} else {
@@ -498,12 +494,7 @@ class BlockParser {
 	closeComment(end: number): void {
 		const rest = this.src.slice(end, this.lineEnd);
 		if (rest.trim() !== '') {
-			this.report(
-				end,
-				this.trimmedEnd(),
-				'text after `-->` is part of the comment',
-				'end the comment on a line of its own'
-			);
+			this.report('comment-trailing-text', end, this.trimmedEnd());
 			end = this.trimmedEnd();
 		}
 		(this.leaf as { end: number }).end = end;
@@ -666,7 +657,7 @@ class BlockParser {
 		if (/\n[ \t]*\r?\n/.test(joined)) return;
 		const flat = joined.replace(/[\r\n]/g, ' ');
 		if (parseAttributes(flat, 0, flat.length)?.end === flat.length) {
-			this.report(at, close + 1, 'multi-line attributes', 'one line');
+			this.report('multiline-attributes', at, close + 1);
 		}
 	}
 
@@ -676,12 +667,7 @@ class BlockParser {
 		if (!pending || pending.depth !== depth) return;
 		this.pending = null;
 		const { lines } = pending;
-		this.report(
-			lines[0]!.start,
-			lines.at(-1)!.end,
-			'block attributes with no block after them',
-			'put the `{…}` line directly above a block'
-		);
+		this.report('orphan-attributes', lines[0]!.start, lines.at(-1)!.end);
 		const node = this.b.open('paragraph', lines[0]!.start);
 		inline(this.b, this.src, lines);
 		this.b.close(lines.at(-1)!.end);
@@ -826,7 +812,7 @@ class BlockParser {
 	namedReferences(from: number, to: number): void {
 		for (const m of this.src.slice(from, to).matchAll(NAMED)) {
 			const at = from + m.index;
-			this.report(at, at + m[0].length, `named character reference \`${m[0]}\``, NAMED_INSTEAD);
+			this.report('named-reference', at, at + m[0].length, `named character reference \`${m[0]}\``);
 		}
 	}
 
@@ -834,13 +820,7 @@ class BlockParser {
 	trailingSpaces(end: number): void {
 		let i = end;
 		while (this.src[i] === ' ') i++;
-		if (i - end >= 2)
-			this.report(
-				end,
-				i,
-				'two trailing spaces as a line break',
-				'`\\` at end of line, or `{.verse}` on a poem'
-			);
+		if (i - end >= 2) this.report('trailing-spaces', end, i);
 	}
 
 	/** @prose
@@ -918,8 +898,8 @@ class BlockParser {
 		return end;
 	}
 
-	report(start: number, end: number, message: string, instead: string): void {
-		this.b.warn({ start, end, message, instead });
+	report(code: WarningCode, start: number, end: number, message?: string): void {
+		this.b.warn(code, start, end, message);
 	}
 }
 
