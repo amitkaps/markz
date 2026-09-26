@@ -8,9 +8,13 @@
  * - `allowDangerousProtocol`: micromark blanks any URL outside its scheme allowlist, and markz
  *   instead drops a short blocklist (spec: Security). markz's own tests cover the blocklist, so
  *   the oracle writes every URL.
- * - A fallback directive handler that writes `syntax.md`'s shape (a `<div>` for leaf and container
- *   directives, a `<span>` for text ones, the name as the first class, then the attributes).
- *   Without it micromark drops every directive.
+ * - A fallback directive handler that writes `syntax.md`'s shape: a `<div>` for leaf and container
+ *   directives and a `<span>` for text ones, the name as the first class, then the attributes. A
+ *   container's label comes first, in a `directive-label` div. Without the handler micromark drops
+ *   every directive.
+ * - The same handler writes a bare text directive (`:name` with no label or attributes) back out
+ *   as the text it was, since markz requires one or the other. micromark reports `:name{}` the same
+ *   way, so an empty `{}` is the one input this can't tell apart.
  *
  * Raw HTML stays disallowed, as it is in markz. Examples that use it are excluded anyway.
  */
@@ -19,17 +23,25 @@ import { gfm, gfmHtml } from 'micromark-extension-gfm';
 import { directive, directiveHtml, type Handle } from 'micromark-extension-directive';
 
 const shape: Handle = function (d) {
+	const attributes = Object.entries(d.attributes ?? {});
+	if (d.type === 'textDirective' && d.label === undefined && attributes.length === 0) {
+		this.raw(this.encode(`:${d.name}`));
+		return true;
+	}
 	const tag = d.type === 'textDirective' ? 'span' : 'div';
-	const { class: classes, ...rest } = d.attributes ?? {};
-	let open = `<${tag} class="${this.encode([d.name, classes].filter(Boolean).join(' '))}"`;
-	for (const [key, value] of Object.entries(rest)) open += ` ${key}="${this.encode(value)}"`;
+	const classes = [d.name, d.attributes?.class].filter(Boolean).join(' ');
+	let open = `<${tag} class="${this.encode(classes)}"`;
+	for (const [key, value] of attributes) {
+		if (key !== 'class') open += ` ${key}="${this.encode(value)}"`;
+	}
 	this.tag(open + '>');
-	this.raw((d.type === 'containerDirective' ? d.content : d.label) ?? '');
+	if (d.type === 'containerDirective') {
+		if (d.label) this.tag(`<div class="directive-label">${d.label}</div>`);
+		this.raw(d.content ?? '');
+	} else this.raw(d.label ?? '');
 	this.tag(`</${tag}>`);
 	return true;
 };
-/** @note A container directive's `[label]` is dropped until `syntax.md`'s pending decision on it
- * is made. */
 
 export function reference(markdown: string): string {
 	return micromark(markdown, {

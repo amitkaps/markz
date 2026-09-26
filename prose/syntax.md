@@ -164,11 +164,15 @@ subset document must give the same object from both.
 
 ### Directives
 
-The syntax is `micromark-extension-directive`'s. The trailing `{…}` follows the attribute syntax
-above:
+The syntax is `micromark-extension-directive`'s, with one cut. The trailing `{…}` follows the
+attribute syntax above:
 
-- **text**: `:name[label]{attrs}`
-- **leaf**: `::name[label]{attrs}`
+- **text**: `:name[label]`, `:name{attrs}` or `:name[label]{attrs}`. A label or attributes is
+  required, so `hello :world` and `10:30` stay plain text: a colon in prose is never special, and
+  the parser knows it has a directive as soon as it reaches the `[` or `{`. A bare `:name` is not
+  a construct in markz, so it gets no diagnostic.
+- **leaf**: `::name[label]{attrs}`, on a line of its own. A bare `::name` is allowed, since the
+  line can't be prose.
 - **container**: `:::name[label]{attrs}` … `:::`
 
 Directives are how components with data are written, since there is no HTML:
@@ -181,10 +185,33 @@ Markdown **inside**, parsed and source-mapped.
 :::
 ```
 
-`html()` writes a `<div>` for container and leaf directives and a `<span>` for text directives. `:span[text]{.x}` is the plain inline wrapper.
-The name becomes a class, the attributes are written as they are for any element, and the label
-becomes the content. A consumer's own fold, such as visdown's Svelte codegen, maps names to
-components.
+`html()` writes a `<div>` for container and leaf directives and a `<span>` for text directives.
+`:span[text]{.x}` is the plain inline wrapper. The name becomes the first class, and the attributes
+are written as they are for any element.
+
+The label means different things by kind:
+
+- **leaf and text:** the label is the content. It is parsed as inline Markdown, and its nodes are
+  the directive's children.
+- **container:** the body is the content, and the label is metadata: a title for a callout, a
+  summary for a disclosure. It is plain text, with backslash escapes decoded and no inline
+  parsing, and `html()` writes it first, in its own element:
+
+```md
+:::callout[Warning]{.important}
+Body **here**.
+:::
+```
+
+```html
+<div class="callout important">
+	<div class="directive-label">Warning</div>
+	<p>Body <strong>here</strong>.</p>
+</div>
+```
+
+A consumer's own fold, such as visdown's Svelte codegen, maps names to components and labels to
+their props.
 
 ### Math
 
@@ -323,16 +350,7 @@ One case needs care. For two adjacent lists, oxfmt keeps them apart by switching
 
 ## Pending decisions
 
-- **A bare `:name`.** `micromark-extension-directive` reads `:name` with no label or attributes as
-  a text directive, so `a :b c` loses `:b`, and `<m:abc>` becomes `<m` plus a directive. Should
-  markz require a `[label]` or `{…}` on text directives, so a colon before a word in prose stays
-  text? If so, the oracle excludes the examples where the two differ. Needed before the inline
-  pass (plan step 5).
-- **A container directive's `[label]`.** "The label becomes the content" fits leaf and text
-  directives, but a container's content is its body. What does `html()` write for the label?
-  Needed before the block pass renders container directives (plan step 4).
-
-The amitkaps.github.io audit settled raw blocks, verse and smart punctuation. Its
+None right now. The amitkaps.github.io audit settled raw blocks, verse and smart punctuation. Its
 Markdown gets migrated to the dialect:
 
 - `<img>` becomes `![](…){…}`.

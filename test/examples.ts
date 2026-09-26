@@ -47,8 +47,6 @@ export const excludedExamples: Record<string, string> = {
 	'commonmark:608': 'Bare URLs',
 	'commonmark:611': 'Bare URLs',
 	'commonmark:612': 'Bare URLs',
-	// `<m:abc>`: `:abc` is a bare text directive to micromark-extension-directive.
-	'commonmark:609': 'Directives',
 	// Inline HTML in other sections' examples.
 	...Object.fromEntries(
 		[21, 31, 344, 475, 476, 477, 491, 494, 524, 536, 642, 643].map((n) => [

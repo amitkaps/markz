@@ -7,6 +7,12 @@ Read **`prose/spec.md`** first — it is the design for markz.
 - `vp` is a dev dependency — run it through the `pnpm run …` scripts, not a global install.
 - markz is one package: parser, AST utilities and `html()`. The dialect is `prose/syntax.md`. No framework renderers, no parser options, no
   unified/remark dependencies, and a 20 KB gzip budget (`prose/spec.md#performance-and-size`).
+- `syntax.md` is the specification, and micromark is only the oracle for the constructs markz
+  shares with GFM. Don't let "same as GFM" leak past the constructs `syntax.md` lists. When the
+  oracle disagrees with `syntax.md`, exclude the example with its `syntax.md` reason
+  (`test/examples.ts`) rather than bending the parser.
+- The invariant: unsupported syntax stays literal text and produces a diagnostic. It is never
+  silently reinterpreted as a different supported construct.
 
 ## Prose (`@amitkaps/prose`, `/__prose/`)
 

@@ -3,8 +3,8 @@
  *
  * - the exclusion list itself: every key names a real section or example, and every reason
  *   resolves to `syntax.md`.
- * - the oracle, against the spec's own HTML, on every included example, so a normalization or
- *   configuration bug can't hide behind it.
+ * - the oracle, against the spec's own HTML on every included example, and against `syntax.md`'s
+ *   directive shapes, so a normalization or configuration bug can't hide behind it.
  * - markz's `html()` against the oracle, section by section. `ready` lists the sections held to
  *   that; each step of the parser adds the ones it completes.
  */
@@ -54,6 +54,20 @@ describe('oracle', () => {
 			expect(normalize(reference(e.markdown))).toBe(normalize(e.html));
 		}
 	);
+});
+
+describe('oracle directive shape', () => {
+	it.each([
+		['hello :world at 10:30\n', '<p>hello :world at 10:30</p>'],
+		[':span[x]{.y #z}\n', '<p><span class="span y" id="z">x</span></p>'],
+		['::toc\n', '<div class="toc"></div>'],
+		[
+			':::callout[Warning]{.important}\nBody **here**.\n:::\n',
+			'<div class="callout important"><div class="directive-label">Warning</div><p>Body <strong>here</strong>.</p></div>'
+		]
+	])('%j', (markdown, expected) => {
+		expect(normalize(reference(markdown))).toBe(expected);
+	});
 });
 
 describe('markz', () => {

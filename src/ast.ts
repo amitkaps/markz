@@ -85,7 +85,15 @@ export interface NodeData {
 	table: { align: Align[] };
 	footnoteReference: { label: string };
 	footnoteDefinition: { label: string };
-	directive: { kind: 'text' | 'leaf' | 'container'; name: string; label: Range | null };
+	/**
+	 * A leaf or text directive's label is also its children (inline content). A container's is
+	 * only this: plain text, escapes decoded, never parsed inline.
+	 */
+	directive: {
+		kind: 'text' | 'leaf' | 'container';
+		name: string;
+		label: (Range & { value: string }) | null;
+	};
 	math: { block: boolean; value: string; range: Range };
 	/** A ` ```=format ` fence; `value` is its content. */
 	raw: { format: string; value: string; range: Range };
