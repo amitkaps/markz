@@ -324,6 +324,8 @@ rules, without the rest of its 17:
   `**` may appear inside a word.
 - A closer takes the nearest open run of its own kind. There is no rule of 3, and runs don't
   split: `***`, `____` and `~~~` are text, and `**foo****` doesn't nest.
+- Emphasis doesn't cross brackets: a run opened before a `[` can't close before its `]`, even
+  when the brackets don't make a link.
 - **`*emphasis*` where formatters write it.** Prettier and oxfmt write `_` for emphasis except in
   two places, where `_` can't work: emphasis inside `_…_` (`_foo *bar* baz_`) and emphasis
   touching a letter or digit (`a*b*c`). markz accepts `*` in exactly those two, so it never

@@ -96,23 +96,24 @@ what the dialect is made of: Metadata, Block, Inline, then Not supported and Can
 construct says under it whether it is "as GFM" or states markz's own rule, which makes "same as
 GFM" exact per construct. These headings become the test categories from step 9 on.
 
-### 9. One example format, categorised by `syntax.md`
+### 9. One example format, categorised by `syntax.md` — done
 
-Every example, upstream or ours, has one shape: `{ source, section, id, input, expected, status,
-reason? }`, where `section` is a `syntax.md` heading and `source` is a label (CommonMark, GFM,
-markz, …). Statuses:
+`test/examples.ts` files every example, upstream or markz's own, under a `syntax.md` construct or
+Not supported row, with its source as a label, and `check` gives each a status: **pass**,
+**fail** or **differs** (a construct markz keeps under its own rule, such as no run splitting). A
+table maps each upstream section to a construct, and oracle tokens move an example that uses a
+cut form to that row, where it passes only if the row's warning fires; if markz raises none, it
+read the input as supported and the example is compared with the oracle. markz's own examples are
+in `test/dialect/*.md`, in CommonMark's spec format, with the text each warning covers as a third
+part. Every construct and row has examples, and the TS tests keep only offsets and node data.
+The Conformance page groups by part and construct from the same `check`.
 
-- **pass** or **fail** against the expected output.
-- **differs**: a supported construct where markz chose a different rule (no run splitting, where
-  `*` is accepted, the metadata rule). It sits under its own section, linked to the rule.
-- **Not supported** examples are not skipped: they move to the table row they exercise and are
-  checked to raise that row's warning and stay text.
-
-One table maps each upstream section to a `syntax.md` section; an unmapped one fails, as an
-unresolved cut reason does today. Every `syntax.md` section and table row must have examples.
-markz's own cases move out of TS into Markdown files in CommonMark's spec format, with a third
-part for the expected warnings; TS tests keep what data can't express (offsets, AST shape,
-invariants).
+Counts: 340 upstream examples compared with the oracle (310 before), 301 that use a cut form now
+tested for their warning instead of skipped, 35 differing by design, and 91 of markz's own. The
+new checks found five gaps, all fixed: a second numbered item and an empty `-` item were
+reported as lazy lines, named references in link destinations, titles and fence info strings
+weren't reported, `<DIV>` was reported as JSX, and an HTML-block opener with no complete tag
+(`<div class`, `<?php`) wasn't reported.
 
 ### 10. Extension suites
 

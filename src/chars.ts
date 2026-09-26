@@ -12,3 +12,7 @@ export const isSpace = (c: number): boolean => c === 32 || c === 9;
 export function unescape(text: string): string {
 	return text.includes('\\') ? text.replace(/\\([!-/:-@[-`{-~])/g, '$1') : text;
 }
+
+/** A named character reference, which markz keeps as written and reports (syntax.md). */
+export const NAMED = /&[A-Za-z][A-Za-z\d]{1,31};/g;
+export const NAMED_INSTEAD = 'the character itself (`©`, `&`), or `\\ ` for a non-breaking space';

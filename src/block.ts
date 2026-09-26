@@ -14,7 +14,7 @@
  */
 import { type Attributes, type Builder, type NodeId, type Range, type Align } from './ast';
 import { parseAttributes } from './attributes';
-import { isSpace, unescape } from './chars';
+import { isSpace, NAMED, NAMED_INSTEAD, unescape } from './chars';
 import { inline } from './inline';
 import { parseMetadata } from './metadata';
 
@@ -290,7 +290,10 @@ class BlockParser {
 			if (fence[1]![0] === '~') {
 				this.report(next, end, '`~~~` fence', 'a longer backtick fence');
 				this.text(next, end);
-			} else this.openFence('fence', next, cols, fence[1]!.length, fence[2]!.trim());
+			} else {
+				this.namedReferences(next + fence[1]!.length, end);
+				this.openFence('fence', next, cols, fence[1]!.length, fence[2]!.trim());
+			}
 			return false;
 		}
 		if (/^\$\$[ \t]*$/.test(src.slice(next, this.lineEnd))) {
@@ -331,7 +334,12 @@ class BlockParser {
 		return (
 			/^(?:>|#{1,6}(?:[ \t]|$)|```|~~~|\$\$[ \t]*$|<!--|::)/.test(rest) ||
 			/^([-*_])(?:[ \t]*\1){2,}[ \t]*$/.test(rest) ||
-			/^(?:[-*+]|1[.)])[ \t]+\S/.test(rest)
+			// Only a non-empty `-` or `1.` item can interrupt a paragraph, but inside a list any
+			// marker, empty or numbered, starts the next item.
+			(this.stack.some((c) => c.kind === 'list')
+				? /^(?:[-*+]|\d{1,9}[.)])(?:[ \t]|$)/
+				: /^(?:[-*+]|1[.)])[ \t]+\S/
+			).test(rest)
 		);
 	}
 
@@ -812,6 +820,14 @@ class BlockParser {
 		const parent = this.top;
 		parent.end = Math.max(parent.end, c.end);
 		parent.children++;
+	}
+
+	/** Named character references in a fence's info string stay as written, and are reported. */
+	namedReferences(from: number, to: number): void {
+		for (const m of this.src.slice(from, to).matchAll(NAMED)) {
+			const at = from + m.index;
+			this.report(at, at + m[0].length, `named character reference \`${m[0]}\``, NAMED_INSTEAD);
+		}
 	}
 
 	/** Two or more spaces ending a paragraph line are GFM's invisible hard break. */

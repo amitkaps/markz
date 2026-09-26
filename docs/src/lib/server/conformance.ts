@@ -1,50 +1,39 @@
 /** @prose
  * # Conformance data
  *
- * Every CommonMark and GFM spec example with its status against the oracle, computed at build
- * time from the library's own test harness: the same exclusions and the same normalized
- * comparison `pnpm test` makes. The page is the test suite's differential
- * half, browsable, and it can't disagree with the tests because it runs their code.
+ * Every example markz is held to, with its status, computed at build time by the test harness's
+ * own `check`: the same filing under `syntax.md` and the same comparison `pnpm test` makes. The
+ * page is the test suite, browsable, and it can't disagree with the tests because it runs their
+ * code.
  *
  * Server-only: it pulls in micromark and the vendored spec suites, which never reach the client.
  */
-import { html, parse } from 'markz';
-import { all, exclusion } from '../../../../test/examples';
-import { normalize, reference } from '../../../../test/oracle';
-import type { Row, Status } from '../site';
+import { check, examples } from '../../../../test/examples';
+import { normalize } from '../../../../test/oracle';
+import type { Row } from '../site';
 
 export function conformance(): Row[] {
-	return all.map((e) => {
-		const oracle = reference(e.markdown);
-		let markz: string;
-		let threw = false;
-		try {
-			markz = html(e.markdown);
-		} catch (error) {
-			markz = String(error);
-			threw = true;
-		}
-		const reason = exclusion(e) ?? null;
-		const status: Status = reason
-			? 'excluded'
-			: !threw && normalize(markz) === normalize(oracle)
-				? 'pass'
-				: 'fail';
+	return examples.map((e) => {
+		const r = check(e);
+		const expected = r.oracle ?? e.html;
 		return {
-			suite: e.suite,
-			example: e.example,
+			source: e.source,
+			id: e.id,
+			number: e.number,
+			part: e.part,
 			section: e.section,
+			upstream: e.upstream,
+			kind: e.kind,
 			markdown: e.markdown,
-			status,
-			reason,
-			oracle,
-			markz,
-			normalized: status === 'fail' ? [normalize(oracle), normalize(markz)] : null,
-			warnings: threw
-				? []
-				: parse(e.markdown).warnings.map(
-						(d) => `${d.start}–${d.end}: ${d.message}; write ${d.instead}`
-					)
+			status: r.status,
+			problem: r.problem,
+			expected,
+			markz: r.markz,
+			normalized: r.status === 'fail' ? [normalize(expected), normalize(r.markz)] : null,
+			warnings: r.warnings.map(
+				(w) =>
+					`${e.markdown.slice(w.start, w.end).replace(/\n/g, '⏎')}: ${w.message}; write ${w.instead}`
+			)
 		};
 	});
 }

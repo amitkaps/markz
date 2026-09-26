@@ -1,0 +1,60 @@
+# Metadata
+
+Examples of markz's dialect, in the CommonMark spec's format (see `../examples.ts`). Each `##` is a heading of `prose/syntax.md`, and the tests fail if one isn't.
+
+## Metadata
+
+A closed block of `key:` lines is metadata, which `html()` doesn't write. Anything else is read as ordinary Markdown.
+
+```example
+---
+title: Sales Report
+summary: 'Make it yours: fast.'
+order: 2
+tags: [svelte, vite]
+---
+# Report
+.
+<h1 id="report">Report</h1>
+```
+
+```example
+---
+
+## foo
+
+---
+.
+<hr />
+<h2 id="foo">foo</h2>
+<hr />
+```
+
+```example
+---
+title: x
+.
+<hr />
+<p>title: x</p>
+```
+
+```example
+---
+flag: True
+---
+.
+
+.
+flag: True
+```
+
+```example
+---
+author:
+  name: A
+---
+.
+
+.
+  name: A
+```

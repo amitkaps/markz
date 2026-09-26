@@ -2,66 +2,59 @@
 	/** @prose
 	 * # Conformance
 	 *
-	 * How markz does on every spec example, summary first: totals, then each section, then the
-	 * exclusions by `syntax.md` reason, then the examples themselves. The totals, sections and
-	 * reasons all filter the example list, and an example opens to show its Markdown, both
-	 * outputs, where they first differ, and markz's warnings.
+	 * Every example markz is held to, filed as `syntax.md` is: Metadata, Block and Inline by
+	 * construct, then Not supported by row. Where an example comes from (CommonMark, GFM, markz's
+	 * own) is a label on it. Summary first: totals, then each construct, then the examples
+	 * themselves. The totals and constructs filter the list, and an example opens to show its
+	 * Markdown, what markz is held to, markz's output, where they first differ, and the warnings.
 	 */
-	import type { Status } from '#lib/site.ts';
+	import { PARTS, type Status } from '#lib/site.ts';
 
 	let { data } = $props();
 	const rows = $derived(data.rows);
 
-	const STATUSES: Status[] = ['fail', 'pass', 'excluded'];
+	const STATUSES: Status[] = ['fail', 'pass', 'differs'];
 	const LABEL: Record<Status, string> = {
 		pass: 'Pass',
 		fail: 'Fail',
-		excluded: 'Excluded'
+		differs: 'Differs'
 	};
 	const WHAT: Record<Status, string> = {
-		pass: 'markz writes what the oracle writes',
-		fail: 'markz differs from the oracle',
-		excluded: 'uses syntax the dialect cuts or changes'
+		pass: 'as expected: the oracle’s HTML, markz’s own expected output, or the row’s warning',
+		fail: 'markz does something else',
+		differs: 'a construct markz keeps under its own rule, by design'
 	};
 	const PAGE = 100;
 
 	type Row = (typeof data.rows)[number];
 	const tally = (list: Row[]) => {
-		const t: Record<Status, number> = { pass: 0, fail: 0, excluded: 0 };
+		const t: Record<Status, number> = { pass: 0, fail: 0, differs: 0 };
 		for (const r of list) t[r.status]++;
 		return t;
 	};
 
 	const totals = $derived(tally(rows));
-	const sections = $derived.by(() => {
-		const out: {
-			key: string;
-			suite: string;
-			name: string;
-			t: Record<Status, number>;
-			n: number;
-		}[] = [];
-		for (const r of rows) {
-			const key = `${r.suite}:${r.section}`;
-			let s = out.find((x) => x.key === key);
-			if (!s) {
-				s = { key, suite: r.suite, name: r.section, t: tally([]), n: 0 };
-				out.push(s);
+	const sections = $derived.by(() =>
+		PARTS.map((part) => {
+			const out: { name: string; t: Record<Status, number>; n: number; sources: Set<string> }[] =
+				[];
+			for (const r of rows) {
+				if (r.part !== part) continue;
+				let s = out.find((x) => x.name === r.section);
+				if (!s) {
+					s = { name: r.section, t: tally([]), n: 0, sources: new Set() };
+					out.push(s);
+				}
+				s.t[r.status]++;
+				s.n++;
+				s.sources.add(r.source);
 			}
-			s.t[r.status]++;
-			s.n++;
-		}
-		return out;
-	});
-	const reasons = $derived.by(() => {
-		const counts = new Map<string, number>();
-		for (const r of rows) if (r.reason) counts.set(r.reason, (counts.get(r.reason) ?? 0) + 1);
-		return [...counts].sort((a, b) => b[1] - a[1]);
-	});
+			return { part, sections: out };
+		})
+	);
 
 	let shownStatuses = $state<Status[]>([...STATUSES]);
 	let section = $state('');
-	let reason = $state('');
 	let search = $state('');
 	let limit = $state(PAGE);
 
@@ -72,9 +65,8 @@
 			.filter(
 				(r) =>
 					shownStatuses.includes(r.status) &&
-					(!section || `${r.suite}:${r.section}` === section) &&
-					(!reason || r.reason === reason) &&
-					(!q || (number ? String(r.example) === number : r.markdown.toLowerCase().includes(q)))
+					(!section || r.section === section) &&
+					(!q || (number ? String(r.number) === number : r.markdown.toLowerCase().includes(q)))
 			)
 			.sort((a, b) => STATUSES.indexOf(a.status) - STATUSES.indexOf(b.status));
 	});
@@ -85,16 +77,15 @@
 			: [...shownStatuses, status];
 		limit = PAGE;
 	}
-	function pick(next: { section?: string; reason?: string }) {
-		section = next.section ?? '';
-		reason = next.reason ?? '';
+	function pick(next: string) {
+		section = next;
 		shownStatuses = [...STATUSES];
 		limit = PAGE;
 		document.getElementById('examples')?.scrollIntoView({ behavior: 'smooth' });
 	}
 	function clear() {
 		shownStatuses = [...STATUSES];
-		section = reason = search = '';
+		section = search = '';
 		limit = PAGE;
 	}
 
@@ -125,13 +116,13 @@
 	<title>Conformance · markz</title>
 	<meta
 		name="description"
-		content="Every CommonMark and GFM spec example, run through markz and through micromark."
+		content="Every example markz is held to, filed by the dialect: CommonMark and GFM against micromark, and markz's own."
 	/>
 </svelte:head>
 
 {#snippet bar(t: Record<Status, number>, n: number)}
 	<div class="bar" role="img" aria-label={STATUSES.map((s) => `${t[s]} ${s}`).join(', ')}>
-		{#each ['pass', 'fail', 'excluded'] as const as s (s)}
+		{#each ['pass', 'fail', 'differs'] as const as s (s)}
 			{#if t[s]}<span class={s} style={width(t[s], n)}></span>{/if}
 		{/each}
 	</div>
@@ -140,10 +131,12 @@
 <header class="intro">
 	<h1>Conformance</h1>
 	<p>
-		Every CommonMark 0.31.2 and GFM spec example, parsed by markz and by
-		<a href="https://github.com/micromark/micromark">micromark</a> with GFM and directives (the
-		oracle), and compared after whitespace and smart punctuation are normalized. The statuses are
-		the test suite's own: this page runs the same code as <code>pnpm test</code>, at build time.
+		Every example markz is held to, filed as <code>syntax.md</code> is. CommonMark 0.31.2 and GFM
+		spec examples are compared with
+		<a href="https://github.com/micromark/micromark">micromark</a> (the oracle) after whitespace and
+		smart punctuation are normalized. markz's own examples carry their expected output. An example
+		that uses a form the dialect cuts passes when that form's warning fires. The statuses are the
+		test suite's own: this page runs the same code as <code>pnpm test</code>, at build time.
 	</p>
 	<p class="meta">{rows.length} examples · built {new Date(data.built).toUTCString()}</p>
 </header>
@@ -164,55 +157,36 @@
 </section>
 {@render bar(totals, rows.length)}
 
-<h2>By section</h2>
-<div class="scroll">
-	<table>
-		<thead>
-			<tr>
-				<th>Section</th>
-				<th class="bar-cell">Status</th>
-				{#each ['pass', 'fail', 'excluded'] as const as s (s)}
-					<th class="num">{LABEL[s]}</th>
-				{/each}
-			</tr>
-		</thead>
-		<tbody>
-			{#each sections as s (s.key)}
-				<tr class:active={section === s.key}>
-					<td>
-						<button type="button" class="link" onclick={() => pick({ section: s.key })}>
-							{s.name}
-						</button>
-						{#if s.suite === 'gfm'}<span class="suite">gfm</span>{/if}
-					</td>
-					<td class="bar-cell">{@render bar(s.t, s.n)}</td>
-					{#each ['pass', 'fail', 'excluded'] as const as st (st)}
-						<td class="num" class:zero={!s.t[st]}>{s.t[st]}</td>
+{#each sections as { part, sections: list } (part)}
+	<h2>{part}</h2>
+	<div class="scroll">
+		<table>
+			<thead>
+				<tr>
+					<th>{part === 'Not supported' ? 'Row' : 'Construct'}</th>
+					<th class="bar-cell">Status</th>
+					{#each ['pass', 'fail', 'differs'] as const as s (s)}
+						<th class="num">{LABEL[s]}</th>
 					{/each}
 				</tr>
-			{/each}
-		</tbody>
-	</table>
-</div>
-
-<h2>Excluded, by <code>syntax.md</code> reason</h2>
-<div class="scroll">
-	<table>
-		<thead>
-			<tr><th>Reason</th><th class="num">Examples</th></tr>
-		</thead>
-		<tbody>
-			{#each reasons as [r, n] (r)}
-				<tr class:active={reason === r}>
-					<td
-						><button type="button" class="link" onclick={() => pick({ reason: r })}>{r}</button></td
-					>
-					<td class="num">{n}</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
-</div>
+			</thead>
+			<tbody>
+				{#each list as s (s.name)}
+					<tr class:active={section === s.name}>
+						<td>
+							<button type="button" class="link" onclick={() => pick(s.name)}>{s.name}</button>
+							{#each [...s.sources] as source (source)}<span class="suite">{source}</span>{/each}
+						</td>
+						<td class="bar-cell">{@render bar(s.t, s.n)}</td>
+						{#each ['pass', 'fail', 'differs'] as const as st (st)}
+							<td class="num" class:zero={!s.t[st]}>{s.t[st]}</td>
+						{/each}
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+	</div>
+{/each}
 
 <h2 id="examples">Examples <span class="count">{shown.length} of {rows.length}</span></h2>
 <div class="filters">
@@ -225,36 +199,24 @@
 		oninput={() => (limit = PAGE)}
 	/>
 	<select id="section" aria-label="Section" bind:value={section} onchange={() => (limit = PAGE)}>
-		<option value="">All sections</option>
-		{#each sections as s (s.key)}
-			<option value={s.key}>{s.name}{s.suite === 'gfm' ? ' (gfm)' : ''}</option>
-		{/each}
-	</select>
-	<select
-		id="reason"
-		aria-label="Exclusion reason"
-		bind:value={reason}
-		onchange={() => (limit = PAGE)}
-	>
-		<option value="">Any reason</option>
-		{#each reasons as [r] (r)}
-			<option value={r}>{r}</option>
+		<option value="">All constructs and rows</option>
+		{#each sections as { part, sections: list } (part)}
+			<optgroup label={part}>
+				{#each list as s (s.name)}<option value={s.name}>{s.name}</option>{/each}
+			</optgroup>
 		{/each}
 	</select>
 	<button type="button" class="chip" onclick={clear}>Clear filters</button>
 </div>
 
 <div class="list">
-	{#each shown.slice(0, limit) as r (`${r.suite}:${r.example}`)}
+	{#each shown.slice(0, limit) as r (r.id)}
 		<details class="ex {r.status}">
 			<summary>
-				<span class="num-label">#{r.example}</span>
+				<span class="num-label">#{r.number}</span>
 				<span class="pill">{LABEL[r.status]}</span>
-				<span
-					>{r.section}{#if r.suite === 'gfm'}
-						<span class="suite">gfm</span>{/if}</span
-				>
-				{#if r.reason}<span class="why">{r.reason}</span>{/if}
+				<span>{r.section} <span class="suite">{r.source}</span></span>
+				{#if r.problem}<span class="why">{r.problem}</span>{/if}
 				<span class="preview">{r.markdown.replace(/\n/g, '⏎ ')}</span>
 			</summary>
 			<div class="body">
@@ -266,8 +228,8 @@
 									>{:else}{part.text}{/if}{/each}</pre>
 					</div>
 					<div class="pane">
-						<h3>micromark (oracle)</h3>
-						<pre>{r.oracle}</pre>
+						<h3>{r.source === 'markz' ? 'Expected' : 'micromark (oracle)'}</h3>
+						<pre>{r.expected}</pre>
 					</div>
 					<div class="pane">
 						<h3>markz</h3>
@@ -275,12 +237,12 @@
 					</div>
 				</div>
 				{#if r.normalized}
-					{@const [oracle, markz] = r.normalized}
-					{@const [same, rest] = split(oracle, markz)}
-					{@const [same2, rest2] = split(markz, oracle)}
+					{@const [expected, markz] = r.normalized}
+					{@const [same, rest] = split(expected, markz)}
+					{@const [same2, rest2] = split(markz, expected)}
 					<div class="panes">
 						<div class="pane">
-							<h3>Oracle, normalized</h3>
+							<h3>Expected, normalized</h3>
 							<pre class="wrap">{same}<mark>{rest}</mark></pre>
 						</div>
 						<div class="pane">
@@ -336,8 +298,8 @@
 	.fail {
 		--tone: var(--fail);
 	}
-	.excluded {
-		--tone: var(--excluded);
+	.differs {
+		--tone: var(--differs);
 	}
 
 	.stats {

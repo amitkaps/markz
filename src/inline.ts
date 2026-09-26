@@ -21,7 +21,7 @@ import {
 	type Range
 } from './ast';
 import { parseAttributes } from './attributes';
-import { unescape } from './chars';
+import { NAMED, NAMED_INSTEAD, unescape } from './chars';
 import { scanExpression } from './expression';
 
 /** Writes the inline nodes and returns their plain text, which a heading's id is made from. */
@@ -286,12 +286,7 @@ class InlinePass {
 		}
 		const e = t + m[0].length;
 		if (m[3]) {
-			this.report(
-				t,
-				e,
-				`named character reference \`${m[0]}\``,
-				'the character itself (`©`, `&`), or `\\ ` for a non-breaking space'
-			);
+			this.report(t, e, `named character reference \`${m[0]}\``, NAMED_INSTEAD);
 			this.plain(list, t, e);
 			return e;
 		}
@@ -414,9 +409,18 @@ class InlinePass {
 		const m = HTML.exec(text);
 		if (m && t + m[0].length <= to) {
 			const e = t + m[0].length;
-			// A capitalised tag is a JSX component, not HTML.
-			if (/^<\/?[A-Z]/.test(m[0])) this.report(t, e, 'JSX', 'directives, `${…}`');
+			// A PascalCase tag is a JSX component; `<DIV>` is still HTML.
+			if (/^<\/?[A-Z][a-z]/.test(m[0])) this.report(t, e, 'JSX', 'directives, `${…}`');
 			else this.report(t, e, 'raw HTML', 'a ` ```=html ` raw block, or directives and attributes');
+			this.plain(list, t, e);
+			return e;
+		}
+		// What opens a GFM HTML block, at the start of a line, even with no complete tag.
+		OPENER.lastIndex = t;
+		const o = (t === 0 || text[t - 1] === '\n') && OPENER.exec(text);
+		if (o && t + o[0].length <= to) {
+			const e = t + o[0].length;
+			this.report(t, e, 'raw HTML', 'a ` ```=html ` raw block, or directives and attributes');
 			this.plain(list, t, e);
 			return e;
 		}
@@ -547,6 +551,10 @@ class InlinePass {
 			return t + 1;
 		}
 		this.urls = this.urls.filter((d) => d.start < bracket.start);
+		for (const m of this.text.slice(t + 1, tail.end).matchAll(NAMED)) {
+			const at = t + 1 + m.index;
+			this.report(at, at + m[0].length, `named character reference \`${m[0]}\``, NAMED_INSTEAD);
+		}
 		for (const stack of Object.values(this.stacks)) {
 			while (stack.length && stack.at(-1)!.order > bracket.order) stack.pop();
 		}
@@ -907,6 +915,7 @@ const NAME = /[A-Za-z][\w-]*/y;
 const FOOTNOTE = 'a text directive, such as `:note[text]`';
 const DOMAIN = /[A-Za-z\d](?:[\w-]*[A-Za-z\d])?(?:\.[A-Za-z\d](?:[\w-]*[A-Za-z\d])?)+/y;
 const RELATIVE = /<\.{0,2}\/[^\s<>]*>/y;
+const OPENER = /<(?:\/?[A-Za-z][A-Za-z\d-]*(?=[\s/>]|$)|\?|![A-Z]|!\[CDATA\[)/y;
 const AUTOLINK = /<([A-Za-z][A-Za-z\d+.-]{1,31}:[^\s<>]*)>/y;
 const EMAIL =
 	/<([\w.!#$%&'*+/=?^`{|}~-]+@[A-Za-z\d](?:[A-Za-z\d-]{0,61}[A-Za-z\d])?(?:\.[A-Za-z\d](?:[A-Za-z\d-]{0,61}[A-Za-z\d])?)*)>/y;

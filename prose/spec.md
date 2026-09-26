@@ -380,12 +380,17 @@ markdown-exit and Comark. The unified/remark ecosystem stays out.
 
 ## Testing
 
-- **Differential against micromark + GFM:** every example in the CommonMark and GFM spec suites
-  that uses only shared constructs must give identical `html()` output, compared with smart
-  punctuation normalized back to straight characters. So must fuzzed documents
-  generated from the shared grammar.
-- **Rejected syntax:** every row of the "Not supported" table in [`syntax.md`](syntax.md) stays
-  text and produces its warning.
+- **One set of examples, filed by the dialect:** every example, upstream or markz's own, is filed
+  under a construct of [`syntax.md`](syntax.md) or a Not supported row, and every construct and
+  row has examples. Where an example comes from is a label, not a category.
+- **Differential against micromark + GFM:** every CommonMark and GFM spec example in a shared
+  construct must give identical `html()` output, compared with smart punctuation normalized back
+  to straight characters. So must fuzzed documents generated from the shared grammar. An example
+  where markz keeps a construct under its own rule (no run splitting) is filed as differing, under
+  that construct.
+- **Rejected syntax:** an example that uses a form `syntax.md` cuts must raise that row's warning,
+  so the cuts are tested rather than skipped. markz's own examples (`test/dialect/*.md`, in the
+  CommonMark spec's format) also give their exact HTML and the text each warning covers.
 - **Constructs beyond GFM:**
   - directives, against `micromark-extension-directive`
   - metadata: every row of the value table in `syntax.md`, each checked against the `yaml`
