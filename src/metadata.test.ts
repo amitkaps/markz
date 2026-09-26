@@ -1,6 +1,6 @@
 /** @prose
  * The metadata rule, held to the `yaml` package: every block markz accepts must give the same
- * object under YAML 1.2, and every YAML look-alike must be a diagnostic rather than a string
+ * object under YAML 1.2, and every YAML look-alike must be a warning rather than a string
  * (syntax.md: Metadata).
  */
 import { describe, expect, it } from 'vite-plus/test';
@@ -24,7 +24,7 @@ describe('metadata', () => {
 		['blank lines', 'a: 1\n\nb: 2']
 	])('%s', (_, body) => {
 		const doc = parse(block(body));
-		expect(doc.diagnostics).toEqual([]);
+		expect(doc.warnings).toEqual([]);
 		expect(doc.metadata).toEqual(yaml(body));
 	});
 
@@ -33,7 +33,7 @@ describe('metadata', () => {
 		(value) => {
 			const doc = parse(block(`a: ${value}\nb: 1`));
 			expect(doc.metadata).toEqual({ b: 1 });
-			expect(doc.diagnostics).toHaveLength(1);
+			expect(doc.warnings).toHaveLength(1);
 		}
 	);
 
@@ -49,13 +49,13 @@ describe('metadata', () => {
 	])('rejects %s and skips its key', (_, body) => {
 		const doc = parse(block(`${body}\nkeep: 1`));
 		expect(doc.metadata).toEqual({ keep: 1 });
-		expect(doc.diagnostics.length).toBeGreaterThan(0);
+		expect(doc.warnings.length).toBeGreaterThan(0);
 	});
 
 	it('keeps the first of two duplicate keys', () => {
 		const doc = parse(block('a: 1\na: 2'));
 		expect(doc.metadata).toEqual({ a: 1 });
-		expect(doc.diagnostics).toHaveLength(1);
+		expect(doc.warnings).toHaveLength(1);
 	});
 
 	it('records the block and its body ranges', () => {

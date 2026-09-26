@@ -75,19 +75,73 @@ What has been read is a linked list of items, and a closer wraps the items since
 
 ### 6. Diagnostics — done
 
-Every row of the "Not supported" table in `syntax.md` has cases in `src/diagnostics.test.ts`,
-which reads the table itself: the input stays text, each diagnostic covers exactly the rejected
+Every row of the "Not supported" table in `syntax.md` has cases in `src/warnings.test.ts`,
+which reads the table itself: the input stays text, each warning covers exactly the rejected
 characters, and its `instead` is the row's "Write instead" cell. Quiet cases hold the look-alikes
-(`[sic]`, braces, `10:30`, a URL as a link's text) to no report. Diagnostics are in source order.
+(`[sic]`, braces, `10:30`, a URL as a link's text) to no report. Warnings are in source order.
 This step added the reports that were missing: bare URLs, relative autolinks, JSX, footnotes,
 `+++` metadata, trailing heading attributes, multi-line attributes and attributes after inline
 text.
 
-### 7. Traversal and position utilities
+### 7. `diagnostics` becomes `warnings` — done
+
+`doc.warnings`, the word Svelte's `compile` and esbuild use. Nothing fails: the text is kept and
+flagged, and `warnings` says that severity. Renamed before the API is published, so it costs
+nothing.
+
+### 8. `syntax.md` by the dialect's shape
+
+Regroup `syntax.md` from how much is supported ("Fully supported", "Supported, with limits") to
+what the dialect is made of: Metadata, Block, Inline, then Not supported and Canonical form. Each
+construct says under it whether it is "as GFM" or states markz's own rule, which makes "same as
+GFM" exact per construct. These headings become the test categories from step 9 on.
+
+### 9. One example format, categorised by `syntax.md`
+
+Every example, upstream or ours, has one shape: `{ source, section, id, input, expected, status,
+reason? }`, where `section` is a `syntax.md` heading and `source` is a label (CommonMark, GFM,
+markz, …). Statuses:
+
+- **pass** or **fail** against the expected output.
+- **differs**: a supported construct where markz chose a different rule (no run splitting, where
+  `*` is accepted, the metadata rule). It sits under its own section, linked to the rule.
+- **Not supported** examples are not skipped: they move to the table row they exercise and are
+  checked to raise that row's warning and stay text.
+
+One table maps each upstream section to a `syntax.md` section; an unmapped one fails, as an
+unresolved cut reason does today. Every `syntax.md` section and table row must have examples.
+markz's own cases move out of TS into Markdown files in CommonMark's spec format, with a third
+part for the expected warnings; TS tests keep what data can't express (offsets, AST shape,
+invariants).
+
+### 10. Extension suites
+
+Upstream tests for what markz shares beyond the specs, each vendored from a pinned commit and
+checked against its own oracle, one PR per suite:
+
+- micromark-extension-gfm-table and -strikethrough fixtures (autolink-literal and footnote ones
+  land in Not supported);
+- micromark-extension-directive's cases, extracted from its test file, with #33's bare and
+  spaced forms in Not supported or differs;
+- yaml-test-suite, kept to the tags inside the metadata subset, checked against `yaml`;
+- github-slugger's fixtures for heading ids.
+
+Tests of an oracle's options or API (directive handlers, `allowDangerousHtml`) are filtered out
+at import, with the reason in the suite's README.
+
+### 11. The site by the dialect
+
+The Conformance page becomes Metadata, Block, Inline and Not supported, each opening to its
+constructs with their examples, sources and statuses. Summary cards above it: correctness now,
+then performance, size, robustness, a real-world corpus (warnings per file in the migrated
+Markdown), formatter agreement (oxfmt doesn't change the parse) and HTML safety as steps 13 and
+14 produce them.
+
+### 12. Traversal and position utilities
 
 Public API, kept minimal: `parse`, `html`, `walk` (`enter`/`exit`), `textContent`, `position`. Lines are 1-based and columns are 0-based. Nothing else is exported until a consumer needs it.
 
-### 8. Robustness and fuzzing
+### 13. Robustness and fuzzing
 
 - A grammar-based generator of documents in the shared grammar, fed to the oracle.
 - Malformed input, CRLF and lone `\r`, BOM, and astral-plane offsets.
@@ -95,7 +149,7 @@ Public API, kept minimal: `parse`, `html`, `walk` (`enter`/`exit`), `textContent
 - Unclosed `${` is quadratic today: 80,000 of them in one paragraph take about 100 s, 16 times the time for 4 times the input. One failed scan doesn't settle later ones (`${a ${b}` has a valid second expression), so the fix is to reuse the failed scan's brace depths for every `${` it passed, rather than a flag.
 - A multi-MB document that guards against quadratic behaviour.
 
-### 9. Benchmarks and bundle size
+### 14. Benchmarks and bundle size
 
 `bench/` (not published): parse throughput and AST memory versus micromark, markdown-it, marked, markdown-exit and Comark. The size gate is already in CI; this step adds the comparisons.
 
@@ -103,6 +157,6 @@ Public API, kept minimal: `parse`, `html`, `walk` (`enter`/`exit`), `textContent
 
 - `import { parse, html } from 'markz'` works with no options and no runtime dependencies.
 - `html()` is identical to micromark + GFM on the filtered spec suites and on fuzzed documents in the shared grammar.
-- Every rejected construct produces its diagnostic.
+- Every rejected construct produces its warning.
 - `dist/` is at most 20 KB gzip, and CI enforces it.
 - The README documents the API and links to `syntax.md`.

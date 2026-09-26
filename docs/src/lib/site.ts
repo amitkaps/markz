@@ -20,5 +20,5 @@ export interface Row {
 	markz: string;
 	/** Both outputs normalized, for a failing example. */
 	normalized: [oracle: string, markz: string] | null;
-	diagnostics: string[];
+	warnings: string[];
 }

@@ -22,7 +22,7 @@ function build() {
 	b.close(13);
 	b.close(13);
 	b.close(13);
-	b.diagnose({ start: 8, end: 9, message: 'example', instead: 'nothing' });
+	b.warn({ start: 8, end: 9, message: 'example', instead: 'nothing' });
 	return { doc: b.finish(), heading, quote, paragraph };
 }
 
@@ -55,8 +55,8 @@ describe('Builder and Document', () => {
 		expect(doc.attributes(heading)).toBeUndefined();
 	});
 
-	it('keeps diagnostics', () => {
-		expect(build().doc.diagnostics).toEqual([
+	it('keeps warnings', () => {
+		expect(build().doc.warnings).toEqual([
 			{ start: 8, end: 9, message: 'example', instead: 'nothing' }
 		]);
 	});

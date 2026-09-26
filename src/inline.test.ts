@@ -1,7 +1,7 @@
 /** @prose
  * The inline pass on what the oracle can't check: markz's own inline constructs (math,
  * expressions, text directives, attributes on links and images, smart punctuation, `\ `), the
- * `*` rule, the rejected forms and their diagnostics, heading ids, and exact offsets. Every parsed
+ * `*` rule, the rejected forms and their warnings, heading ids, and exact offsets. Every parsed
  * document is also held to the tree invariants.
  */
 import { describe, expect, it } from 'vite-plus/test';
@@ -16,7 +16,7 @@ function parsed(source: string): Document {
 
 /** The inline HTML of a one-paragraph document. */
 const inline = (source: string) => html(parsed(source)).replace(/^<p>|<\/p>\n$/g, '');
-const messages = (source: string) => parsed(source).diagnostics.map((d) => d.message);
+const messages = (source: string) => parsed(source).warnings.map((d) => d.message);
 
 function first(doc: Document, type: NodeType): NodeId {
 	for (let n = 0; n < doc.size; n++) if (doc.type(n) === type) return n;

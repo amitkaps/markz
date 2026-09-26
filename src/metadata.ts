@@ -4,13 +4,13 @@
  * The `---` block at the top of a document, read by syntax.md's JSON-like rule: one `key: value`
  * per line, where a value is null, a boolean, a number, a quoted string, a one-line `[…]` list, or
  * otherwise a string as written. It is not a YAML parser, but it never disagrees with one: a value
- * YAML 1.2 would read as something else (`True`, `~`, `1e3`) is a diagnostic, and so is anything
+ * YAML 1.2 would read as something else (`True`, `~`, `1e3`) is a warning, and so is anything
  * YAML has that the rule doesn't (indented lines, `|`, `{a: b}`, anchors). A line in error skips its
  * key; the rest of the block is still read.
  */
-import { type Diagnostic, type MetadataScalar, type MetadataValue } from './ast';
+import { type Warning, type MetadataScalar, type MetadataValue } from './ast';
 
-type Report = (diagnostic: Diagnostic) => void;
+type Report = (warning: Warning) => void;
 
 const YAML = 'syntax.md: Metadata';
 

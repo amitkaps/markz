@@ -5,7 +5,7 @@ This is markz's dialect, one construct per row. It keeps GFM's everyday symbols,
 everything that makes Markdown need backtracking. There is one way to write each thing. The
 rendered site is the primary target. A markz document stays readable on GitHub, but it doesn't
 have to render identically there. Anything markz rejects stays literal text and adds an entry to
-`doc.diagnostics` saying what to write instead. It is never silently reinterpreted.
+`doc.warnings` saying what to write instead. It is never silently reinterpreted.
 
 The cuts and the attribute rules follow [djot](https://github.com/jgm/djot#rationale). The
 reasons are in the [spec](spec.md#markdown-dialect).
@@ -71,7 +71,7 @@ an element Markdown itself made and a directive would have to wrap or reinvent t
 - **Block attributes:** blank lines may come between the `{…}` line and its block, because oxfmt
   inserts one before a heading. Consecutive `{…}` lines merge. A `{…}` line can't interrupt a
   paragraph or a table, where it is text. One with no block after it in its container stays text
-  and gets a diagnostic.
+  and gets a warning.
 - **On the element:** `html()` writes block attributes onto the block's own element: the `<p>`,
   `<h2>`, `<table>`, `<ul>`, `<blockquote>`, and `<pre>` for code and math.
 - **One line only.** djot lets attributes span lines, and markz doesn't. That keeps the block pass
@@ -158,7 +158,7 @@ only thing kept from HTML. prose's Markdown notes need it (`<!-- @note … -->`)
 comments too.
 
 - It may span lines, and ends on the line with `-->`. Text after `-->` on that line is part of the
-  comment and gets a diagnostic. An unclosed comment runs to the end of its container.
+  comment and gets a warning. An unclosed comment runs to the end of its container.
 - A comment that shares its first line with other text is inline, where it is text.
 
 ### Metadata
@@ -205,12 +205,12 @@ tags: [svelte, vite]
   that contains `,`, `[` or `]`.
 - **YAML look-alikes are errors, not strings.** The block is still YAML to GitHub, editors,
   formatters and any YAML parser, and every block markz accepts has the same value under YAML
-  1.2. So a plain value YAML would read differently gets a diagnostic, not a silent string:
+  1.2. So a plain value YAML would read differently gets a warning, not a silent string:
   `True`, `FALSE`, `~`, `Null`, `+1`, `.5`, `1e3`, `0x1F`, `.inf`. Write the canonical form or
   quote it.
 - **Everything else in YAML is out:** indented lines (nested maps, `- item` lists, multi-line
-  strings), `|` and `>`, `{a: b}`, anchors, aliases and tags. Each gets a diagnostic, and its key
-  is skipped. Of two duplicate keys, the first wins and the second gets a diagnostic.
+  strings), `|` and `>`, `{a: b}`, anchors, aliases and tags. Each gets a warning, and its key
+  is skipped. Of two duplicate keys, the first wins and the second gets a warning.
 
 markz is not a YAML parser. The `yaml` package is its dev-only test oracle, as micromark is for
 the Markdown: every accepted block must give the same object from both.
@@ -223,7 +223,7 @@ attribute syntax above:
 - **text**: `:name[label]`, `:name{attrs}` or `:name[label]{attrs}`. A label or attributes is
   required, so `hello :world` and `10:30` stay plain text: a colon in prose is never special, and
   the parser knows it has a directive as soon as it reaches the `[` or `{`. A bare `:name` is not
-  a construct in markz, so it gets no diagnostic. This is the fix for micromark's long-standing
+  a construct in markz, so it gets no warning. This is the fix for micromark's long-standing
   complaint ([directive#33](https://github.com/micromark/micromark-extension-directive/issues/33)),
   where bare `:name` swallows prose.
 - A name starts with a letter, so `localhost:8000` is never a directive. A text directive may
@@ -389,7 +389,7 @@ attribute values.
 
 ## Not supported
 
-Each of these stays literal text and adds a diagnostic over exactly its characters, with the
+Each of these stays literal text and adds a warning over exactly its characters, with the
 supported form as `instead`, worded as the table's second column. Two look-alikes are ordinary
 prose, so they stay text without a report: a lone `[x]` (a reference link's definition is
 reported instead) and a bare `{…}`.
@@ -433,7 +433,7 @@ formats with it. We checked by running `vp fmt` over every alternate form:
 | `## Title ##`                      | `## Title`                         |
 
 oxfmt leaves these alone: setext headings, indented code, two-space breaks, named entities,
-bare URLs, reference links and raw HTML. For those, markz's diagnostic is the only signal.
+bare URLs, reference links and raw HTML. For those, markz's warning is the only signal.
 
 oxfmt keeps the attribute syntax, with two quirks the rules above absorb:
 

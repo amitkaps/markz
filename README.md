@@ -20,8 +20,8 @@ The dialect is in [`prose/syntax.md`](prose/syntax.md) and the design in [`prose
 markz parses the Markdown we write, not every Markdown in the wild. Pasted or generated Markdown
 often uses syntax the dialect leaves out: reference links (`[text][ref]`), bare URLs, raw HTML,
 setext headings (`Title` over `===`), footnotes and named entities (`&amp;`). markz never guesses
-at these. Each one stays literal text and adds a diagnostic naming the supported form, so
-converting a document means fixing what `doc.diagnostics` lists.
+at these. Each one stays literal text and adds a warning naming the supported form, so
+converting a document means fixing what `doc.warnings` lists.
 
 ## Development
 

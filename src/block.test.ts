@@ -1,6 +1,6 @@
 /** @prose
  * The block pass on what the oracle can't check: markz's own block constructs (attributes,
- * directives, raw blocks, math, comments), the rejected forms and their diagnostics, and exact
+ * directives, raw blocks, math, comments), the rejected forms and their warnings, and exact
  * source offsets. Every parsed document is also held to the tree invariants.
  */
 import { describe, expect, it } from 'vite-plus/test';
@@ -26,7 +26,7 @@ const first = (doc: Document, type: NodeType): NodeId => {
 	throw new Error(`no ${type}`);
 };
 
-const messages = (source: string) => parsed(source).diagnostics.map((d) => d.message);
+const messages = (source: string) => parsed(source).warnings.map((d) => d.message);
 
 describe('ranges', () => {
 	it('cover markers, and a block never its line ending', () => {

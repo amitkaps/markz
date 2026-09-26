@@ -16,7 +16,7 @@ Read **`prose/spec.md`** first — it is the design for markz.
   the test harness. It is a consumer, never part of the package: its dependencies (Svelte,
   wrangler) must not reach the library. `pnpm docs` runs it; CI checks, tests and builds it, and
   deploys it from `main`.
-- The invariant: unsupported syntax stays literal text and produces a diagnostic. It is never
+- The invariant: unsupported syntax stays literal text and produces a warning. It is never
   silently reinterpreted as a different supported construct.
 
 ## Prose (`@amitkaps/prose`, `/__prose/`)
