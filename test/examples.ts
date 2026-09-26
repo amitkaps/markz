@@ -42,6 +42,8 @@ export const excludedSections: Record<string, string> = {
 
 /** Keyed `suite:example`. */
 export const excludedExamples: Record<string, string> = {
+	// `\ ` is a non-breaking space in markz, a literal backslash and space in GFM.
+	'commonmark:13': 'Non-breaking space',
 	// Autolinks: the ones that are text in CommonMark but bare URLs in GFM.
 	'commonmark:602': 'Bare URLs',
 	'commonmark:608': 'Bare URLs',
