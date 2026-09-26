@@ -36,12 +36,10 @@ export const T = {
 	table: 18,
 	tableRow: 19,
 	tableCell: 20,
-	footnoteReference: 21,
-	footnoteDefinition: 22,
-	directive: 23,
-	math: 24,
-	raw: 25,
-	expression: 26
+	directive: 21,
+	math: 22,
+	raw: 23,
+	expression: 24
 } as const;
 
 export type NodeType = keyof typeof T;
@@ -83,8 +81,6 @@ export interface NodeData {
 	/** `null` for an ordinary item, a boolean for a GFM task item. */
 	listItem: { checked: boolean | null };
 	table: { align: Align[] };
-	footnoteReference: { label: string };
-	footnoteDefinition: { label: string };
 	/**
 	 * A leaf or text directive's label is also its children (inline content). A container's is
 	 * only this: plain text, escapes decoded, never parsed inline.

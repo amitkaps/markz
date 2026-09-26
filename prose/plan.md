@@ -11,7 +11,7 @@ The output is built with `vp pack` (tsdown, driven by the `pack` section of [`vi
 - `sideEffects: false`, so consumers can tree-shake `html`, `walk`, `textContent` and `position`.
 - No runtime dependencies. `micromark`, `micromark-extension-gfm` and `micromark-extension-directive` are `devDependencies`, as the test oracle, and `yaml` is the frontmatter oracle.
 - `prepublishOnly` runs `vp pack`, so a publish can never ship a stale `dist/`.
-- CI measures `dist/` (minified, gzip, Brotli) and fails above 20 KB gzip.
+- `pnpm size` (`scripts/size.ts`) bundles and minifies the entry and fails above 20 KB gzip. CI runs it on every PR, from step 3 on, so growth shows in the PR that causes it.
 
 ## Steps
 
@@ -51,7 +51,7 @@ invariants every later step's documents are checked against.
 `src/block.ts`, a line-by-line scan into containers and leaves, in one linear pass. Every block construct in `syntax.md` is a case in this scan. There are no plug-ins and no extension layer:
 
 - containers: blockquote, list, listItem, and container directives (`:::name` … `:::`)
-- leaves: paragraph, ATX heading, fenced code (including ` ```=format ` raw blocks), thematic break, table, footnote definition, comment, `$$` math, and leaf directives (`::name`)
+- leaves: paragraph, ATX heading, fenced code (including ` ```=format ` raw blocks), thematic break, table, comment, `$$` math, and leaf directives (`::name`)
 - block-attribute lines, attached to the next block. A heading's explicit `{#id}` is recorded here.
 - frontmatter at offset 0, parsed line by line into a flat object by the YAML-subset rules
 
@@ -65,7 +65,7 @@ Rejected constructs (setext, indented code, `~~~`, HTML, reference definitions, 
 
 - inline code, `${…}` expressions and `$…$` math, which bind tightest
 - text directives (`:name[label]{…}`)
-- links and images (inline form only) with an optional `{…}` directly after, `<…>` autolinks, and footnote references. Expressions inside destinations and attribute values are found by the same `${` scanner.
+- links and images (inline form only) with an optional `{…}` directly after, and `<…>` autolinks. Expressions inside destinations and attribute values are found by the same `${` scanner.
 - strong (`**`) / emphasis (`_`) / strikethrough (`~~`) with the djot-style flanking rules
 - backslash escapes, numeric references and `\` hard breaks
 - smart punctuation on text: quotes by the character before them, `--`, `---`, `...`
@@ -93,7 +93,7 @@ Public API, kept minimal: `parse`, `html`, `walk` (`enter`/`exit`), `textContent
 
 ### 10. Benchmarks and bundle size
 
-`bench/` (not published): parse throughput and AST memory versus micromark, markdown-it, marked, markdown-exit and Comark. The size gate goes into CI.
+`bench/` (not published): parse throughput and AST memory versus micromark, markdown-it, marked, markdown-exit and Comark. The size gate is already in CI; this step adds the comparisons.
 
 ## Definition of done for v1
 

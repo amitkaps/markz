@@ -37,9 +37,8 @@ requirements. markz must not import anything from them.
   [Performance and size](#performance-and-size))
 - Opinionated, with no configuration
 - TypeScript-first
-- Identical to GFM on the constructs it shares with GFM, and only those. micromark is the test
-  oracle for that intersection, not a specification of markz: where `syntax.md` cuts or changes a
-  construct, markz follows `syntax.md`
+- Identical to GFM for the constructs markz supports, except where `syntax.md` defines different
+  semantics. micromark is the test oracle for that intersection, not a specification of markz
 - Unsupported syntax stays literal text and produces a diagnostic. It is never silently read as a
   different, supported construct
 - Parsed in linear time with no backtracking, as djot is
@@ -130,6 +129,14 @@ These golden cases, carried over from base's tests, are the contract for generat
 | `## See [docs](https://example.com)` | `see-docs`       |
 | `## ???`                             | `section`        |
 
+And in a document of its own, a heading whose text looks like a suffix:
+
+| Heading   | id      |
+| --------- | ------- |
+| `# foo-1` | `foo-1` |
+| `# foo`   | `foo`   |
+| `# foo`   | `foo-2` |
+
 ## AST
 
 The AST is a flat, indexed store, not mdast and not nested objects. A node is a number (its index).
@@ -214,8 +221,6 @@ break
 table                column alignments
 tableRow
 tableCell
-footnoteReference    label
-footnoteDefinition   label
 directive            kind: text | leaf | container; name, label, attributes
 math                 inline | block; raw TeX, value range
 raw                  format (`html`, …), value, content range; from a ` ```=format ` fence
@@ -226,10 +231,11 @@ Directives, blocks, images and links can carry attributes: an id, classes and ke
 each with its source range. They're kept in a side table, so the common case (no attributes)
 costs nothing.
 
-Changes from the earlier list: `footnote` is dropped, because GFM has no inline footnotes, and
-`task` became `listItem.checked`, because a task is a property of an item. `frontmatter`,
-`comment`, `raw`, `math` and `expression` are added. `html` and `definition` are gone, because
-HTML is only possible in explicit raw blocks, and reference links aren't in the dialect.
+Changes from the earlier list: `task` became `listItem.checked`, because a task is a property of
+an item. `frontmatter`, `comment`, `raw`, `math` and `expression` are added. `html`, `definition`
+and the footnote nodes are gone, because HTML is only possible in explicit raw blocks, and reference
+links and footnotes aren't in the dialect. Both would need the whole document read before a
+reference could be resolved.
 
 ## Source locations
 
@@ -242,8 +248,9 @@ Rules:
   link includes `[`, `](…)`. The trailing line ending is excluded.
 - **Content ranges** are exposed as extra fields where consumers need them: a code block's body,
   a link's destination, frontmatter's YAML, a directive's label, and every attribute block.
-- **Text nodes map to source, not just to their value.** `value` is decoded (`&#169;` → `©`,
-  `\*` → `*`), and `start`/`end` cover the raw characters. A consumer scanning for syntax of its
+- **Text nodes map to source, not just to their value.** `value` is the rendered text: decoded
+  (`&#169;` → `©`, `\*` → `*`) and with smart punctuation (`"` → `“`). `start`/`end` cover the raw
+  characters. A consumer scanning for syntax of its
   own reads `source.slice(start, end)`, so a decoded escape can't shift its columns.
 - **Containers with prefixed lines** (blockquotes, list items) span from their first
   marker to the end of their last content. The `> ` and indentation prefixes inside that span
@@ -332,7 +339,8 @@ const out = html(markdown); // or html(doc)
   the supported form
 - `html(source | Document): string`
 - `walk(doc, { enter?, exit? })`
-- `textContent(doc, node): string`, the same text heading ids use
+- `textContent(doc, node): string`, the rendered text (escapes decoded, punctuation curled) that
+  heading ids use. The source text of any node is `doc.source.slice(doc.start(node), doc.end(node))`
 - `position(source): (offset) => { line, column }`
 
 Nothing takes an options object.
@@ -352,7 +360,6 @@ string and never touches the DOM.
   without a pass of its own.
 - **Math, expressions and directives** are written in the shapes [`syntax.md`](syntax.md#supported-with-limits)
   gives for each.
-- **Footnotes** follow GFM's output.
 
 Framework output is not part of markz. Svelte, React and custom-element rendering are each a
 consumer's own fold over the AST. visdown's Svelte codegen is the first of those, and it maps
@@ -420,16 +427,18 @@ markdown-exit and Comark. The unified/remark ecosystem stays out.
 - **Constructs beyond GFM:**
   - directives, against `micromark-extension-directive`
   - frontmatter: every row of the subset table in `syntax.md`, each checked against the `yaml`
-    package
+    package, and every rejected scalar (`~`, `True`, `1e3`, …) giving a diagnostic, not a string
   - math, including `$` used as currency
-  - expressions: nesting, strings, escapes, and emphasis inside `${…}`
+  - expressions: nesting, strings, comments, escapes, and emphasis inside `${…}`; malformed
+    JavaScript that still closes; the regex-literal limit
   - attributes: the three placements, text fallbacks such as `{a, b}`, and oxfmt's blank line
     before headings
 - **Heading ids:** explicit ids win, generated ids skip explicit ones, and explicit duplicates
   produce diagnostics.
 - **No backtracking:** adversarial inputs (unclosed `](`, `{`, `<` and `_` repeated thousands of
   times) parse in linear time.
-- **Heading ids:** the golden table above, verbatim.
+- **Heading ids:** the golden tables above, verbatim, plus apostrophes and quotes, which slug
+  the same straight or curled (`Don't` and `Don’t` both give `dont`).
 - **Offsets** are asserted against known source, never against rendered output. This includes
   escapes, numeric references, astral characters, CRLF and nested containers.
 - **Tree structure:** parent, child and sibling invariants.

@@ -14,6 +14,9 @@ reasons are in the [spec](spec.md#markdown-dialect).
 
 The same syntax and result as GFM.
 
+`&` is ordinary text: write it literally, and `html()` escapes it. The only character references
+are numeric ones.
+
 | Construct         | Syntax                                          | Notes                                                                                                    |
 | ----------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | Paragraph         | text separated by a blank line                  |                                                                                                          |
@@ -31,7 +34,6 @@ The same syntax and result as GFM.
 | Ordered list      | `1. item`; `1)` also accepted                   | The first number sets `start`. Changing the delimiter starts a new list, as with bullets.                |
 | Task item         | `- [ ] todo`, `- [x] done`                      | `listItem.checked`                                                                                       |
 | Table             | GFM pipe table with a `---` delimiter row       | `:---`, `:---:` and `---:` set alignment.                                                                |
-| Footnote          | `[^label]`, and `[^label]: text`                |                                                                                                          |
 | Horizontal rule   | `---`                                           |                                                                                                          |
 | Hard line break   | `\` at end of line                              | A visible, explicit break. GitHub renders it too.                                                        |
 | Backslash escape  | `\*`, `\_`, `\$`, `\{`, …                       | Any ASCII punctuation character.                                                                         |
@@ -120,7 +122,8 @@ comments too. A comment in the middle of a line is text.
 
 A small subset of YAML, fenced by `---` lines starting at offset 0. markz parses it into
 `doc.frontmatter`, a flat object, and keeps the raw text and its range as well. Every document
-inside the subset is valid YAML with the same meaning under YAML 1.2. A consumer that needs more
+markz accepts has the same value when parsed as YAML 1.2, and anything whose YAML 1.2 value markz
+can't reproduce is rejected rather than read differently. A consumer that needs more
 can pass the raw text to a full YAML parser.
 
 ```yaml
@@ -146,12 +149,16 @@ tags:
 | `key: "double"`                                                | string, with the escapes `\"`, `\\`, `\n`, `\t` and `\uXXXX`                                                                               |
 | `42`, `-3`, `1.5`                                              | number. No hex, exponents or `.inf`.                                                                                                       |
 | `true`, `false`                                                | boolean. `yes` and `no` stay strings, as in YAML 1.2.                                                                                      |
-| `key:` with nothing after                                      | `null`                                                                                                                                     |
+| `key:` with nothing after, or `key: null`                      | `null`                                                                                                                                     |
 | `2026-09-26`                                                   | string, which the consumer's schema validates or converts                                                                                  |
 | `key:`, then indented `- item` lines                           | a list of scalars, each following the rules above                                                                                          |
 | `# …`, on its own line or after a value with a space before it | a comment                                                                                                                                  |
 
 Keys are `[A-Za-z_][A-Za-z0-9_-]*`.
+
+A plain value that YAML 1.2's core schema reads as a null, boolean or number, in a form other than
+those above, is rejected with a diagnostic rather than kept as a string: `~`, `Null`, `True`,
+`FALSE`, `+1`, `.5`, `1.`, `1e3`, `0x1F`, `0o17`, `.inf`, `.nan`. Quote it to keep it a string.
 
 Not in the subset: nested maps, flow `[a, b]` and `{a: b}`, multi-line strings (`|`, `>`),
 anchors and aliases, tags (`!!str`), and tabs used for indentation. For any of these, and for a
@@ -237,6 +244,12 @@ the code and its range. markz never evaluates it.
 - It is inert inside inline code, fenced code, math and autolinks.
 - `\${` is a literal `${`.
 - An unclosed `${` is text.
+- markz only finds the matching `}`. It never validates the JavaScript, so malformed code whose
+  braces, strings and comments close is still an expression. `${foo /* } */ + {a: 1}}` is one
+  expression.
+- Regex literals aren't recognised, because telling `/` as division from `/` opening a regex
+  needs a JavaScript parser. A `}` inside a regex (`${s.replace(/}/g, '')}`) closes the
+  expression early. Write it as `\u007d`, or move the regex out of the document.
 - `html()` writes the literal source text, escaped.
 
 ### Raw blocks
@@ -291,7 +304,9 @@ attribute values.
   whitespace, an opening bracket or a dash means it opens.
 - `\"`, `\'`, `\-` and `\.` keep the straight character.
 - The text node's `value` holds the typographic character, and its range still covers the
-  source characters.
+  source characters. `value` and `textContent()` are the rendered text: escapes and numeric
+  references decoded, punctuation curled. What the author typed is always
+  `source.slice(start, end)`, and a consumer that needs the source uses that.
 - Heading ids are slugged from the typographic text. Quotes and dashes are punctuation, so they
   drop out.
 
@@ -318,6 +333,7 @@ Each of these stays literal text and adds a diagnostic suggesting the supported 
 | Multi-line attributes                                                                        | one line                                                          | Keeps the block pass free of lookahead.                                                                                                                                     |
 | Attributes after words, inline code or emphasis (`word{.x}`), and djot spans (`[text]{.x}`)  | `:span[text]{.x}`                                                 | Directives already wrap inline text, so one way. Keeping `{` special only after a `)` means braces in prose are plain text.                                                 |
 | MDX: JSX and bare `{…}` expressions                                                          | directives, `${…}`                                                | A `{` is only attributes where the rules above say so.                                                                                                                      |
+| Footnotes (`[^label]`, `[^label]: text`)                                                     | a text directive, such as `:note[text]`                           | A reference can't be resolved until the whole document is read, as with reference links. Nothing we write uses them.                                                        |
 | TOML frontmatter (`+++`)                                                                     | YAML                                                              | One format.                                                                                                                                                                 |
 | Lazy continuation lines (a quoted or listed paragraph continuing without `>` or indentation) | `>` on every line, or indent to the item's content column         | Lazy lines are the main reason CommonMark's block structure depends on context. Formatters already write them out in full.                                                  |
 

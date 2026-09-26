@@ -34,3 +34,6 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Bundle size (20 KB gzip budget)
+        run: pnpm size
