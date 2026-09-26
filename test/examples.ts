@@ -7,9 +7,11 @@
  * cell) or a heading under "Supported, with limits". The oracle test checks that every reason
  * resolves, so the list can't drift from the dialect.
  *
- * Whole sections go first; single examples are added as their sections are enabled in the oracle
- * test (`prose/plan.md`, steps 4–5), when a failure shows which dialect rule an example crosses.
+ * Most exclusions aren't listed by hand. The oracle's tokens show which examples use a construct
+ * the dialect cuts (`cut`), and those carry that construct's row. The hand lists cover what tokens
+ * can't show: whole sections, and dialect rules such as lazy lines that have no token of their own.
  */
+import { tokens, type Token } from './oracle';
 import commonmark from './spec/commonmark.json' with { type: 'json' };
 import gfm from './spec/gfm.json' with { type: 'json' };
 
@@ -44,21 +46,13 @@ export const excludedSections: Record<string, string> = {
 export const excludedExamples: Record<string, string> = {
 	// `\ ` is a non-breaking space in markz, a literal backslash and space in GFM.
 	'commonmark:13': 'Non-breaking space',
-	// Autolinks: the ones that are text in CommonMark but bare URLs in GFM.
-	'commonmark:602': 'Bare URLs',
-	'commonmark:608': 'Bare URLs',
-	'commonmark:611': 'Bare URLs',
-	'commonmark:612': 'Bare URLs',
-	// Inline HTML in other sections' examples.
+	// A paragraph continuing without its `>` or its item's indentation.
 	...Object.fromEntries(
-		[21, 31, 344, 475, 476, 477, 491, 494, 524, 536, 642, 643].map((n) => [
+		[232, 233, 238, 247, 250, 251, 291, 292, 293, 312].map((n) => [
 			`commonmark:${n}`,
-			'Raw HTML blocks and inline tags'
+			'Lazy continuation lines'
 		])
-	),
-	// `<!-- -->` between two lists: a comment node in markz, escaped text to the oracle.
-	'commonmark:308': 'Comments',
-	'commonmark:309': 'Comments'
+	)
 };
 
 /** @prose
@@ -70,8 +64,63 @@ export const oracleDiffers: Record<string, string> = {
 	'gfm:280': 'cmark-gfm orders task-item input attributes differently and omits the void slash'
 };
 
+/** @prose
+ * ## Cut constructs
+ *
+ * Each rule names the oracle token that shows a construct the dialect cuts, and the `syntax.md`
+ * row it falls under. The first matching rule is the reason.
+ */
+const first = (t: Token) => t.text.trimStart()[0];
+
+export const cuts: [reason: string, test: (t: Token) => boolean][] = [
+	['Comments', (t) => t.type === 'htmlFlow' && t.text.trimStart().startsWith('<!--')],
+	['Raw HTML blocks and inline tags', (t) => t.type === 'htmlFlow' || t.type === 'htmlText'],
+	['Setext headings', (t) => t.type === 'setextHeading'],
+	['Indented code blocks', (t) => t.type === 'codeIndented'],
+	['`~~~` fences', (t) => t.type === 'codeFencedFenceSequence' && t.text[0] === '~'],
+	['Reference links', (t) => t.type === 'definition' || t.type === 'reference'],
+	['Bare URLs', (t) => t.type === 'literalAutolink'],
+	[
+		'Named character references',
+		(t) => t.type === 'characterReference' && !t.text.startsWith('&#')
+	],
+	['Two trailing spaces as a line break', (t) => t.type === 'hardBreakTrailing'],
+	['`***`, `___`, `* * *` rules', (t) => t.type === 'thematicBreak' && first(t) !== '-'],
+	['`__strong__`', (t) => t.type === 'strongSequence' && t.text[0] === '_'],
+	['`*emphasis*`', (t) => t.type === 'emphasisSequence' && t.text[0] === '*'],
+	['`~single~` strikethrough', (t) => t.type === 'strikethroughSequence' && t.text.length === 1]
+];
+
+/** @prose
+ * ## Block-only examples
+ *
+ * Until the inline pass lands (`prose/plan.md`, step 5), markz is held to the oracle only on
+ * examples with no inline syntax: none of the oracle's inline tokens, and none of the characters
+ * that open markz's own inline constructs (`$` for math and expressions, `\ `, `{`).
+ */
+const INLINE = new Set([
+	'autolink',
+	'characterEscape',
+	'characterReference',
+	'codeText',
+	'directiveText',
+	'emphasis',
+	'hardBreakEscape',
+	'label',
+	'strikethrough',
+	'strong'
+]);
+
+export function blockOnly(e: Example): boolean {
+	return !/[$]|\\ |\)\{/.test(e.markdown) && !tokens(e.markdown).some((t) => INLINE.has(t.type));
+}
+
 export function exclusion(e: Example): string | undefined {
-	return excludedExamples[`${e.suite}:${e.example}`] ?? excludedSections[`${e.suite}:${e.section}`];
+	const listed =
+		excludedExamples[`${e.suite}:${e.example}`] ?? excludedSections[`${e.suite}:${e.section}`];
+	if (listed) return listed;
+	const found = tokens(e.markdown);
+	return cuts.find(([, test]) => found.some(test))?.[0];
 }
 
 export const included: Example[] = all.filter((e) => exclusion(e) === undefined);

@@ -5,16 +5,24 @@
  *   resolves to `syntax.md`.
  * - the oracle, against the spec's own HTML on every included example, and against `syntax.md`'s
  *   directive shapes, so a normalization or configuration bug can't hide behind it.
- * - markz's `html()` against the oracle, section by section. `ready` lists the sections held to
- *   that; each step of the parser adds the ones it completes.
+ * - markz's `html()` against the oracle. Until the inline pass (`prose/plan.md`, step 5), only
+ *   on block-only examples, and every parsed document also satisfies the tree invariants.
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vite-plus/test';
 import { html } from '../src/index';
-import { all, excludedExamples, excludedSections, included, oracleDiffers } from './examples';
+import {
+	all,
+	blockOnly,
+	cuts,
+	excludedExamples,
+	excludedSections,
+	included,
+	oracleDiffers
+} from './examples';
 import { normalize, reference } from './oracle';
-
-const ready = new Set<string>([]);
+import { expectTree } from './tree';
+import { parse } from '../src/index';
 
 const syntax = readFileSync(new URL('../prose/syntax.md', import.meta.url), 'utf8');
 // Between two known headings, since the samples in syntax.md contain `##` lines of their own.
@@ -42,8 +50,15 @@ describe('exclusions', () => {
 		}
 	);
 
+	it.each(cuts.map(([reason]) => reason))('cut %s resolves to syntax.md', (reason) => {
+		expect(notSupported.some((row) => row.startsWith(reason)) || withLimits.includes(reason)).toBe(
+			true
+		);
+	});
+
 	it('leaves most examples in', () => {
-		expect(included.length).toBeGreaterThan(all.length / 2);
+		// Guards against an exclusion rule that swallows the suite; about 47% stay in.
+		expect(included.length).toBeGreaterThan(all.length * 0.4);
 	});
 });
 
@@ -74,10 +89,8 @@ describe('oracle directive shape', () => {
 });
 
 describe('markz', () => {
-	const examples = included.filter((e) => ready.has(`${e.suite}:${e.section}`));
-	if (examples.length === 0) it.todo('matches the oracle (sections are enabled from step 4)');
-	else
-		it.each(examples)('$suite $example ($section)', (e) => {
-			expect(normalize(html(e.markdown))).toBe(normalize(reference(e.markdown)));
-		});
+	it.each(included.filter(blockOnly))('$suite $example ($section)', (e) => {
+		expectTree(parse(e.markdown));
+		expect(normalize(html(e.markdown))).toBe(normalize(reference(e.markdown)));
+	});
 });

@@ -42,11 +42,11 @@ invariants every later step's documents are checked against.
   that each one resolves.
 - The oracle is checked against each spec's own HTML on every included example (the two
   cmark-gfm task-list examples differ only in attribute order).
-- markz is compared per section. The `ready` set in `test/oracle.test.ts` is empty until step 4
-  adds the sections it completes. Examples that cross a dialect rule inside an otherwise shared
-  section are excluded as each section is enabled.
+- Examples that use a construct the dialect cuts are excluded by the oracle's own tokens
+  (`cuts` in `test/examples.ts`), each with its `syntax.md` row. Hand lists cover whole sections
+  and rules with no token, such as lazy lines.
 
-### 4. Block pass
+### 4. Block pass — done
 
 `src/block.ts`, a line-by-line scan into containers and leaves, in one linear pass. Every block construct in `syntax.md` is a case in this scan. There are no plug-ins and no extension layer:
 
@@ -57,7 +57,7 @@ invariants every later step's documents are checked against.
 
 Rejected constructs (setext, indented code, `~~~`, HTML, reference definitions, lazy lines) are recognised in the same scan. Each becomes paragraph text plus a diagnostic in the place it is met.
 
-`html()` in `src/html.ts` grows alongside, one node type at a time. Tests assert exact offsets, and the oracle checks block-only examples.
+`html()` in `src/html.ts` writes every block node. `src/inline.ts` is a placeholder that writes each content line as one text node. Tests assert exact offsets, and the oracle checks every block-only example: one where micromark finds no inline token and none of markz's own inline openers appear. `pnpm size` now removes whitespace too, so it measures real minified output (8.5 KB gzip after this step).
 
 ### 5. Inline pass
 

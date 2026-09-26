@@ -69,7 +69,11 @@ an element Markdown itself made and a directive would have to wrap or reinvent t
 - **Syntax:** `#id`, `.class` and `key=value`, with `key="a quoted value"` for spaces. Classes
   accumulate. For other keys, a later value wins. Values may contain `${…}`.
 - **Block attributes:** blank lines may come between the `{…}` line and its block, because oxfmt
-  inserts one before a heading.
+  inserts one before a heading. Consecutive `{…}` lines merge. A `{…}` line can't interrupt a
+  paragraph or a table, where it is text. One with no block after it in its container stays text
+  and gets a diagnostic.
+- **On the element:** `html()` writes block attributes onto the block's own element: the `<p>`,
+  `<h2>`, `<table>`, `<ul>`, `<blockquote>`, and `<pre>` for code and math.
 - **One line only.** djot lets attributes span lines, and markz doesn't. That keeps the block pass
   free of lookahead.
 - **Anywhere else a `{` is text.** Inline, only a `)` directly before it can make it attributes,
@@ -116,12 +120,17 @@ single line.
 
 `<!-- … -->` on lines of its own becomes a `comment` node, which `html()` never renders. It is the
 only thing kept from HTML. prose's Markdown notes need it (`<!-- @note … -->`), and GitHub hides
-comments too. A comment in the middle of a line is text.
+comments too.
+
+- It may span lines, and ends on the line with `-->`. Text after `-->` on that line is part of the
+  comment and gets a diagnostic. An unclosed comment runs to the end of its container.
+- A comment that shares its first line with other text is inline, where it is text.
 
 ### Metadata
 
 A document can open with a metadata block: key/value pairs between `---` lines, starting at
-offset 0 (what other tools call frontmatter). markz parses it into `doc.metadata`, a flat object,
+offset 0 (what other tools call frontmatter). Without a closing `---` line there is no block,
+and the first `---` is a thematic break. markz parses it into `doc.metadata`, a flat object,
 and keeps the block's range.
 
 The rule is JSON-like, with quotes optional: one `key: value` per line, where a value that doesn't
@@ -180,7 +189,10 @@ attribute syntax above:
   a construct in markz, so it gets no diagnostic.
 - **leaf**: `::name[label]{attrs}`, on a line of its own. A bare `::name` is allowed, since the
   line can't be prose.
-- **container**: `:::name[label]{attrs}` … `:::`
+- **container**: `:::name[label]{attrs}` … `:::`. The closing fence needs at least as many colons
+  as the opening one, and the outermost open directive it can close takes it, as in micromark. So
+  nest with a longer outer fence (`::::outer` around `:::inner`), as with code fences. An unclosed
+  container runs to the end of its own container or the document.
 
 Directives are how components with data are written, since there is no HTML:
 
@@ -244,7 +256,8 @@ their props.
 - **block**: `$$` fences on lines of their own.
 
 The node holds the raw TeX, and markz doesn't typeset it. `html()` writes GitHub's shape
-(`<code class="language-math math-inline">`), and the host adds KaTeX or Temml. A ` ```math `
+(`<code class="language-math math-inline">`, and `<pre><code class="language-math math-display">`
+for a block), and the host adds KaTeX or Temml. A ` ```math `
 fence stays an ordinary code block with `lang: "math"`, and its HTML is already the
 `language-math` shape.
 
@@ -339,7 +352,7 @@ Each of these stays literal text and adds a diagnostic suggesting the supported 
 | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Raw HTML blocks and inline tags                                                              | a ` ```=html ` raw block, or directives and attributes            | Seven HTML-block kinds and a tag grammar. HTML stays possible, but only where it's marked.                                                                                  |
 | Setext headings (`Title` over `===` or `---`)                                                | `# Title`                                                         | A paragraph would turn into a heading when the next line is read.                                                                                                           |
-| Indented code blocks                                                                         | fenced code                                                       | Indentation meaning code is what makes list indentation hard.                                                                                                               |
+| Indented code blocks                                                                         | fenced code                                                       | Indentation meaning code is what makes list indentation hard. The indented line is paragraph text, and never a heading or list inside it.                                   |
 | `~~~` fences                                                                                 | a longer backtick fence                                           | One fence character.                                                                                                                                                        |
 | Reference links: `[x][y]`, `[x][]`, `[x]`, `[y]: url`                                        | inline links                                                      | A link can't be resolved until the whole document is read, which breaks local parsing and streaming.                                                                        |
 | Bare URLs (`https://…`, `www.…`, `me@example.com`)                                           | `<https://…>` or `[text](url)`                                    | GFM's largest construct, and the only one that has to look back at text already emitted: an email is known only at its `@`, and trailing punctuation is trimmed afterwards. |
