@@ -210,6 +210,48 @@ intro
 </table>
 ```
 
+A delimiter row with a colon needs no pipe, since it can't be a setext underline.
+
+```example
+a
+:-:
+.
+<table>
+<thead>
+<tr>
+<th align="center">a</th>
+</tr>
+</thead>
+</table>
+```
+
+A row indented four columns ends the table, and under a paragraph it is never a delimiter row.
+
+```example
+| a |
+| - |
+    | b |
+.
+<table>
+<thead>
+<tr>
+<th>a</th>
+</tr>
+</thead>
+</table>
+<p>| b |</p>
+.
+| b |
+```
+
+```example
+| a |
+    | - |
+.
+<p>| a |
+| - |</p>
+```
+
 ## thematic-break
 
 ```example

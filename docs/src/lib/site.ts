@@ -11,7 +11,7 @@ export type Part = 'Metadata' | 'Block' | 'Inline' | 'Not supported';
 export const PARTS: Part[] = ['Metadata', 'Block', 'Inline', 'Not supported'];
 
 export interface Row {
-	/** `commonmark`, `gfm`, or `markz` for markz's own examples. */
+	/** The upstream suite (`commonmark`, `gfm`, `gfm-table`, …), or `markz` for its own examples. */
 	source: string;
 	id: string;
 	number: number;

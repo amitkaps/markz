@@ -233,8 +233,9 @@ export const CONSTRUCTS: Construct[] = [
 		`,
 		rules: {
 			'table-columns':
-				'The header row and the delimiter row have the same number of cells, and a row has a pipe.',
-			'table-end': 'A table ends at a blank line or a line that opens another block.'
+				'The header row and the delimiter row have the same number of cells, and the delimiter row has a pipe or a colon.',
+			'table-end':
+				'A table ends at a blank line, a line indented four columns or more, or a line that opens another block.'
 		}
 	},
 	{

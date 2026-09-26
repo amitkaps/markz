@@ -255,10 +255,13 @@ class BlockParser {
 		const end = this.trimmedEnd();
 
 		if (cols >= 4) {
-			if (!paragraph && this.leaf?.kind !== 'table') {
+			// Never a table row: it ends the table, and it can't be a delimiter row under a paragraph.
+			if (this.leaf?.kind === 'table') this.closeLeaf();
+			if (this.leaf?.kind === 'paragraph') this.leaf.lines.push({ start: next, end });
+			else {
 				this.report('indented-code', next, end);
+				this.text(next, end);
 			}
-			this.text(next, end);
 			return false;
 		}
 		if (c === '>') {
@@ -945,8 +948,8 @@ function labelEnd(src: string, at: number, end: number): number {
  * ## Table rows
  *
  * A row's cells are split on `|`s that aren't escaped, after an optional leading and trailing
- * pipe. Each cell is trimmed. A delimiter row needs at least one pipe, so `Title` over `---`
- * stays a setext case.
+ * pipe. Each cell is trimmed. A delimiter row needs a pipe or a colon, as in GFM, so `Title` over
+ * `---` stays a setext case while `a` over `:-:` is a one-column table.
  */
 function cells(src: string, start: number, end: number): Range[] {
 	let s = start;
@@ -976,7 +979,7 @@ function escaped(src: string, i: number, from: number): boolean {
 
 function delimiterRow(src: string, start: number, end: number): Align[] | null {
 	const line = src.slice(start, end);
-	if (!line.includes('|')) return null;
+	if (!line.includes('|') && !line.includes(':')) return null;
 	const align: Align[] = [];
 	for (const cell of cells(src, start, end)) {
 		const text = src.slice(cell.start, cell.end);

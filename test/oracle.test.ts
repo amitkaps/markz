@@ -1,6 +1,6 @@
 /** @prose
- * The oracle checked before anything is held to it: against the spec's own HTML on every example
- * compared with it, and against `syntax.md`'s directive shapes, so a normalization or
+ * The oracle checked before anything is held to it: against the suite's own HTML on every example
+ * compared with it that has some, and against `syntax.md`'s directive shapes, so a normalization or
  * configuration bug can't hide behind it. markz itself is checked in `examples.test.ts`.
  */
 import { describe, expect, it } from 'vite-plus/test';
@@ -8,7 +8,7 @@ import { examples, oracleDiffers } from './examples';
 import { normalize, reference } from './oracle';
 
 describe('oracle', () => {
-	it.each(examples.filter((e) => e.kind === 'oracle' && !oracleDiffers[e.id]))(
+	it.each(examples.filter((e) => e.kind === 'oracle' && e.html && !oracleDiffers[e.id]))(
 		'$id ($upstream) matches the spec',
 		(e) => {
 			expect(normalize(reference(e.markdown))).toBe(normalize(e.html));
