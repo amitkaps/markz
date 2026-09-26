@@ -209,7 +209,7 @@ the code and its range. markz never evaluates it.
   (including nested `${}`) and comments inside the code.
 - It is inert inside inline code, fenced code, math and autolinks.
 - `\${` is a literal `${`.
-- An unclosed `${` is text in `parse`, and closed at the tail in `parsePartial`.
+- An unclosed `${` is text.
 - `html()` writes the literal source text, escaped.
 
 ### Raw blocks

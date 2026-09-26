@@ -71,7 +71,7 @@ Every row of the "Not supported" table in `syntax.md` gets a test: the input sta
 
 ### 8. Traversal and position utilities
 
-Public API, kept minimal: `parse`, `parsePartial`, `html`, `walk` (`enter`/`exit`), `textContent`, `position`. Lines are 1-based and columns are 0-based. Nothing else is exported until a consumer needs it.
+Public API, kept minimal: `parse`, `html`, `walk` (`enter`/`exit`), `textContent`, `position`. Lines are 1-based and columns are 0-based. Nothing else is exported until a consumer needs it.
 
 ### 9. Robustness and fuzzing
 
@@ -80,11 +80,7 @@ Public API, kept minimal: `parse`, `parsePartial`, `html`, `walk` (`enter`/`exit
 - Adversarial unclosed openers, with a timing check that fails on super-linear growth.
 - A multi-MB document that guards against quadratic behaviour.
 
-### 10. Partial parsing
-
-`parsePartial(source)` works in Comark's model. It parses an incomplete prefix again and closes unterminated inline constructs and directive fences at the tail, with honest offsets and a `partial` flag. The test runs `parsePartial` on every prefix of the fixtures and checks for a valid tree.
-
-### 11. Benchmarks and bundle size
+### 10. Benchmarks and bundle size
 
 `bench/` (not published): parse throughput and AST memory versus micromark, markdown-it, marked, markdown-exit and Comark. The size gate goes into CI.
 

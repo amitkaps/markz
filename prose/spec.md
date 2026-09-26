@@ -41,7 +41,8 @@ requirements. markz must not import anything from them.
 - Parsed in linear time with no backtracking, as djot is
 - A compact, flat AST that can't be changed after parsing
 - Exact source offsets on every node
-- Streaming through prefix healing (see [Streaming](#streaming))
+- Ready for streaming: healing can be added at one point without changing `parse` (see
+  [Streaming](#streaming))
 - HTML output built in, and no framework renderers
 
 ## Markdown dialect
@@ -85,8 +86,7 @@ existing documents and habits carry over, and oxfmt's output is already canonica
 diagnostic to `doc.diagnostics` with its range and the supported form ("setext heading: use `#`").
 Editors and prose's checks can show these. The parser never guesses.
 
-There are no parser options. [`parsePartial`](#streaming) differs from `parse` only at the
-unfinished tail of its input.
+There are no parser options.
 
 ## Heading IDs
 
@@ -291,25 +291,25 @@ write.
 
 ## Streaming
 
-Streaming follows Comark's model rather than incremental tokenizing. The use case is showing
-Markdown while it is still arriving, from an LLM or a live editor.
+This is not in v1, because no consumer needs it. base, visdown, prose and amitkaps.github.io all
+parse complete files. A live editor preview works with plain `parse` on every change: an unclosed
+`**` shows as text until its closer is typed, as in every Markdown preview.
 
-- `parsePartial(source)` parses a prefix that may be incomplete, and returns a valid `Document`
-  in which unterminated constructs at the tail are closed. That covers emphasis, strong,
-  strikethrough, inline code, math, expressions, links, images and directive fences. Offsets never point past
-  `source.length`. A node closed this way has `end === source.length` and is flagged `partial`.
-- It doesn't insert synthetic text into the source and doesn't return a healed string. Healing
-  happens in the adapter, so offsets stay honest.
-- A half-typed opener at the very end (`hello *`) stays text. Deciding whether it should be
-  dropped is up to the renderer.
-- The caller keeps the accumulated text and calls `parsePartial` once per chunk. Each call parses
-  the full prefix again, as Comark does. An optimization is allowed but not required: reuse every
-  top-level block before the last one, since only the tail block can still change. There are no
-  reference definitions, so no later text can change an earlier block.
-- `parse(source)` never heals.
+The use case it would serve is showing Markdown while it is still arriving, as in an LLM chat UI.
+The design is kept ready for it, following Comark's model rather than incremental tokenizing:
 
-There is no `parse(stream)` in v1. An async-iterable wrapper around `parsePartial` is a few lines,
-and can be added once a consumer needs it.
+- **One place to heal.** Openers wait on a stack until the end of their block (see
+  [Parser foundation](#parser-foundation)). `parse` turns unmatched ones into text there. A
+  future `parsePartial(source)` would close them instead, along with an open directive fence,
+  and flag those nodes `partial`. Offsets would stay within the source, with no synthetic text
+  inserted.
+- **Parse the whole prefix again, once per chunk,** as Comark does. The dialect has no reference
+  definitions, so later text never changes an earlier block. That makes reusing finished blocks a
+  safe optimization, if it's ever needed.
+- **It would be a new export.** Adding it later changes nothing for code that calls `parse`.
+
+Deciding whether a half-typed opener (`hello *`) shows or vanishes, and avoiding flicker when
+`*` turns out not to be emphasis, is left for when a consumer needs it.
 
 ## Public API
 
@@ -321,7 +321,6 @@ const out = html(markdown); // or html(doc)
 ```
 
 - `parse(source): Document`
-- `parsePartial(source): Document`
 - `doc.diagnostics`: rejected syntax, each with its range and the supported form
 - `html(source | Document): string`
 - `walk(doc, { enter?, exit? })`
@@ -426,8 +425,6 @@ markdown-exit and Comark. The unified/remark ecosystem stays out.
 - **Offsets** are asserted against known source, never against rendered output. This includes
   escapes, numeric references, astral characters, CRLF and nested containers.
 - **Tree structure:** parent, child and sibling invariants.
-- **`parsePartial`** on every prefix of the fixtures. Each prefix must produce a valid tree with
-  in-bounds offsets.
 - **Robustness:** malformed input, and a multi-MB document that guards against quadratic
   behaviour.
 - **Consumer fixtures:** base's content docs, prose's `prose/*.md`, and visdown's examples.
