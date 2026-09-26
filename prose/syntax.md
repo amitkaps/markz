@@ -226,6 +226,8 @@ is already the `language-math` shape.
 ### Tables
 
 **As GFM.** A pipe table with a `---` delimiter row. `:---`, `:---:` and `---:` set alignment.
+The outer pipes are optional, and a delimiter row with no pipe needs a colon, so `Title` over
+`---` is still a rejected setext heading (`setext-heading`).
 
 {#thematic-break}
 

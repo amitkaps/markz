@@ -24,10 +24,13 @@ import metadata from './dialect/metadata.md?raw';
 import notSupported from './dialect/not-supported.md?raw';
 import { normalize, reference, tokens, type Token } from './oracle';
 import commonmark from './spec/commonmark.json' with { type: 'json' };
+import gfmStrikethrough from './spec/gfm-strikethrough.json' with { type: 'json' };
+import gfmTable from './spec/gfm-table.json' with { type: 'json' };
 import gfm from './spec/gfm.json' with { type: 'json' };
 import { part, row, type Part } from './syntax';
 
-export type Source = 'commonmark' | 'gfm' | 'markz';
+export type Upstream = 'commonmark' | 'gfm' | 'gfm-table' | 'gfm-strikethrough';
+export type Source = Upstream | 'markz';
 export type Kind = 'oracle' | 'differs' | 'not supported' | 'expected';
 export type Status = 'pass' | 'fail' | 'differs';
 
@@ -52,7 +55,8 @@ export interface Example {
 /** @prose
  * ## Upstream sections
  *
- * Where each upstream section's examples are filed. An example that uses a cut form goes to that
+ * Where each upstream section's examples are filed, by `source:section`, or by the source alone
+ * for an extension suite that tests one construct. An example that uses a cut form goes to that
  * form's row instead, whatever its section.
  */
 export const sections: Record<string, string> = {
@@ -86,7 +90,9 @@ export const sections: Record<string, string> = {
 	'gfm:Task list items': 'list',
 	'gfm:Strikethrough': 'emphasis',
 	'gfm:Autolinks': 'link',
-	'gfm:Disallowed Raw HTML': 'raw-block'
+	'gfm:Disallowed Raw HTML': 'raw-block',
+	'gfm-table': 'table',
+	'gfm-strikethrough': 'emphasis'
 };
 
 /** @prose
@@ -112,7 +118,9 @@ export const listed: Record<string, string> = {
 			`commonmark:${n}`,
 			'lazy-line'
 		])
-	)
+	),
+	...Object.fromEntries([78, 79, 81, 85].map((n) => [`gfm-table:${n}`, 'lazy-line'])),
+	'gfm-table:58': 'escape'
 };
 
 /** @prose
@@ -121,7 +129,9 @@ export const listed: Record<string, string> = {
  */
 export const oracleDiffers: Record<string, string> = {
 	'gfm:279': 'cmark-gfm orders task-item input attributes differently and omits the void slash',
-	'gfm:280': 'cmark-gfm orders task-item input attributes differently and omits the void slash'
+	'gfm:280': 'cmark-gfm orders task-item input attributes differently and omits the void slash',
+	'gfm-table:58':
+		'GitHub reads an escaped backslash before a pipe as escaping the pipe (cmark-gfm#277)'
 };
 
 /** @prose
@@ -164,11 +174,11 @@ function filed(
 }
 
 function upstreamExample(
-	source: 'commonmark' | 'gfm',
+	source: Upstream,
 	e: { example: number; section: string; markdown: string; html: string }
 ): Example {
 	const id = `${source}:${e.example}`;
-	const home = sections[`${source}:${e.section}`];
+	const home = sections[`${source}:${e.section}`] ?? sections[source];
 	if (!home) throw new Error(`${source} section "${e.section}" is not mapped to syntax.md`);
 	let found = listed[id] ?? cuts.find(([, test]) => tokens(e.markdown).some(test))?.[0];
 	// Where markz accepts what the token looked like (`*` touching a word), it isn't a cut.
@@ -239,6 +249,8 @@ function dialect(file: string, text: string): Example[] {
 export const examples: Example[] = [
 	...commonmark.map((e) => upstreamExample('commonmark', e)),
 	...gfm.map((e) => upstreamExample('gfm', e)),
+	...gfmTable.map((e) => upstreamExample('gfm-table', e)),
+	...gfmStrikethrough.map((e) => upstreamExample('gfm-strikethrough', e)),
 	...dialect('metadata', metadata),
 	...dialect('block', block),
 	...dialect('inline', inline),

@@ -158,6 +158,16 @@ checked against its own oracle, one PR per suite:
 Tests of an oracle's options or API (directive handlers, `allowDangerousHtml`) are filtered out
 at import, with the reason in the suite's README.
 
+**Tables and strikethrough — done.** `scripts/vendor.ts` reads an extension's fixtures (one
+example per headed section, with GitHub's HTML for it) and each `micromark(input, …)` in its
+`test/index.js` through the TypeScript compiler. Every example is compared with markz's oracle,
+so only options that change the syntax (`disable`, `singleTilde`) drop a test; a handler or
+`allowDangerousHtml` only changes the HTML. That adds 99 table and 16 strikethrough examples.
+Strikethrough passed as it was. The table suite found two gaps, both fixed: a delimiter row with
+a colon and no pipe (`a` over `:-:`) was a paragraph with no warning, where GFM has a table; and
+a row indented four columns continued the table or became its delimiter row, where the grammar's
+`indent` stops at three.
+
 ### 13. The site by the dialect
 
 The Conformance page becomes Metadata, Block, Inline and Not supported, each opening to its
