@@ -12,6 +12,8 @@
  *   directives and a `<span>` for text ones, the name as the first class, then the attributes. A
  *   container's label comes first, in a `directive-label` div. Without the handler micromark drops
  *   every directive.
+ * - Text directives named `sup`, `sub`, `ins`, `mark`, `kbd` or `abbr` are written as that element,
+ *   with no name class.
  * - The same handler writes a bare text directive (`:name` with no label or attributes) back out
  *   as the text it was, since markz requires one or the other. micromark reports `:name{}` the same
  *   way, so an empty `{}` is the one input this can't tell apart.
@@ -22,15 +24,18 @@ import { micromark } from 'micromark';
 import { gfm, gfmHtml } from 'micromark-extension-gfm';
 import { directive, directiveHtml, type Handle } from 'micromark-extension-directive';
 
+const ELEMENTS = new Set(['sup', 'sub', 'ins', 'mark', 'kbd', 'abbr']);
+
 const shape: Handle = function (d) {
 	const attributes = Object.entries(d.attributes ?? {});
 	if (d.type === 'textDirective' && d.label === undefined && attributes.length === 0) {
 		this.raw(this.encode(`:${d.name}`));
 		return true;
 	}
-	const tag = d.type === 'textDirective' ? 'span' : 'div';
-	const classes = [d.name, d.attributes?.class].filter(Boolean).join(' ');
-	let open = `<${tag} class="${this.encode(classes)}"`;
+	const element = d.type === 'textDirective' && ELEMENTS.has(d.name);
+	const tag = element ? d.name : d.type === 'textDirective' ? 'span' : 'div';
+	const classes = [element ? '' : d.name, d.attributes?.class].filter(Boolean).join(' ');
+	let open = `<${tag}` + (classes ? ` class="${this.encode(classes)}"` : '');
 	for (const [key, value] of attributes) {
 		if (key !== 'class') open += ` ${key}="${this.encode(value)}"`;
 	}

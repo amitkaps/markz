@@ -196,6 +196,22 @@ Markdown **inside**, parsed and source-mapped.
 `:span[text]{.x}` is the plain inline wrapper. The name becomes the first class, and the attributes
 are written as they are for any element.
 
+Six text-directive names are HTML's own inline elements, for text that needs its real tag rather
+than a styled span. `html()` writes them as that element, with the attributes and no name class:
+
+| Source                   | HTML                          |
+| ------------------------ | ----------------------------- |
+| `x:sup[2]`               | `x<sup>2</sup>`               |
+| `H:sub[2]O`              | `H<sub>2</sub>O`              |
+| `:ins[new]`              | `<ins>new</ins>`              |
+| `:mark[text]`            | `<mark>text</mark>`           |
+| `:kbd[Ctrl]`             | `<kbd>Ctrl</kbd>`             |
+| `:abbr[HTML]{title="…"}` | `<abbr title="…">HTML</abbr>` |
+
+They are still `directive` nodes in the AST, so a consumer's fold sees them like any other. There
+is no `:del`, because `~~text~~` already writes `<del>`: an edit is `~~old~~ :ins[new]`. The names
+apply to text directives only. `::sup` and `:::mark` are ordinary divs.
+
 The label means different things by kind:
 
 - **leaf and text:** the label is the content. It is parsed as inline Markdown, and its nodes are
@@ -287,6 +303,11 @@ Moko kahan dhundhe re bande
 Main to tere paas mein
 ```
 
+### Non-breaking space
+
+`\` followed by a space is a non-breaking space (U+00A0), as in djot: `10\ km`, `Dr.\ Smith`.
+GFM keeps both characters as text. In a heading id it counts as a space.
+
 ### Smart punctuation
 
 Built in, as in djot. It applies to text only, never to code, math, expressions, URLs or
@@ -323,7 +344,7 @@ Each of these stays literal text and adds a diagnostic suggesting the supported 
 | Reference links: `[x][y]`, `[x][]`, `[x]`, `[y]: url`                                        | inline links                                                      | A link can't be resolved until the whole document is read, which breaks local parsing and streaming.                                                                        |
 | Bare URLs (`https://…`, `www.…`, `me@example.com`)                                           | `<https://…>` or `[text](url)`                                    | GFM's largest construct, and the only one that has to look back at text already emitted: an email is known only at its `@`, and trailing punctuation is trimmed afterwards. |
 | Relative autolinks (`</about>`)                                                              | `[About](/about)`                                                 | An autolink needs a scheme. `</about>` reads as a closing HTML tag, and a link should have real text.                                                                       |
-| Named character references (`&copy;`, `&amp;`, `&nbsp;`)                                     | the character itself (`©`, `&`), or `&#160;` for an invisible one | Files are UTF-8, `html()` escapes `&` and `<` itself, and the table of 2,125 names is about 12 KB gzip.                                                                     |
+| Named character references (`&copy;`, `&amp;`, `&nbsp;`)                                     | the character itself (`©`, `&`), or `\ ` for a non-breaking space | Files are UTF-8, `html()` escapes `&` and `<` itself, and the table of 2,125 names is about 12 KB gzip.                                                                     |
 | Two trailing spaces as a line break                                                          | `\` at end of line, or `{.verse}` on a poem                       | Invisible syntax.                                                                                                                                                           |
 | `__strong__`                                                                                 | `**strong**`                                                      | One marker. oxfmt rewrites it.                                                                                                                                              |
 | `*emphasis*`                                                                                 | `_emphasis_`                                                      | One marker, and the source of most emphasis edge cases. oxfmt rewrites it.                                                                                                  |
@@ -374,4 +395,5 @@ Markdown gets migrated to the dialect:
 - `<br>` becomes a trailing `\`.
 - Embeds, SVG and the Stripe script go into ` ```=html ` blocks.
 - Poems get `{.verse}`.
-- Named references become `&`, `&#160;` and `—`.
+- `<sup>`, `<sub>`, `<ins>` and `<abbr>` become `:sup[…]`, `:sub[…]`, `:ins[…]` and `:abbr[…]{title=…}`.
+- Named references become `&`, `\ ` and `—`.

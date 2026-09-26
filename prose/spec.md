@@ -105,7 +105,7 @@ builds ids into the dialect, as djot does:
 
 The generator is GitHub's algorithm (github-slugger's), matching what base already ships:
 
-1. Take the heading's text content: text and inline-code values, with numeric references and escapes decoded.
+1. Take the heading's text content: text and inline-code values, with numeric references and escapes decoded, and `\ ` as a space.
    Link text counts, but URLs, image alt text, math and expressions do not.
 2. Lowercase it.
 3. Remove every character that isn't a letter, mark, number, space, `_` or `-`. Letters are

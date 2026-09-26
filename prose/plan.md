@@ -34,7 +34,7 @@ invariants every later step's documents are checked against.
 `test/oracle.ts`, `test/examples.ts` and `test/oracle.test.ts`:
 
 - The oracle is micromark with GFM and directives, with every URL scheme allowed (markz has its
-  own blocklist) and a directive handler that writes `syntax.md`'s `<div>`/`<span>` shape.
+  own blocklist) and a directive handler that writes `syntax.md`'s directive shapes.
   micromark, its extensions and `yaml` are dev dependencies now.
 - Comparison normalizes whitespace outside `<pre>` and smart punctuation.
 - CommonMark 0.31.2 and GFM's extension examples are vendored in `test/spec/`. The exclusion list
