@@ -1,11 +1,22 @@
 /** @prose
- * Smoke test for the public entry point; replaced by the CommonMark suite as the parser lands.
+ * The public entry point: what `import … from 'markz'` exposes, and the BOM rule for the root.
  */
 import { describe, expect, it } from 'vite-plus/test';
-import { parse } from './index';
+import { html, parse } from './index';
+import { expectTree } from '../test/tree';
 
 describe('parse', () => {
-	it('is exported', () => {
-		expect(typeof parse).toBe('function');
+	it('returns a document rooted after any BOM', () => {
+		const doc = parse('﻿');
+		expect(doc.start(doc.root)).toBe(1);
+		expect(doc.end(doc.root)).toBe(1);
+		expectTree(doc);
+	});
+});
+
+describe('html', () => {
+	it('accepts source or a document', () => {
+		expect(html('')).toBe('');
+		expect(html(parse(''))).toBe('');
 	});
 });

@@ -323,7 +323,16 @@ One case needs care. For two adjacent lists, oxfmt keeps them apart by switching
 
 ## Pending decisions
 
-None right now. The amitkaps.github.io audit settled raw blocks, verse and smart punctuation. Its
+- **A bare `:name`.** `micromark-extension-directive` reads `:name` with no label or attributes as
+  a text directive, so `a :b c` loses `:b`, and `<m:abc>` becomes `<m` plus a directive. Should
+  markz require a `[label]` or `{…}` on text directives, so a colon before a word in prose stays
+  text? If so, the oracle excludes the examples where the two differ. Needed before the inline
+  pass (plan step 5).
+- **A container directive's `[label]`.** "The label becomes the content" fits leaf and text
+  directives, but a container's content is its body. What does `html()` write for the label?
+  Needed before the block pass renders container directives (plan step 4).
+
+The amitkaps.github.io audit settled raw blocks, verse and smart punctuation. Its
 Markdown gets migrated to the dialect:
 
 - `<img>` becomes `![](…){…}`.
