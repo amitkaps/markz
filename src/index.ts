@@ -7,10 +7,20 @@
  * with no options. This is the package entry point: the public API lives here and nothing else is
  * importable.
  */
-
-/** @prose
- * Placeholder until the parser lands (see `prose/plan.md`, steps 2–5).
- */
-export function parse(source: string): string {
-	return source;
-}
+export { parse } from './parse';
+export { html } from './html';
+export { Document, NONE } from './ast';
+export type {
+	Align,
+	Attribute,
+	Attributes,
+	DataType,
+	Destination,
+	Diagnostic,
+	FrontmatterScalar,
+	FrontmatterValue,
+	NodeData,
+	NodeId,
+	NodeType,
+	Range
+} from './ast';

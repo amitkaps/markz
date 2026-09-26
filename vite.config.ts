@@ -10,6 +10,7 @@ import { defineConfig } from 'vite-plus';
 import { prose } from '@amitkaps/prose';
 
 const generated = ['dist/**'];
+const vendored = ['test/spec/*.json'];
 
 export default defineConfig({
 	plugins: process.env.VITEST ? [] : [prose()],
@@ -31,7 +32,7 @@ export default defineConfig({
 		printWidth: 100,
 		trailingComma: 'none',
 		sortPackageJson: true,
-		ignorePatterns: [...generated, 'pnpm-lock.yaml', 'CHANGELOG.md']
+		ignorePatterns: [...generated, ...vendored, 'pnpm-lock.yaml', 'CHANGELOG.md']
 	},
 
 	// Oxlint — `vp lint` / `vp check`.

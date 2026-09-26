@@ -169,7 +169,7 @@ could lie. A consumer that wants a rewritten document writes Markdown and parses
 const doc = parse(source);
 
 for (const child of doc.children(doc.root)) {
-	if (doc.type(child) === 'heading') console.log(doc.heading(child).id);
+	if (doc.type(child) === 'heading') console.log(doc.data(child, 'heading').id);
 }
 
 walk(doc, {
@@ -179,7 +179,10 @@ walk(doc, {
 ```
 
 Iteration follows `firstChild`/`nextSibling` and allocates no arrays. Public type names are
-strings. The numeric `NodeType` stays internal.
+strings (`NodeType`), and the numeric codes stay internal. `doc.data(node, type)` reads a node's
+side-table entry and throws if the node is of another type, so a wrong guess fails loudly. Text
+that a container prefix can interrupt (a code block inside a blockquote loses its `> `) is stored
+as a string. Everything else is a range into the source.
 
 ## Node types
 
@@ -196,8 +199,8 @@ emphasis
 strong
 delete               GFM strikethrough
 link                 destination, title, destination range, expression ranges; autolink flag
-image                destination, title, alt
-code                 fenced; lang, meta, body range
+image                destination, title, alt, destination range, expression ranges
+code                 fenced; lang, meta, value, body range
 inlineCode
 blockquote
 list                 ordered, start, tight
@@ -211,7 +214,7 @@ footnoteReference    label
 footnoteDefinition   label
 directive            kind: text | leaf | container; name, label, attributes
 math                 inline | block; raw TeX, value range
-raw                  format (`html`, …), content range; from a ` ```=format ` fence
+raw                  format (`html`, …), value, content range; from a ` ```=format ` fence
 expression           code, code range
 ````
 
@@ -321,7 +324,8 @@ const out = html(markdown); // or html(doc)
 ```
 
 - `parse(source): Document`
-- `doc.diagnostics`: rejected syntax, each with its range and the supported form
+- `doc.diagnostics`: rejected syntax, each `{ start, end, message, instead }`, where `instead` is
+  the supported form
 - `html(source | Document): string`
 - `walk(doc, { enter?, exit? })`
 - `textContent(doc, node): string`, the same text heading ids use

@@ -24,16 +24,15 @@
 		"test": "vp test --run",
 		"prepublishOnly": "vp pack"
 	},
-	"dependencies": {
-		"micromark": "^4.0.2",
-		"micromark-extension-directive": "^4.0.0",
-		"micromark-extension-gfm": "^3.0.0"
-	},
 	"devDependencies": {
 		"@amitkaps/prose": "https://github.com/amitkaps/prose/releases/download/v0.1.0/amitkaps-prose-0.1.0.tgz",
 		"@types/node": "^26.0.0",
+		"micromark": "^4.0.3",
+		"micromark-extension-directive": "^4.0.0",
+		"micromark-extension-gfm": "^3.0.0",
 		"typescript": "^6.0.3",
-		"vite-plus": "1.0.0-rc.0"
+		"vite-plus": "1.0.0-rc.0",
+		"yaml": "^2.9.1"
 	},
 	"engines": {
 		"node": ">=26"

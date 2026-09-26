@@ -9,7 +9,7 @@ The output is built with `vp pack` (tsdown, driven by the `pack` section of [`vi
 - ESM only: `dist/index.js` plus `dist/index.d.ts`, and `exports` in `package.json` points at both.
 - One entry, `src/index.ts`. Anything not re-exported from it is private.
 - `sideEffects: false`, so consumers can tree-shake `html`, `walk`, `textContent` and `position`.
-- No runtime dependencies. `micromark`, `micromark-extension-gfm` and `micromark-extension-directive` move to `devDependencies` as the test oracle. `yaml` joins them as the frontmatter oracle.
+- No runtime dependencies. `micromark`, `micromark-extension-gfm` and `micromark-extension-directive` are `devDependencies`, as the test oracle, and `yaml` is the frontmatter oracle.
 - `prepublishOnly` runs `vp pack`, so a publish can never ship a stale `dist/`.
 - CI measures `dist/` (minified, gzip, Brotli) and fails above 20 KB gzip.
 
@@ -19,21 +19,32 @@ The output is built with `vp pack` (tsdown, driven by the `pack` section of [`vi
 
 Vite+ library skeleton, CI, prose tooling, placeholder `parse()`.
 
-### 2. AST representation
+### 2. AST representation — done
 
-Define the flat node store in `src/ast.ts`: typed arrays for `type`, `start`, `end`, `parent`, `firstChild` and `nextSibling` (plus `lastChild` if append cost demands it), and a side table for per-node data.
+`src/ast.ts`: the node types (`T`, string names over numeric codes), typed arrays for `type`,
+`start`, `end`, `parent`, `firstChild` and `nextSibling`, and side tables for node data and
+attributes. `Builder` is how the parser writes the tree: an open-node stack, constant-time append
+through a `lastChild` array only the builder keeps, and arrays that grow by doubling. `finish()`
+hands over a read-only `Document` with `children(node)` as a generator, `data(node, type)` as the
+checked accessor, `attributes`, `frontmatter` and `diagnostics`. `test/tree.ts` holds the tree
+invariants every later step's documents are checked against.
 
-- `NodeType` as an internal numeric enum covering the spec's node list. The public type names are strings.
-- A `Document` that can't be changed after parsing, with `children(node)` as an iterator that allocates no arrays, typed accessors for side-table data, and `diagnostics`. No mutation API.
-- Tests: hand-built trees, parent/sibling invariants.
+### 3. Oracle harness — done
 
-### 3. Oracle harness
+`test/oracle.ts`, `test/examples.ts` and `test/oracle.test.ts`:
 
-Before any parsing code, set up the differential harness in `test/oracle.ts`:
-
-- `micromark` + GFM (+ directive) render the input to HTML.
-- markz's `html()` must match it after whitespace normalization.
-- Vendor the CommonMark and GFM spec JSON, and filter it to the examples that use only constructs markz shares with GFM. The filter is itself a checked list, so an excluded example states which `syntax.md` row excludes it.
+- The oracle is micromark with GFM and directives, with every URL scheme allowed (markz has its
+  own blocklist) and a directive handler that writes `syntax.md`'s `<div>`/`<span>` shape.
+  micromark, its extensions and `yaml` are dev dependencies now.
+- Comparison normalizes whitespace outside `<pre>` and smart punctuation.
+- CommonMark 0.31.2 and GFM's extension examples are vendored in `test/spec/`. The exclusion list
+  names a `syntax.md` row or heading for every excluded section and example, and a test checks
+  that each one resolves.
+- The oracle is checked against each spec's own HTML on every included example (the two
+  cmark-gfm task-list examples differ only in attribute order).
+- markz is compared per section. The `ready` set in `test/oracle.test.ts` is empty until step 4
+  adds the sections it completes. Examples that cross a dialect rule inside an otherwise shared
+  section are excluded as each section is enabled.
 
 ### 4. Block pass
 
