@@ -1,5 +1,5 @@
 /** @prose
- * # Diagnostics
+ * # Warnings
  *
  * Holds the parser to syntax.md's "Not supported" table, row by row: every form listed there stays
  * text, is reported over exactly the characters that make it up, and its `instead` is the
@@ -7,7 +7,7 @@
  * without a case here, or a message that drifts from the table, fails.
  *
  * The other half is quiet input: the supported forms beside each rejected one, and prose that
- * only looks like a rejected form (`[sic]`, braces, times, `a@b`), must produce no diagnostic.
+ * only looks like a rejected form (`[sic]`, braces, times, `a@b`), must produce no warning.
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vite-plus/test';
@@ -124,8 +124,8 @@ describe('syntax.md: Not supported', () => {
 		const key = Object.keys(cases).find((k) => syntax.startsWith(k));
 		it.each(key ? cases[key]! : [])('%j', (input, reported) => {
 			const doc = parsed(input);
-			expect(doc.diagnostics.map((d) => input.slice(d.start, d.end))).toEqual(reported);
-			for (const d of doc.diagnostics) {
+			expect(doc.warnings.map((d) => input.slice(d.start, d.end))).toEqual(reported);
+			for (const d of doc.warnings) {
 				expect(d.instead).toBe(instead);
 				// Stays text: nothing but text, or a paragraph holding it, starts inside the range.
 				for (let n = 1; n < doc.size; n++) {
@@ -140,14 +140,14 @@ describe('syntax.md: Not supported', () => {
 
 describe('quiet input', () => {
 	it.each(quiet)('%j reports nothing', (input) => {
-		expect(parsed(input).diagnostics).toEqual([]);
+		expect(parsed(input).warnings).toEqual([]);
 	});
 });
 
-describe('diagnostics', () => {
+describe('warnings', () => {
 	it('come in source order', () => {
 		const doc = parsed('> *a* b\nlazy\n\n~~~');
-		expect(doc.diagnostics.map((d) => d.message)).toEqual([
+		expect(doc.warnings.map((d) => d.message)).toEqual([
 			'`*emphasis*`',
 			'lazy continuation line',
 			'`~~~` fence'

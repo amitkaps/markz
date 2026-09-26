@@ -16,7 +16,7 @@ export type {
 	Attributes,
 	DataType,
 	Destination,
-	Diagnostic,
+	Warning,
 	MetadataScalar,
 	MetadataValue,
 	NodeData,

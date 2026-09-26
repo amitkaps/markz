@@ -111,14 +111,14 @@ export type Align = 'left' | 'center' | 'right' | null;
 export type DataType = keyof NodeData;
 
 /** @prose
- * ## Attributes and diagnostics
+ * ## Attributes and warnings
  *
  * A `{…}` block, wherever it is allowed, becomes an `Attributes` in a second side table, so the
  * common case costs one empty slot. `#id` and `.class` are stored under the keys `id` and `class`,
  * each item with its own range, in source order: the renderer applies "classes accumulate, a later
  * value wins" and the AST stays verbatim.
  *
- * A diagnostic is rejected syntax that was kept as text: its range, what was wrong, and the
+ * A warning is rejected syntax that was kept as text: its range, what was wrong, and the
  * supported form from the "Write instead" column of `syntax.md`.
  */
 export interface Attribute extends Range {
@@ -130,7 +130,7 @@ export interface Attributes extends Range {
 	items: Attribute[];
 }
 
-export interface Diagnostic extends Range {
+export interface Warning extends Range {
 	message: string;
 	instead: string;
 }
@@ -146,14 +146,14 @@ export interface Diagnostic extends Range {
 export class Document {
 	readonly source: string;
 	readonly root: NodeId = 0;
-	readonly diagnostics: readonly Diagnostic[];
+	readonly warnings: readonly Warning[];
 	readonly #store: Store;
 
 	/** @internal Documents come from `parse`; the constructor is not public API. */
-	constructor(source: string, store: Store, diagnostics: readonly Diagnostic[]) {
+	constructor(source: string, store: Store, warnings: readonly Warning[]) {
 		this.source = source;
 		this.#store = store;
-		this.diagnostics = diagnostics;
+		this.warnings = warnings;
 	}
 
 	/** The number of nodes. Ids run from 0 (the root) to `size - 1`, parents before children. */
@@ -246,7 +246,7 @@ export class Builder {
 	#lastChild: Int32Array;
 	readonly #data: unknown[] = [];
 	readonly #attributes: (Attributes | undefined)[] = [];
-	readonly #diagnostics: Diagnostic[] = [];
+	readonly #warnings: Warning[] = [];
 	readonly #open: NodeId[] = [];
 
 	/** The root starts at `start`, which is 1 when the source begins with a BOM. */
@@ -295,8 +295,8 @@ export class Builder {
 		this.#attributes[node] = attributes;
 	}
 
-	diagnose(diagnostic: Diagnostic): void {
-		this.#diagnostics.push(diagnostic);
+	warn(warning: Warning): void {
+		this.#warnings.push(warning);
 	}
 
 	finish(): Document {
@@ -312,9 +312,9 @@ export class Builder {
 			data: this.#data,
 			attributes: this.#attributes
 		};
-		// A paragraph's inline diagnostics are found when it closes, after later block ones.
-		this.#diagnostics.sort((a, b) => a.start - b.start);
-		return new Document(this.#source, store, this.#diagnostics);
+		// A paragraph's inline warnings are found when it closes, after later block ones.
+		this.#warnings.sort((a, b) => a.start - b.start);
+		return new Document(this.#source, store, this.#warnings);
 	}
 
 	#add(type: number, start: number, end: number, parent: NodeId, data: unknown): NodeId {

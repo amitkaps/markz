@@ -15,7 +15,7 @@
 import {
 	type Attributes,
 	type Builder,
-	type Diagnostic,
+	type Warning,
 	type NodeData,
 	type NodeType,
 	type Range
@@ -30,7 +30,7 @@ export function inline(b: Builder, source: string, lines: readonly Range[], cell
 	const pass = new InlinePass(b, source, lines, cell);
 	const list = pass.scan(0, pass.text.length);
 	pass.emit(list);
-	for (const d of pass.urls) b.diagnose(d);
+	for (const d of pass.urls) b.warn(d);
 	return plainText(list.first, false);
 }
 
@@ -108,7 +108,7 @@ class InlinePass {
 	stacks: Record<string, Item[]> = {};
 	brackets: Item[] = [];
 	/** Bare URLs, reported once the leaf is done unless a link turns out to hold them. */
-	urls: Diagnostic[] = [];
+	urls: Warning[] = [];
 
 	constructor(b: Builder, src: string, lines: readonly Range[], cell: boolean) {
 		this.b = b;
@@ -489,7 +489,7 @@ class InlinePass {
 		}
 		if (rejected) {
 			const [message, instead] = REJECTED[kind]!;
-			this.b.diagnose({ start: opener.start, end: closer.end, message, instead });
+			this.b.warn({ start: opener.start, end: closer.end, message, instead });
 			return;
 		}
 		this.wrap(list, opener, closer, this.nodeItem(KINDS[kind]!, opener.start, closer.end));
@@ -853,7 +853,7 @@ class InlinePass {
 	}
 
 	report(t: number, e: number, message: string, instead: string): void {
-		this.b.diagnose({ start: this.at(t), end: this.to(e), message, instead });
+		this.b.warn({ start: this.at(t), end: this.to(e), message, instead });
 	}
 
 	/** @prose

@@ -39,7 +39,7 @@ requirements. markz must not import anything from them.
 - TypeScript-first
 - Identical to GFM for the constructs markz supports, except where `syntax.md` defines different
   semantics. micromark is the test oracle for that intersection, not a specification of markz
-- Unsupported syntax stays literal text and produces a diagnostic. It is never silently read as a
+- Unsupported syntax stays literal text and produces a warning. It is never silently read as a
   different, supported construct
 - Parsed in linear time with no backtracking, as djot is
 - A compact, flat AST that can't be changed after parsing
@@ -86,7 +86,7 @@ existing documents and habits carry over, and oxfmt's output is already canonica
 - Nothing depends on later text in the document, which keeps streaming simple.
 
 **Rejected syntax stays text and is reported, not reinterpreted.** Each rejected construct adds a
-diagnostic to `doc.diagnostics` with its range and the supported form ("setext heading: use `#`").
+warning to `doc.warnings` with its range and the supported form ("setext heading: use `#`").
 Editors and prose's checks can show these. The parser never guesses.
 
 **Every heading gets an id, as part of the dialect.** CommonMark defines headings but not ids, so
@@ -232,7 +232,7 @@ markz has its own parser. It is written for this one dialect, runs in linear tim
 backtracking, and emits straight into the flat AST:
 
 ```text
-source → block pass (lines → containers, leaves; the inline pass per leaf, as it closes) → flat AST + diagnostics → html()
+source → block pass (lines → containers, leaves; the inline pass per leaf, as it closes) → flat AST + warnings → html()
 ```
 
 **Everything is built in.** Directives, expressions, math, attributes, raw blocks, metadata,
@@ -297,7 +297,7 @@ const out = html(markdown); // or html(doc)
 ```
 
 - `parse(source): Document`
-- `doc.diagnostics`: rejected syntax in source order, each `{ start, end, message, instead }`,
+- `doc.warnings`: rejected syntax in source order, each `{ start, end, message, instead }`,
   where `instead` is the supported form, as `syntax.md`'s "Not supported" table writes it
 - `html(source | Document): string`
 - `walk(doc, { enter?, exit? })`
@@ -385,11 +385,11 @@ markdown-exit and Comark. The unified/remark ecosystem stays out.
   punctuation normalized back to straight characters. So must fuzzed documents
   generated from the shared grammar.
 - **Rejected syntax:** every row of the "Not supported" table in [`syntax.md`](syntax.md) stays
-  text and produces its diagnostic.
+  text and produces its warning.
 - **Constructs beyond GFM:**
   - directives, against `micromark-extension-directive`
   - metadata: every row of the value table in `syntax.md`, each checked against the `yaml`
-    package, and every YAML look-alike (`~`, `True`, `1e3`, …) giving a diagnostic, not a string
+    package, and every YAML look-alike (`~`, `True`, `1e3`, …) giving a warning, not a string
   - math, including `$` used as currency
   - expressions: nesting, strings, comments, escapes, and emphasis inside `${…}`; malformed
     JavaScript that still closes; the regex-literal limit
@@ -399,7 +399,7 @@ markdown-exit and Comark. The unified/remark ecosystem stays out.
   times) parse in linear time.
 - **Heading ids:** `syntax.md`'s contract cases, verbatim, plus apostrophes and quotes, which
   slug the same straight or curled (`Don't` and `Don’t` both give `dont`), and a reused explicit
-  id producing a diagnostic.
+  id producing a warning.
 - **Offsets** are asserted against known source, never against rendered output. This includes
   escapes, numeric references, astral characters, CRLF and nested containers.
 - **Tree structure:** parent, child and sibling invariants.

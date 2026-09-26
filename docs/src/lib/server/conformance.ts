@@ -40,9 +40,9 @@ export function conformance(): Row[] {
 			oracle,
 			markz,
 			normalized: status === 'fail' ? [normalize(oracle), normalize(markz)] : null,
-			diagnostics: threw
+			warnings: threw
 				? []
-				: parse(e.markdown).diagnostics.map(
+				: parse(e.markdown).warnings.map(
 						(d) => `${d.start}–${d.end}: ${d.message}; write ${d.instead}`
 					)
 		};

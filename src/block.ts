@@ -6,7 +6,7 @@
  * most one open leaf. Each line first walks the stack, letting each container consume its prefix;
  * whatever is left either continues the open leaf or starts new blocks. Every block construct in
  * `syntax.md` is a case here, and so is every rejected one: a setext underline, indented code, a
- * `~~~` fence or a lazy line is recognised where it is met, stays text, and adds a diagnostic.
+ * `~~~` fence or a lazy line is recognised where it is met, stays text, and adds a warning.
  *
  * Leaves with inline content (paragraphs, headings, table cells, leaf-directive labels) hand
  * their lines to the inline pass as source ranges. A paragraph's lines are held until it closes,
@@ -147,7 +147,7 @@ class BlockParser {
 		const lines = src.slice(bodyStart, bodyEnd).split(/\r\n|\r|\n/);
 		const key = (l: string) => /^[A-Za-z_][\w-]*:(?:[ \t]|$)/.test(l);
 		if (!lines.some(key) || !lines.every((l) => key(l) || /^(?:$|#|[ \t])/.test(l))) return start;
-		const value = parseMetadata(src, bodyStart, bodyEnd, (d) => this.b.diagnose(d));
+		const value = parseMetadata(src, bodyStart, bodyEnd, (d) => this.b.warn(d));
 		this.b.leaf('metadata', start, end, { value, range: { start: bodyStart, end: bodyEnd } });
 		this.top.children++;
 		this.top.end = end;
@@ -574,7 +574,7 @@ class BlockParser {
 	 *
 	 * `::name[label]{…}` is a leaf and `:::name[label]{…}` opens a container, each on a line of its
 	 * own. The name starts with a letter. A leaf's label is inline content; a container's is plain
-	 * text with escapes decoded. A line that doesn't fit is paragraph text, with no diagnostic,
+	 * text with escapes decoded. A line that doesn't fit is paragraph text, with no warning,
 	 * since `::` in prose isn't a construct.
 	 */
 	directive(at: number, end: number): boolean {
@@ -903,7 +903,7 @@ class BlockParser {
 	}
 
 	report(start: number, end: number, message: string, instead: string): void {
-		this.b.diagnose({ start, end, message, instead });
+		this.b.warn({ start, end, message, instead });
 	}
 }
 

@@ -5,7 +5,7 @@
 	 * How markz does on every spec example, summary first: totals, then each section, then the
 	 * exclusions by `syntax.md` reason, then the examples themselves. The totals, sections and
 	 * reasons all filter the example list, and an example opens to show its Markdown, both
-	 * outputs, where they first differ, and markz's diagnostics.
+	 * outputs, where they first differ, and markz's warnings.
 	 */
 	import type { Status } from '#lib/site.ts';
 
@@ -289,11 +289,11 @@
 						</div>
 					</div>
 				{/if}
-				{#if r.diagnostics.length}
+				{#if r.warnings.length}
 					<div class="pane">
-						<h3>Diagnostics</h3>
-						<ul class="diagnostics">
-							{#each r.diagnostics as d, i (i)}<li>{d}</li>{/each}
+						<h3>Warnings</h3>
+						<ul class="warnings">
+							{#each r.warnings as d, i (i)}<li>{d}</li>{/each}
 						</ul>
 					</div>
 				{/if}
@@ -532,7 +532,7 @@
 		color: inherit;
 		background: var(--mark);
 	}
-	.diagnostics {
+	.warnings {
 		margin: 0;
 		padding-left: 1.1rem;
 		font-family: var(--font-mono);
