@@ -175,7 +175,9 @@ both fixed: a named reference in an attribute value (`title="a&apos;b"`) got no 
 empty container label (`:::a[]`) wrote an empty label element. 38 examples differ by design:
 micromark's wider attribute syntax (bare keys, single quotes, spaces around `=`, `.a.b`, braces
 across lines) is text in markz, names start with a letter, a container's label is plain text,
-and markz has no 32-level bracket limit.
+and markz has no 32-level bracket limit. Of micromark's wider attribute syntax, markz then took one form with a real use,
+bare keys for HTML's boolean attributes (`:::details{open}`), and a `{…}` after a directive, link
+or image that doesn't parse now warns `attribute-syntax` rather than staying silent text.
 
 ### 13. The site by the dialect
 

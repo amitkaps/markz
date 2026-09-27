@@ -139,13 +139,14 @@ export const listed: Record<string, string> = {
 	),
 	...Object.fromEntries([78, 79, 81, 85].map((n) => [`gfm-table:${n}`, 'lazy-line'])),
 	'gfm-table:58': 'escape',
-	// micromark's attribute syntax is wider than djot's one line of `#id .class key=value`: bare
-	// keys, single quotes, spaces around `=`, `.a.b` with no space, braces across lines. markz's is
-	// looser in one place: any character but a space, brace, quote or `=` may be in a name or value.
+	// micromark's attribute syntax is wider than markz's one line of `#id .class key=value key`:
+	// single quotes, spaces around `=`, `.a.b` with no space, braces across lines, and keys outside
+	// ASCII or starting with `_`. markz's is looser in one place: any character but a space, brace,
+	// quote or `=` may be in a name or value.
 	...Object.fromEntries(
 		[
-			36, 37, 38, 41, 43, 44, 50, 53, 54, 56, 57, 61, 65, 88, 89, 96, 97, 149, 150, 228, 232, 233,
-			234, 235, 236, 237, 238, 239, 240, 241, 242, 243
+			36, 38, 41, 43, 44, 50, 53, 56, 57, 61, 65, 89, 96, 97, 150, 228, 232, 233, 234, 235, 236,
+			237, 238, 239, 240, 241, 242, 243
 		].map((n) => [`directive:${n}`, 'attributes'])
 	),
 	// `:a{}` is a directive in markz; the oracle's handler can't tell it from a bare `:a`.

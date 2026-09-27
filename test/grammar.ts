@@ -275,6 +275,8 @@ export const CONSTRUCTS: Construct[] = [
 		grammar: `
 			attributes ::= '{' space* (attribute (space+ attribute)* space*)? '}'
 			attribute ::= '#' attribute-name | '.' attribute-name | attribute-key '=' attribute-value
+				| boolean-key
+			boolean-key ::= [A-Za-z] [A-Za-z0-9_:-]*
 			attribute-name ::= [^ #x9#xA#xD{}#."'=]+
 			attribute-key ::= [A-Za-z0-9_:-]+
 			attribute-value ::= '"' ([^"\\] | '\\' char | expression)* '"'
@@ -286,7 +288,11 @@ export const CONSTRUCTS: Construct[] = [
 				"Attributes follow a directive's name or label, stand alone on a line before a block, or follow a link or image's `)` with no space. Anywhere else a `{` is text.",
 			'attribute-line':
 				'A block-attribute line decorates the next block in its container, across blank lines. Consecutive lines merge. It cannot interrupt a paragraph or a table.',
-			'attribute-merge': 'Classes accumulate. For any other key, the later value wins.'
+			'attribute-merge': 'Classes accumulate. For any other key, the later value wins.',
+			'attribute-boolean':
+				'A block of only boolean keys counts only after a directive, link or image. On a line of its own or after a word, `{year}` is text.',
+			'attribute-syntax':
+				'A `{…}` after a directive, link or image that does not parse is text, and a warning when it closes on the same line.'
 		}
 	},
 	{

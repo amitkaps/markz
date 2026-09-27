@@ -317,8 +317,15 @@ wrap or reinvent that element:
 This section defines the syntax for all three; the inline placements are also listed under
 [Links and images](#link) and [Text directives](#text-directive).
 
-- **Syntax:** `#id`, `.class` and `key=value`, with `key="a quoted value"` for spaces. Classes
-  accumulate. For other keys, a later value wins. Values may contain `${…}`.
+- **Syntax:** `#id`, `.class` and `key=value`, with `key="a quoted value"` for spaces, and a bare
+  `key` for HTML's boolean attributes (`:::details{open}`, `::video{src=cat.mp4 controls muted}`),
+  which `html()` writes as `key=""`. Classes accumulate. For other keys, a later value wins. Values
+  may contain `${…}`. That is all of it: no single quotes, no spaces around `=`, no `.a.b`
+  shorthand, and no character references, since each of those is a second way to write the same
+  attribute.
+- **Boolean keys need company off a directive, link or image.** A `{…}` of only bare keys on a
+  line of its own, or after a word, stays text, because `{year}` there is an MDX expression or a
+  placeholder, not attributes.
 - **Block attributes:** blank lines may come between the `{…}` line and its block, because oxfmt
   inserts one before a heading. Consecutive `{…}` lines merge. A `{…}` line can't interrupt a
   paragraph or a table, where it is text. One with no block after it in its container stays text
@@ -329,7 +336,9 @@ This section defines the syntax for all three; the inline placements are also li
   free of lookahead.
 - **Anywhere else a `{` is text.** Inline, only a `)` directly before it can make it attributes,
   so `{a, b}`, `{"json": 1}` and prose braces never need escaping. A `{…}` in one of the three
-  places that doesn't parse as attributes is text too.
+  places that doesn't parse as attributes is text too. After a directive, link or image, where it
+  can only have been meant as attributes, it also gets the warning `attribute-syntax` when its `}`
+  is on the same line (`::chart{type='bar'}`). A line holding one doesn't, since it may be prose.
 - **Words and phrases** use a text directive: `:span[word]{.highlight}`. There is no djot-style
   `word{.x}` or `[span]{.x}`.
 

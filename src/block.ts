@@ -13,7 +13,7 @@
  * because the next line can still turn its last line into a table header; nothing is read twice.
  */
 import { type Attributes, type Builder, type NodeId, type Range, type Align } from './ast';
-import { parseAttributes } from './attributes';
+import { bareOnly, braceEnd, parseAttributes } from './attributes';
 import { isSpace, NAMED, unescape } from './chars';
 import { inline } from './inline';
 import { parseMetadata } from './metadata';
@@ -391,11 +391,7 @@ class BlockParser {
 		if (closing) to = from + closing.index;
 		while (to > from && isSpace(this.src.charCodeAt(to - 1))) to--;
 		const brace = this.src.lastIndexOf(' {', to) + 1;
-		if (
-			brace > from &&
-			this.src[to - 1] === '}' &&
-			parseAttributes(this.src, brace, to)?.end === to
-		) {
+		if (brace > from && this.src[to - 1] === '}' && trailing(this.src, brace, to)) {
 			this.report('trailing-heading-attributes', brace, to);
 		}
 		const explicit = attributes?.items.findLast((a) => a.key === 'id');
@@ -598,7 +594,11 @@ class BlockParser {
 		let own: Attributes | null = null;
 		if (src[i] === '{') {
 			own = parseAttributes(src, i, end);
-			if (!own) return false;
+			if (!own) {
+				const close = braceEnd(src, i, end);
+				if (close >= 0) this.report('attribute-syntax', i, close);
+				return false;
+			}
 			i = own.end;
 		}
 		if (i !== end) return false;
@@ -634,7 +634,7 @@ class BlockParser {
 	 */
 	attributeLine(at: number, end: number): boolean {
 		const attributes = parseAttributes(this.src, at, end);
-		if (!attributes || attributes.end !== end) return false;
+		if (!attributes || attributes.end !== end || bareOnly(this.src, attributes)) return false;
 		this.closeLeaf();
 		if (this.top.kind === 'list') this.closeContainer();
 		const pending = this.pending;
@@ -659,7 +659,8 @@ class BlockParser {
 		const joined = src.slice(at, close + 1);
 		if (/\n[ \t]*\r?\n/.test(joined)) return;
 		const flat = joined.replace(/[\r\n]/g, ' ');
-		if (parseAttributes(flat, 0, flat.length)?.end === flat.length) {
+		const attributes = parseAttributes(flat, 0, flat.length);
+		if (attributes?.end === flat.length && !bareOnly(flat, attributes)) {
 			this.report('multiline-attributes', at, close + 1);
 		}
 	}
@@ -942,6 +943,12 @@ function labelEnd(src: string, at: number, end: number): number {
 		else if (c === ']' && --depth === 0) return i;
 	}
 	return -1;
+}
+
+/** A `{…}` that ends a heading and would be attributes, bare keys aside (`## Sets {a}`). */
+function trailing(src: string, at: number, end: number): boolean {
+	const attributes = parseAttributes(src, at, end);
+	return attributes?.end === end && !bareOnly(src, attributes);
 }
 
 /** @prose
