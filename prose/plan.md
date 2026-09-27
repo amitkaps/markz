@@ -143,7 +143,7 @@ under the same parts, each opening with its origin's lead. Renaming a heading no
 Most constructs are relabelled "As CommonMark": GFM adds only tables, strikethrough and task
 items to what markz keeps. The Conformance page shows each construct's heading from its id.
 
-### 12. Extension suites
+### 12. Extension suites — done
 
 Upstream tests for what markz shares beyond the specs, each vendored from a pinned commit and
 checked against its own oracle, one PR per suite:
@@ -193,6 +193,14 @@ gray-matter, and warns `metadata-unclosed` when it looks like metadata. The suit
 a key whose value continued on later lines (`one:` over `- 2`, or an open `{`) was kept as `null`;
 it is now skipped with the lines that continue it. All 159 YAML tests are now read as metadata:
 9 clean, 98 valid YAML with warnings, and 52 invalid YAML, all warned.
+
+**Heading ids — done.** github-slugger's fixtures, GitHub's ids for 78 strings, each a heading in
+one document, checked against github-slugger itself. markz's slug had drifted from GitHub's in two
+ways, both fixed: it collapsed and trimmed whitespace where GitHub turns each space into `-`
+(`a - b` is `a---b`), and it kept every number and dropped every symbol, where GitHub keeps only
+decimal digits and keeps alphabetic symbols (`Ⓐ`). github-slugger's 8 KB class comes down to four
+Unicode properties, which match 77 of the 78 fixtures; the last differs because its class is
+Unicode 13's.
 
 ### 13. The site by the dialect
 

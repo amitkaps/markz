@@ -175,6 +175,9 @@ importers:
       '@types/node':
         specifier: ^26.0.0
         version: 26.6.3
+      github-slugger:
+        specifier: ^2.0.0
+        version: 2.0.0
       micromark:
         specifier: ^4.0.3
         version: 4.0.3(supports-color@10.2.2)
@@ -1665,6 +1668,9 @@ packages:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
+
+  github-slugger@2.0.0:
+    resolution: {integrity: sha512-IaOQ9puYtjrkq7Y0Ygl9KDZnrf/aiUJYUpVf89y8kyaxbRG7Y1SrX/jaumrv81vc61+kiMempujsM3Yw7w5qcw==}
 
   h3@2.0.1-rc.32:
     resolution: {integrity: sha512-Epg1E85L8yIKd9UeAQAVdm6QVrnHbppMsQ641EjpNi4c0IlAg+PJlwp4Xw03Z1loRXPQaH9k64gJT5qDELqm+g==}
@@ -3244,6 +3250,8 @@ snapshots:
 
   fsevents@2.3.3:
     optional: true
+
+  github-slugger@2.0.0: {}
 
   h3@2.0.1-rc.32(crossws@0.4.12(srvx@1.0.5)):
     dependencies:

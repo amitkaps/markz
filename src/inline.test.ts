@@ -90,6 +90,8 @@ describe('heading ids', () => {
 					'## 日本語の見出し',
 					'## 1. Rename',
 					'## See [docs](https://example.com)',
+					'## a - b',
+					'## 😄 Smile',
 					'## ???'
 				].join('\n\n')
 			)
@@ -102,6 +104,8 @@ describe('heading ids', () => {
 			'日本語の見出し',
 			'1-rename',
 			'see-docs',
+			'a---b',
+			'-smile',
 			'section'
 		]);
 	});

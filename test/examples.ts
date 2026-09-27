@@ -23,10 +23,11 @@ import block from './dialect/block.md?raw';
 import inline from './dialect/inline.md?raw';
 import metadata from './dialect/metadata.md?raw';
 import notSupported from './dialect/not-supported.md?raw';
-import { metadataOracle, normalize, reference, tokens, type Token } from './oracle';
+import { metadataOracle, normalize, reference, slugOracle, tokens, type Token } from './oracle';
 import commonmark from './spec/commonmark.json' with { type: 'json' };
 import directive from './spec/directive.json' with { type: 'json' };
 import frontmatter from './spec/frontmatter.json' with { type: 'json' };
+import slugger from './spec/slugger.json' with { type: 'json' };
 import yamlSuite from './spec/yaml.json' with { type: 'json' };
 import gfmStrikethrough from './spec/gfm-strikethrough.json' with { type: 'json' };
 import gfmTable from './spec/gfm-table.json' with { type: 'json' };
@@ -40,7 +41,8 @@ export type Upstream =
 	| 'gfm-strikethrough'
 	| 'directive'
 	| 'frontmatter'
-	| 'yaml';
+	| 'yaml'
+	| 'slugger';
 export type Source = Upstream | 'markz';
 export type Kind = 'oracle' | 'differs' | 'not supported' | 'expected';
 export type Status = 'pass' | 'fail' | 'differs';
@@ -114,7 +116,8 @@ export const sections: Record<string, string> = {
 	'directive:micromark-extension-directive (compile)': DIRECTIVE,
 	'directive:content': DIRECTIVE,
 	frontmatter: 'metadata',
-	yaml: 'metadata'
+	yaml: 'metadata',
+	slugger: 'heading'
 };
 
 /** A leaf or container directive files the example under `directive`, else `text-directive`. */
@@ -151,6 +154,9 @@ export const listed: Record<string, string> = {
 	),
 	...Object.fromEntries([78, 79, 81, 85].map((n) => [`gfm-table:${n}`, 'lazy-line'])),
 	'gfm-table:58': 'escape',
+	// github-slugger's character class is Unicode 13's; markz's properties are the runtime's, where
+	// `𐗋` and others have since been assigned as letters.
+	'slugger:73': 'heading',
 	// Content after the block: a `***` rule and indented code, both cut.
 	'frontmatter:4': 'rule-marker',
 	// micromark's attribute syntax is wider than markz's one line of `#id .class key=value key`:
@@ -189,7 +195,8 @@ export const oracleDiffers: Record<string, string> = {
 	'gfm-table:58':
 		'GitHub reads an escaped backslash before a pipe as escaping the pipe (cmark-gfm#277)',
 	'yaml:18': '`yaml` reads `!!binary` as bytes, where the suite writes the base64 string',
-	'commonmark:98': 'the oracle reads the opening `---` block as frontmatter, as markz does'
+	'commonmark:98': 'the oracle reads the opening `---` block as frontmatter, as markz does',
+	'slugger:19': "the suite's id is numbered past ` a `, a fixture a heading can't hold"
 };
 
 /** @prose
@@ -242,9 +249,11 @@ function upstreamExample(
 		sections[source];
 	if (home === DIRECTIVE) home = directiveKind(e.markdown);
 	if (!home) throw new Error(`${source} section "${e.section}" is not mapped to syntax.md`);
-	// micromark's tokens say nothing about a YAML block.
+	// micromark's tokens say nothing about a YAML block or a heading's id.
 	const token =
-		source === 'yaml' ? undefined : cuts.find(([, test]) => tokens(e.markdown).some(test));
+		source === 'yaml' || source === 'slugger'
+			? undefined
+			: cuts.find(([, test]) => tokens(e.markdown).some(test));
 	let found = listed[id] ?? token?.[0];
 	// Where markz accepts what the token looked like (`*` touching a word), it isn't a cut.
 	const cut = found && !listed[id] && row(found);
@@ -319,6 +328,16 @@ export const examples: Example[] = [
 	...directive.map((e) => upstreamExample('directive', e)),
 	...frontmatter.map((e) => upstreamExample('frontmatter', e)),
 	...yamlSuite.map((e) => upstreamExample('yaml', e)),
+	// Each slugger fixture follows the ones before it in one document, so repeats are numbered.
+	...slugger.map((e, i) =>
+		upstreamExample('slugger', {
+			...e,
+			markdown: slugger
+				.slice(0, i + 1)
+				.map((f) => f.markdown)
+				.join('')
+		})
+	),
 	...dialect('metadata', metadata),
 	...dialect('block', block),
 	...dialect('inline', inline),
@@ -350,6 +369,7 @@ export function check(e: Example): Result {
 		return { status: 'fail', markz: String(error), oracle: null, warnings: [], problem: 'threw' };
 	}
 	if (e.source === 'yaml') return againstYaml(e, doc);
+	if (e.source === 'slugger') return againstSlugger(e, doc);
 	const oracle = e.source === 'markz' ? null : reference(e.markdown);
 	const result = (problem: string | null, status: Status = problem ? 'fail' : 'pass'): Result => ({
 		status,
@@ -408,4 +428,34 @@ function againstYaml(e: Example, doc: Document): Result {
 		return result('dropped a key without a warning');
 	}
 	return result(null);
+}
+
+/** @prose
+ * ## Heading ids against github-slugger
+ *
+ * A github-slugger example is a document of headings, and what is checked is the last one's id:
+ * it must be the one github-slugger gives the same texts in the same order.
+ */
+function againstSlugger(e: Example, doc: Document): Result {
+	const ids = [...doc.children(doc.root)]
+		.filter((n) => doc.type(n) === 'heading')
+		.map((n) => doc.data(n, 'heading').id);
+	const oracle = slugOracle(headingTexts(e.markdown)).at(-1)!;
+	const mine = ids.at(-1) ?? '';
+	const same = mine === oracle || e.kind === 'differs';
+	return {
+		status: e.kind === 'differs' ? 'differs' : same ? 'pass' : 'fail',
+		markz: mine,
+		oracle,
+		warnings: [...doc.warnings],
+		problem: same ? null : 'a different id from github-slugger'
+	};
+}
+
+/** The text of each `# …` line a slugger example is made of, its escapes undone. */
+export function headingTexts(markdown: string): string[] {
+	return markdown
+		.trimEnd()
+		.split('\n')
+		.map((l) => l.slice(2).replace(/\\([!-/:-@[-`{-~])/g, '$1'));
 }

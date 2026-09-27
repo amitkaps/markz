@@ -2,7 +2,7 @@
  * # Vendoring an upstream suite
  *
  * Turns an upstream project's own tests into examples for `test/spec/`, from a local clone at the
- * commit its README pins: a micromark extension's, or the yaml-test-suite (below). What markz is held to is the input: every example is compared with
+ * commit its README pins: a micromark extension's, the yaml-test-suite or github-slugger's (below). What markz is held to is the input: every example is compared with
  * markz's oracle, not with the HTML the suite expected, so a test that only configures the HTML
  * side (a directive handler, `allowDangerousHtml`) keeps its input. A test whose options change the
  * syntax (`disable`, `singleTilde`, a frontmatter preset or custom matter) is dropped, as is anything whose input isn't a literal.
@@ -269,14 +269,49 @@ function visible(text: string): string {
 		.replace(/∎\n?$/, '');
 }
 
+/** @prose
+ * ## github-slugger
+ *
+ * `test/fixtures.json` is one run of a slugger over plain strings, so a repeat is numbered from the
+ * ones before it. markz slugs a heading's text, so each fixture becomes a heading, with ASCII
+ * punctuation backslash-escaped so the text is the input exactly, and its HTML is the id it should
+ * get. The harness puts each after the ones before it, as one document. A heading's text is
+ * trimmed, so an input that starts or ends with whitespace can't be written as one.
+ */
+function sluggerSuite(dir: string, dropped: string[]): Vendored[] {
+	const fixtures = JSON.parse(readFileSync(join(dir, 'test/fixtures.json'), 'utf8')) as {
+		name: string;
+		input: string;
+		expected: string;
+	}[];
+	const out: Vendored[] = [];
+	for (const f of fixtures) {
+		if (f.input !== f.input.trim() || /[\r\n]/.test(f.input)) {
+			dropped.push(`${f.name}: ${JSON.stringify(f.input)} can't be a heading's text`);
+			continue;
+		}
+		const markdown = `# ${f.input.replace(/[!-/:-@[-`{-~]/g, '\\$&')}\n`;
+		out.push({ example: 0, section: f.name, markdown, html: f.expected });
+	}
+	return out;
+}
+
 const [suite, dir] = process.argv.slice(2);
 if (!suite || !dir) throw new Error('usage: node scripts/vendor.ts <suite> <clone>');
 const dropped: string[] = [];
 const examples =
-	suite === 'yaml' ? yamlSuite(dir, dropped) : [...fixtures(dir), ...inline(dir, dropped)];
+	suite === 'yaml'
+		? yamlSuite(dir, dropped)
+		: suite === 'slugger'
+			? sluggerSuite(dir, dropped)
+			: [...fixtures(dir), ...inline(dir, dropped)];
 // Upstream sometimes asserts the same input twice, under different options.
 const seen = new Set<string>();
-const kept = examples.filter((e) => !seen.has(e.markdown) && seen.add(e.markdown));
+// A slugger fixture repeats its input on purpose.
+const kept =
+	suite === 'slugger'
+		? examples
+		: examples.filter((e) => !seen.has(e.markdown) && seen.add(e.markdown));
 kept.forEach((e, i) => (e.example = i + 1));
 writeFileSync(`test/spec/${suite}.json`, JSON.stringify(kept, null, 1) + '\n');
 const commit = execFileSync('git', ['-C', dir, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();

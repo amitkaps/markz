@@ -5,13 +5,18 @@
  * configuration bug can't hide behind it. markz itself is checked in `examples.test.ts`.
  */
 import { describe, expect, it } from 'vite-plus/test';
-import { examples, oracleDiffers } from './examples';
-import { metadataOracle, normalize, reference } from './oracle';
+import { examples, headingTexts, oracleDiffers } from './examples';
+import { metadataOracle, normalize, reference, slugOracle } from './oracle';
 
 describe('oracle', () => {
 	it.each(
 		examples.filter(
-			(e) => e.kind === 'oracle' && e.source !== 'yaml' && e.html && !oracleDiffers[e.id]
+			(e) =>
+				e.kind === 'oracle' &&
+				e.source !== 'yaml' &&
+				e.source !== 'slugger' &&
+				e.html &&
+				!oracleDiffers[e.id]
 		)
 	)('$id ($upstream) matches the spec', (e) => {
 		expect(normalize(reference(e.markdown))).toBe(normalize(e.html));
@@ -25,6 +30,15 @@ describe('metadata oracle', () => {
 			const oracle = metadataOracle(e.markdown.slice(4, -4));
 			if (e.html === 'error') expect(oracle).toHaveProperty('error');
 			else expect(oracle).toEqual({ value: JSON.parse(e.html) });
+		}
+	);
+});
+
+describe('slug oracle', () => {
+	it.each(examples.filter((e) => e.source === 'slugger' && !oracleDiffers[e.id]))(
+		'$id ($upstream) matches the suite',
+		(e) => {
+			expect(slugOracle(headingTexts(e.markdown)).at(-1)).toBe(e.html);
 		}
 	);
 });
