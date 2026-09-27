@@ -9,7 +9,7 @@
  * summary is its first paragraph, both read from the markz AST, so the files need no metadata
  * block of their own.
  */
-import { html, parse, type Document, type NodeId } from 'markz';
+import { html, parse, textContent, type Document, type NodeId } from 'markz';
 import readme from '../../../README.md?raw';
 import syntax from '../../../prose/syntax.md?raw';
 import spec from '../../../prose/spec.md?raw';
@@ -32,14 +32,6 @@ const SOURCES: { slug: string; file: string; source: string; title?: string }[] 
 	{ slug: 'design', file: 'prose/spec.md', source: spec, title: 'Design' },
 	{ slug: 'plan', file: 'prose/plan.md', source: plan }
 ];
-
-/** The text a node renders to: its text descendants' values, in order. */
-export function text(doc: Document, node: NodeId): string {
-	if (doc.type(node) === 'text') return doc.data(node, 'text').value;
-	let out = '';
-	for (const child of doc.children(node)) out += text(doc, child);
-	return out;
-}
 
 function first(doc: Document, type: 'heading' | 'paragraph'): NodeId | undefined {
 	for (const node of doc.children(doc.root)) if (doc.type(node) === type) return node;
@@ -71,8 +63,8 @@ function render({ slug, file, source, title }: (typeof SOURCES)[number]): Page {
 	return {
 		slug,
 		file,
-		title: title ?? (heading === undefined ? file : text(doc, heading)),
-		summary: paragraph === undefined ? '' : text(doc, paragraph).replace(/\s+/g, ' '),
+		title: title ?? (heading === undefined ? file : textContent(doc, heading)),
+		summary: paragraph === undefined ? '' : textContent(doc, paragraph).replace(/\s+/g, ' '),
 		html: rewriteLinks(html(doc), file)
 	};
 }
