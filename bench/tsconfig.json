@@ -1,7 +1,10 @@
 {
 	"extends": "../tsconfig.json",
 	"compilerOptions": {
-		"allowImportingTsExtensions": true
+		"allowImportingTsExtensions": true,
+		// Types from the library's source, as the site does: CI checks before it builds `dist/`,
+		// which is what the benchmark runs.
+		"paths": { "markz": ["../src/index.ts"] }
 	},
 	"include": ["*.ts"]
 }
