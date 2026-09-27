@@ -580,7 +580,7 @@ function report(r: Results) {
 			)
 		]);
 	}
-	console.log('\nRetained memory after parse, bytes per source byte (100 KB document)');
+	console.log('\nRetained memory after parse, bytes per source byte (10 KB document)');
 	row(['', ...parsers]);
 	for (const mode of MODES) {
 		row([
@@ -630,11 +630,8 @@ function report(r: Results) {
 			const s = r.size.find((s) => s.parser === p && s.mode === mode);
 			if (!s) continue;
 			const kb = (n: number) => (n / 1024).toFixed(1);
-			row([
-				`${mode} ${p}`,
-				`${kb(s.minified)} · ${kb(s.gzip)} · ${kb(s.brotli)}`,
-				s.entry.join(', ')
-			]);
+			const sizes = `${kb(s.minified)} · ${kb(s.gzip)} · ${kb(s.brotli)}`;
+			console.log(`${`${mode} ${p}`.padEnd(30)}${sizes.padEnd(24)}${s.entry.join(', ')}`);
 		}
 	}
 }
