@@ -460,6 +460,12 @@ reach that later. Each parser's process now warms up on its documents for a seco
 cell is timed, and a cell runs at least five passes in 200 ms, with its spread taken from the
 middle half. Runs agree within about 3%, and take about 42 s.
 
+On the common documents, markz still trailed markdown-exit by about a third, and half of that is
+work only markz does (heading ids, smart punctuation, warnings). `html()` alone was 1.2 times
+markdown-exit's renderer; a destination with nothing to encode now skips the per-character
+loop, which brings it level (8.7 against 8.8 ms per MB). What is left is in parsing. A copy of
+`walk`'s loop inside `html()` (+3%) and a hand-written `escape` loop (slower) weren't taken.
+
 ### 20. Tests and benchmarks by what they are — done
 
 The test suite grew one source at a time, so its files are sorted by where an input came from,
