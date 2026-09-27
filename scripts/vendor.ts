@@ -11,13 +11,13 @@
  * `test/spec/gfm-table.json` and prints what it kept and dropped.
  */
 import { execFileSync } from 'node:child_process';
-import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import ts from 'typescript';
 
 export interface Vendored {
 	example: number;
-	/** `index.js › <test title>`, or the fixture file and the heading the example sits under. */
+	/** `<test group> › <test title>` from `index.js`, or `<fixture file> › <heading>`. */
 	section: string;
 	markdown: string;
 	/** What the suite expected, which may be another renderer's or handler's HTML. */
@@ -37,6 +37,7 @@ const SYNTAX_OPTIONS = /\bdisable\b|singleTilde/;
 function fixtures(dir: string): Vendored[] {
 	const out: Vendored[] = [];
 	const base = join(dir, 'test/fixtures');
+	if (!existsSync(base)) return out;
 	for (const file of readdirSync(base).sort()) {
 		if (!file.endsWith('.md') || file.endsWith('.offline.md')) continue;
 		const md = sections(readFileSync(join(base, file), 'utf8'));
@@ -103,7 +104,9 @@ function htmlSections(html: string, md: [string, string][]): string[] {
  *
  * `test/index.js` asserts `micromark(input, options)` against an expected string. The TypeScript
  * compiler reads the file, so a case is found by its shape, not by a regex over the source, and a
- * string input is taken as the engine would see it, escapes and concatenation resolved.
+ * string input is taken as the engine would see it, escapes and concatenation resolved. The
+ * expected HTML is kept only when the options are written out in place: a helper such as the
+ * directive suite's `options({'*': h})` installs handlers whose HTML isn't the oracle's.
  */
 function inline(dir: string, dropped: string[]): Vendored[] {
 	const file = join(dir, 'test/index.js');
@@ -118,7 +121,10 @@ function inline(dir: string, dropped: string[]): Vendored[] {
 		if (ts.isCallExpression(node)) {
 			const callee = node.expression.getText();
 			const name = node.arguments[0];
-			if (/(^|\.)test$/.test(callee) && name && ts.isStringLiteralLike(name)) title = name.text;
+			if (/(^|\.)test$/.test(callee) && name && ts.isStringLiteralLike(name)) {
+				// `test(group)` holds `t.test(title)`s.
+				title = callee === 'test' ? name.text : `${title.split(' › ')[0]} › ${name.text}`;
+			}
 			if (callee === 'micromark') {
 				const input = literal(node.arguments[0]);
 				const options = node.arguments[1]?.getText() ?? '';
@@ -129,9 +135,9 @@ function inline(dir: string, dropped: string[]): Vendored[] {
 				else
 					out.push({
 						example: 0,
-						section: `index.js › ${title}`,
+						section: title,
 						markdown: input,
-						html: expected(node)
+						html: ts.isObjectLiteralExpression(node.arguments[1] ?? node) ? expected(node) : ''
 					});
 			}
 		}
@@ -146,6 +152,17 @@ function literal(node: ts.Node | undefined): string | null {
 	if (ts.isStringLiteralLike(node)) return node.text;
 	if (ts.isParenthesizedExpression(node)) return literal(node.expression);
 	if (ts.isIdentifier(node)) return literal(binding(node));
+	// `['a', 'b'].join('\n\n')`
+	if (
+		ts.isCallExpression(node) &&
+		ts.isPropertyAccessExpression(node.expression) &&
+		node.expression.name.text === 'join' &&
+		ts.isArrayLiteralExpression(node.expression.expression)
+	) {
+		const items = node.expression.expression.elements.map(literal);
+		const separator = node.arguments.length ? literal(node.arguments[0]) : ',';
+		return separator === null || items.includes(null) ? null : items.join(separator);
+	}
 	if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
 		const [a, b] = [literal(node.left), literal(node.right)];
 		return a === null || b === null ? null : a + b;

@@ -24,12 +24,13 @@ import metadata from './dialect/metadata.md?raw';
 import notSupported from './dialect/not-supported.md?raw';
 import { normalize, reference, tokens, type Token } from './oracle';
 import commonmark from './spec/commonmark.json' with { type: 'json' };
+import directive from './spec/directive.json' with { type: 'json' };
 import gfmStrikethrough from './spec/gfm-strikethrough.json' with { type: 'json' };
 import gfmTable from './spec/gfm-table.json' with { type: 'json' };
 import gfm from './spec/gfm.json' with { type: 'json' };
 import { part, row, type Part } from './syntax';
 
-export type Upstream = 'commonmark' | 'gfm' | 'gfm-table' | 'gfm-strikethrough';
+export type Upstream = 'commonmark' | 'gfm' | 'gfm-table' | 'gfm-strikethrough' | 'directive';
 export type Source = Upstream | 'markz';
 export type Kind = 'oracle' | 'differs' | 'not supported' | 'expected';
 export type Status = 'pass' | 'fail' | 'differs';
@@ -55,10 +56,14 @@ export interface Example {
 /** @prose
  * ## Upstream sections
  *
- * Where each upstream section's examples are filed, by `source:section`, or by the source alone
- * for an extension suite that tests one construct. An example that uses a cut form goes to that
- * form's row instead, whatever its section.
+ * Where each upstream section's examples are filed, by `source:section`, by the group an
+ * extension suite's section starts with (its fixture file or `test()` group), or by the source
+ * alone for a suite that tests one construct. `DIRECTIVE` files a group that mixes directive kinds
+ * by what the oracle found. An example that uses a cut form goes to that form's row instead,
+ * whatever its section.
  */
+const DIRECTIVE = 'by directive kind';
+
 export const sections: Record<string, string> = {
 	'commonmark:Tabs': 'list',
 	'commonmark:Backslash escapes': 'escape',
@@ -92,8 +97,21 @@ export const sections: Record<string, string> = {
 	'gfm:Autolinks': 'link',
 	'gfm:Disallowed Raw HTML': 'raw-block',
 	'gfm-table': 'table',
-	'gfm-strikethrough': 'emphasis'
+	'gfm-strikethrough': 'emphasis',
+	'directive:micromark-extension-directive (syntax, text)': 'text-directive',
+	'directive:micromark-extension-directive (syntax, leaf)': 'directive',
+	'directive:micromark-extension-directive (syntax, container)': 'directive',
+	'directive:micromark-extension-directive (compile)': DIRECTIVE,
+	'directive:content': DIRECTIVE
 };
+
+/** A leaf or container directive files the example under `directive`, else `text-directive`. */
+function directiveKind(markdown: string): string {
+	const block = tokens(markdown).some(
+		(t) => t.type === 'directiveLeaf' || t.type === 'directiveContainer'
+	);
+	return block ? 'directive' : 'text-directive';
+}
 
 /** @prose
  * ## Listed by hand
@@ -120,7 +138,30 @@ export const listed: Record<string, string> = {
 		])
 	),
 	...Object.fromEntries([78, 79, 81, 85].map((n) => [`gfm-table:${n}`, 'lazy-line'])),
-	'gfm-table:58': 'escape'
+	'gfm-table:58': 'escape',
+	// micromark's attribute syntax is wider than djot's one line of `#id .class key=value`: bare
+	// keys, single quotes, spaces around `=`, `.a.b` with no space, braces across lines. markz's is
+	// looser in one place: any character but a space, brace, quote or `=` may be in a name or value.
+	...Object.fromEntries(
+		[
+			36, 37, 38, 41, 43, 44, 50, 53, 54, 56, 57, 61, 65, 88, 89, 96, 97, 149, 150, 228, 232, 233,
+			234, 235, 236, 237, 238, 239, 240, 241, 242, 243
+		].map((n) => [`directive:${n}`, 'attributes'])
+	),
+	// `:a{}` is a directive in markz; the oracle's handler can't tell it from a bare `:a`.
+	'directive:34': 'text-directive',
+	'directive:35': 'text-directive',
+	// micromark stops balancing a label's brackets at 32 levels; markz has no limit.
+	'directive:216': 'text-directive',
+	// A leaf or container name starts with a letter in markz, as a text directive's does.
+	...Object.fromEntries([70, 71, 131, 132].map((n) => [`directive:${n}`, 'directive'])),
+	// A container's label is plain text in markz.
+	'directive:144': 'directive',
+	// micromark's tight list drops the `<p>` inside a container directive in the item, too.
+	'directive:163': 'directive',
+	// `&apos;` in an attribute value, which the oracle shows as no reference token.
+	'directive:226': 'named-reference',
+	'directive:227': 'named-reference'
 };
 
 /** @prose
@@ -178,7 +219,11 @@ function upstreamExample(
 	e: { example: number; section: string; markdown: string; html: string }
 ): Example {
 	const id = `${source}:${e.example}`;
-	const home = sections[`${source}:${e.section}`] ?? sections[source];
+	let home =
+		sections[`${source}:${e.section}`] ??
+		sections[`${source}:${e.section.split(' › ')[0]}`] ??
+		sections[source];
+	if (home === DIRECTIVE) home = directiveKind(e.markdown);
 	if (!home) throw new Error(`${source} section "${e.section}" is not mapped to syntax.md`);
 	let found = listed[id] ?? cuts.find(([, test]) => tokens(e.markdown).some(test))?.[0];
 	// Where markz accepts what the token looked like (`*` touching a word), it isn't a cut.
@@ -251,6 +296,7 @@ export const examples: Example[] = [
 	...gfm.map((e) => upstreamExample('gfm', e)),
 	...gfmTable.map((e) => upstreamExample('gfm-table', e)),
 	...gfmStrikethrough.map((e) => upstreamExample('gfm-strikethrough', e)),
+	...directive.map((e) => upstreamExample('directive', e)),
 	...dialect('metadata', metadata),
 	...dialect('block', block),
 	...dialect('inline', inline),

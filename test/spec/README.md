@@ -14,8 +14,13 @@ against it where it has any.
   [micromark-extension-gfm-table](https://github.com/micromark/micromark-extension-gfm-table/tree/1511204dae5a01e81588cee417ecd4fb8d2c8aff/test)
   (commit `1511204`) and
   [micromark-extension-gfm-strikethrough](https://github.com/micromark/micromark-extension-gfm-strikethrough/tree/895451f924c543c6a528e80b7340236e164eb384/test)
-  (commit `895451f`), written by [`scripts/vendor.ts`](../../scripts/vendor.ts). Each fixture
+  (commit `895451f`), and `directive.json`, from
+  [micromark-extension-directive](https://github.com/micromark/micromark-extension-directive/blob/75da8c52a3f40de6485ac1928fdcdefd7ea0c3fb/test/index.js)
+  (commit `75da8c5`), written by [`scripts/vendor.ts`](../../scripts/vendor.ts). Each fixture
   section is an example, with GitHub's HTML for it, and each `micromark(input, …)` in
-  `test/index.js` with a literal input is one, numbered in that order. Left out: tests of an
+  `test/index.js` with a literal input is one, numbered in that order, under its `test()` group
+  and title. The expected HTML is kept only where the options are written out in place: the
+  directive suite's `options(…)` helper installs handlers, so its examples have none, and the
+  oracle isn't checked against them. Left out: tests of an
   option that changes the syntax (`disable.null`, `singleTilde`), the fixture loops, whose input
   isn't a literal, repeated inputs, and the 80,000-line `large.offline.md`, which belongs with step 15's stress tests.

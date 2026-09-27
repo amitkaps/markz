@@ -55,43 +55,43 @@
  },
  {
   "example": 10,
-  "section": "index.js › should support strikethrough w/ one tilde",
+  "section": "micromark-extension-gfm-strikethrough › should support strikethrough w/ one tilde",
   "markdown": "a ~b~",
   "html": "<p>a <del>b</del></p>"
  },
  {
   "example": 11,
-  "section": "index.js › should support strikethrough w/ two tildes",
+  "section": "micromark-extension-gfm-strikethrough › should support strikethrough w/ two tildes",
   "markdown": "a ~~b~~",
   "html": "<p>a <del>b</del></p>"
  },
  {
   "example": 12,
-  "section": "index.js › should not support strikethrough w/ three tildes",
+  "section": "micromark-extension-gfm-strikethrough › should not support strikethrough w/ three tildes",
   "markdown": "a ~~~b~~~",
   "html": "<p>a ~~~b~~~</p>"
  },
  {
   "example": 13,
-  "section": "index.js › should support strikethrough w/ after an escaped tilde",
+  "section": "micromark-extension-gfm-strikethrough › should support strikethrough w/ after an escaped tilde",
   "markdown": "a \\~~~b~~ c",
   "html": "<p>a ~<del>b</del> c</p>"
  },
  {
   "example": 14,
-  "section": "index.js › should support nested strikethrough",
+  "section": "micromark-extension-gfm-strikethrough › should support nested strikethrough",
   "markdown": "a ~~b ~~c~~ d~~ e",
   "html": "<p>a <del>b <del>c</del> d</del> e</p>"
  },
  {
   "example": 15,
-  "section": "index.js › should open if preceded by whitespace and followed by punctuation",
+  "section": "micromark-extension-gfm-strikethrough › should open if preceded by whitespace and followed by punctuation",
   "markdown": "a ~-1~ b",
   "html": "<p>a <del>-1</del> b</p>"
  },
  {
   "example": 16,
-  "section": "index.js › should close if preceded by punctuation and followed by whitespace",
+  "section": "micromark-extension-gfm-strikethrough › should close if preceded by punctuation and followed by whitespace",
   "markdown": "a ~b.~ c",
   "html": "<p>a <del>b.</del> c</p>"
  }
