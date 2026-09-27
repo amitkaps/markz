@@ -213,6 +213,15 @@ inside an unclosed `[`). Fixed by taking GFM's rules for the character before a 
 domain. GitHub links an email after `:` and anything after a tab where micromark doesn't; markz
 warns as GitHub links, and those four fixtures are in `oracleDiffers`.
 
+**Curation — done.** Vendoring whole suites filled the page with variants of forms markz cuts:
+150 of the 159 YAML tests only showed that markz warns on YAML it doesn't read, and most of the
+autolink suite swept `http://` past each punctuation character. `vendor.ts` now curates: a suite
+keeps what tests a decision markz makes, and the rest goes to `test/stress/`, held only to
+finishing, not throwing, a valid tree and a warning for each bare URL GFM links. YAML keeps valid
+plain `key: value` blocks and the first test of each YAML feature, 29 of 159; the autolink suite
+keeps its hand-written fixtures and inline tests, 39 of 53. Footnotes and math are vendored the
+same way.
+
 ### 13. The site by the dialect — done
 
 The Conformance page becomes Metadata, Block, Inline and Not supported, each opening to its

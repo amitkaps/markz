@@ -198,15 +198,12 @@ export const oracleDiffers: Record<string, string> = {
 	'gfm:280': 'cmark-gfm orders task-item input attributes differently and omits the void slash',
 	'gfm-table:58':
 		'GitHub reads an escaped backslash before a pipe as escaping the pipe (cmark-gfm#277)',
-	'yaml:18': '`yaml` reads `!!binary` as bytes, where the suite writes the base64 string',
+	'yaml:9': '`yaml` reads `!!binary` as bytes, where the suite writes the base64 string',
 	'commonmark:98': 'the oracle reads the opening `---` block as frontmatter, as markz does',
 	'slugger:19': "the suite's id is numbered past ` a `, a fixture a heading can't hold",
-	'gfm-autolink-literal:12':
-		'the fixture\'s HTML went through rehype, which writes `&#x26;`, `"` and `>` differently',
-	'gfm-autolink-literal:19': 'GitHub links an email after `:`, and micromark does not',
-	'gfm-autolink-literal:21': 'GitHub links `www.` after a tab, and micromark does not',
-	'gfm-autolink-literal:22': 'GitHub links an email after a tab, and micromark does not',
-	'gfm-autolink-literal:23': 'GitHub links an email after `:`, and micromark does not'
+	'gfm-autolink-literal:12': 'GitHub links `www.` after a tab, and micromark does not',
+	'gfm-autolink-literal:13': 'GitHub links an email after a tab, and micromark does not',
+	'gfm-autolink-literal:14': 'GitHub links an email after `:`, and micromark does not'
 };
 
 /** @prose
@@ -444,7 +441,7 @@ export function check(e: Example): Result {
  * still points at the right URL. Where GitHub links more than the oracle (`oracleDiffers`), only a
  * missed link fails.
  */
-function unwarnedUrls(markdown: string, doc: Document, github: boolean): string | null {
+export function unwarnedUrls(markdown: string, doc: Document, github: boolean): string | null {
 	const gfm = tokens(markdown).filter((t) => t.type === 'literalAutolink');
 	if (!gfm.length) return null;
 	const mine = doc.warnings.filter((w) => w.code === 'bare-url');

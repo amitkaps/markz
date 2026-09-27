@@ -31,7 +31,9 @@ against it where it has any.
   fences, with the suite's JSON, or `error` for a test marked `fail`. It is kept to what the
   `yaml` package reads as a mapping or rejects: top-level sequences and scalars (94) aren't
   metadata anywhere, and tests with document markers or directives (151) can't sit inside the
-  fences. That leaves 159.
+  fences. Of the 159 left, curation keeps valid blocks of plain `key: value` lines and the first
+  test of each YAML feature (anchors, tags, flow, block scalars, …): 29. The rest are in
+  [`../stress/`](../stress/).
 - `slugger.json`: [github-slugger](https://github.com/Flet/github-slugger/blob/3461c4350868329c8530904d170358bca1d31448/test/fixtures.json)
   (commit `3461c43`), GitHub's ids for 78 strings, also by `vendor.ts`. Each is a `#` heading with
   its ASCII punctuation escaped, and the harness puts each after the ones before it, so repeats
@@ -39,6 +41,7 @@ against it where it has any.
   heading's text is trimmed.
 - `gfm-autolink-literal.json`: the tests of
   [micromark-extension-gfm-autolink-literal](https://github.com/micromark/micromark-extension-gfm-autolink-literal/tree/618170c86639742036ecf666d975a6ebac5aac50/test)
-  (commit `618170c`), by `vendor.ts` as the other extensions are: 29 fixture sections and 24
+  (commit `618170c`), by `vendor.ts` as the other extensions are: 15 fixture sections and 24
   inline tests. markz cuts bare URLs, so these test the `bare-url` warning: one for each URL GFM
-  links, and none elsewhere. Left out: the three `disable.null` tests.
+  links, and none elsewhere. Left out: the three `disable.null` tests, and the fixtures that sweep
+  a character class, which are in [`../stress/`](../stress/).
