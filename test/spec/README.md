@@ -25,7 +25,10 @@ against it where it has any.
   directive suite's `options(…)` helper installs handlers, so its examples have none, and the
   oracle isn't checked against them. Left out: tests of an
   option that changes the syntax (`disable.null`, `singleTilde`, a TOML or custom matter), the fixture loops, whose input
-  isn't a literal, repeated inputs, and the 80,000-line `large.offline.md`, which belongs with step 15's stress tests.
+  isn't a literal, repeated inputs, and the 80,000-line `large.offline.md`, which belongs with step 15's stress tests. The
+  directive suite is curated to 156 of its 251: the name, label and attribute rules it repeats for
+  each kind of directive, and each directive next to a block form markz cuts, are in
+  [`../stress/`](../stress/).
 - `yaml.json`: the [yaml-test-suite](https://github.com/yaml/yaml-test-suite/tree/da267a5c4782e7361e82889e76c0dc7df0e1e870/src)
   (commit `da267a5`), also by `vendor.ts`. Each test, and each variant, is its YAML between `---`
   fences, with the suite's JSON, or `error` for a test marked `fail`. It is kept to what the

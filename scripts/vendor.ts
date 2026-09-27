@@ -308,6 +308,12 @@ function sluggerSuite(dir: string, dropped: string[]): Vendored[] {
  * - **gfm-autolink-literal:** the fixtures that sweep a character class (`http://` before each
  *   ASCII punctuation, each character before a URL, character references in a domain) go to
  *   stress; the hand-written fixtures and every inline test stay.
+ * - **directive:** the attribute grammar and the name and label rules are shared by all three
+ *   kinds, and the suite tests them in each. A test whose title an earlier group already used
+ *   stays only the first time, as does one that differs only in the character it names, and the
+ *   `content` group's repeats of attribute syntax (line breaks in `{…}`, `.a.b` shortcuts, single
+ *   quotes) go too. A directive before or after a block form markz cuts
+ *   (setext, indented code, definitions, HTML, `***`) tests that form, which its own row does.
  * - **yaml:** valid YAML that looks like plain metadata (`key: value` lines, blanks, comments) stays,
  *   and of the rest, a test stays while one of its feature tags (`anchor`, `flow`, `literal`, …)
  *   has none yet. Tags that say where a test comes from (`spec`, `1.3-err`) or what every
@@ -333,6 +339,11 @@ const YAML_FEATURES = new Set([
 	'indent',
 	'error'
 ]);
+const CUT_NEIGHBOUR =
+	/(?:code \(indented\)|a definition|heading \(setext\)|html|thematic break) (?:before|after) a/;
+const ATTRIBUTE_REPEAT =
+	/^content › should (?:not )?support (?:EOLs? .*|.*shortcuts.*|.*single(?: quoted)? attribute values)$/;
+
 const SWEEPS = /^(?:http|www)-(?:domain|path)-|-character-reference-like-|^previous-complex/;
 
 function curate(suite: string, examples: Vendored[]): [kept: Vendored[], stress: Vendored[]] {
@@ -342,6 +353,15 @@ function curate(suite: string, examples: Vendored[]): [kept: Vendored[], stress:
 	for (const e of examples) {
 		let keep = true;
 		if (suite === 'gfm-autolink-literal') keep = !SWEEPS.test(e.section);
+		if (suite === 'directive') {
+			// Variants that differ only in one character (`an empty shortcut (\`.\`)`) are one test.
+			const title = e.section
+				.split(' › ')
+				.at(-1)!
+				.replace(/ \(`[^`]*`\)$/, '');
+			keep = !seen.has(title) && !CUT_NEIGHBOUR.test(title) && !ATTRIBUTE_REPEAT.test(e.section);
+			seen.set(title, 1);
+		}
 		if (suite === 'yaml') {
 			const body = e.markdown.slice(4, -4);
 			const tags = (/\(([^)]*)\)$/.exec(e.section)?.[1]?.split(' ') ?? []).filter((t) =>

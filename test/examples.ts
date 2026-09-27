@@ -167,25 +167,20 @@ export const listed: Record<string, string> = {
 	// ASCII or starting with `_`. markz's is looser in one place: any character but a space, brace,
 	// quote or `=` may be in a name or value.
 	...Object.fromEntries(
-		[
-			36, 38, 41, 43, 44, 50, 53, 56, 57, 61, 65, 89, 96, 97, 150, 228, 232, 233, 234, 235, 236,
-			237, 238, 239, 240, 241, 242, 243
-		].map((n) => [`directive:${n}`, 'attributes'])
+		[36, 38, 41, 43, 44, 49, 52, 53, 57, 61].map((n) => [`directive:${n}`, 'attributes'])
 	),
 	// `:a{}` is a directive in markz; the oracle's handler can't tell it from a bare `:a`.
 	'directive:34': 'text-directive',
 	'directive:35': 'text-directive',
 	// micromark stops balancing a label's brackets at 32 levels; markz has no limit.
-	'directive:216': 'text-directive',
+	'directive:143': 'text-directive',
 	// A leaf or container name starts with a letter in markz, as a text directive's does.
-	...Object.fromEntries([70, 71, 131, 132].map((n) => [`directive:${n}`, 'directive'])),
-	// A container's label is plain text in markz.
-	'directive:144': 'directive',
+	...Object.fromEntries([66, 67, 93, 94].map((n) => [`directive:${n}`, 'directive'])),
 	// micromark's tight list drops the `<p>` inside a container directive in the item, too.
-	'directive:163': 'directive',
+	'directive:103': 'directive',
 	// `&apos;` in an attribute value, which the oracle shows as no reference token.
-	'directive:226': 'named-reference',
-	'directive:227': 'named-reference'
+	'directive:144': 'named-reference',
+	'directive:145': 'named-reference'
 };
 
 /** @prose
