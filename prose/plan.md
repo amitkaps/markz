@@ -287,9 +287,16 @@ custom-element name. The name is no longer a class, and classes come only from `
   keys and five bad names.
 - **Size.** 15.67 KB gzip, up from 15.12, most of it the two lists and the two messages.
 
-### 15. Traversal and position utilities
+### 15. Traversal and position utilities — done
 
-Public API, kept minimal: `parse`, `html`, `walk` (`enter`/`exit`), `textContent`, `position`. Lines are 1-based and columns are 0-based. Nothing else is exported until a consumer needs it.
+The public API is `parse`, `html`, `walk`, `textContent` and `position`, and nothing else is
+exported but `Document`, `NONE` and the types. `walk` (`src/walk.ts`) visits depth-first over the
+parent and sibling columns, with no recursion, so 20,000 nested blockquotes walk as easily as
+one; `enter` returning `false` skips a node's children. `textContent` is the text `html()` writes,
+as the DOM would read it back, including a container label only where `html()` writes one; the
+site's page titles and summaries use it. `position` (`src/position.ts`) converts offsets by binary
+search over line starts, with CRLF, LF and a lone CR each ending a line; lines are 1-based and
+columns 0-based. The README shows the whole API.
 
 ### 16. Robustness and fuzzing
 
