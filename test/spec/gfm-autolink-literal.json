@@ -43,276 +43,192 @@
  },
  {
   "example": 8,
-  "section": "domain-character-reference-like-named.md › “character reference”",
-  "markdown": "# “character reference”\n\nwww.a&b (space)\n\nwww.a&b!\n\nwww.a&b\"\n\nwww.a&b#\n\nwww.a&b$\n\nwww.a&b%\n\nwww.a&b&\n\nwww.a&b'\n\nwww.a&b(\n\nwww.a&b)\n\nwww.a&b*\n\nwww.a&b+\n\nwww.a&b,\n\nwww.a&b-\n\nwww.a&b\n\nwww.a&b.\n\nwww.a&b/\n\nwww.a&b:\n\nwww.a&b;\n\nwww.a&b<\n\nwww.a&b=\n\nwww.a&b>\n\nwww.a&b?\n\nwww.a&b@\n\nwww.a&b[\n\nwww.a&b\\\n\nwww.a&b]\n\nwww.a&b^\n\nwww.a&b_\n\nwww.a&b`\n\nwww.a&b{\n\nwww.a&b|\n\nwww.a&b}\n\nwww.a&b~\n",
-  "html": "<h1>“character reference”</h1>\n<p><a href=\"http://www.a&#x26;b\">www.a&#x26;b</a> (space)</p>\n<p><a href=\"http://www.a&#x26;b\">www.a&#x26;b</a>!</p>\n<p><a href=\"http://www.a&#x26;b\">www.a&#x26;b</a>\"</p>\n<p><a href=\"http://www.a&#x26;b#\">www.a&#x26;b#</a></p>\n<p><a href=\"http://www.a&#x26;b$\">www.a&#x26;b$</a></p>\n<p><a href=\"http://www.a&#x26;b%\">www.a&#x26;b%</a></p>\n<p><a href=\"http://www.a&#x26;b&#x26;\">www.a&#x26;b&#x26;</a></p>\n<p><a href=\"http://www.a&#x26;b\">www.a&#x26;b</a>'</p>\n<p><a href=\"http://www.a&#x26;b(\">www.a&#x26;b(</a></p>\n<p><a href=\"http://www.a&#x26;b\">www.a&#x26;b</a>)</p>\n<p><a href=\"http://www.a&#x26;b\">www.a&#x26;b</a>*</p>\n<p><a href=\"http://www.a&#x26;b+\">www.a&#x26;b+</a></p>\n<p><a href=\"http://www.a&#x26;b\">www.a&#x26;b</a>,</p>\n<p><a href=\"http://www.a&#x26;b-\">www.a&#x26;b-</a></p>\n<p><a href=\"http://www.a&#x26;b\">www.a&#x26;b</a></p>\n<p><a href=\"http://www.a&#x26;b\">www.a&#x26;b</a>.</p>\n<p><a href=\"http://www.a&#x26;b/\">www.a&#x26;b/</a></p>\n<p><a href=\"http://www.a&#x26;b\">www.a&#x26;b</a>:</p>\n<p><a href=\"http://www.a\">www.a</a>&#x26;b;</p>\n<p><a href=\"http://www.a&#x26;b\">www.a&#x26;b</a>&#x3C;</p>\n<p><a href=\"http://www.a&#x26;b=\">www.a&#x26;b=</a></p>\n<p><a href=\"http://www.a&#x26;b%3E\">www.a&#x26;b></a></p>\n<p><a href=\"http://www.a&#x26;b\">www.a&#x26;b</a>?</p>\n<p><a href=\"http://www.a&#x26;b@\">www.a&#x26;b@</a></p>\n<p><a href=\"http://www.a&#x26;b%5B\">www.a&#x26;b[</a></p>\n<p><a href=\"http://www.a&#x26;b%5C\">www.a&#x26;b\\</a></p>\n<p><a href=\"http://www.a&#x26;b%5D\">www.a&#x26;b]</a></p>\n<p><a href=\"http://www.a&#x26;b%5E\">www.a&#x26;b^</a></p>\n<p><a href=\"http://www.a&#x26;b\">www.a&#x26;b</a>_</p>\n<p><a href=\"http://www.a&#x26;b%60\">www.a&#x26;b`</a></p>\n<p><a href=\"http://www.a&#x26;b%7B\">www.a&#x26;b{</a></p>\n<p><a href=\"http://www.a&#x26;b%7C\">www.a&#x26;b|</a></p>\n<p><a href=\"http://www.a&#x26;b%7D\">www.a&#x26;b}</a></p>\n<p><a href=\"http://www.a&#x26;b\">www.a&#x26;b</a>~</p>\n"
- },
- {
-  "example": 9,
-  "section": "domain-character-reference-like-numerical.md › “character reference”",
-  "markdown": "# “character reference”\n\nwww.a&#35 (space)\n\nwww.a&#35!\n\nwww.a&#35\"\n\nwww.a&#35#\n\nwww.a&#35$\n\nwww.a&#35%\n\nwww.a&#35&\n\nwww.a&#35'\n\nwww.a&#35(\n\nwww.a&#35)\n\nwww.a&#35*\n\nwww.a&#35+\n\nwww.a&#35,\n\nwww.a&#35-\n\nwww.a&#35\n\nwww.a&#35.\n\nwww.a&#35/\n\nwww.a&#35:\n\nwww.a&#35;\n\nwww.a&#35<\n\nwww.a&#35=\n\nwww.a&#35>\n\nwww.a&#35?\n\nwww.a&#35@\n\nwww.a&#35[\n\nwww.a&#35\\\n\nwww.a&#35]\n\nwww.a&#35^\n\nwww.a&#35_\n\nwww.a&#35`\n\nwww.a&#35{\n\nwww.a&#35|\n\nwww.a&#35}\n\nwww.a&#35~\n",
-  "html": "<h1>“character reference”</h1>\n<p><a href=\"http://www.a&#x26;#35\">www.a&#x26;#35</a> (space)</p>\n<p><a href=\"http://www.a&#x26;#35\">www.a&#x26;#35</a>!</p>\n<p><a href=\"http://www.a&#x26;#35\">www.a&#x26;#35</a>\"</p>\n<p><a href=\"http://www.a&#x26;#35#\">www.a&#x26;#35#</a></p>\n<p><a href=\"http://www.a&#x26;#35$\">www.a&#x26;#35$</a></p>\n<p><a href=\"http://www.a&#x26;#35%\">www.a&#x26;#35%</a></p>\n<p><a href=\"http://www.a&#x26;#35&#x26;\">www.a&#x26;#35&#x26;</a></p>\n<p><a href=\"http://www.a&#x26;#35\">www.a&#x26;#35</a>'</p>\n<p><a href=\"http://www.a&#x26;#35(\">www.a&#x26;#35(</a></p>\n<p><a href=\"http://www.a&#x26;#35\">www.a&#x26;#35</a>)</p>\n<p><a href=\"http://www.a&#x26;#35\">www.a&#x26;#35</a>*</p>\n<p><a href=\"http://www.a&#x26;#35+\">www.a&#x26;#35+</a></p>\n<p><a href=\"http://www.a&#x26;#35\">www.a&#x26;#35</a>,</p>\n<p><a href=\"http://www.a&#x26;#35-\">www.a&#x26;#35-</a></p>\n<p><a href=\"http://www.a&#x26;#35\">www.a&#x26;#35</a></p>\n<p><a href=\"http://www.a&#x26;#35\">www.a&#x26;#35</a>.</p>\n<p><a href=\"http://www.a&#x26;#35/\">www.a&#x26;#35/</a></p>\n<p><a href=\"http://www.a&#x26;#35\">www.a&#x26;#35</a>:</p>\n<p><a href=\"http://www.a&#x26;#35\">www.a&#x26;#35</a>;</p>\n<p><a href=\"http://www.a&#x26;#35\">www.a&#x26;#35</a>&#x3C;</p>\n<p><a href=\"http://www.a&#x26;#35=\">www.a&#x26;#35=</a></p>\n<p><a href=\"http://www.a&#x26;#35%3E\">www.a&#x26;#35></a></p>\n<p><a href=\"http://www.a&#x26;#35\">www.a&#x26;#35</a>?</p>\n<p><a href=\"http://www.a&#x26;#35@\">www.a&#x26;#35@</a></p>\n<p><a href=\"http://www.a&#x26;#35%5B\">www.a&#x26;#35[</a></p>\n<p><a href=\"http://www.a&#x26;#35%5C\">www.a&#x26;#35\\</a></p>\n<p><a href=\"http://www.a&#x26;#35%5D\">www.a&#x26;#35]</a></p>\n<p><a href=\"http://www.a&#x26;#35%5E\">www.a&#x26;#35^</a></p>\n<p><a href=\"http://www.a&#x26;#35\">www.a&#x26;#35</a>_</p>\n<p><a href=\"http://www.a&#x26;#35%60\">www.a&#x26;#35`</a></p>\n<p><a href=\"http://www.a&#x26;#35%7B\">www.a&#x26;#35{</a></p>\n<p><a href=\"http://www.a&#x26;#35%7C\">www.a&#x26;#35|</a></p>\n<p><a href=\"http://www.a&#x26;#35%7D\">www.a&#x26;#35}</a></p>\n<p><a href=\"http://www.a&#x26;#35\">www.a&#x26;#35</a>~</p>\n"
- },
- {
-  "example": 10,
   "section": "email-tld-digits.md › ",
   "markdown": "a@0.0\n\na@0.b\n\na@a.29\n\na@a.b\n\na@0.0.c\n\nreact@0.11.1\n\nreact@0.12.0-rc1\n\nreact@0.14.0-alpha1\n\nreact@16.7.0-alpha.2\n\nreact@0.0.0-experimental-aae83a4b9\n\n[ react@0.11.1\n\n[ react@0.12.0-rc1\n\n[ react@0.14.0-alpha1\n\n[ react@16.7.0-alpha.2\n\n[ react@0.0.0-experimental-aae83a4b9\n",
   "html": "<p>a@0.0</p>\n<p><a href=\"mailto:a@0.b\">a@0.b</a></p>\n<p>a@a.29</p>\n<p><a href=\"mailto:a@a.b\">a@a.b</a></p>\n<p><a href=\"mailto:a@0.0.c\">a@0.0.c</a></p>\n<p>react@0.11.1</p>\n<p>react@0.12.0-rc1</p>\n<p>react@0.14.0-alpha1</p>\n<p>react@16.7.0-alpha.2</p>\n<p>react@0.0.0-experimental-aae83a4b9</p>\n<p>[ react@0.11.1</p>\n<p>[ react@0.12.0-rc1</p>\n<p>[ react@0.14.0-alpha1</p>\n<p>[ react@16.7.0-alpha.2</p>\n<p>[ react@0.0.0-experimental-aae83a4b9</p>\n"
  },
  {
-  "example": 11,
-  "section": "http-domain-continue.md › httpshhh? (2)",
-  "markdown": "# httpshhh? (2)\n\nhttp://a (space)\n\nhttp://a!\n\nhttp://a\"\n\nhttp://a#\n\nhttp://a$\n\nhttp://a%\n\nhttp://a&\n\nhttp://a'\n\nhttp://a(\n\nhttp://a)\n\nhttp://a*\n\nhttp://a+\n\nhttp://a,\n\nhttp://a-\n\nhttp://a\n\nhttp://a.\n\nhttp://a/\n\nhttp://a:\n\nhttp://a;\n\nhttp://a<\n\nhttp://a=\n\nhttp://a>\n\nhttp://a?\n\nhttp://a@\n\nhttp://a[\n\nhttp://a\\\n\nhttp://a]\n\nhttp://a^\n\nhttp://a_\n\nhttp://a`\n\nhttp://a{\n\nhttp://a|\n\nhttp://a}\n\nhttp://a~\n",
-  "html": "<h1>httpshhh? (2)</h1>\n<p><a href=\"http://a\">http://a</a> (space)</p>\n<p><a href=\"http://a\">http://a</a>!</p>\n<p><a href=\"http://a\">http://a</a>\"</p>\n<p><a href=\"http://a#\">http://a#</a></p>\n<p><a href=\"http://a$\">http://a$</a></p>\n<p><a href=\"http://a%\">http://a%</a></p>\n<p><a href=\"http://a&#x26;\">http://a&#x26;</a></p>\n<p><a href=\"http://a\">http://a</a>'</p>\n<p><a href=\"http://a(\">http://a(</a></p>\n<p><a href=\"http://a\">http://a</a>)</p>\n<p><a href=\"http://a\">http://a</a>*</p>\n<p><a href=\"http://a+\">http://a+</a></p>\n<p><a href=\"http://a\">http://a</a>,</p>\n<p><a href=\"http://a-\">http://a-</a></p>\n<p><a href=\"http://a\">http://a</a></p>\n<p><a href=\"http://a\">http://a</a>.</p>\n<p><a href=\"http://a/\">http://a/</a></p>\n<p><a href=\"http://a\">http://a</a>:</p>\n<p><a href=\"http://a\">http://a</a>;</p>\n<p><a href=\"http://a\">http://a</a>&#x3C;</p>\n<p><a href=\"http://a=\">http://a=</a></p>\n<p><a href=\"http://a%3E\">http://a></a></p>\n<p><a href=\"http://a\">http://a</a>?</p>\n<p><a href=\"http://a@\">http://a@</a></p>\n<p><a href=\"http://a%5B\">http://a[</a></p>\n<p><a href=\"http://a%5C\">http://a\\</a></p>\n<p><a href=\"http://a%5D\">http://a]</a></p>\n<p><a href=\"http://a%5E\">http://a^</a></p>\n<p><a href=\"http://a\">http://a</a>_</p>\n<p><a href=\"http://a%60\">http://a`</a></p>\n<p><a href=\"http://a%7B\">http://a{</a></p>\n<p><a href=\"http://a%7C\">http://a|</a></p>\n<p><a href=\"http://a%7D\">http://a}</a></p>\n<p><a href=\"http://a\">http://a</a>~</p>\n"
- },
- {
-  "example": 12,
-  "section": "http-domain-start.md › httpshhh? (1)",
-  "markdown": "# httpshhh? (1)\n\nhttp:// (space)\n\nhttp://!\n\nhttp://\"\n\nhttp://#\n\nhttp://$\n\nhttp://%\n\nhttp://&\n\nhttp://'\n\nhttp://(\n\nhttp://)\n\nhttp://*\n\nhttp://+\n\nhttp://,\n\nhttp://-\n\nhttp://\n\nhttp://.\n\nhttp:///\n\nhttp://:\n\nhttp://;\n\nhttp://<\n\nhttp://=\n\nhttp://>\n\nhttp://?\n\nhttp://@\n\nhttp://[\n\nhttp://\\\n\nhttp://]\n\nhttp://^\n\nhttp://_\n\nhttp://`\n\nhttp://{\n\nhttp://|\n\nhttp://}\n\nhttp://~\n",
-  "html": "<h1>httpshhh? (1)</h1>\n<p>http:// (space)</p>\n<p>http://!</p>\n<p>http://\"</p>\n<p>http://#</p>\n<p>http://$</p>\n<p>http://%</p>\n<p>http://&#x26;</p>\n<p>http://'</p>\n<p>http://(</p>\n<p>http://)</p>\n<p>http://*</p>\n<p>http://+</p>\n<p>http://,</p>\n<p>http://-</p>\n<p>http://</p>\n<p>http://.</p>\n<p>http:///</p>\n<p>http://:</p>\n<p>http://;</p>\n<p>http://&#x3C;</p>\n<p>http://=</p>\n<p>http://></p>\n<p>http://?</p>\n<p>http://@</p>\n<p>http://[</p>\n<p>http://\\</p>\n<p>http://]</p>\n<p>http://^</p>\n<p>http://_</p>\n<p>http://`</p>\n<p>http://{</p>\n<p>http://|</p>\n<p>http://}</p>\n<p>http://~</p>\n"
- },
- {
-  "example": 13,
-  "section": "http-path-continue.md › httpshhh? (4)",
-  "markdown": "# httpshhh? (4)\n\nhttp://a/b (space)\n\nhttp://a/b!\n\nhttp://a/b\"\n\nhttp://a/b#\n\nhttp://a/b$\n\nhttp://a/b%\n\nhttp://a/b&\n\nhttp://a/b'\n\nhttp://a/b(\n\nhttp://a/b)\n\nhttp://a/b*\n\nhttp://a/b+\n\nhttp://a/b,\n\nhttp://a/b-\n\nhttp://a/b\n\nhttp://a/b.\n\nhttp://a/b/\n\nhttp://a/b:\n\nhttp://a/b;\n\nhttp://a/b<\n\nhttp://a/b=\n\nhttp://a/b>\n\nhttp://a/b?\n\nhttp://a/b@\n\nhttp://a/b[\n\nhttp://a/b\\\n\nhttp://a/b]\n\nhttp://a/b^\n\nhttp://a/b_\n\nhttp://a/b`\n\nhttp://a/b{\n\nhttp://a/b|\n\nhttp://a/b}\n\nhttp://a/b~\n",
-  "html": "<h1>httpshhh? (4)</h1>\n<p><a href=\"http://a/b\">http://a/b</a> (space)</p>\n<p><a href=\"http://a/b\">http://a/b</a>!</p>\n<p><a href=\"http://a/b\">http://a/b</a>\"</p>\n<p><a href=\"http://a/b#\">http://a/b#</a></p>\n<p><a href=\"http://a/b$\">http://a/b$</a></p>\n<p><a href=\"http://a/b%\">http://a/b%</a></p>\n<p><a href=\"http://a/b&#x26;\">http://a/b&#x26;</a></p>\n<p><a href=\"http://a/b\">http://a/b</a>'</p>\n<p><a href=\"http://a/b(\">http://a/b(</a></p>\n<p><a href=\"http://a/b\">http://a/b</a>)</p>\n<p><a href=\"http://a/b\">http://a/b</a>*</p>\n<p><a href=\"http://a/b+\">http://a/b+</a></p>\n<p><a href=\"http://a/b\">http://a/b</a>,</p>\n<p><a href=\"http://a/b-\">http://a/b-</a></p>\n<p><a href=\"http://a/b\">http://a/b</a></p>\n<p><a href=\"http://a/b\">http://a/b</a>.</p>\n<p><a href=\"http://a/b/\">http://a/b/</a></p>\n<p><a href=\"http://a/b\">http://a/b</a>:</p>\n<p><a href=\"http://a/b\">http://a/b</a>;</p>\n<p><a href=\"http://a/b\">http://a/b</a>&#x3C;</p>\n<p><a href=\"http://a/b=\">http://a/b=</a></p>\n<p><a href=\"http://a/b%3E\">http://a/b></a></p>\n<p><a href=\"http://a/b\">http://a/b</a>?</p>\n<p><a href=\"http://a/b@\">http://a/b@</a></p>\n<p><a href=\"http://a/b%5B\">http://a/b[</a></p>\n<p><a href=\"http://a/b%5C\">http://a/b\\</a></p>\n<p><a href=\"http://a/b%5D\">http://a/b]</a></p>\n<p><a href=\"http://a/b%5E\">http://a/b^</a></p>\n<p><a href=\"http://a/b\">http://a/b</a>_</p>\n<p><a href=\"http://a/b%60\">http://a/b`</a></p>\n<p><a href=\"http://a/b%7B\">http://a/b{</a></p>\n<p><a href=\"http://a/b%7C\">http://a/b|</a></p>\n<p><a href=\"http://a/b%7D\">http://a/b}</a></p>\n<p><a href=\"http://a/b\">http://a/b</a>~</p>\n"
- },
- {
-  "example": 14,
-  "section": "http-path-start.md › httpshhh? (3)",
-  "markdown": "# httpshhh? (3)\n\nhttp://a/ (space)\n\nhttp://a/!\n\nhttp://a/\"\n\nhttp://a/#\n\nhttp://a/$\n\nhttp://a/%\n\nhttp://a/&\n\nhttp://a/'\n\nhttp://a/(\n\nhttp://a/)\n\nhttp://a/*\n\nhttp://a/+\n\nhttp://a/,\n\nhttp://a/-\n\nhttp://a/\n\nhttp://a/.\n\nhttp://a//\n\nhttp://a/:\n\nhttp://a/;\n\nhttp://a/<\n\nhttp://a/=\n\nhttp://a/>\n\nhttp://a/?\n\nhttp://a/@\n\nhttp://a/[\n\nhttp://a/\\\n\nhttp://a/]\n\nhttp://a/^\n\nhttp://a/_\n\nhttp://a/`\n\nhttp://a/{\n\nhttp://a/|\n\nhttp://a/}\n\nhttp://a/~\n",
-  "html": "<h1>httpshhh? (3)</h1>\n<p><a href=\"http://a/\">http://a/</a> (space)</p>\n<p><a href=\"http://a/\">http://a/</a>!</p>\n<p><a href=\"http://a/\">http://a/</a>\"</p>\n<p><a href=\"http://a/#\">http://a/#</a></p>\n<p><a href=\"http://a/$\">http://a/$</a></p>\n<p><a href=\"http://a/%\">http://a/%</a></p>\n<p><a href=\"http://a/&#x26;\">http://a/&#x26;</a></p>\n<p><a href=\"http://a/\">http://a/</a>'</p>\n<p><a href=\"http://a/(\">http://a/(</a></p>\n<p><a href=\"http://a/\">http://a/</a>)</p>\n<p><a href=\"http://a/\">http://a/</a>*</p>\n<p><a href=\"http://a/+\">http://a/+</a></p>\n<p><a href=\"http://a/\">http://a/</a>,</p>\n<p><a href=\"http://a/-\">http://a/-</a></p>\n<p><a href=\"http://a/\">http://a/</a></p>\n<p><a href=\"http://a/\">http://a/</a>.</p>\n<p><a href=\"http://a//\">http://a//</a></p>\n<p><a href=\"http://a/\">http://a/</a>:</p>\n<p><a href=\"http://a/\">http://a/</a>;</p>\n<p><a href=\"http://a/\">http://a/</a>&#x3C;</p>\n<p><a href=\"http://a/=\">http://a/=</a></p>\n<p><a href=\"http://a/%3E\">http://a/></a></p>\n<p><a href=\"http://a/\">http://a/</a>?</p>\n<p><a href=\"http://a/@\">http://a/@</a></p>\n<p><a href=\"http://a/%5B\">http://a/[</a></p>\n<p><a href=\"http://a/%5C\">http://a/\\</a></p>\n<p><a href=\"http://a/%5D\">http://a/]</a></p>\n<p><a href=\"http://a/%5E\">http://a/^</a></p>\n<p><a href=\"http://a/\">http://a/</a>_</p>\n<p><a href=\"http://a/%60\">http://a/`</a></p>\n<p><a href=\"http://a/%7B\">http://a/{</a></p>\n<p><a href=\"http://a/%7C\">http://a/|</a></p>\n<p><a href=\"http://a/%7D\">http://a/}</a></p>\n<p><a href=\"http://a/\">http://a/</a>~</p>\n"
- },
- {
-  "example": 15,
+  "example": 9,
   "section": "links-autolink-literals-and-characters.md › ",
   "markdown": "[www.example.com/a&copy;](#)\n\nwww.example.com/a&copy;\n\n[www.example.com/a&bogus;](#)\n\nwww.example.com/a&bogus;\n\n[www.example.com/a\\.](#)\n\nwww.example.com/a\\.\n",
   "html": "<p><a href=\"#\">www.example.com/a©</a></p>\n<p><a href=\"http://www.example.com/a\">www.example.com/a</a>©</p>\n<p><a href=\"#\">www.example.com/a&#x26;bogus;</a></p>\n<p><a href=\"http://www.example.com/a\">www.example.com/a</a>&#x26;bogus;</p>\n<p><a href=\"#\">www.example.com/a.</a></p>\n<p><a href=\"http://www.example.com/a%5C\">www.example.com/a\\</a>.</p>\n"
  },
  {
-  "example": 16,
-  "section": "path-character-reference-like-named.md › “character reference”",
-  "markdown": "# “character reference”\n\nwww.a/b&c (space)\n\nwww.a/b&c!\n\nwww.a/b&c\"\n\nwww.a/b&c#\n\nwww.a/b&c$\n\nwww.a/b&c%\n\nwww.a/b&c&\n\nwww.a/b&c'\n\nwww.a/b&c(\n\nwww.a/b&c)\n\nwww.a/b&c*\n\nwww.a/b&c+\n\nwww.a/b&c,\n\nwww.a/b&c-\n\nwww.a/b&c\n\nwww.a/b&c.\n\nwww.a/b&c/\n\nwww.a/b&c:\n\nwww.a/b&c;\n\nwww.a/b&c<\n\nwww.a/b&c=\n\nwww.a/b&c>\n\nwww.a/b&c?\n\nwww.a/b&c@\n\nwww.a/b&c[\n\nwww.a/b&c\\\n\nwww.a/b&c]\n\nwww.a/b&c^\n\nwww.a/b&c_\n\nwww.a/b&c`\n\nwww.a/b&c{\n\nwww.a/b&c|\n\nwww.a/b&c}\n\nwww.a/b&c~\n",
-  "html": "<h1>“character reference”</h1>\n<p><a href=\"http://www.a/b&#x26;c\">www.a/b&#x26;c</a> (space)</p>\n<p><a href=\"http://www.a/b&#x26;c\">www.a/b&#x26;c</a>!</p>\n<p><a href=\"http://www.a/b&#x26;c\">www.a/b&#x26;c</a>\"</p>\n<p><a href=\"http://www.a/b&#x26;c#\">www.a/b&#x26;c#</a></p>\n<p><a href=\"http://www.a/b&#x26;c$\">www.a/b&#x26;c$</a></p>\n<p><a href=\"http://www.a/b&#x26;c%\">www.a/b&#x26;c%</a></p>\n<p><a href=\"http://www.a/b&#x26;c&#x26;\">www.a/b&#x26;c&#x26;</a></p>\n<p><a href=\"http://www.a/b&#x26;c\">www.a/b&#x26;c</a>'</p>\n<p><a href=\"http://www.a/b&#x26;c(\">www.a/b&#x26;c(</a></p>\n<p><a href=\"http://www.a/b&#x26;c\">www.a/b&#x26;c</a>)</p>\n<p><a href=\"http://www.a/b&#x26;c\">www.a/b&#x26;c</a>*</p>\n<p><a href=\"http://www.a/b&#x26;c+\">www.a/b&#x26;c+</a></p>\n<p><a href=\"http://www.a/b&#x26;c\">www.a/b&#x26;c</a>,</p>\n<p><a href=\"http://www.a/b&#x26;c-\">www.a/b&#x26;c-</a></p>\n<p><a href=\"http://www.a/b&#x26;c\">www.a/b&#x26;c</a></p>\n<p><a href=\"http://www.a/b&#x26;c\">www.a/b&#x26;c</a>.</p>\n<p><a href=\"http://www.a/b&#x26;c/\">www.a/b&#x26;c/</a></p>\n<p><a href=\"http://www.a/b&#x26;c\">www.a/b&#x26;c</a>:</p>\n<p><a href=\"http://www.a/b\">www.a/b</a>&#x26;c;</p>\n<p><a href=\"http://www.a/b&#x26;c\">www.a/b&#x26;c</a>&#x3C;</p>\n<p><a href=\"http://www.a/b&#x26;c=\">www.a/b&#x26;c=</a></p>\n<p><a href=\"http://www.a/b&#x26;c%3E\">www.a/b&#x26;c></a></p>\n<p><a href=\"http://www.a/b&#x26;c\">www.a/b&#x26;c</a>?</p>\n<p><a href=\"http://www.a/b&#x26;c@\">www.a/b&#x26;c@</a></p>\n<p><a href=\"http://www.a/b&#x26;c%5B\">www.a/b&#x26;c[</a></p>\n<p><a href=\"http://www.a/b&#x26;c%5C\">www.a/b&#x26;c\\</a></p>\n<p><a href=\"http://www.a/b&#x26;c%5D\">www.a/b&#x26;c]</a></p>\n<p><a href=\"http://www.a/b&#x26;c%5E\">www.a/b&#x26;c^</a></p>\n<p><a href=\"http://www.a/b&#x26;c\">www.a/b&#x26;c</a>_</p>\n<p><a href=\"http://www.a/b&#x26;c%60\">www.a/b&#x26;c`</a></p>\n<p><a href=\"http://www.a/b&#x26;c%7B\">www.a/b&#x26;c{</a></p>\n<p><a href=\"http://www.a/b&#x26;c%7C\">www.a/b&#x26;c|</a></p>\n<p><a href=\"http://www.a/b&#x26;c%7D\">www.a/b&#x26;c}</a></p>\n<p><a href=\"http://www.a/b&#x26;c\">www.a/b&#x26;c</a>~</p>\n"
- },
- {
-  "example": 17,
-  "section": "path-character-reference-like-numerical.md › “character reference”",
-  "markdown": "# “character reference”\n\nwww.a/b&#35 (space)\n\nwww.a/b&#35!\n\nwww.a/b&#35\"\n\nwww.a/b&#35#\n\nwww.a/b&#35$\n\nwww.a/b&#35%\n\nwww.a/b&#35&\n\nwww.a/b&#35'\n\nwww.a/b&#35(\n\nwww.a/b&#35)\n\nwww.a/b&#35*\n\nwww.a/b&#35+\n\nwww.a/b&#35,\n\nwww.a/b&#35-\n\nwww.a/b&#35\n\nwww.a/b&#35.\n\nwww.a/b&#35/\n\nwww.a/b&#35:\n\nwww.a/b&#35;\n\nwww.a/b&#35<\n\nwww.a/b&#35=\n\nwww.a/b&#35>\n\nwww.a/b&#35?\n\nwww.a/b&#35@\n\nwww.a/b&#35[\n\nwww.a/b&#35\\\n\nwww.a/b&#35]\n\nwww.a/b&#35^\n\nwww.a/b&#35_\n\nwww.a/b&#35`\n\nwww.a/b&#35{\n\nwww.a/b&#35|\n\nwww.a/b&#35}\n\nwww.a/b&#35~\n",
-  "html": "<h1>“character reference”</h1>\n<p><a href=\"http://www.a/b&#x26;#35\">www.a/b&#x26;#35</a> (space)</p>\n<p><a href=\"http://www.a/b&#x26;#35\">www.a/b&#x26;#35</a>!</p>\n<p><a href=\"http://www.a/b&#x26;#35\">www.a/b&#x26;#35</a>\"</p>\n<p><a href=\"http://www.a/b&#x26;#35#\">www.a/b&#x26;#35#</a></p>\n<p><a href=\"http://www.a/b&#x26;#35$\">www.a/b&#x26;#35$</a></p>\n<p><a href=\"http://www.a/b&#x26;#35%\">www.a/b&#x26;#35%</a></p>\n<p><a href=\"http://www.a/b&#x26;#35&#x26;\">www.a/b&#x26;#35&#x26;</a></p>\n<p><a href=\"http://www.a/b&#x26;#35\">www.a/b&#x26;#35</a>'</p>\n<p><a href=\"http://www.a/b&#x26;#35(\">www.a/b&#x26;#35(</a></p>\n<p><a href=\"http://www.a/b&#x26;#35\">www.a/b&#x26;#35</a>)</p>\n<p><a href=\"http://www.a/b&#x26;#35\">www.a/b&#x26;#35</a>*</p>\n<p><a href=\"http://www.a/b&#x26;#35+\">www.a/b&#x26;#35+</a></p>\n<p><a href=\"http://www.a/b&#x26;#35\">www.a/b&#x26;#35</a>,</p>\n<p><a href=\"http://www.a/b&#x26;#35-\">www.a/b&#x26;#35-</a></p>\n<p><a href=\"http://www.a/b&#x26;#35\">www.a/b&#x26;#35</a></p>\n<p><a href=\"http://www.a/b&#x26;#35\">www.a/b&#x26;#35</a>.</p>\n<p><a href=\"http://www.a/b&#x26;#35/\">www.a/b&#x26;#35/</a></p>\n<p><a href=\"http://www.a/b&#x26;#35\">www.a/b&#x26;#35</a>:</p>\n<p><a href=\"http://www.a/b&#x26;#35\">www.a/b&#x26;#35</a>;</p>\n<p><a href=\"http://www.a/b&#x26;#35\">www.a/b&#x26;#35</a>&#x3C;</p>\n<p><a href=\"http://www.a/b&#x26;#35=\">www.a/b&#x26;#35=</a></p>\n<p><a href=\"http://www.a/b&#x26;#35%3E\">www.a/b&#x26;#35></a></p>\n<p><a href=\"http://www.a/b&#x26;#35\">www.a/b&#x26;#35</a>?</p>\n<p><a href=\"http://www.a/b&#x26;#35@\">www.a/b&#x26;#35@</a></p>\n<p><a href=\"http://www.a/b&#x26;#35%5B\">www.a/b&#x26;#35[</a></p>\n<p><a href=\"http://www.a/b&#x26;#35%5C\">www.a/b&#x26;#35\\</a></p>\n<p><a href=\"http://www.a/b&#x26;#35%5D\">www.a/b&#x26;#35]</a></p>\n<p><a href=\"http://www.a/b&#x26;#35%5E\">www.a/b&#x26;#35^</a></p>\n<p><a href=\"http://www.a/b&#x26;#35\">www.a/b&#x26;#35</a>_</p>\n<p><a href=\"http://www.a/b&#x26;#35%60\">www.a/b&#x26;#35`</a></p>\n<p><a href=\"http://www.a/b&#x26;#35%7B\">www.a/b&#x26;#35{</a></p>\n<p><a href=\"http://www.a/b&#x26;#35%7C\">www.a/b&#x26;#35|</a></p>\n<p><a href=\"http://www.a/b&#x26;#35%7D\">www.a/b&#x26;#35}</a></p>\n<p><a href=\"http://www.a/b&#x26;#35\">www.a/b&#x26;#35</a>~</p>\n"
- },
- {
-  "example": 18,
+  "example": 10,
   "section": "path-or-link-end.md › ",
   "markdown": "In autolink literal path or link end?\n\n[https://a.com/d]()\n\n[http://a.com/d]()\n\n[www.a.com/d]()\n\nhttps://a.com/d]()\n\nhttp://a.com/d]()\n\nwww.a.com/d]()\n\nIn autolink literal search or link end?\n\n[https://a.com?d]()\n\n[http://a.com?d]()\n\n[www.a.com?d]()\n\nhttps://a.com?d]()\n\nhttp://a.com?d]()\n\nwww.a.com?d]()\n\nIn autolink literal hash or link end?\n\n[https://a.com#d]()\n\n[http://a.com#d]()\n\n[www.a.com#d]()\n\nhttps://a.com#d]()\n\nhttp://a.com#d]()\n\nwww.a.com#d]()\n",
   "html": "<p>In autolink literal path or link end?</p>\n<p><a href=\"\">https://a.com/d</a></p>\n<p><a href=\"\">http://a.com/d</a></p>\n<p><a href=\"\">www.a.com/d</a></p>\n<p><a href=\"https://a.com/d%5D()\">https://a.com/d]()</a></p>\n<p><a href=\"http://a.com/d%5D()\">http://a.com/d]()</a></p>\n<p><a href=\"http://www.a.com/d%5D()\">www.a.com/d]()</a></p>\n<p>In autolink literal search or link end?</p>\n<p><a href=\"\">https://a.com?d</a></p>\n<p><a href=\"\">http://a.com?d</a></p>\n<p><a href=\"\">www.a.com?d</a></p>\n<p><a href=\"https://a.com?d%5D()\">https://a.com?d]()</a></p>\n<p><a href=\"http://a.com?d%5D()\">http://a.com?d]()</a></p>\n<p><a href=\"http://www.a.com?d%5D()\">www.a.com?d]()</a></p>\n<p>In autolink literal hash or link end?</p>\n<p><a href=\"\">https://a.com#d</a></p>\n<p><a href=\"\">http://a.com#d</a></p>\n<p><a href=\"\">www.a.com#d</a></p>\n<p><a href=\"https://a.com#d%5D()\">https://a.com#d]()</a></p>\n<p><a href=\"http://a.com#d%5D()\">http://a.com#d]()</a></p>\n<p><a href=\"http://www.a.com#d%5D()\">www.a.com#d]()</a></p>\n"
  },
  {
-  "example": 19,
-  "section": "previous-complex.comment.md › ",
-  "markdown": "Last non-markdown ASCII whitespace (FF): \fnoreply@example.com, \fhttp://example.com, \fhttps://example.com, \fwww.example.com\n\nLast non-whitespace ASCII control (US): \u001fnoreply@example.com, \u001fhttp://example.com, \u001fhttps://example.com, \u001fwww.example.com\n\nFirst punctuation after controls: !noreply@example.com, !http://example.com, !https://example.com, !www.example.com\n\nLast punctuation before digits: /noreply@example.com, /http://example.com, /https://example.com, /www.example.com\n\nFirst digit: 0noreply@example.com, 0http://example.com, 0https://example.com, 0www.example.com\n\nFirst punctuation after digits: :noreply@example.com, :http://example.com, :https://example.com, :www.example.com\n\nLast punctuation before caps: @noreply@example.com, @http://example.com, @https://example.com, @www.example.com\n\nFirst uppercase: Anoreply@example.com, Ahttp://example.com, Ahttps://example.com, Awww.example.com\n\nPunctuation after uppercase: \\noreply@example.com, \\http://example.com, \\https://example.com, \\www.example.com\n\nLast punctuation before lowercase (1): `noreply@example.com;\n\n(2) `http://example.com;\n\n(3) `https://example.com;\n\n(4) `www.example.com; (broken up to prevent code from forming)\n\nFirst lowercase: anoreply@example.com, ahttp://example.com, ahttps://example.com, awww.example.com\n\nFirst punctuation after lowercase: {noreply@example.com, {http://example.com, {https://example.com, {www.example.com\n\nLast punctuation: ~noreply@example.com, ~http://example.com, ~https://example.com, ~www.example.com\n\nFirst non-ASCII unicode whitespace (0x80): noreply@example.com, http://example.com, https://example.com, www.example.com\n\nLast non-ASCII unicode whitespace (0x3000): 　noreply@example.com, 　http://example.com, 　https://example.com, 　www.example.com\n\nFirst non-ASCII punctuation: ¡noreply@example.com, ¡http://example.com, ¡https://example.com, ¡www.example.com\n\nLast non-ASCII punctuation: ･noreply@example.com, ･http://example.com, ･https://example.com, ･www.example.com\n\nSome non-ascii: 中noreply@example.com, 中http://example.com, 中https://example.com, 中www.example.com\n\nSome more non-ascii: 🤷‍noreply@example.com, 🤷‍http://example.com, 🤷‍https://example.com, 🤷‍www.example.com\n",
-  "html": "<p>Last non-markdown ASCII whitespace (FF): \f<a href=\"mailto:noreply@example.com\">noreply@example.com</a>, \f<a href=\"http://example.com\">http://example.com</a>, \f<a href=\"https://example.com\">https://example.com</a>, \fwww.example.com</p>\n<p>Last non-whitespace ASCII control (US): �<a href=\"mailto:noreply@example.com\">noreply@example.com</a>, �<a href=\"http://example.com\">http://example.com</a>, �<a href=\"https://example.com\">https://example.com</a>, �www.example.com</p>\n<p>First punctuation after controls: !<a href=\"mailto:noreply@example.com\">noreply@example.com</a>, !<a href=\"http://example.com\">http://example.com</a>, !<a href=\"https://example.com\">https://example.com</a>, !www.example.com</p>\n<p>Last punctuation before digits: /<a href=\"mailto:noreply@example.com\">noreply@example.com</a>, /<a href=\"http://example.com\">http://example.com</a>, /<a href=\"https://example.com\">https://example.com</a>, /www.example.com</p>\n<p>First digit: <a href=\"mailto:0noreply@example.com\">0noreply@example.com</a>, 0<a href=\"http://example.com\">http://example.com</a>, 0<a href=\"https://example.com\">https://example.com</a>, 0www.example.com</p>\n<p>First punctuation after digits: :<a href=\"mailto:noreply@example.com\">noreply@example.com</a>, :<a href=\"http://example.com\">http://example.com</a>, :<a href=\"https://example.com\">https://example.com</a>, :www.example.com</p>\n<p>Last punctuation before caps: @<a href=\"mailto:noreply@example.com\">noreply@example.com</a>, @<a href=\"http://example.com\">http://example.com</a>, @<a href=\"https://example.com\">https://example.com</a>, @www.example.com</p>\n<p>First uppercase: <a href=\"mailto:Anoreply@example.com\">Anoreply@example.com</a>, Ahttp://example.com, Ahttps://example.com, Awww.example.com</p>\n<p>Punctuation after uppercase: \\<a href=\"mailto:noreply@example.com\">noreply@example.com</a>, \\<a href=\"http://example.com\">http://example.com</a>, \\<a href=\"https://example.com\">https://example.com</a>, \\www.example.com</p>\n<p>Last punctuation before lowercase (1): `<a href=\"mailto:noreply@example.com\">noreply@example.com</a>;</p>\n<p>(2) `<a href=\"http://example.com\">http://example.com</a>;</p>\n<p>(3) `<a href=\"https://example.com\">https://example.com</a>;</p>\n<p>(4) `www.example.com; (broken up to prevent code from forming)</p>\n<p>First lowercase: <a href=\"mailto:anoreply@example.com\">anoreply@example.com</a>, ahttp://example.com, ahttps://example.com, awww.example.com</p>\n<p>First punctuation after lowercase: {<a href=\"mailto:noreply@example.com\">noreply@example.com</a>, {<a href=\"http://example.com\">http://example.com</a>, {<a href=\"https://example.com\">https://example.com</a>, {www.example.com</p>\n<p>Last punctuation: ~<a href=\"mailto:noreply@example.com\">noreply@example.com</a>, ~<a href=\"http://example.com\">http://example.com</a>, ~<a href=\"https://example.com\">https://example.com</a>, ~<a href=\"http://www.example.com\">www.example.com</a></p>\n<p>First non-ASCII unicode whitespace (0x80): �<a href=\"mailto:noreply@example.com\">noreply@example.com</a>, �<a href=\"http://example.com\">http://example.com</a>, �<a href=\"https://example.com\">https://example.com</a>, �www.example.com</p>\n<p>Last non-ASCII unicode whitespace (0x3000): 　<a href=\"mailto:noreply@example.com\">noreply@example.com</a>, 　<a href=\"http://example.com\">http://example.com</a>, 　<a href=\"https://example.com\">https://example.com</a>, 　www.example.com</p>\n<p>First non-ASCII punctuation: ¡<a href=\"mailto:noreply@example.com\">noreply@example.com</a>, ¡<a href=\"http://example.com\">http://example.com</a>, ¡<a href=\"https://example.com\">https://example.com</a>, ¡www.example.com</p>\n<p>Last non-ASCII punctuation: ･<a href=\"mailto:noreply@example.com\">noreply@example.com</a>, ･<a href=\"http://example.com\">http://example.com</a>, ･<a href=\"https://example.com\">https://example.com</a>, ･www.example.com</p>\n<p>Some non-ascii: 中<a href=\"mailto:noreply@example.com\">noreply@example.com</a>, 中<a href=\"http://example.com\">http://example.com</a>, 中<a href=\"https://example.com\">https://example.com</a>, 中www.example.com</p>\n<p>Some more non-ascii: 🤷‍<a href=\"mailto:noreply@example.com\">noreply@example.com</a>, 🤷‍<a href=\"http://example.com\">http://example.com</a>, 🤷‍<a href=\"https://example.com\">https://example.com</a>, 🤷‍www.example.com</p>\n"
- },
- {
-  "example": 20,
+  "example": 11,
   "section": "previous.comment.md › HTTP",
   "markdown": "# HTTP\n\nhttps://a.b can start after EOF\n\nCan start after EOL:\nhttps://a.b\n\nCan start after tab:\thttps://a.b.\n\nCan start after space: https://a.b.\n\nCan start after left paren (https://a.b.\n\nCan start after asterisk *https://a.b.\n\nCan start after underscore *_https://a.b.\n\nCan start after tilde ~https://a.b.\n\n",
   "html": "<h1>HTTP</h1>\n<p><a href=\"https://a.b\">https://a.b</a> can start after EOF</p>\n<p>Can start after EOL:<br>\n<a href=\"https://a.b\">https://a.b</a></p>\n<p>Can start after tab:\t<a href=\"https://a.b\">https://a.b</a>.</p>\n<p>Can start after space: <a href=\"https://a.b\">https://a.b</a>.</p>\n<p>Can start after left paren (<a href=\"https://a.b\">https://a.b</a>.</p>\n<p>Can start after asterisk *<a href=\"https://a.b\">https://a.b</a>.</p>\n<p>Can start after underscore *_<a href=\"https://a.b\">https://a.b</a>.</p>\n<p>Can start after tilde ~<a href=\"https://a.b\">https://a.b</a>.</p>\n"
  },
  {
-  "example": 21,
+  "example": 12,
   "section": "previous.comment.md › www",
   "markdown": "# www\n\nwww.a.b can start after EOF\n\nCan start after EOL:\nwww.a.b\n\nCan start after tab:\twww.a.b.\n\nCan start after space: www.a.b.\n\nCan start after left paren (www.a.b.\n\nCan start after asterisk *www.a.b.\n\nCan start after underscore *_www.a.b.\n\nCan start after tilde ~www.a.b.\n\n",
   "html": "<h1>www</h1>\n<p><a href=\"http://www.a.b\">www.a.b</a> can start after EOF</p>\n<p>Can start after EOL:<br>\n<a href=\"http://www.a.b\">www.a.b</a></p>\n<p>Can start after tab:\t<a href=\"http://www.a.b\">www.a.b</a>.</p>\n<p>Can start after space: <a href=\"http://www.a.b\">www.a.b</a>.</p>\n<p>Can start after left paren (<a href=\"http://www.a.b\">www.a.b</a>.</p>\n<p>Can start after asterisk *<a href=\"http://www.a.b\">www.a.b</a>.</p>\n<p>Can start after underscore *_<a href=\"http://www.a.b\">www.a.b</a>.</p>\n<p>Can start after tilde ~<a href=\"http://www.a.b\">www.a.b</a>.</p>\n"
  },
  {
-  "example": 22,
+  "example": 13,
   "section": "previous.comment.md › Correct character before",
   "markdown": "## Correct character before\n\na@b.c can start after EOF\n\nCan start after EOL:\na@b.c\n\nCan start after tab:\ta@b.c.\n\nCan start after space: a@b.c.\n\nCan start after left paren(a@b.c.\n\nCan start after asterisk*a@b.c.\n\nWhile theoretically it’s possible to start at an underscore, that underscore\nis part of the email, so it’s in fact part of the link: _a@b.c.\n\nCan start after tilde~a@b.c.\n\n",
   "html": "<h2>Correct character before</h2>\n<p><a href=\"mailto:a@b.c\">a@b.c</a> can start after EOF</p>\n<p>Can start after EOL:<br>\n<a href=\"mailto:a@b.c\">a@b.c</a></p>\n<p>Can start after tab:\t<a href=\"mailto:a@b.c\">a@b.c</a>.</p>\n<p>Can start after space: <a href=\"mailto:a@b.c\">a@b.c</a>.</p>\n<p>Can start after left paren(<a href=\"mailto:a@b.c\">a@b.c</a>.</p>\n<p>Can start after asterisk*<a href=\"mailto:a@b.c\">a@b.c</a>.</p>\n<p>While theoretically it’s possible to start at an underscore, that underscore<br>\nis part of the email, so it’s in fact part of the link: <a href=\"mailto:_a@b.c\">_a@b.c</a>.</p>\n<p>Can start after tilde~<a href=\"mailto:a@b.c\">a@b.c</a>.</p>\n"
  },
  {
-  "example": 23,
+  "example": 14,
   "section": "previous.comment.md › Others characters before",
   "markdown": "## Others characters before\n\nWhile other characters before the email aren’t allowed by GFM, they work on\ngithub.com: !a@b.c, \"a@b.c, #a@b.c, $a@b.c, &a@b.c, 'a@b.c, )a@b.c, +a@b.c,\n,a@b.c, -a@b.c, .a@b.c, /a@b.c, :a@b.c, ;a@b.c, <a@b.c, =a@b.c, >a@b.c, ?a@b.c,\n@a@b.c, \\a@b.c, ]a@b.c, ^a@b.c, `a@b.c, {a@b.c, }a@b.c.\n\n",
   "html": "<h2>Others characters before</h2>\n<p>While other characters before the email aren’t allowed by GFM, they work on<br>\ngithub.com: !<a href=\"mailto:a@b.c\">a@b.c</a>, \"<a href=\"mailto:a@b.c\">a@b.c</a>, #<a href=\"mailto:a@b.c\">a@b.c</a>, $<a href=\"mailto:a@b.c\">a@b.c</a>, &#x26;<a href=\"mailto:a@b.c\">a@b.c</a>, '<a href=\"mailto:a@b.c\">a@b.c</a>, )<a href=\"mailto:a@b.c\">a@b.c</a>, <a href=\"mailto:+a@b.c\">+a@b.c</a>,<br>\n,<a href=\"mailto:a@b.c\">a@b.c</a>, <a href=\"mailto:-a@b.c\">-a@b.c</a>, <a href=\"mailto:.a@b.c\">.a@b.c</a>, /<a href=\"mailto:a@b.c\">a@b.c</a>, :<a href=\"mailto:a@b.c\">a@b.c</a>, ;<a href=\"mailto:a@b.c\">a@b.c</a>, &#x3C;<a href=\"mailto:a@b.c\">a@b.c</a>, =<a href=\"mailto:a@b.c\">a@b.c</a>, ><a href=\"mailto:a@b.c\">a@b.c</a>, ?<a href=\"mailto:a@b.c\">a@b.c</a>,<br>\n@<a href=\"mailto:a@b.c\">a@b.c</a>, \\<a href=\"mailto:a@b.c\">a@b.c</a>, ]<a href=\"mailto:a@b.c\">a@b.c</a>, ^<a href=\"mailto:a@b.c\">a@b.c</a>, `<a href=\"mailto:a@b.c\">a@b.c</a>, {<a href=\"mailto:a@b.c\">a@b.c</a>, }<a href=\"mailto:a@b.c\">a@b.c</a>.</p>\n"
  },
  {
-  "example": 24,
+  "example": 15,
   "section": "previous.comment.md › Commas",
   "markdown": "## Commas\n\nSee `https://github.com/remarkjs/remark/discussions/678`.\n\n,https://github.com\n\n[ ,https://github.com\n\n[asd] ,https://github.com\n",
   "html": "<h2>Commas</h2>\n<p>See <code class=\"notranslate\">https://github.com/remarkjs/remark/discussions/678</code>.</p>\n<p>,<a href=\"https://github.com\">https://github.com</a></p>\n<p>[ ,https://github.com</p>\n<p>[asd] ,<a href=\"https://github.com\">https://github.com</a></p>\n"
  },
  {
-  "example": 25,
-  "section": "www-domain-continue.md › wwwtf 2?",
-  "markdown": "# wwwtf 2?\n\nwww.a (space)\n\nwww.a!\n\nwww.a\"\n\nwww.a#\n\nwww.a$\n\nwww.a%\n\nwww.a&\n\nwww.a'\n\nwww.a(\n\nwww.a)\n\nwww.a*\n\nwww.a+\n\nwww.a,\n\nwww.a-\n\nwww.a\n\nwww.a.\n\nwww.a/\n\nwww.a:\n\nwww.a;\n\nwww.a<\n\nwww.a=\n\nwww.a>\n\nwww.a?\n\nwww.a@\n\nwww.a[\n\nwww.a\\\n\nwww.a]\n\nwww.a^\n\nwww.a_\n\nwww.a`\n\nwww.a{\n\nwww.a|\n\nwww.a}\n\nwww.a~\n",
-  "html": "<h1>wwwtf 2?</h1>\n<p><a href=\"http://www.a\">www.a</a> (space)</p>\n<p><a href=\"http://www.a\">www.a</a>!</p>\n<p><a href=\"http://www.a\">www.a</a>\"</p>\n<p><a href=\"http://www.a#\">www.a#</a></p>\n<p><a href=\"http://www.a$\">www.a$</a></p>\n<p><a href=\"http://www.a%\">www.a%</a></p>\n<p><a href=\"http://www.a&#x26;\">www.a&#x26;</a></p>\n<p><a href=\"http://www.a\">www.a</a>'</p>\n<p><a href=\"http://www.a(\">www.a(</a></p>\n<p><a href=\"http://www.a\">www.a</a>)</p>\n<p><a href=\"http://www.a\">www.a</a>*</p>\n<p><a href=\"http://www.a+\">www.a+</a></p>\n<p><a href=\"http://www.a\">www.a</a>,</p>\n<p><a href=\"http://www.a-\">www.a-</a></p>\n<p><a href=\"http://www.a\">www.a</a></p>\n<p><a href=\"http://www.a\">www.a</a>.</p>\n<p><a href=\"http://www.a/\">www.a/</a></p>\n<p><a href=\"http://www.a\">www.a</a>:</p>\n<p><a href=\"http://www.a\">www.a</a>;</p>\n<p><a href=\"http://www.a\">www.a</a>&#x3C;</p>\n<p><a href=\"http://www.a=\">www.a=</a></p>\n<p><a href=\"http://www.a%3E\">www.a></a></p>\n<p><a href=\"http://www.a\">www.a</a>?</p>\n<p><a href=\"http://www.a@\">www.a@</a></p>\n<p><a href=\"http://www.a%5B\">www.a[</a></p>\n<p><a href=\"http://www.a%5C\">www.a\\</a></p>\n<p><a href=\"http://www.a%5D\">www.a]</a></p>\n<p><a href=\"http://www.a%5E\">www.a^</a></p>\n<p><a href=\"http://www.a\">www.a</a>_</p>\n<p><a href=\"http://www.a%60\">www.a`</a></p>\n<p><a href=\"http://www.a%7B\">www.a{</a></p>\n<p><a href=\"http://www.a%7C\">www.a|</a></p>\n<p><a href=\"http://www.a%7D\">www.a}</a></p>\n<p><a href=\"http://www.a\">www.a</a>~</p>\n"
- },
- {
-  "example": 26,
-  "section": "www-domain-dot.md › wwwtf 5?",
-  "markdown": "# wwwtf 5?\n\nwww.a. (space)\n\nwww.a.!\n\nwww.a.\"\n\nwww.a.#\n\nwww.a.$\n\nwww.a.%\n\nwww.a.&\n\nwww.a.'\n\nwww.a.(\n\nwww.a.)\n\nwww.a.*\n\nwww.a.+\n\nwww.a.,\n\nwww.a.-\n\nwww.a.\n\nwww.a..\n\nwww.a./\n\nwww.a.:\n\nwww.a.;\n\nwww.a.<\n\nwww.a.=\n\nwww.a.>\n\nwww.a.?\n\nwww.a.@\n\nwww.a.[\n\nwww.a.\\\n\nwww.a.]\n\nwww.a.^\n\nwww.a._\n\nwww.a.`\n\nwww.a.{\n\nwww.a.|\n\nwww.a.}\n\nwww.a.~\n",
-  "html": "<h1>wwwtf 5?</h1>\n<p><a href=\"http://www.a\">www.a</a>. (space)</p>\n<p><a href=\"http://www.a\">www.a</a>.!</p>\n<p><a href=\"http://www.a\">www.a</a>.\"</p>\n<p><a href=\"http://www.a.#\">www.a.#</a></p>\n<p><a href=\"http://www.a.$\">www.a.$</a></p>\n<p><a href=\"http://www.a.%\">www.a.%</a></p>\n<p><a href=\"http://www.a.&#x26;\">www.a.&#x26;</a></p>\n<p><a href=\"http://www.a\">www.a</a>.'</p>\n<p><a href=\"http://www.a.(\">www.a.(</a></p>\n<p><a href=\"http://www.a\">www.a</a>.)</p>\n<p><a href=\"http://www.a\">www.a</a>.*</p>\n<p><a href=\"http://www.a.+\">www.a.+</a></p>\n<p><a href=\"http://www.a\">www.a</a>.,</p>\n<p><a href=\"http://www.a.-\">www.a.-</a></p>\n<p><a href=\"http://www.a\">www.a</a>.</p>\n<p><a href=\"http://www.a\">www.a</a>..</p>\n<p><a href=\"http://www.a./\">www.a./</a></p>\n<p><a href=\"http://www.a\">www.a</a>.:</p>\n<p><a href=\"http://www.a\">www.a</a>.;</p>\n<p><a href=\"http://www.a\">www.a</a>.&#x3C;</p>\n<p><a href=\"http://www.a.=\">www.a.=</a></p>\n<p><a href=\"http://www.a.%3E\">www.a.></a></p>\n<p><a href=\"http://www.a\">www.a</a>.?</p>\n<p><a href=\"http://www.a.@\">www.a.@</a></p>\n<p><a href=\"http://www.a.%5B\">www.a.[</a></p>\n<p><a href=\"http://www.a.%5C\">www.a.\\</a></p>\n<p><a href=\"http://www.a.%5D\">www.a.]</a></p>\n<p><a href=\"http://www.a.%5E\">www.a.^</a></p>\n<p><a href=\"http://www.a\">www.a</a>._</p>\n<p><a href=\"http://www.a.%60\">www.a.`</a></p>\n<p><a href=\"http://www.a.%7B\">www.a.{</a></p>\n<p><a href=\"http://www.a.%7C\">www.a.|</a></p>\n<p><a href=\"http://www.a.%7D\">www.a.}</a></p>\n<p><a href=\"http://www.a\">www.a</a>.~</p>\n"
- },
- {
-  "example": 27,
-  "section": "www-domain-start.comment.md › wwwtf?",
-  "markdown": "# wwwtf?\n\nwww. (space)\n\nwww.!\n\nwww.\"\n\nwww.#\n\nwww.$\n\nwww.%\n\nwww.&\n\nwww.'\n\nwww.(\n\nwww.)\n\nwww.*\n\nwww.+\n\nwww.,\n\nwww.-\n\nwww.\n\nwww..\n\nwww./\n\nwww.:\n\nwww.;\n\nwww.<\n\nwww.=\n\nwww.>\n\nwww.?\n\nwww.@\n\nwww.[\n\nwww.\\\n\nwww.]\n\nwww.^\n\nwww._\n\nwww.`\n\nwww.{\n\nwww.|\n\nwww.}\n\nwww.~\n",
-  "html": "<h1>wwwtf?</h1>\n<p><a href=\"http://www\">www</a>. (space)</p>\n<p><a href=\"http://www\">www</a>.!</p>\n<p><a href=\"http://www\">www</a>.\"</p>\n<p><a href=\"http://www.#\">www.#</a></p>\n<p><a href=\"http://www.$\">www.$</a></p>\n<p><a href=\"http://www.%\">www.%</a></p>\n<p><a href=\"http://www.&#x26;\">www.&#x26;</a></p>\n<p><a href=\"http://www\">www</a>.'</p>\n<p><a href=\"http://www.(\">www.(</a></p>\n<p><a href=\"http://www\">www</a>.)</p>\n<p><a href=\"http://www\">www</a>.*</p>\n<p><a href=\"http://www.+\">www.+</a></p>\n<p><a href=\"http://www\">www</a>.,</p>\n<p><a href=\"http://www.-\">www.-</a></p>\n<p>www.</p>\n<p><a href=\"http://www\">www</a>..</p>\n<p><a href=\"http://www./\">www./</a></p>\n<p><a href=\"http://www\">www</a>.:</p>\n<p><a href=\"http://www\">www</a>.;</p>\n<p><a href=\"http://www\">www</a>.&#x3C;</p>\n<p><a href=\"http://www.=\">www.=</a></p>\n<p><a href=\"http://www.%3E\">www.></a></p>\n<p><a href=\"http://www\">www</a>.?</p>\n<p><a href=\"http://www.@\">www.@</a></p>\n<p><a href=\"http://www.%5B\">www.[</a></p>\n<p><a href=\"http://www.%5C\">www.\\</a></p>\n<p><a href=\"http://www.%5D\">www.]</a></p>\n<p><a href=\"http://www.%5E\">www.^</a></p>\n<p><a href=\"http://www\">www</a>._</p>\n<p><a href=\"http://www.%60\">www.`</a></p>\n<p><a href=\"http://www.%7B\">www.{</a></p>\n<p><a href=\"http://www.%7C\">www.|</a></p>\n<p><a href=\"http://www.%7D\">www.}</a></p>\n<p><a href=\"http://www\">www</a>.~</p>\n"
- },
- {
-  "example": 28,
-  "section": "www-path-continue.comment.md › wwwtf? (4)",
-  "markdown": "# wwwtf? (4)\n\nwww.a/b (space)\n\nwww.a/b!\n\nwww.a/b\"\n\nwww.a/b#\n\nwww.a/b$\n\nwww.a/b%\n\nwww.a/b&\n\nwww.a/b'\n\nwww.a/b(\n\nwww.a/b)\n\nwww.a/b*\n\nwww.a/b+\n\nwww.a/b,\n\nwww.a/b-\n\nwww.a/b\n\nwww.a/b.\n\nwww.a/b/\n\nwww.a/b:\n\nwww.a/b;\n\nwww.a/b<\n\nwww.a/b=\n\nwww.a/b>\n\nwww.a/b?\n\nwww.a/b@\n\nwww.a/b[\n\nwww.a/b\\\n\nwww.a/b]\n\nwww.a/b^\n\nwww.a/b_\n\nwww.a/b`\n\nwww.a/b{\n\nwww.a/b|\n\nwww.a/b}\n\nwww.a/b~\n",
-  "html": "<h1>wwwtf? (4)</h1>\n<p><a href=\"http://www.a/b\">www.a/b</a> (space)</p>\n<p><a href=\"http://www.a/b\">www.a/b</a>!</p>\n<p><a href=\"http://www.a/b\">www.a/b</a>\"</p>\n<p><a href=\"http://www.a/b#\">www.a/b#</a></p>\n<p><a href=\"http://www.a/b$\">www.a/b$</a></p>\n<p><a href=\"http://www.a/b%\">www.a/b%</a></p>\n<p><a href=\"http://www.a/b&#x26;\">www.a/b&#x26;</a></p>\n<p><a href=\"http://www.a/b\">www.a/b</a>'</p>\n<p><a href=\"http://www.a/b(\">www.a/b(</a></p>\n<p><a href=\"http://www.a/b\">www.a/b</a>)</p>\n<p><a href=\"http://www.a/b\">www.a/b</a>*</p>\n<p><a href=\"http://www.a/b+\">www.a/b+</a></p>\n<p><a href=\"http://www.a/b\">www.a/b</a>,</p>\n<p><a href=\"http://www.a/b-\">www.a/b-</a></p>\n<p><a href=\"http://www.a/b\">www.a/b</a></p>\n<p><a href=\"http://www.a/b\">www.a/b</a>.</p>\n<p><a href=\"http://www.a/b/\">www.a/b/</a></p>\n<p><a href=\"http://www.a/b\">www.a/b</a>:</p>\n<p><a href=\"http://www.a/b\">www.a/b</a>;</p>\n<p><a href=\"http://www.a/b\">www.a/b</a>&#x3C;</p>\n<p><a href=\"http://www.a/b=\">www.a/b=</a></p>\n<p><a href=\"http://www.a/b%3E\">www.a/b></a></p>\n<p><a href=\"http://www.a/b\">www.a/b</a>?</p>\n<p><a href=\"http://www.a/b@\">www.a/b@</a></p>\n<p><a href=\"http://www.a/b%5B\">www.a/b[</a></p>\n<p><a href=\"http://www.a/b%5C\">www.a/b\\</a></p>\n<p><a href=\"http://www.a/b%5D\">www.a/b]</a></p>\n<p><a href=\"http://www.a/b%5E\">www.a/b^</a></p>\n<p><a href=\"http://www.a/b\">www.a/b</a>_</p>\n<p><a href=\"http://www.a/b%60\">www.a/b`</a></p>\n<p><a href=\"http://www.a/b%7B\">www.a/b{</a></p>\n<p><a href=\"http://www.a/b%7C\">www.a/b|</a></p>\n<p><a href=\"http://www.a/b%7D\">www.a/b}</a></p>\n<p><a href=\"http://www.a/b\">www.a/b</a>~</p>\n"
- },
- {
-  "example": 29,
-  "section": "www-path-start.comment.md › wwwtf? (3)",
-  "markdown": "# wwwtf? (3)\n\nwww.a/ (space)\n\nwww.a/!\n\nwww.a/\"\n\nwww.a/#\n\nwww.a/$\n\nwww.a/%\n\nwww.a/&\n\nwww.a/'\n\nwww.a/(\n\nwww.a/)\n\nwww.a/*\n\nwww.a/+\n\nwww.a/,\n\nwww.a/-\n\nwww.a/\n\nwww.a/.\n\nwww.a//\n\nwww.a/:\n\nwww.a/;\n\nwww.a/<\n\nwww.a/=\n\nwww.a/>\n\nwww.a/?\n\nwww.a/@\n\nwww.a/[\n\nwww.a/\\\n\nwww.a/]\n\nwww.a/^\n\nwww.a/_\n\nwww.a/`\n\nwww.a/{\n\nwww.a/|\n\nwww.a/}\n\nwww.a/~\n",
-  "html": "<h1>wwwtf? (3)</h1>\n<p><a href=\"http://www.a/\">www.a/</a> (space)</p>\n<p><a href=\"http://www.a/\">www.a/</a>!</p>\n<p><a href=\"http://www.a/\">www.a/</a>\"</p>\n<p><a href=\"http://www.a/#\">www.a/#</a></p>\n<p><a href=\"http://www.a/$\">www.a/$</a></p>\n<p><a href=\"http://www.a/%\">www.a/%</a></p>\n<p><a href=\"http://www.a/&#x26;\">www.a/&#x26;</a></p>\n<p><a href=\"http://www.a/\">www.a/</a>'</p>\n<p><a href=\"http://www.a/(\">www.a/(</a></p>\n<p><a href=\"http://www.a/\">www.a/</a>)</p>\n<p><a href=\"http://www.a/\">www.a/</a>*</p>\n<p><a href=\"http://www.a/+\">www.a/+</a></p>\n<p><a href=\"http://www.a/\">www.a/</a>,</p>\n<p><a href=\"http://www.a/-\">www.a/-</a></p>\n<p><a href=\"http://www.a/\">www.a/</a></p>\n<p><a href=\"http://www.a/\">www.a/</a>.</p>\n<p><a href=\"http://www.a//\">www.a//</a></p>\n<p><a href=\"http://www.a/\">www.a/</a>:</p>\n<p><a href=\"http://www.a/\">www.a/</a>;</p>\n<p><a href=\"http://www.a/\">www.a/</a>&#x3C;</p>\n<p><a href=\"http://www.a/=\">www.a/=</a></p>\n<p><a href=\"http://www.a/%3E\">www.a/></a></p>\n<p><a href=\"http://www.a/\">www.a/</a>?</p>\n<p><a href=\"http://www.a/@\">www.a/@</a></p>\n<p><a href=\"http://www.a/%5B\">www.a/[</a></p>\n<p><a href=\"http://www.a/%5C\">www.a/\\</a></p>\n<p><a href=\"http://www.a/%5D\">www.a/]</a></p>\n<p><a href=\"http://www.a/%5E\">www.a/^</a></p>\n<p><a href=\"http://www.a/\">www.a/</a>_</p>\n<p><a href=\"http://www.a/%60\">www.a/`</a></p>\n<p><a href=\"http://www.a/%7B\">www.a/{</a></p>\n<p><a href=\"http://www.a/%7C\">www.a/|</a></p>\n<p><a href=\"http://www.a/%7D\">www.a/}</a></p>\n<p><a href=\"http://www.a/\">www.a/</a>~</p>\n"
- },
- {
-  "example": 30,
+  "example": 16,
   "section": "micromark-extension-gfm-autolink-literal › should support a closing paren at TLD",
   "markdown": "www.a.)",
   "html": "<p><a href=\"http://www.a\">www.a</a>.)</p>"
  },
  {
-  "example": 31,
+  "example": 17,
   "section": "micromark-extension-gfm-autolink-literal › should support a no TLD",
   "markdown": "www.a b",
   "html": "<p><a href=\"http://www.a\">www.a</a> b</p>"
  },
  {
-  "example": 32,
+  "example": 18,
   "section": "micromark-extension-gfm-autolink-literal › should support a path instead of TLD",
   "markdown": "www.a/b c",
   "html": "<p><a href=\"http://www.a/b\">www.a/b</a> c</p>"
  },
  {
-  "example": 33,
+  "example": 19,
   "section": "micromark-extension-gfm-autolink-literal › should support a replacement character in a domain",
   "markdown": "www.�a",
   "html": "<p><a href=\"http://www.%EF%BF%BDa\">www.�a</a></p>"
  },
  {
-  "example": 34,
+  "example": 20,
   "section": "micromark-extension-gfm-autolink-literal › should support non-ascii characters in a domain (http)",
   "markdown": "http://點看.com",
   "html": "<p><a href=\"http://%E9%BB%9E%E7%9C%8B.com\">http://點看.com</a></p>"
  },
  {
-  "example": 35,
+  "example": 21,
   "section": "micromark-extension-gfm-autolink-literal › should *not* support non-ascii characters in atext (email)",
   "markdown": "點看@example.com",
   "html": "<p>點看@example.com</p>"
  },
  {
-  "example": 36,
+  "example": 22,
   "section": "micromark-extension-gfm-autolink-literal › should *not* support non-ascii characters in a domain (email)",
   "markdown": "example@點看.com",
   "html": "<p>example@點看.com</p>"
  },
  {
-  "example": 37,
+  "example": 23,
   "section": "micromark-extension-gfm-autolink-literal › should support non-ascii characters in a domain (www)",
   "markdown": "www.點看.com",
   "html": "<p><a href=\"http://www.%E9%BB%9E%E7%9C%8B.com\">www.點看.com</a></p>"
  },
  {
-  "example": 38,
+  "example": 24,
   "section": "micromark-extension-gfm-autolink-literal › should support non-ascii characters in a path",
   "markdown": "www.a.com/點看",
   "html": "<p><a href=\"http://www.a.com/%E9%BB%9E%E7%9C%8B\">www.a.com/點看</a></p>"
  },
  {
-  "example": 39,
+  "example": 25,
   "section": "micromark-extension-gfm-autolink-literal › should support a dash to start a domain",
   "markdown": "www.-a.b",
   "html": "<p><a href=\"http://www.-a.b\">www.-a.b</a></p>"
  },
  {
-  "example": 40,
+  "example": 26,
   "section": "micromark-extension-gfm-autolink-literal › should support a dollar as a domain name",
   "markdown": "www.$",
   "html": "<p><a href=\"http://www.$\">www.$</a></p>"
  },
  {
-  "example": 41,
+  "example": 27,
   "section": "micromark-extension-gfm-autolink-literal › should support adjacent dots in a domain name",
   "markdown": "www.a..b.c",
   "html": "<p><a href=\"http://www.a..b.c\">www.a..b.c</a></p>"
  },
  {
-  "example": 42,
+  "example": 28,
   "section": "micromark-extension-gfm-autolink-literal › should support named character references in domains",
   "markdown": "www.a&a;",
   "html": "<p><a href=\"http://www.a\">www.a</a>&amp;a;</p>"
  },
  {
-  "example": 43,
+  "example": 29,
   "section": "micromark-extension-gfm-autolink-literal › should support a closing paren and period after a path",
   "markdown": "https://a.bc/d/e/).",
   "html": "<p><a href=\"https://a.bc/d/e/\">https://a.bc/d/e/</a>).</p>"
  },
  {
-  "example": 44,
+  "example": 30,
   "section": "micromark-extension-gfm-autolink-literal › should support a period and closing paren after a path",
   "markdown": "https://a.bc/d/e/.)",
   "html": "<p><a href=\"https://a.bc/d/e/\">https://a.bc/d/e/</a>.)</p>"
  },
  {
-  "example": 45,
+  "example": 31,
   "section": "micromark-extension-gfm-autolink-literal › should support a closing paren and period after a domain",
   "markdown": "https://a.bc).",
   "html": "<p><a href=\"https://a.bc\">https://a.bc</a>).</p>"
  },
  {
-  "example": 46,
+  "example": 32,
   "section": "micromark-extension-gfm-autolink-literal › should support a period and closing paren after a domain",
   "markdown": "https://a.bc.)",
   "html": "<p><a href=\"https://a.bc\">https://a.bc</a>.)</p>"
  },
  {
-  "example": 47,
+  "example": 33,
   "section": "micromark-extension-gfm-autolink-literal › should support a closing paren and period in a path",
   "markdown": "https://a.bc).d",
   "html": "<p><a href=\"https://a.bc).d\">https://a.bc).d</a></p>"
  },
  {
-  "example": 48,
+  "example": 34,
   "section": "micromark-extension-gfm-autolink-literal › should support a period and closing paren in a path",
   "markdown": "https://a.bc.)d",
   "html": "<p><a href=\"https://a.bc.)d\">https://a.bc.)d</a></p>"
  },
  {
-  "example": 49,
+  "example": 35,
   "section": "micromark-extension-gfm-autolink-literal › should support two closing parens in a path",
   "markdown": "https://a.bc/))d",
   "html": "<p><a href=\"https://a.bc/))d\">https://a.bc/))d</a></p>"
  },
  {
-  "example": 50,
+  "example": 36,
   "section": "micromark-extension-gfm-autolink-literal › should not support ftp links",
   "markdown": "ftp://a/b/c.txt",
   "html": "<p>ftp://a/b/c.txt</p>"
  },
  {
-  "example": 51,
+  "example": 37,
   "section": "micromark-extension-gfm-autolink-literal › should support http links after Unicode punctuation",
   "markdown": "，https://example.com",
   "html": "<p>，<a href=\"https://example.com\">https://example.com</a></p>"
  },
  {
-  "example": 52,
+  "example": 38,
   "section": "micromark-extension-gfm-autolink-literal › should support email links after Unicode punctuation",
   "markdown": "，example@example.com",
   "html": "<p>，<a href=\"mailto:example@example.com\">example@example.com</a></p>"
  },
  {
-  "example": 53,
+  "example": 39,
   "section": "micromark-extension-gfm-autolink-literal › should not link character reference for `:`",
   "markdown": "http&#x3A;//user:password@host:port/path?key=value#fragment",
   "html": "<p>http://user:password@host:port/path?key=value#fragment</p>"

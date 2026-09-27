@@ -296,6 +296,68 @@ function sluggerSuite(dir: string, dropped: string[]): Vendored[] {
 	return out;
 }
 
+/** @prose
+ * ## Curation
+ *
+ * A suite is vendored for the decisions markz makes, not for its size. Most of an extension's
+ * suite exercises a form markz supports and is kept whole; where a suite enumerates variants of a
+ * form markz cuts or doesn't read, a few of each stand for the rest. What curation leaves out goes
+ * to `test/stress/`, where it is only checked not to hang, throw or lose a link silently, and stays
+ * off the Conformance page.
+ *
+ * - **gfm-autolink-literal:** the fixtures that sweep a character class (`http://` before each
+ *   ASCII punctuation, each character before a URL, character references in a domain) go to
+ *   stress; the hand-written fixtures and every inline test stay.
+ * - **yaml:** valid YAML that looks like plain metadata (`key: value` lines, blanks, comments) stays,
+ *   and of the rest, a test stays while one of its feature tags (`anchor`, `flow`, `literal`, …)
+ *   has none yet. Tags that say where a test comes from (`spec`, `1.3-err`) or what every
+ *   test has (`mapping`, `whitespace`) don't count.
+ */
+const YAML_FEATURES = new Set([
+	'alias',
+	'anchor',
+	'tag',
+	'local-tag',
+	'unknown-tag',
+	'flow',
+	'sequence',
+	'literal',
+	'folded',
+	'explicit-key',
+	'complex-key',
+	'empty-key',
+	'duplicate-key',
+	'double',
+	'single',
+	'comment',
+	'indent',
+	'error'
+]);
+const SWEEPS = /^(?:http|www)-(?:domain|path)-|-character-reference-like-|^previous-complex/;
+
+function curate(suite: string, examples: Vendored[]): [kept: Vendored[], stress: Vendored[]] {
+	const kept: Vendored[] = [];
+	const stress: Vendored[] = [];
+	const seen = new Map<string, number>();
+	for (const e of examples) {
+		let keep = true;
+		if (suite === 'gfm-autolink-literal') keep = !SWEEPS.test(e.section);
+		if (suite === 'yaml') {
+			const body = e.markdown.slice(4, -4);
+			const tags = (/\(([^)]*)\)$/.exec(e.section)?.[1]?.split(' ') ?? []).filter((t) =>
+				YAML_FEATURES.has(t)
+			);
+			keep =
+				(e.html !== 'error' &&
+					body.split('\n').every((l) => /^(?:[\w-]+:(?: .*)?|\s*(?:#.*)?)$/.test(l))) ||
+				tags.some((t) => !seen.has(t));
+			if (keep) for (const t of tags) seen.set(t, (seen.get(t) ?? 0) + 1);
+		}
+		(keep ? kept : stress).push(e);
+	}
+	return [kept, stress];
+}
+
 const [suite, dir] = process.argv.slice(2);
 if (!suite || !dir) throw new Error('usage: node scripts/vendor.ts <suite> <clone>');
 const dropped: string[] = [];
@@ -312,10 +374,15 @@ const kept =
 	suite === 'slugger'
 		? examples
 		: examples.filter((e) => !seen.has(e.markdown) && seen.add(e.markdown));
-kept.forEach((e, i) => (e.example = i + 1));
-writeFileSync(`test/spec/${suite}.json`, JSON.stringify(kept, null, 1) + '\n');
+const [conformance, stress] = curate(suite, kept);
+conformance.forEach((e, i) => (e.example = i + 1));
+stress.forEach((e, i) => (e.example = i + 1));
+writeFileSync(`test/spec/${suite}.json`, JSON.stringify(conformance, null, 1) + '\n');
+if (stress.length) {
+	writeFileSync(`test/stress/${suite}.json`, JSON.stringify(stress, null, 1) + '\n');
+}
 const commit = execFileSync('git', ['-C', dir, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 console.log(
-	`${suite} at ${commit}: ${kept.length} examples, ${examples.length - kept.length} duplicate inputs`
+	`${suite} at ${commit}: ${conformance.length} examples, ${stress.length} to stress, ${examples.length - kept.length} duplicate inputs`
 );
 for (const d of dropped) console.log(`  dropped ${d}`);

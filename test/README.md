@@ -17,5 +17,8 @@ Tests that span the package rather than one module.
   [`grammar.test.ts`](grammar.test.ts) holds the grammar to itself and to `syntax.md`;
   [`oracle.test.ts`](oracle.test.ts) checks the oracle itself.
 - [`tree.ts`](tree.ts): the tree invariants every document must satisfy.
+- [`stress/`](stress/) and [`stress.test.ts`](stress.test.ts): upstream examples kept off the
+  Conformance page, held only to finishing, not throwing, a valid tree and a warning for every
+  bare URL GFM links.
 
 Unit tests of offsets and node data live next to their module in `src/`.
