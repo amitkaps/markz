@@ -13,6 +13,20 @@ Main to
 Main to</p>
 ```
 
+Only a `-`, `*`, `+` or `1.` item interrupts a paragraph, so `2.` goes on with it.
+
+```example ambiguous item-interrupts
+a
+2. b
+- c
+.
+<p>a
+2. b</p>
+<ul>
+<li>c</li>
+</ul>
+```
+
 ## heading
 
 Every heading gets an id: `{#id}` on the line above, or GitHub's slug numbered past the ids already used.
@@ -51,6 +65,20 @@ Every heading gets an id: `{#id}` on the line above, or GitHub's slug numbered p
 <h2 id="hello-world">Hello <em>world</em></h2>
 ```
 
+A closing run of `#`s needs a space before it; otherwise, or escaped, it is content.
+
+```example ambiguous closing-hashes
+# a #
+
+# b#
+
+# c \#
+.
+<h1 id="a">a</h1>
+<h1 id="b">b#</h1>
+<h1 id="c-">c #</h1>
+```
+
 ## blockquote
 
 ```example
@@ -64,6 +92,20 @@ Every heading gets an id: `{#id}` on the line above, or GitHub's slug numbered p
 b</p>
 <p>c</p>
 </blockquote>
+```
+
+A line without `>` ends the blockquote when it opens a block of its own.
+
+```example ambiguous quote-lines
+> a
+- b
+.
+<blockquote>
+<p>a</p>
+</blockquote>
+<ul>
+<li>b</li>
+</ul>
 ```
 
 ## list
@@ -91,7 +133,7 @@ b</p>
 </ul>
 ```
 
-```example
+```example ambiguous same-marker
 1) one
 2) two
 
@@ -108,7 +150,7 @@ b</p>
 
 ## code-block
 
-`````example
+`````example ambiguous fence-length
 ````md
 ```js
 x
@@ -121,7 +163,7 @@ x
 </code></pre>
 `````
 
-````example
+````example unclosed
 > ```
 > a
 b
@@ -167,6 +209,13 @@ b
 <b>hi</b>
 ````
 
+````example unclosed
+```=html
+<b>
+.
+<b>
+````
+
 ## math-block
 
 ```example
@@ -184,6 +233,28 @@ $$E=mc^2$$
 .
 <p>Mass and energy:</p>
 <pre><code class="language-math math-display">E=mc^2
+</code></pre>
+```
+
+On one line, the TeX must hold more than spaces.
+
+```example ambiguous math-one-line
+$$x$$
+
+$$ $$
+.
+<pre><code class="language-math math-display">x
+</code></pre>
+<p>$$ $$</p>
+.
+$$ $$
+```
+
+```example unclosed
+$$
+x
+.
+<pre><code class="language-math math-display">x
 </code></pre>
 ```
 
@@ -260,12 +331,24 @@ A row indented four columns ends the table, and under a paragraph it is never a 
 | b |
 ```
 
-```example
+```example ambiguous table-header
 | a |
     | - |
 .
 <p>| a |
 | - |</p>
+```
+
+A delimiter row that opens another block is that block.
+
+```example ambiguous table-header
+| a |
+- | -
+.
+<p>| a |</p>
+<ul>
+<li>| -</li>
+</ul>
 ```
 
 ```example
@@ -298,6 +381,14 @@ b
 <p>a</p>
 <hr />
 <p>b</p>
+```
+
+A thematic break is tried before a list item.
+
+```example ambiguous block-order
+- - -
+.
+<hr />
 ```
 
 ## directive
@@ -370,7 +461,7 @@ x
 </aside>
 ```
 
-```example
+```example ambiguous directive-close
 ::::div
 :::div
 x
@@ -384,7 +475,7 @@ y
 </div>
 ```
 
-```example
+```example unclosed
 :::div
 :::div
 x
@@ -440,7 +531,7 @@ para
 Bare keys alone count only after a directive, link or image. On a line or after a word they are
 prose, with no warning.
 
-```example
+```example ambiguous attribute-boolean
 {year}
 
 ## Sets {a}
@@ -508,6 +599,16 @@ para
 {.x}
 ```
 
+An unclosed `{` is text, reported only when a later line closes it.
+
+```example unclosed
+{.a
+para
+.
+<p>{.a
+para</p>
+```
+
 ```example
 {a, b} and {"json": 1}
 .
@@ -541,13 +642,21 @@ para
 <!-- a -->
 ```
 
-```example
+```example ambiguous comment-close
 <!-- a
 b --> c
 .
 
 .
  c
+```
+
+```example unclosed
+<!-- a
+
+b
+.
+
 ```
 
 ```example

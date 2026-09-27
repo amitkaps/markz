@@ -3,7 +3,8 @@
  *
  * Documents built from the dialect's own grammar, so the fuzzer writes what an author could, not
  * only noise. Each production in `grammar.ts` becomes a fast-check arbitrary: a literal is itself,
- * a sequence joins its parts, an alternative picks one, and a repeat takes up to three. Recursion
+ * a sequence joins its parts, an alternative picks one, and a repeat takes up to three (or
+ * `repeats`). Recursion
  * stops at a fixed depth by taking an alternative's first option, which the grammar lists first
  * because it is the plainest (`paragraph` for a block, `text` for an inline). fast-check shrinks
  * a failing document along the same structure, so a failure comes back as the smallest document
@@ -31,10 +32,12 @@ export interface Options {
 	alphabet: string;
 	/** How deep productions may nest before each alternative takes its first option. */
 	depth?: number;
+	/** How many times a `*` or `+` may repeat. */
+	repeats?: number;
 }
 
 export function grammarDocument(options: Options, start = 'document'): fc.Arbitrary<string> {
-	const { origins, alphabet, depth = 5 } = options;
+	const { origins, alphabet, depth = 5, repeats = 3 } = options;
 	const allowed = (name: string) => {
 		const p = PRODUCTIONS.get(name);
 		const c = p?.construct ? construct(p.construct) : undefined;
@@ -70,7 +73,7 @@ export function grammarDocument(options: Options, start = 'document'): fc.Arbitr
 					return fc
 						.array(item, {
 							minLength: expr.op === '+' ? 1 : 0,
-							maxLength: 3,
+							maxLength: repeats,
 							depthIdentifier: 'grammar'
 						})
 						.map((p) => p.join(''));

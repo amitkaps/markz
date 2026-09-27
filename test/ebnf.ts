@@ -2,7 +2,8 @@
  * # EBNF
  *
  * The notation `grammar.ts` is written in, read into a tree so the grammar can be checked (every
- * name defined, every production reachable) and, from step 16, generate documents. It is the W3C
+ * name defined, every production reachable), generate documents (step 16) and judge them (step
+ * 18: `recognizer`). It is the W3C
  * notation of the XML spec, kept small: `name ::= expression`, `|` for alternatives, juxtaposition
  * for sequence, `?`, `*` and `+`, parentheses, `'literal'` or `"literal"`, `#xA` for a character by
  * code point, and `[a-z]` or `[^…]` for a character class, which may hold `#x…` too.
@@ -140,6 +141,80 @@ function parse(source: string, name: string): Expr {
 	const expr = alt();
 	if (i < source.length) fail('unexpected )');
 	return expr;
+}
+
+/** @prose
+ * ## Recognizing
+ *
+ * Whether a string is a production, so the grammar can judge a case on its own rather than only
+ * write one. Every way to read each part is kept, as a set of where it may end, so an ambiguous
+ * grammar needs no backtracking, and each name's ends are remembered by where it starts. A repeat
+ * stops when an item matches nothing, so a `*` over something that may be empty still ends.
+ */
+export function recognizer(
+	defined: ReadonlyMap<string, { expr: Expr }>
+): (name: string, text: string) => boolean {
+	return (name, text) => {
+		const memo = new Map<string, number[]>();
+		const ends = (expr: Expr, at: number): number[] => {
+			switch (expr.kind) {
+				case 'name': {
+					const key = `${expr.name}@${at}`;
+					let found = memo.get(key);
+					if (found) return found;
+					// A name reached again at the same place, before it has ends, reads nothing there.
+					memo.set(key, []);
+					const p = defined.get(expr.name);
+					if (!p) throw new Error(`no production ${expr.name}`);
+					found = ends(p.expr, at);
+					memo.set(key, found);
+					return found;
+				}
+				case 'literal':
+					return text.startsWith(expr.text, at) ? [at + expr.text.length] : [];
+				case 'class': {
+					const code = text.codePointAt(at);
+					if (code === undefined) return [];
+					const inside = expr.ranges.some(([a, b]) => code >= a && code <= b);
+					return inside === expr.negated ? [] : [at + (code > 0xffff ? 2 : 1)];
+				}
+				case 'seq': {
+					let from = [at];
+					for (const item of expr.items) {
+						from = [...new Set(from.flatMap((f) => ends(item, f)))];
+						if (!from.length) break;
+					}
+					return from;
+				}
+				case 'alt':
+					return [...new Set(expr.options.flatMap((o) => ends(o, at)))];
+				case 'repeat': {
+					const out = new Set(expr.op === '+' ? [] : [at]);
+					if (expr.op === '?') {
+						for (const e of ends(expr.item, at)) out.add(e);
+						return [...out];
+					}
+					let frontier = [at];
+					const seen = new Set(frontier);
+					while (frontier.length) {
+						const next: number[] = [];
+						for (const f of frontier) {
+							for (const e of ends(expr.item, f)) {
+								out.add(e);
+								if (!seen.has(e)) {
+									seen.add(e);
+									next.push(e);
+								}
+							}
+						}
+						frontier = next;
+					}
+					return [...out];
+				}
+			}
+		};
+		return ends({ kind: 'name', name }, 0).includes(text.length);
+	};
 }
 
 /** Every name an expression refers to. */

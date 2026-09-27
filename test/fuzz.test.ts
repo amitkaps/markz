@@ -58,8 +58,9 @@ describe('the oracle', () => {
 			const shared = grammarDocument({ origins: ['CommonMark', 'GFM'], alphabet: 'ab ' });
 			fc.assert(
 				fc.property(shared, (markdown) => {
-					// `\ ` is markz's non-breaking space, from djot, which the escape grammar lists.
-					fc.pre(!markdown.includes('\\ '));
+					// `\ ` is markz's non-breaking space, from djot, and a `\` before a line's trailing
+					// spaces or tabs is a hard break, both of which the escape and line-break grammar list.
+					fc.pre(!/\\[ \t]/.test(markdown));
 					const doc = parse(markdown);
 					// A cut form holds by its warning: markz reads it differently on purpose, and says so.
 					if (doc.warnings.some((w) => row(w.code))) return;

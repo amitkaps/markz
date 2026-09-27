@@ -35,6 +35,17 @@ a <b>c</b> and <!-- x -->
 </about>
 ```
 
+`<!-->` and `<!--->` are whole comments, as in CommonMark, so they are raw HTML too.
+
+```example near-miss
+<!-->b and a <!---> c
+.
+<p>&lt;!--&gt;b and a &lt;!---&gt; c</p>
+.
+<!-->
+<!--->
+```
+
 ## setext-heading
 
 ```example

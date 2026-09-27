@@ -382,42 +382,48 @@ What the first runs found:
   speeds, which is why each side is now its fastest run and a non-positive difference is
   recorded as unmeasurable. The published numbers wait for a full run on a quiet machine.
 
-### 18. Cases by construct
+### 18. Cases by construct — done
 
-Every construct is held to its edges, not only to its examples. The fuzzer checks that any
-document is sound, and the adversarial patterns that each failure mode is linear, but nothing
-checks that each construct has been tried at its boundaries, next to its near misses and where
-it competes with another. Those are correctness cases, and most can come from the grammar.
+Every construct is held to its edges, with the grammar as the judge (`test/cases.ts`).
+`ebnf.ts` gained a recognizer, so the grammar can say whether a string is a construct as well as
+write one. Each construct's productions write valid cases, and every one-character edit of them
+is a neighbour: a boundary case if the grammar still accepts it, a near miss if not. markz must
+read each exactly when the grammar does, with the node its delimiters decide (a heading's depth,
+`**` as strong, `!` as an image). Where they part, the case is settled by a Not supported row's
+warning, by a construct warning mapped to its side rule, or by a side rule's own test, and an
+unsettled case fails. The two edges the productions can't write, ambiguous and unclosed, are
+dialect examples labelled in their info string (`example ambiguous block-order`), and each
+construct has one of each or a reason it can't. `constructs.bench.ts` times one construct at a
+time.
 
-- **A registry.** Each construct in `test/grammar.ts` files cases under five categories:
-  - _valid_;
-  - _boundary_: its minimum and maximum, such as one and six `#`;
-  - _near miss_: one step outside, such as seven `#`, `#x` or `==html`;
-  - _ambiguous_: where it competes with another reading;
-  - _unclosed_: where it can be left open.
+What it found:
 
-  A test fails when a construct lacks a category, unless it says why that category doesn't
-  apply ("a thematic break can't be unclosed"), as a Not supported row does.
+- **The grammar was wrong where markz was right**, and is now fixed:
+  - trailing spaces after a fence, and a space before a raw block's `=`;
+  - a table row ending in spaces or a lone `\`;
+  - a link destination holding `<`, a line ending in a link's target, and a title only after a
+    destination;
+  - a link's text or a text directive's label starting at a line ending;
+  - `\ ⏎` as a hard break;
+  - `<!-->` and `<!--->` as whole comments, and an unclosed comment;
+  - an empty blockquote, blank lines in a container directive, and YAML plain values starting
+    `-`, `:` or `?`.
 
-- **Generated edges.** Boundaries and near misses come from mutating the productions: counted
-  repeats, a fence's minimum length, indents of 0 to 3, a name's character class, a required
-  space. A near miss states what it becomes: literal text with its warning, or a named other
-  construct. It never silently becomes something else.
-- **Expected results.** A generated valid case carries its expected node and fields, built one
-  construct at a time with plain words around it and blank lines between blocks, so the side
-  rules can't make it something else. That gives markz's own constructs a check beside their
-  hand-written examples, which is all they have now; the grammar is still never the parser.
-- **Ambiguity by side rule.** A side rule that picks between two readings (`---` as a break or
-  frontmatter, `${` as an expression or text) needs a case on each side of its line. These are
-  written by hand, since the ambiguity lives in the rules, not the productions.
-- **Unclosed forms** reuse the adversarial patterns at a small size, now checked for their tree
-  and warnings as well as their time.
-- **A benchmark per construct.** A document of one construct at a time (emphasis only, tables
-  only) shows which constructs carry the cost that step 17 measured only in aggregate. It stays
-  a quick look in `pnpm bench`, not a published number.
+  The grammar was too loose the other way too: a paragraph's inline content started or ended
+  at a line ending, one-line math spanned lines, and quoted attribute values spanned lines.
 
-The timed Pathological section keeps only the complexity families (unclosed forms, deep
-nesting, long repetition). A boundary like seven `#` is not timed.
+- **Rules that were only implicit** now have names: `blank-lines`, `brackets`, `escape-binds`
+  and `closing-hashes`. `math-one-line`, `table-header` and `comment-close` say exactly where
+  their lines fall.
+- **One parser bug.** Inline, `<!-->` and `<!--->` were plain text with their dashes curled,
+  with no warning; they are raw HTML now, reported and kept literal.
+- **Where the time goes.** On one construct at a time, markz is slowest against markdown-exit
+  on headings (2.4 against 5.7 MB/s), then thematic breaks and code blocks. It is faster on
+  blockquotes, tables and lists.
+
+Unclosed forms became hand-written examples with their HTML, rather than the adversarial
+patterns at a small size; the patterns stay timed in `complexity.test.ts`, and the site's
+Pathological section keeps only the complexity families.
 
 ### 19. Inline scanner speed
 
@@ -427,7 +433,8 @@ of their time inline and 30% on blocks. markz is about twice as slow in each, so
 constant-factor cost, not the algorithm, and offsets are not it: mapping one is a binary search
 over a paragraph's few lines.
 
-In the order to try them, each measured on its own:
+In the order to try them, each measured on its own, and headings first, since step 18's
+per-construct benchmark shows the widest gap there:
 
 - **Character codes in the scan loop.** The plain-text loop tests every character against a
   regex; a lookup table instead gave +15% in a first trial (13.5 to 15.6 MB/s). The case chain

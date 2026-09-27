@@ -15,6 +15,9 @@ Read **`prose/spec.md`** first — it is the design for markz.
   the oracle disagrees with `syntax.md`, file the example as `differ` under the construct whose
   rule explains it, rather than bending the parser. markz's own examples go in
   `test/dialect/*.md`.
+- `test/cases.ts` holds every construct to its edges with the grammar as the judge. When it and
+  markz read a case differently, fix whichever is wrong, or name the side rule that decides it
+  and give that rule a test as narrow as its text. Never widen a settle test to quiet a failure.
 - `docs/` is the site (markz.amitkaps.com): a private workspace package, trimmed from base, that
   renders the README and `prose/` with this commit's markz and builds the Conformance page from
   the test harness. It is a consumer, never part of the package: its dependencies (Svelte,
