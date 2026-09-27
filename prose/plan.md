@@ -366,8 +366,9 @@ micromark, remark, markdown-it, markdown-exit, marked and Comark (`bench/README.
 What the first runs found:
 
 - **Throughput.** markz reads about 9 to 13 MB/s to HTML, level with markdown-it and marked, and
-  twenty to thirty times micromark and remark. markdown-exit is about twice as fast as markz,
-  which is worth studying.
+  twenty to thirty times micromark and remark. markdown-exit is about twice as fast as markz
+  (step 19 says why). It is also twice markdown-it, which it rewrites with the same output: a
+  third of markdown-it 15's time goes to the helper its build uses for class fields.
 - **Memory.** A markz tree keeps about 7 bytes per source byte, against 10 to 18 for the others.
 - **Size.** Parse + HTML, gzip: markz 17 KB, marked 13, micromark 20 to 23, markdown-it 40 to
   42, markdown-exit and remark about 45, Comark 105.
@@ -380,6 +381,64 @@ What the first runs found:
 - **A busy laptop can't publish.** Background load swamped the `k`/`2k` difference into negative
   speeds, which is why each side is now its fastest run and a non-positive difference is
   recorded as unmeasurable. The published numbers wait for a full run on a quiet machine.
+
+### 18. Cases by construct
+
+Every construct is held to its edges, not only to its examples. The fuzzer checks that any
+document is sound, and the adversarial patterns that each failure mode is linear, but nothing
+checks that each construct has been tried at its boundaries, next to its near misses and where
+it competes with another. Those are correctness cases, and most can come from the grammar.
+
+- **A registry.** Each construct in `test/grammar.ts` files cases under five categories:
+  - _valid_;
+  - _boundary_: its minimum and maximum, such as one and six `#`;
+  - _near miss_: one step outside, such as seven `#`, `#x` or `==html`;
+  - _ambiguous_: where it competes with another reading;
+  - _unclosed_: where it can be left open.
+
+  A test fails when a construct lacks a category, unless it says why that category doesn't
+  apply ("a thematic break can't be unclosed"), as a Not supported row does.
+
+- **Generated edges.** Boundaries and near misses come from mutating the productions: counted
+  repeats, a fence's minimum length, indents of 0 to 3, a name's character class, a required
+  space. A near miss states what it becomes: literal text with its warning, or a named other
+  construct. It never silently becomes something else.
+- **Expected results.** A generated valid case carries its expected node and fields, built one
+  construct at a time with plain words around it and blank lines between blocks, so the side
+  rules can't make it something else. That gives markz's own constructs a check beside their
+  hand-written examples, which is all they have now; the grammar is still never the parser.
+- **Ambiguity by side rule.** A side rule that picks between two readings (`---` as a break or
+  frontmatter, `${` as an expression or text) needs a case on each side of its line. These are
+  written by hand, since the ambiguity lives in the rules, not the productions.
+- **Unclosed forms** reuse the adversarial patterns at a small size, now checked for their tree
+  and warnings as well as their time.
+- **A benchmark per construct.** A document of one construct at a time (emphasis only, tables
+  only) shows which constructs carry the cost that step 17 measured only in aggregate. It stays
+  a quick look in `pnpm bench`, not a published number.
+
+The timed Pathological section keeps only the complexity families (unclosed forms, deep
+nesting, long repetition). A boundary like seven `#` is not timed.
+
+### 19. Inline scanner speed
+
+markz reads at half markdown-exit's speed, and step 18's cases are the safety net for closing
+some of that. Both parsers make about one token or item per 18 bytes, and both spend about 60%
+of their time inline and 30% on blocks. markz is about twice as slow in each, so the gap is
+constant-factor cost, not the algorithm, and offsets are not it: mapping one is a binary search
+over a paragraph's few lines.
+
+In the order to try them, each measured on its own:
+
+- **Character codes in the scan loop.** The plain-text loop tests every character against a
+  regex; a lookup table instead gave +15% in a first trial (13.5 to 15.6 MB/s). The case chain
+  compares one-character strings, and the flanking checks run Unicode regexes per character.
+- **One shape for an item.** Items gain optional fields as they go, and `nodeItem` spreads a
+  text item into each node.
+- **Less per leaf.** Each paragraph joins its lines into a new string and allocates three Maps
+  and two Sets, and `plainText` runs for every leaf though only headings use it.
+- **Then, if still worth it, one pass.** Inline builds a linked list of items and then copies it
+  into the tree (about 7% of the time). Writing into the tree directly is the larger change, and
+  is weighed against its bytes, since the budget is 20 KB and markz is at 17.4.
 
 ## Definition of done for v1
 
