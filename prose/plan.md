@@ -475,9 +475,9 @@ one of four things, and every check reports by construct id:
   `complexity.test.ts` linear time, last.
 
 Documents come in variants the corpus builds and hashes, not committed. `documents.test.ts`
-holds each, raw and oxfmt-formatted, to soundness; the *common* variant to the oracle; the
+holds each, raw and oxfmt-formatted, to soundness; the _common_ variant to the oracle; the
 formatted one to reading as the raw one does, positions aside, so formatting never changes
-meaning; and the *dialect* one to a warnings snapshot. The complexity test takes its large
+meaning; and the _dialect_ one to a warnings snapshot. The complexity test takes its large
 document from the corpus's scaling tier.
 
 **Benchmarks split by audience.** `test/speed.ts` is markz alone, a plain Node script that runs
@@ -490,11 +490,11 @@ stays beside markz per construct. From the external review:
 
 - adapters declare their configuration and capabilities, and the runner reports them, so the
   README's table is generated, not written;
-- *common* means the same input workload, with each parser's configuration listed, not the same
+- _common_ means the same input workload, with each parser's configuration listed, not the same
   defaults;
 - memory is named "retained memory after parse" and says what it measures; size is its own
   table (entry, features, minified, gzip, brotli);
-- warm and cold are worded plainly, scaling as approximately linear, and *agent* is defined as
+- warm and cold are worded plainly, scaling as approximately linear, and _agent_ is defined as
   written by coding agents in real repos.
 
 Scripts: `pnpm test`, `pnpm test:long` (one `RUNS` and `SEED` for fuzz and cases, in place of
