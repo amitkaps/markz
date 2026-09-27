@@ -19,10 +19,12 @@
  *
  * - **common**: every parser on the same workload, documents that use only what all of them
  *   share, each set up as its adapter lists (mostly its defaults, GFM where it has it).
- * - **dialect**: each parser as close to markz as its plugins get. Math is on only where the
- *   plugin doesn't typeset (micromark's and Comark's run KaTeX, which isn't parsing), so it is
- *   markdown-it's and markdown-exit's alone. marked has no plugins here, and stays at its GFM
- *   defaults.
+ * - **dialect**: each parser as close to markz as its plugins get. Math is on wherever it can be
+ *   read without typesetting, which is rendering, not parsing: micromark's syntax extension with a
+ *   handler that writes the TeX as text (its own HTML extension runs KaTeX), remark-math, and
+ *   markdown-it's and markdown-exit's tex plugin with the same handler. marked's math extension
+ *   and Comark's math plugin both run KaTeX, so theirs stays off. marked reads directives through
+ *   marked-directive.
  */
 import type MarkdownIt from 'markdown-it';
 
@@ -49,6 +51,56 @@ export const PARSERS = [
 	'marked',
 	'comark'
 ];
+
+/** @prose
+ * micromark-extension-math's HTML extension runs KaTeX, so the benchmark writes math as the
+ * markdown-it adapters do: the TeX, escaped, in a span that says inline or display. The fence and
+ * line-ending bookkeeping is the extension's own.
+ */
+const MATH_HTML: import('micromark-util-types').HtmlExtension = {
+	enter: {
+		mathFlow() {
+			this.lineEndingIfNeeded();
+			this.tag('<span class="math display">');
+		},
+		mathFlowFenceMeta() {
+			this.buffer();
+		},
+		mathText() {
+			this.tag('<span class="math inline">');
+			this.buffer();
+		}
+	},
+	exit: {
+		mathFlow() {
+			const value = this.resume();
+			this.raw(this.encode(value.replace(/(?:\r?\n|\r)$/, '')));
+			this.tag('</span>');
+			this.setData('mathFlowOpen');
+			this.setData('slurpOneLineEnding');
+		},
+		mathFlowFence() {
+			if (!this.getData('mathFlowOpen')) {
+				this.setData('mathFlowOpen', true);
+				this.setData('slurpOneLineEnding', true);
+				this.buffer();
+			}
+		},
+		mathFlowFenceMeta() {
+			this.resume();
+		},
+		mathFlowValue(token) {
+			this.raw(this.sliceSerialize(token));
+		},
+		mathText() {
+			this.raw(this.encode(this.resume()));
+			this.tag('</span>');
+		},
+		mathTextData(token) {
+			this.raw(this.sliceSerialize(token));
+		}
+	}
+};
 
 export async function load(name: string, mode: Mode): Promise<Parser> {
 	const dialect = mode === 'dialect';
@@ -89,12 +141,14 @@ export async function load(name: string, mode: Mode): Promise<Parser> {
 					await import('micromark-extension-gfm-task-list-item');
 				const { directive, directiveHtml } = await import('micromark-extension-directive');
 				const { frontmatter, frontmatterHtml } = await import('micromark-extension-frontmatter');
+				const { math } = await import('micromark-extension-math');
 				extensions.push(
 					gfmTable(),
 					gfmStrikethrough(),
 					gfmTaskListItem(),
 					directive(),
-					frontmatter()
+					frontmatter(),
+					math()
 				);
 				// Without a handler micromark drops every directive; this writes each as its element.
 				htmlExtensions.push(
@@ -110,17 +164,18 @@ export async function load(name: string, mode: Mode): Promise<Parser> {
 							return true;
 						}
 					}),
-					frontmatterHtml()
+					frontmatterHtml(),
+					MATH_HTML
 				);
 			}
 			return {
 				representation: null,
 				html: (s) => micromark(s, { extensions, htmlExtensions }),
 				configuration: dialect
-					? 'the GFM table, strikethrough and task-list extensions, directive (each as its element), frontmatter'
+					? 'the GFM table, strikethrough and task-list extensions, directive (each as its element), frontmatter, math (untypeset)'
 					: 'micromark-extension-gfm',
 				capabilities: dialect
-					? ['tables', 'strikethrough', 'task lists', 'directives', 'frontmatter']
+					? ['tables', 'strikethrough', 'task lists', 'directives', 'frontmatter', 'math']
 					: ['GFM']
 			};
 		}
@@ -169,12 +224,13 @@ export async function load(name: string, mode: Mode): Promise<Parser> {
 		case 'marked': {
 			const { Marked } = await import('marked');
 			const marked = new Marked({ gfm: true, async: false });
+			if (dialect) marked.use((await import('marked-directive')).createDirectives());
 			return {
 				representation: 'nested token list',
 				structured: (s) => marked.lexer(s),
 				html: (s) => marked.parse(s) as string,
-				configuration: '{ gfm: true }: it has no plugins here',
-				capabilities: ['GFM']
+				configuration: dialect ? '{ gfm: true }, marked-directive' : '{ gfm: true }',
+				capabilities: dialect ? ['GFM', 'directives'] : ['GFM']
 			};
 		}
 		case 'remark': {
@@ -203,6 +259,7 @@ export async function load(name: string, mode: Mode): Promise<Parser> {
 				});
 				parser.use((await import('remark-frontmatter')).default);
 				parser.use((await import('remark-directive')).default);
+				parser.use((await import('remark-math')).default);
 				// remark-rehype drops a directive it has no handler for; this makes each its element.
 				parser.use(() => (tree) => {
 					const stack: import('mdast').Nodes[] = [tree as import('mdast').Root];
@@ -224,10 +281,10 @@ export async function load(name: string, mode: Mode): Promise<Parser> {
 				structured: (s) => parser.parse(s),
 				html: (s) => String(processor.processSync(s)),
 				configuration: dialect
-					? 'remark-parse, the GFM table, strikethrough and task-list parts, remark-frontmatter, remark-directive (each as its element), remark-rehype, rehype-stringify'
+					? 'remark-parse, the GFM table, strikethrough and task-list parts, remark-frontmatter, remark-directive (each as its element), remark-math (untypeset), remark-rehype, rehype-stringify'
 					: 'remark-parse, remark-gfm, remark-rehype, rehype-stringify',
 				capabilities: dialect
-					? ['tables', 'strikethrough', 'task lists', 'directives', 'frontmatter']
+					? ['tables', 'strikethrough', 'task lists', 'directives', 'frontmatter', 'math']
 					: ['GFM']
 			};
 		}
