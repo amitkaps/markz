@@ -13,6 +13,7 @@ describe('pages', () => {
 			['syntax', 'Syntax'],
 			['grammar', 'Grammar'],
 			['design', 'Design'],
+			['parsers', 'Parsers'],
 			['plan', 'Plan']
 		]);
 	});
