@@ -6,7 +6,8 @@
  */
 export const REPO = 'https://github.com/amitkaps/markz';
 
-export type Status = 'pass' | 'fail' | 'differs';
+export type Status = 'match' | 'warn' | 'differ' | 'fail';
+export const STATUSES: Status[] = ['match', 'warn', 'differ', 'fail'];
 export type Part = 'Metadata' | 'Block' | 'Inline' | 'Not supported';
 export const PARTS: Part[] = ['Metadata', 'Block', 'Inline', 'Not supported'];
 
@@ -22,16 +23,22 @@ export interface Row {
 	title: string;
 	/** The upstream suite's own section. */
 	upstream: string | null;
-	/** How it is checked: `oracle`, `differs`, `not supported` or `expected`. */
+	/** How it is checked: `oracle`, `differ`, `not supported` or `expected`. */
 	kind: string;
 	markdown: string;
 	status: Status;
-	/** Why it fails. */
-	problem: string | null;
-	/** What markz is held to: the oracle's HTML, or markz's own expected HTML. */
+	/** What it matched, the codes it warned with, or why it fails. */
+	detail: string;
+	/** Who holds it: `micromark`, `yaml` or `github-slugger` for an upstream example, else `markz`. */
+	oracle: string;
+	/** What markz is held to: the oracle's output, or markz's own expected HTML. */
 	expected: string;
 	markz: string;
+	/** The metadata markz read, as JSON, when a Markdown example has any. */
+	metadata: string | null;
 	/** Both outputs normalized, for a failing example. */
 	normalized: [expected: string, markz: string] | null;
 	warnings: string[];
+	/** The warning codes, for search. */
+	codes: string[];
 }

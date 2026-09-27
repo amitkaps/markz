@@ -28,9 +28,10 @@
 		--accent: #818cf8;
 		--radius: 0.5rem;
 
-		--pass: #4ade80;
+		--match: #4ade80;
+		--warn: #fbbf24;
 		--fail: #f87171;
-		--differs: #fbbf24;
+		--differ: #60a5fa;
 		--mark: #713f12;
 
 		--font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
