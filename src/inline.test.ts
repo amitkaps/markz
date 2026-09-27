@@ -1,7 +1,7 @@
 /** @prose
  * The inline pass on what an example's HTML can't show: node data (math and expression values,
  * link expressions, text values), exact ranges, and heading ids. What the inline constructs write
- * is in `test/dialect/inline.md`. Every parsed document is also held to the tree invariants.
+ * is in `test/examples/markz/`. Every parsed document is also held to the tree invariants.
  */
 import { describe, expect, it } from 'vite-plus/test';
 import { html, parse, type Document, type NodeId, type NodeType } from './index';

@@ -1,12 +1,8 @@
 # Metadata
 
-Examples of markz's dialect, in the CommonMark spec's format (see `../examples.ts`). Each `##` is a construct id from `test/grammar.ts`, set by the `{#id}` line above its heading in `prose/syntax.md`, and the tests fail if one isn't.
-
-## metadata
-
 A closed block of `key:` lines is metadata, which `html()` doesn't write. Anything else is read as ordinary Markdown.
 
-```example
+```example 1
 ---
 title: Sales Report
 summary: 'Make it yours: fast.'
@@ -21,7 +17,7 @@ tags: [svelte, vite]
 A closed block at the start is metadata whatever it holds, so a page can't open with a rule.
 Lines it can't read are reported, but a `#` line is a YAML comment.
 
-```example ambiguous metadata-start
+```example 2 ambiguous metadata-start
 ---
 
 ## foo
@@ -31,7 +27,7 @@ Lines it can't read are reported, but a `#` line is a YAML comment.
 
 ```
 
-```example
+```example 3
 ---
 hello
 title: x
@@ -45,7 +41,7 @@ hello
 
 Without a closing line, the first is a rule, reported when the block looks like metadata.
 
-```example unclosed
+```example 4 unclosed
 ---
 title: x
 .
@@ -55,7 +51,7 @@ title: x
 ---
 ```
 
-```example
+```example 5
 ---
 flag: True
 ---
@@ -65,7 +61,7 @@ flag: True
 flag: True
 ```
 
-```example
+```example 6
 ---
 author:
   name: A

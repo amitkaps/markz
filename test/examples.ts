@@ -6,7 +6,7 @@
  * its warning code. Where an
  * example comes from is a label, not a category. The upstream suites are checked against an
  * oracle (micromark for the Markdown, `yaml` for metadata); markz's own examples, in
- * `dialect/*.md`, carry their expected output.
+ * `examples/markz/`, carry their expected output.
  *
  * An example is one of four kinds:
  *
@@ -19,10 +19,6 @@
  *   text, and nothing else.
  */
 import { html, parse, type Document, type NodeId, type Warning } from '../src/index';
-import block from './dialect/block.md?raw';
-import inline from './dialect/inline.md?raw';
-import metadata from './dialect/metadata.md?raw';
-import notSupported from './dialect/not-supported.md?raw';
 import {
 	collapse,
 	mathOracle,
@@ -77,7 +73,7 @@ export type Status = 'match' | 'warn' | 'differ' | 'fail';
 
 export interface Example {
 	source: Source;
-	/** `commonmark:232`, or `markz:block:12` for the 12th example in `dialect/block.md`. */
+	/** `commonmark:232`, or `markz:12`: the number in the example's fence. */
 	id: string;
 	number: number;
 	/** The construct id or Not supported code it is filed under. */
@@ -359,9 +355,11 @@ function upstreamExample(
  * ## Loading
  *
  * Every example is read from its file by `fences.ts`. An upstream suite's metadata names what it
- * is checked by, and its examples keep the suite's numbers. markz's own, in `dialect/*.md`, are
- * filed under the nearest `##` heading, a construct id or a warning code, and must give their
- * expected HTML and warn over exactly the text listed, or about nothing if none is.
+ * is checked by, and its examples keep the suite's numbers. markz's own, in `examples/markz/`,
+ * are filed by their file, one per construct id, or in `not-supported.md` by the `##` warning code
+ * above them. Each is numbered in its fence from one sequence, in the order the ids are listed, so
+ * moving an example never renames it. They must give their expected HTML and warn over exactly
+ * the text listed, or about nothing if none is.
  */
 function upstream(source: Upstream, text: string): Example[] {
 	const { meta, examples: fences } = readFences(text);
@@ -385,27 +383,37 @@ function upstream(source: Upstream, text: string): Example[] {
 	return vendored.map((e) => upstreamExample(source, checks, e));
 }
 
-function dialect(file: string, text: string): Example[] {
-	return readFences(text).examples.map((f, i) => {
-		if (f.category && !CATEGORIES.includes(f.category as Category)) {
-			throw new Error(`${file}: "${f.category}" is not a category`);
-		}
-		const number = i + 1;
-		return {
-			source: 'markz',
-			id: `markz:${file}:${number}`,
-			number,
-			upstream: null,
-			markdown: f.markdown,
-			html: f.expected,
-			checks: 'expected',
-			warnings: f.warnings,
-			category: f.category as Category | null,
-			rule: f.rule,
-			...filed(f.section, null),
-			kind: 'expected'
-		};
+const own = import.meta.glob<string>(['./examples/markz/*.md', '!**/README.md'], {
+	query: '?raw',
+	import: 'default',
+	eager: true
+});
+
+function markz(): Example[] {
+	const out = Object.entries(own).flatMap(([path, text]) => {
+		const file = /([\w-]+)\.md$/.exec(path)![1]!;
+		return readFences(text).examples.map((f): Example => {
+			if (f.number === null) throw new Error(`${file}: an example without a number`);
+			if (f.category && !CATEGORIES.includes(f.category as Category)) {
+				throw new Error(`${file}: "${f.category}" is not a category`);
+			}
+			return {
+				source: 'markz',
+				id: `markz:${f.number}`,
+				number: f.number,
+				upstream: null,
+				markdown: f.markdown,
+				html: f.expected,
+				checks: 'expected',
+				warnings: f.warnings,
+				category: f.category as Category | null,
+				rule: f.rule,
+				...filed(file === 'not-supported' ? f.section : file, null),
+				kind: 'expected'
+			};
+		});
 	});
+	return out.sort((x, y) => x.number - y.number);
 }
 
 export const examples: Example[] = [
@@ -420,10 +428,7 @@ export const examples: Example[] = [
 	...upstream('yaml', yamlSuite),
 	...upstream('math', math),
 	...upstream('slugger', slugger),
-	...dialect('metadata', metadata),
-	...dialect('block', block),
-	...dialect('inline', inline),
-	...dialect('not-supported', notSupported)
+	...markz()
 ];
 
 /** @prose
