@@ -36,7 +36,7 @@ const SYNTAX_OPTIONS = /\bdisable\b|singleTilde|frontmatter\([^)]/;
  *
  * A fixture is a whole document of headed sections, rendered by GitHub. Each section becomes an
  * example, heading included, with the matching slice of the HTML. Large `*.offline.md` stress
- * documents are left to step 15.
+ * documents are left to step 16.
  */
 function fixtures(dir: string): Vendored[] {
 	const out: Vendored[] = [];

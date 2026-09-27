@@ -131,7 +131,7 @@ origin and its productions in EBNF style, with the rules EBNF can't state (conta
 fence lengths, emphasis matching) as named side rules. The origin names the earliest layer that
 defines the construct, in order: CommonMark, GFM, micromark-extension-directive, djot, then
 markz's own (math is pandoc's rule in GitHub's HTML shape). Examples and `syntax.md` refer to
-constructs by id, so rewording a heading breaks nothing, and the step 15 fuzzer generates
+constructs by id, so rewording a heading breaks nothing, and the step 16 fuzzer generates
 documents from the productions. `spec.md` states the parsing invariant: single pass,
 deterministic, grammar-directed, with bounded local lookahead, where every lookahead is bounded
 or remembers its failure.
@@ -248,8 +248,8 @@ suite, 18 match, 8 warn and 4 differ.
 The Conformance page becomes Metadata, Block, Inline and Not supported, each opening to its
 constructs with their examples, sources and statuses. Summary cards above it: correctness now,
 then performance, size, robustness, a real-world corpus (warnings per file in the migrated
-Markdown), formatter agreement (oxfmt doesn't change the parse) and HTML safety as steps 15 and
-16 produce them.
+Markdown), formatter agreement (oxfmt doesn't change the parse) and HTML safety as steps 16 and
+17 produce them.
 
 The statuses are now four, in the singular: **match** (the oracle's output or markz's expected
 HTML), **warn** (it holds because markz warned: a Not supported row, or a metadata line YAML
@@ -261,13 +261,46 @@ differ and none fail.
 Each part is one table on a shared grid, so the columns line up down the page; a construct opens
 in place to its examples, failures first, and `#construct-id` links open one. One search, over
 the Markdown and the warning codes, narrows every construct at once, and the status cards filter.
-An example with metadata shows what markz read. Correctness is the only card until steps 15 and 16.
+An example with metadata shows what markz read. Correctness is the only card until steps 16 and 17.
 
-### 14. Traversal and position utilities
+### 14. Directive names are element names
+
+The decision in [`directive.md`](directive.md), built: a directive's name is the element it
+writes, an HTML element on its kind's allowlist or a custom-element name, and any other name is
+text with a warning. The name stops being a class.
+
+- **Parser.** A name check for text directives in `src/inline.ts` and for leaf and container
+  directives in `src/block.ts`, against the two allowlists and the custom-element pattern (less
+  the reserved names). A failed name leaves the whole `:name[…]{…}` as literal text, nothing in it
+  read as other syntax; for a container, only the two fence lines. The container label check
+  warns on a block that takes no label (anything but `details`, `figure` and custom elements).
+- **Warnings.** Two codes in `src/warnings.ts`, one for the name and one for the label, each
+  saying what to write instead (`::div{.chart}` or `::chart-view`; a heading inside).
+- **`html()`.** Writes the name as the tag, with no name class. `details` puts its label in
+  `<summary>` and `figure` in `<figcaption>`; a custom element keeps today's `directive-label`;
+  other blocks don't write it. A bare key is written as `dismissible`, not `dismissible=""`
+  (today `:span[x]{dismissible}` writes `<span class="span" dismissible="">`). The refusal of
+  `script`, `iframe` and `style` stays as a second line.
+- **Dialect and grammar.** `syntax.md`'s Directives and Text directives sections say the rule,
+  with the allowlists, and its Pending decisions entry goes. `test/grammar.ts`'s `directive` and
+  `text-directive` productions take the name rule, with a rule for each warning, and the two codes
+  get Not supported rows.
+- **Tests.** Dialect examples in `test/dialect/` for each allowlist kind, custom elements, a bad
+  name in each form (text, leaf, container with a Markdown body), `:em[x]`, `:script[x]`, the
+  labels (`details`, `figure`, a custom element, `section`) and a bare boolean key. The oracle's
+  `shape` handler in `test/oracle.ts` writes the name as the tag. The vendored directive suite
+  mostly uses one-letter names (`:a[b]`), so most of its examples become `warn`; file them by the
+  new codes rather than rewriting them, and keep the ones about fences, labels and attributes
+  checking what they check, with a valid name where the rule needs one.
+- **Migration.** `:sup`, `:sub`, `:ins` and `:abbr` stay valid. The site's `:::video-container`
+  becomes `:::div{.video-container}`, since its CSS targets the class.
+- **Size.** Two lists and a pattern; check the bundle stays well under budget.
+
+### 15. Traversal and position utilities
 
 Public API, kept minimal: `parse`, `html`, `walk` (`enter`/`exit`), `textContent`, `position`. Lines are 1-based and columns are 0-based. Nothing else is exported until a consumer needs it.
 
-### 15. Robustness and fuzzing
+### 16. Robustness and fuzzing
 
 - A generator of documents from `test/grammar.ts`'s productions and side rules, fed to the oracle.
 - Malformed input, CRLF and lone `\r`, BOM, and astral-plane offsets.
@@ -275,7 +308,7 @@ Public API, kept minimal: `parse`, `html`, `walk` (`enter`/`exit`), `textContent
 - Unclosed `${` is quadratic today: 80,000 of them in one paragraph take about 100 s, 16 times the time for 4 times the input. One failed scan doesn't settle later ones (`${a ${b}` has a valid second expression), so the fix is to reuse the failed scan's brace depths for every `${` it passed, rather than a flag.
 - A multi-MB document that guards against quadratic behaviour.
 
-### 16. Benchmarks and bundle size
+### 17. Benchmarks and bundle size
 
 `bench/` (not published): parse throughput and AST memory versus micromark, markdown-it, marked, markdown-exit and Comark. The size gate is already in CI; this step adds the comparisons.
 
