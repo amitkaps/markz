@@ -138,9 +138,12 @@ The algorithm:
    references decoded, punctuation curled, and `\ ` as a space. Link text counts; URLs, image alt
    text, math and expressions don't.
 2. Lowercase it.
-3. Remove every character that isn't a letter, mark, number, space, `_` or `-`. Letters in any
-   script are kept, and there is no NFKC normalization, as on GitHub.
-4. Trim, then turn each run of whitespace into `-`.
+3. Remove every character that isn't alphabetic, a mark, a decimal digit, a connector such as
+   `_`, a space or `-`. Letters in any script are kept, and so are symbols Unicode counts as
+   alphabetic (`Ⓐ`); other numbers (`½`, `²`), other whitespace and every other symbol go. There is
+   no NFKC normalization, as on GitHub.
+4. Turn each space into `-`, one for one: runs aren't collapsed and nothing is trimmed, so
+   `a - b` gives `a---b`.
 5. If nothing is left, use `section`.
 6. If the id is taken, try `-1`, `-2`, … until one is free.
 
@@ -156,6 +159,8 @@ These cases are the contract, and the tests hold to them:
 | `## 日本語の見出し`                  | `日本語の見出し` |
 | `## 1. Rename`                       | `1-rename`       |
 | `## See [docs](https://example.com)` | `see-docs`       |
+| `## a - b`                           | `a---b`          |
+| `## 😄 Smile`                        | `-smile`         |
 | `## ???`                             | `section`        |
 
 In a document of its own, a heading whose text looks like a suffix keeps it, and the second

@@ -25,6 +25,7 @@ import { micromark, parse, postprocess, preprocess } from 'micromark';
 import { gfm, gfmHtml } from 'micromark-extension-gfm';
 import { directive, directiveHtml, type Handle } from 'micromark-extension-directive';
 import { frontmatter, frontmatterHtml } from 'micromark-extension-frontmatter';
+import GithubSlugger from 'github-slugger';
 import YAML from 'yaml';
 
 const ELEMENTS = new Set(['sup', 'sub', 'ins', 'mark', 'kbd', 'abbr']);
@@ -126,4 +127,15 @@ export function metadataOracle(body: string): { value: unknown } | { error: stri
 	} catch (error) {
 		return { error: (error as Error).message.split('\n')[0]! };
 	}
+}
+
+/** @prose
+ * ## Heading ids
+ *
+ * GitHub's ids, as github-slugger computes them: each text slugged in order, a repeat numbered past
+ * the ids already taken.
+ */
+export function slugOracle(texts: string[]): string[] {
+	const slugger = new GithubSlugger();
+	return texts.map((t) => slugger.slug(t));
 }

@@ -1005,16 +1005,17 @@ function delimiterRow(src: string, start: number, end: number): Align[] | null {
 /** @prose
  * ## Heading ids
  *
- * GitHub's algorithm, on the heading's plain text: lowercased, with every character that isn't a
- * letter, mark, number, space, `_` or `-` removed, trimmed, and each run of whitespace turned into
- * `-`. Letters in any script stay. A heading with nothing left is `section`.
+ * GitHub's algorithm, on the heading's plain text: lowercased, with every character removed that
+ * isn't alphabetic (any script's letters, and symbols such as `Ⓐ`), a mark, a decimal digit, a
+ * connector such as `_`, `-` or a space, and then each space turned into `-`, one for one. That is
+ * github-slugger's 8 KB character class, in four Unicode properties. A heading with nothing left
+ * is `section`.
  */
 function slug(text: string): string {
 	return (
 		text
 			.toLowerCase()
-			.replace(/[^\p{L}\p{M}\p{N}\s_-]/gu, '')
-			.trim()
-			.replace(/\s+/g, '-') || 'section'
+			.replace(/[^\p{Alphabetic}\p{M}\p{Nd}\p{Pc} -]/gu, '')
+			.replace(/ /g, '-') || 'section'
 	);
 }

@@ -32,3 +32,8 @@ against it where it has any.
   `yaml` package reads as a mapping or rejects: top-level sequences and scalars (94) aren't
   metadata anywhere, and tests with document markers or directives (151) can't sit inside the
   fences. That leaves 159.
+- `slugger.json`: [github-slugger](https://github.com/Flet/github-slugger/blob/3461c4350868329c8530904d170358bca1d31448/test/fixtures.json)
+  (commit `3461c43`), GitHub's ids for 78 strings, also by `vendor.ts`. Each is a `#` heading with
+  its ASCII punctuation escaped, and the harness puts each after the ones before it, so repeats
+  are numbered as in the suite. The four that start or end with a space are left out, since a
+  heading's text is trimmed.
