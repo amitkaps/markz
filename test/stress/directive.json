@@ -1,0 +1,572 @@
+[
+	{
+		"example": 1,
+		"section": "micromark-extension-directive (syntax, text) › should not support an empty shortcut (`#`)",
+		"markdown": ":a{.#b}",
+		"html": ""
+	},
+	{
+		"example": 2,
+		"section": "micromark-extension-directive (syntax, text) › should not support an empty shortcut (`}`)",
+		"markdown": ":a{.}",
+		"html": ""
+	},
+	{
+		"example": 3,
+		"section": "micromark-extension-directive (syntax, text) › should not support certain characters in shortcuts (`\"`)",
+		"markdown": ":a{.a\"b}",
+		"html": ""
+	},
+	{
+		"example": 4,
+		"section": "micromark-extension-directive (syntax, text) › should not support certain characters in shortcuts (`<`)",
+		"markdown": ":a{.a<b}",
+		"html": ""
+	},
+	{
+		"example": 5,
+		"section": "micromark-extension-directive (syntax, leaf) › should support a digit in a name",
+		"markdown": "::a9",
+		"html": ""
+	},
+	{
+		"example": 6,
+		"section": "micromark-extension-directive (syntax, leaf) › should support a dash in a name",
+		"markdown": "::a-b",
+		"html": ""
+	},
+	{
+		"example": 7,
+		"section": "micromark-extension-directive (syntax, leaf) › should support an empty label",
+		"markdown": "::a[]",
+		"html": ""
+	},
+	{
+		"example": 8,
+		"section": "micromark-extension-directive (syntax, leaf) › should support a whitespace only label",
+		"markdown": "::a[ \t]",
+		"html": ""
+	},
+	{
+		"example": 9,
+		"section": "micromark-extension-directive (syntax, leaf) › should support content in a label",
+		"markdown": "::a[a b c]",
+		"html": ""
+	},
+	{
+		"example": 10,
+		"section": "micromark-extension-directive (syntax, leaf) › should support markdown in a label",
+		"markdown": "::a[a *b* c]",
+		"html": ""
+	},
+	{
+		"example": 11,
+		"section": "micromark-extension-directive (syntax, leaf) › should support empty attributes",
+		"markdown": "::a{}",
+		"html": ""
+	},
+	{
+		"example": 12,
+		"section": "micromark-extension-directive (syntax, leaf) › should support whitespace only attributes",
+		"markdown": "::a{ \t}",
+		"html": ""
+	},
+	{
+		"example": 13,
+		"section": "micromark-extension-directive (syntax, leaf) › should support attributes w/o values",
+		"markdown": "::a{a b c}",
+		"html": ""
+	},
+	{
+		"example": 14,
+		"section": "micromark-extension-directive (syntax, leaf) › should support attributes w/ non-ascii letters",
+		"markdown": "::planet{плутон}",
+		"html": ""
+	},
+	{
+		"example": 15,
+		"section": "micromark-extension-directive (syntax, leaf) › should support attributes w/ unquoted values",
+		"markdown": "::a{a=b c=d}",
+		"html": ""
+	},
+	{
+		"example": 16,
+		"section": "micromark-extension-directive (syntax, leaf) › should support attributes w/ class shortcut",
+		"markdown": "::a{.a .b}",
+		"html": ""
+	},
+	{
+		"example": 17,
+		"section": "micromark-extension-directive (syntax, leaf) › should support attributes w/ id shortcut",
+		"markdown": "::a{#a #b}",
+		"html": ""
+	},
+	{
+		"example": 18,
+		"section": "micromark-extension-directive (syntax, leaf) › should support non-ascii characters in shortcuts",
+		"markdown": "::a{#بلوتو}",
+		"html": ""
+	},
+	{
+		"example": 19,
+		"section": "micromark-extension-directive (syntax, leaf) › should support most characters in shortcuts",
+		"markdown": "::a{.a💚b}",
+		"html": ""
+	},
+	{
+		"example": 20,
+		"section": "micromark-extension-directive (syntax, leaf) › should support double quoted attributes",
+		"markdown": "::a{a=\"b\" c=\"d e f\"}",
+		"html": ""
+	},
+	{
+		"example": 21,
+		"section": "micromark-extension-directive (syntax, leaf) › should support single quoted attributes",
+		"markdown": "::a{a='b' c='d e f'}",
+		"html": ""
+	},
+	{
+		"example": 22,
+		"section": "micromark-extension-directive (syntax, leaf) › should support whitespace around initializers",
+		"markdown": "::a{a = b c\t=\t'd'}",
+		"html": ""
+	},
+	{
+		"example": 23,
+		"section": "micromark-extension-directive (syntax, leaf) › should not support `=` to start an unquoted attribute value",
+		"markdown": "::a{b==}",
+		"html": ""
+	},
+	{
+		"example": 24,
+		"section": "micromark-extension-directive (syntax, leaf) › should support most other characters in unquoted attribute values",
+		"markdown": "::a{b=a💚b}",
+		"html": ""
+	},
+	{
+		"example": 25,
+		"section": "micromark-extension-directive (syntax, leaf) › should not support an EOF in a quoted attribute value",
+		"markdown": "::a{b=\"c",
+		"html": ""
+	},
+	{
+		"example": 26,
+		"section": "micromark-extension-directive (syntax, leaf) › should support most other characters in quoted attribute values",
+		"markdown": "::a{b=\"a💚b\"}",
+		"html": ""
+	},
+	{
+		"example": 27,
+		"section": "micromark-extension-directive (syntax, leaf) › should not support an EOF after a quoted attribute value",
+		"markdown": "::a{b=\"c\"",
+		"html": ""
+	},
+	{
+		"example": 28,
+		"section": "micromark-extension-directive (syntax, leaf) › should support code (indented) after a leaf",
+		"markdown": "::a{b=c}\n    a",
+		"html": ""
+	},
+	{
+		"example": 29,
+		"section": "micromark-extension-directive (syntax, leaf) › should support a definition after a leaf",
+		"markdown": "::a{b=c}\n[a]: b",
+		"html": ""
+	},
+	{
+		"example": 30,
+		"section": "micromark-extension-directive (syntax, leaf) › should support a heading (setext) after a leaf",
+		"markdown": "::a{b=c}\na\n=",
+		"html": ""
+	},
+	{
+		"example": 31,
+		"section": "micromark-extension-directive (syntax, leaf) › should support html after a leaf",
+		"markdown": "::a{b=c}\n<!-->",
+		"html": ""
+	},
+	{
+		"example": 32,
+		"section": "micromark-extension-directive (syntax, leaf) › should support a thematic break after a leaf",
+		"markdown": "::a{b=c}\n***",
+		"html": ""
+	},
+	{
+		"example": 33,
+		"section": "micromark-extension-directive (syntax, leaf) › should support code (indented) before a leaf",
+		"markdown": "    a\n::a{b=c}",
+		"html": ""
+	},
+	{
+		"example": 34,
+		"section": "micromark-extension-directive (syntax, leaf) › should support a definition before a leaf",
+		"markdown": "[a]: b\n::a{b=c}",
+		"html": ""
+	},
+	{
+		"example": 35,
+		"section": "micromark-extension-directive (syntax, leaf) › should support a heading (setext) before a leaf",
+		"markdown": "a\n=\n::a{b=c}",
+		"html": ""
+	},
+	{
+		"example": 36,
+		"section": "micromark-extension-directive (syntax, leaf) › should support html before a leaf",
+		"markdown": "<!-->\n::a{b=c}",
+		"html": ""
+	},
+	{
+		"example": 37,
+		"section": "micromark-extension-directive (syntax, leaf) › should support a thematic break before a leaf",
+		"markdown": "***\n::a{b=c}",
+		"html": ""
+	},
+	{
+		"example": 38,
+		"section": "micromark-extension-directive (syntax, container) › should support a directive",
+		"markdown": ":::b",
+		"html": ""
+	},
+	{
+		"example": 39,
+		"section": "micromark-extension-directive (syntax, container) › should support a digit in a name",
+		"markdown": ":::a9",
+		"html": ""
+	},
+	{
+		"example": 40,
+		"section": "micromark-extension-directive (syntax, container) › should support a dash in a name",
+		"markdown": ":::a-b",
+		"html": ""
+	},
+	{
+		"example": 41,
+		"section": "micromark-extension-directive (syntax, container) › should not support a name followed by an unclosed `[`",
+		"markdown": ":::a[",
+		"html": ""
+	},
+	{
+		"example": 42,
+		"section": "micromark-extension-directive (syntax, container) › should not support a name followed by an unclosed `{`",
+		"markdown": ":::a{",
+		"html": ""
+	},
+	{
+		"example": 43,
+		"section": "micromark-extension-directive (syntax, container) › should not support a name followed by an unclosed `[` w/ content",
+		"markdown": ":::a[b",
+		"html": ""
+	},
+	{
+		"example": 44,
+		"section": "micromark-extension-directive (syntax, container) › should not support a name followed by an unclosed `{` w/ content",
+		"markdown": ":::a{b",
+		"html": ""
+	},
+	{
+		"example": 45,
+		"section": "micromark-extension-directive (syntax, container) › should support an empty label",
+		"markdown": ":::a[]",
+		"html": ""
+	},
+	{
+		"example": 46,
+		"section": "micromark-extension-directive (syntax, container) › should support a whitespace only label",
+		"markdown": ":::a[ \t]",
+		"html": ""
+	},
+	{
+		"example": 47,
+		"section": "micromark-extension-directive (syntax, container) › should not support an eol in a label",
+		"markdown": ":::a[\n]",
+		"html": ""
+	},
+	{
+		"example": 48,
+		"section": "micromark-extension-directive (syntax, container) › should support content in a label",
+		"markdown": ":::a[a b c]",
+		"html": ""
+	},
+	{
+		"example": 49,
+		"section": "micromark-extension-directive (syntax, container) › should support markdown in a label",
+		"markdown": ":::a[a *b* c]",
+		"html": ""
+	},
+	{
+		"example": 50,
+		"section": "micromark-extension-directive (syntax, container) › should not support content after a label",
+		"markdown": ":::a[]asd",
+		"html": ""
+	},
+	{
+		"example": 51,
+		"section": "micromark-extension-directive (syntax, container) › should support empty attributes",
+		"markdown": ":::a{}",
+		"html": ""
+	},
+	{
+		"example": 52,
+		"section": "micromark-extension-directive (syntax, container) › should support whitespace only attributes",
+		"markdown": ":::a{ \t}",
+		"html": ""
+	},
+	{
+		"example": 53,
+		"section": "micromark-extension-directive (syntax, container) › should not support an eol in attributes",
+		"markdown": ":::a{\n}",
+		"html": ""
+	},
+	{
+		"example": 54,
+		"section": "micromark-extension-directive (syntax, container) › should support attributes w/o values",
+		"markdown": ":::a{a b c}",
+		"html": ""
+	},
+	{
+		"example": 55,
+		"section": "micromark-extension-directive (syntax, container) › should support attributes w/ non-ascii letters",
+		"markdown": ":::planet{плутон}",
+		"html": ""
+	},
+	{
+		"example": 56,
+		"section": "micromark-extension-directive (syntax, container) › should not support EOLs around initializers",
+		"markdown": ":::a{f  =\rg}",
+		"html": ""
+	},
+	{
+		"example": 57,
+		"section": "micromark-extension-directive (syntax, container) › should not support an EOF in a quoted attribute value",
+		"markdown": ":::a{b=\"c",
+		"html": ""
+	},
+	{
+		"example": 58,
+		"section": "micromark-extension-directive (syntax, container) › should not support EOLs in quoted attribute values",
+		"markdown": ":::a{b=\"\nc\r  d\"}",
+		"html": ""
+	},
+	{
+		"example": 59,
+		"section": "micromark-extension-directive (syntax, container) › should not support an EOF after a quoted attribute value",
+		"markdown": ":::a{b=\"c\"",
+		"html": ""
+	},
+	{
+		"example": 60,
+		"section": "micromark-extension-directive (syntax, container) › should support whitespace after directives",
+		"markdown": ":::a{b=c} \t ",
+		"html": ""
+	},
+	{
+		"example": 61,
+		"section": "micromark-extension-directive (syntax, container) › should support code (indented) after a container",
+		"markdown": ":::a\n:::\n    a",
+		"html": ""
+	},
+	{
+		"example": 62,
+		"section": "micromark-extension-directive (syntax, container) › should support a definition after a container",
+		"markdown": ":::a\n:::\n[a]: b",
+		"html": ""
+	},
+	{
+		"example": 63,
+		"section": "micromark-extension-directive (syntax, container) › should support a heading (setext) after a container",
+		"markdown": ":::a\n:::\na\n=",
+		"html": ""
+	},
+	{
+		"example": 64,
+		"section": "micromark-extension-directive (syntax, container) › should support html after a container",
+		"markdown": ":::a\n:::\n<!-->",
+		"html": ""
+	},
+	{
+		"example": 65,
+		"section": "micromark-extension-directive (syntax, container) › should support a thematic break after a container",
+		"markdown": ":::a\n:::\n***",
+		"html": ""
+	},
+	{
+		"example": 66,
+		"section": "micromark-extension-directive (syntax, container) › should support code (indented) before a container",
+		"markdown": "    a\n:::a\nb",
+		"html": ""
+	},
+	{
+		"example": 67,
+		"section": "micromark-extension-directive (syntax, container) › should support a definition before a container",
+		"markdown": "[a]: b\n:::a\nb",
+		"html": ""
+	},
+	{
+		"example": 68,
+		"section": "micromark-extension-directive (syntax, container) › should support a heading (setext) before a container",
+		"markdown": "a\n=\n:::a\nb",
+		"html": ""
+	},
+	{
+		"example": 69,
+		"section": "micromark-extension-directive (syntax, container) › should support html before a container",
+		"markdown": "<!-->\n:::a\nb",
+		"html": ""
+	},
+	{
+		"example": 70,
+		"section": "micromark-extension-directive (syntax, container) › should support a thematic break before a container",
+		"markdown": "***\n:::a\nb",
+		"html": ""
+	},
+	{
+		"example": 71,
+		"section": "micromark-extension-directive (syntax, container) › should not support lazyness (1)",
+		"markdown": "> :::a\nb",
+		"html": ""
+	},
+	{
+		"example": 72,
+		"section": "micromark-extension-directive (syntax, container) › should not support lazyness (2)",
+		"markdown": "> :::a\n> b\nc",
+		"html": ""
+	},
+	{
+		"example": 73,
+		"section": "micromark-extension-directive (compile) › should support fall through directives (`*`)",
+		"markdown": ":a[:img{src=\"x\" alt=y}]{href=\"z\"}",
+		"html": ""
+	},
+	{
+		"example": 74,
+		"section": "content › should support EOLs in a label",
+		"markdown": ":abbr[a\nb\rc]",
+		"html": ""
+	},
+	{
+		"example": 75,
+		"section": "content › should support EOLs at the edges of a label (1)",
+		"markdown": ":abbr[\na\r]",
+		"html": ""
+	},
+	{
+		"example": 76,
+		"section": "content › should support EOLs at the edges of a label (2)",
+		"markdown": ":abbr[\n]",
+		"html": ""
+	},
+	{
+		"example": 77,
+		"section": "content › should support EOLs around nested directives",
+		"markdown": ":abbr[a\n:abbr[b]\nc]",
+		"html": ""
+	},
+	{
+		"example": 78,
+		"section": "content › should support EOLs inside nested directives (1)",
+		"markdown": ":abbr[:abbr[\n]]",
+		"html": ""
+	},
+	{
+		"example": 79,
+		"section": "content › should support EOLs inside nested directives (2)",
+		"markdown": ":abbr[:abbr[a\nb]]",
+		"html": ""
+	},
+	{
+		"example": 80,
+		"section": "content › should support EOLs inside nested directives (3)",
+		"markdown": ":abbr[:abbr[\nb\n]]",
+		"html": ""
+	},
+	{
+		"example": 81,
+		"section": "content › should support EOLs inside nested directives (4)",
+		"markdown": ":abbr[:abbr[\\\n]]",
+		"html": ""
+	},
+	{
+		"example": 82,
+		"section": "content › should support markdown in a label",
+		"markdown": ":abbr[a *b* **c** d]",
+		"html": ""
+	},
+	{
+		"example": 83,
+		"section": "content › should support character references in single attribute values",
+		"markdown": ":abbr{title='a&apos;b'}",
+		"html": ""
+	},
+	{
+		"example": 84,
+		"section": "content › should not support non-terminated character references in single quoted attribute values",
+		"markdown": ":a{href='&param'}",
+		"html": ""
+	},
+	{
+		"example": 85,
+		"section": "content › should support EOLs between attributes",
+		"markdown": ":span{a\nb}",
+		"html": ""
+	},
+	{
+		"example": 86,
+		"section": "content › should support EOLs at the edges of attributes",
+		"markdown": ":span{\na\n}",
+		"html": ""
+	},
+	{
+		"example": 87,
+		"section": "content › should support EOLs before initializer",
+		"markdown": ":span{a\r= b}",
+		"html": ""
+	},
+	{
+		"example": 88,
+		"section": "content › should support EOLs after initializer",
+		"markdown": ":span{a=\r\nb}",
+		"html": ""
+	},
+	{
+		"example": 89,
+		"section": "content › should support EOLs between an unquoted attribute value and a next attribute name",
+		"markdown": ":span{a=b\nc}",
+		"html": ""
+	},
+	{
+		"example": 90,
+		"section": "content › should support EOLs in a double quoted attribute value",
+		"markdown": ":span{a=\"b\nc\"}",
+		"html": ""
+	},
+	{
+		"example": 91,
+		"section": "content › should support EOLs in a single quoted attribute value",
+		"markdown": ":span{a='b\nc'}",
+		"html": ""
+	},
+	{
+		"example": 92,
+		"section": "content › should support `id` shortcuts",
+		"markdown": ":span{#a#b}",
+		"html": ""
+	},
+	{
+		"example": 93,
+		"section": "content › should support `id` shortcuts after `id` attributes",
+		"markdown": ":span{id=a id=\"b\" #c#d}",
+		"html": ""
+	},
+	{
+		"example": 94,
+		"section": "content › should support `class` shortcuts",
+		"markdown": ":span{.a.b}",
+		"html": ""
+	},
+	{
+		"example": 95,
+		"section": "content › should support `class` shortcuts after `class` attributes",
+		"markdown": ":span{class=a class=\"b c\" .d.e}",
+		"html": ""
+	}
+]

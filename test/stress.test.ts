@@ -9,11 +9,12 @@
 import { describe, expect, it } from 'vite-plus/test';
 import { parse } from '../src/index';
 import { unwarnedUrls } from './examples';
+import directive from './stress/directive.json' with { type: 'json' };
 import autolink from './stress/gfm-autolink-literal.json' with { type: 'json' };
 import yaml from './stress/yaml.json' with { type: 'json' };
 import { expectTree } from './tree';
 
-const suites = { 'gfm-autolink-literal': autolink, yaml };
+const suites = { directive, 'gfm-autolink-literal': autolink, yaml };
 
 describe.each(Object.entries(suites))('%s', (suite, list) => {
 	it.each(list.map((e) => [`${suite}:${e.example} ${e.section}`, e.markdown] as const))(

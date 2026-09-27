@@ -219,7 +219,9 @@ autolink suite swept `http://` past each punctuation character. `vendor.ts` now 
 keeps what tests a decision markz makes, and the rest goes to `test/stress/`, held only to
 finishing, not throwing, a valid tree and a warning for each bare URL GFM links. YAML keeps valid
 plain `key: value` blocks and the first test of each YAML feature, 29 of 159; the autolink suite
-keeps its hand-written fixtures and inline tests, 39 of 53. Footnotes and math are vendored the
+keeps its hand-written fixtures and inline tests, 39 of 53. The directive suite keeps 156 of 251: it tests the
+shared name, label and attribute rules once per kind of directive, and a directive before and
+after every block form, cut ones included; a rule is now kept once, and the cut neighbours go. Footnotes and math are vendored the
 same way.
 
 ### 13. The site by the dialect — done
