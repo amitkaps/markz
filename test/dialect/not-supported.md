@@ -233,6 +233,23 @@ _at https://a.com_
 https://a.com
 ```
 
+```example
+WWW.A.COM and 0https://b.io
+.
+<p>WWW.A.COM and 0https://b.io</p>
+.
+WWW.A.COM
+https://b.io
+```
+
+```example
+at www._ it stops
+.
+<p>at www._ it stops</p>
+.
+www.
+```
+
 ## relative-autolink
 
 ```example

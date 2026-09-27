@@ -29,6 +29,7 @@ import directive from './spec/directive.json' with { type: 'json' };
 import frontmatter from './spec/frontmatter.json' with { type: 'json' };
 import slugger from './spec/slugger.json' with { type: 'json' };
 import yamlSuite from './spec/yaml.json' with { type: 'json' };
+import gfmAutolinkLiteral from './spec/gfm-autolink-literal.json' with { type: 'json' };
 import gfmStrikethrough from './spec/gfm-strikethrough.json' with { type: 'json' };
 import gfmTable from './spec/gfm-table.json' with { type: 'json' };
 import gfm from './spec/gfm.json' with { type: 'json' };
@@ -39,6 +40,7 @@ export type Upstream =
 	| 'gfm'
 	| 'gfm-table'
 	| 'gfm-strikethrough'
+	| 'gfm-autolink-literal'
 	| 'directive'
 	| 'frontmatter'
 	| 'yaml'
@@ -110,6 +112,7 @@ export const sections: Record<string, string> = {
 	'gfm:Disallowed Raw HTML': 'raw-block',
 	'gfm-table': 'table',
 	'gfm-strikethrough': 'emphasis',
+	'gfm-autolink-literal': 'link',
 	'directive:micromark-extension-directive (syntax, text)': 'text-directive',
 	'directive:micromark-extension-directive (syntax, leaf)': 'directive',
 	'directive:micromark-extension-directive (syntax, container)': 'directive',
@@ -187,7 +190,8 @@ export const listed: Record<string, string> = {
 
 /** @prose
  * Where the oracle and the spec's own HTML disagree on an example compared with it, and why.
- * markz is still compared with the oracle there; this list only explains the oracle's self-check.
+ * markz is still compared with the oracle there; this list explains the oracle's self-check, and
+ * for bare URLs lets markz warn where GitHub links and the oracle doesn't.
  */
 export const oracleDiffers: Record<string, string> = {
 	'gfm:279': 'cmark-gfm orders task-item input attributes differently and omits the void slash',
@@ -196,7 +200,13 @@ export const oracleDiffers: Record<string, string> = {
 		'GitHub reads an escaped backslash before a pipe as escaping the pipe (cmark-gfm#277)',
 	'yaml:18': '`yaml` reads `!!binary` as bytes, where the suite writes the base64 string',
 	'commonmark:98': 'the oracle reads the opening `---` block as frontmatter, as markz does',
-	'slugger:19': "the suite's id is numbered past ` a `, a fixture a heading can't hold"
+	'slugger:19': "the suite's id is numbered past ` a `, a fixture a heading can't hold",
+	'gfm-autolink-literal:12':
+		'the fixture\'s HTML went through rehype, which writes `&#x26;`, `"` and `>` differently',
+	'gfm-autolink-literal:19': 'GitHub links an email after `:`, and micromark does not',
+	'gfm-autolink-literal:21': 'GitHub links `www.` after a tab, and micromark does not',
+	'gfm-autolink-literal:22': 'GitHub links an email after a tab, and micromark does not',
+	'gfm-autolink-literal:23': 'GitHub links an email after `:`, and micromark does not'
 };
 
 /** @prose
@@ -325,6 +335,7 @@ export const examples: Example[] = [
 	...gfm.map((e) => upstreamExample('gfm', e)),
 	...gfmTable.map((e) => upstreamExample('gfm-table', e)),
 	...gfmStrikethrough.map((e) => upstreamExample('gfm-strikethrough', e)),
+	...gfmAutolinkLiteral.map((e) => upstreamExample('gfm-autolink-literal', e)),
 	...directive.map((e) => upstreamExample('directive', e)),
 	...frontmatter.map((e) => upstreamExample('frontmatter', e)),
 	...yamlSuite.map((e) => upstreamExample('yaml', e)),
@@ -407,7 +418,10 @@ export function check(e: Example): Result {
 	if (e.kind === 'differ') return result('differ', 'by design');
 	if (e.kind === 'not supported') {
 		const fired = doc.warnings.some((w) => w.code === code);
-		return fired ? holds() : result('fail', `no \`${code}\` warning`);
+		if (!fired) return result('fail', `no \`${code}\` warning`);
+		const missed =
+			code === 'bare-url' ? unwarnedUrls(e.markdown, doc, !!oracleDiffers[e.id]) : null;
+		return missed ? result('fail', missed) : holds();
 	}
 	if (markz.replace(/\n$/, '') !== e.html) return result('fail', 'HTML differs from the expected');
 	const covered = doc.warnings.map((w) => e.markdown.slice(w.start, w.end));
@@ -419,6 +433,30 @@ export function check(e: Example): Result {
 	}
 	return holds();
 }
+
+/** @prose
+ * ## Bare URLs, one by one
+ *
+ * A document can hold many bare URLs, so one `bare-url` warning isn't enough: each URL GFM links
+ * must have its own warning, and each warning a URL GFM links, or a reader loses a link with no
+ * signal. They pair by overlap, not by exact text: where GFM trims a URL's tail (a `;`, a `]`,
+ * an `&amp;`) is its autolink rule, the one the dialect cuts, and a warning a character longer
+ * still points at the right URL. Where GitHub links more than the oracle (`oracleDiffers`), only a
+ * missed link fails.
+ */
+function unwarnedUrls(markdown: string, doc: Document, github: boolean): string | null {
+	const gfm = tokens(markdown).filter((t) => t.type === 'literalAutolink');
+	if (!gfm.length) return null;
+	const mine = doc.warnings.filter((w) => w.code === 'bare-url');
+	const overlaps = (a: Range, b: Range) => a.start < b.end && b.start < a.end;
+	const missed = gfm.filter((t) => !mine.some((w) => overlaps(t, w)));
+	const extra = github ? [] : mine.filter((w) => !gfm.some((t) => overlaps(t, w)));
+	if (!missed.length && !extra.length) return null;
+	const text = (r: Range) => markdown.slice(r.start, r.end);
+	return `missed ${JSON.stringify(missed.map(text))}, warned over ${JSON.stringify(extra.map(text))} where GFM links nothing`;
+}
+
+type Range = { start: number; end: number };
 
 /** @prose
  * ## Metadata against YAML

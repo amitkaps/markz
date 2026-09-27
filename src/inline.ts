@@ -744,10 +744,15 @@ class InlinePass {
 	 * ## Bare URLs and stray attributes
 	 *
 	 * GFM links `https://…`, `www.…` and `me@example.com` in running text; markz keeps them as
-	 * text and reports them. Each is found at its `:`, `.` or `@`, looking back at text already
-	 * scanned, and taken whole as text so nothing inside it is read as emphasis or punctuation.
-	 * One inside a link's text is the link's label, not a bare URL, so the reports wait until
-	 * the leaf is done and a link that closes drops the ones inside it.
+	 * text and reports each one GFM would link, so a reader never loses a link silently. Each is
+	 * found at its `:`, `.` or `@`, looking back at text already scanned, and taken whole as text so
+	 * nothing inside it is read as emphasis or punctuation. Which ones count is GFM's rule, held to
+	 * micromark-extension-gfm-autolink-literal's suite: the character before (`www.` only after
+	 * space, `(`, `*`, `_`, `[`, `]` or `~`; a protocol after anything but a letter), a domain with
+	 * no `_` in its last two segments, an email domain ending in a letter, and nothing after a `[`
+	 * that hasn't closed. The report's end is approximate: where GFM trims a URL's tail is the part
+	 * of its rule the dialect cuts. The reports wait until the leaf is done, and a link that closes
+	 * drops the ones inside it.
 	 *
 	 * A `{…}` that parses as attributes but sits where none are allowed (after a word, code,
 	 * emphasis or `[text]`) stays text and is reported. Any other brace is prose.
@@ -758,20 +763,23 @@ class InlinePass {
 		const back = text.slice(Math.max(from, t - 64), t);
 		let start = -1;
 		let end = t;
-		if (c === ':') {
-			const m = /(?:^|[^\w])(https?)$/.exec(back);
-			if (m && text.startsWith('//', t + 1) && /[\w-]/.test(text[t + 3] ?? '')) {
+		// GFM links nothing after a `[` that hasn't closed yet.
+		if (this.brackets.length) start = -1;
+		else if (c === ':') {
+			const m = /(?:^|[^A-Za-z])(https?)$/i.exec(back);
+			if (m && text.startsWith('//', t + 1) && domain(text, t + 3) > t + 3) {
 				start = t - m[1]!.length;
 			}
 		} else if (c === '.') {
-			const m = /(?:^|[^\w.])www$/.exec(back);
-			if (m && /[\w-]/.test(text[t + 1] ?? '')) start = t - 3;
+			if (/(?:^|[ \t\n(*_[\]~])www$/i.test(back) && t + 1 < to && domain(text, t - 3) > 0) {
+				start = t - 3;
+			}
 		} else {
-			const m = /(?:^|[^\w.+-])([\w.+-]+)$/.exec(back);
-			DOMAIN.lastIndex = t + 1;
-			if (m && DOMAIN.test(text)) {
+			const m = /(?:^|[^\w.+/-])([\w.+-]+)$/.exec(back);
+			EMAIL_DOMAIN.lastIndex = t + 1;
+			if (m && EMAIL_DOMAIN.test(text) && /[A-Za-z]/.test(text[EMAIL_DOMAIN.lastIndex - 1]!)) {
 				start = t - m[1]!.length;
-				end = DOMAIN.lastIndex;
+				end = EMAIL_DOMAIN.lastIndex;
 			}
 		}
 		if (start < 0) {
@@ -780,9 +788,7 @@ class InlinePass {
 			return t + 1;
 		}
 		if (c !== '@') {
-			// Inside a bracket, a `]` may be the one that closes it.
-			const stop = this.brackets.length ? /[\s<\]]/ : /[\s<]/;
-			while (end < to && !stop.test(text[end]!)) end++;
+			while (end < to && !/[\s<]/.test(text[end]!)) end++;
 			// Trailing punctuation belongs to the sentence, and a `)` only when unbalanced.
 			for (;;) {
 				const last = text[end - 1]!;
@@ -791,6 +797,8 @@ class InlinePass {
 				else if (last === ')' && url.split(')').length > url.split('(').length) end--;
 				else break;
 			}
+			// GFM links `www.!` as `www`; the report keeps the `.` so the scan moves on.
+			end = Math.max(end, t + 1);
 		}
 		end = Math.min(end, to);
 		this.urls.push([this.at(start), this.to(end)]);
@@ -907,7 +915,20 @@ class InlinePass {
 const SPECIAL = /[\n\\`$<&[\]!_*~:"'\-.@{]/;
 const ENTITY = /^&(?:#(\d{1,7})|#[xX]([\da-fA-F]{1,6})|([A-Za-z][A-Za-z\d]{1,31}));/;
 const NAME = /[A-Za-z][\w-]*/y;
-const DOMAIN = /[A-Za-z\d](?:[\w-]*[A-Za-z\d])?(?:\.[A-Za-z\d](?:[\w-]*[A-Za-z\d])?)+/y;
+/** An email's domain: ASCII segments, a `.` counting only before a letter or digit. */
+const EMAIL_DOMAIN = /[\w-]+(?:\.(?=[A-Za-z\d])[\w-]+)+/y;
+
+/**
+ * Where a URL's domain ends, as GFM reads it: at whitespace or punctuation other than `-`, `.`
+ * and `_`, with trailing `.` and `_` left to the sentence. Any letter counts (`www.點看.com`).
+ * Returns -1 when an `_` sits in the last two segments, which GFM doesn't link.
+ */
+function domain(text: string, from: number): number {
+	let end = from;
+	while (end < text.length && /[-._]|[^\s\p{P}\p{S}\p{Cc}]/u.test(text[end]!)) end++;
+	while (end > from && /[._]/.test(text[end - 1]!)) end--;
+	return text.slice(from, end).split('.').slice(-2).join('').includes('_') ? -1 : end;
+}
 const RELATIVE = /<\.{0,2}\/[^\s<>]*>/y;
 const OPENER = /<(?:\/?[A-Za-z][A-Za-z\d-]*(?=[\s/>]|$)|\?|![A-Z]|!\[CDATA\[)/y;
 const AUTOLINK = /<([A-Za-z][A-Za-z\d+.-]{1,31}:[^\s<>]*)>/y;

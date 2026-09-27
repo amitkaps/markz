@@ -37,3 +37,8 @@ against it where it has any.
   its ASCII punctuation escaped, and the harness puts each after the ones before it, so repeats
   are numbered as in the suite. The four that start or end with a space are left out, since a
   heading's text is trimmed.
+- `gfm-autolink-literal.json`: the tests of
+  [micromark-extension-gfm-autolink-literal](https://github.com/micromark/micromark-extension-gfm-autolink-literal/tree/618170c86639742036ecf666d975a6ebac5aac50/test)
+  (commit `618170c`), by `vendor.ts` as the other extensions are: 29 fixture sections and 24
+  inline tests. markz cuts bare URLs, so these test the `bare-url` warning: one for each URL GFM
+  links, and none elsewhere. Left out: the three `disable.null` tests.
