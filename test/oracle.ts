@@ -23,6 +23,7 @@
 import { micromark, parse, postprocess, preprocess } from 'micromark';
 import { gfm, gfmHtml } from 'micromark-extension-gfm';
 import { directive, directiveHtml, type Handle } from 'micromark-extension-directive';
+import YAML from 'yaml';
 
 const ELEMENTS = new Set(['sup', 'sub', 'ins', 'mark', 'kbd', 'abbr']);
 
@@ -109,4 +110,18 @@ export function tokens(markdown: string): Token[] {
 	return events
 		.filter(([kind]) => kind === 'enter')
 		.map(([, t]) => ({ type: t.type, text: markdown.slice(t.start.offset, t.end.offset) }));
+}
+
+/** @prose
+ * ## Metadata
+ *
+ * The oracle for a metadata block's body is the `yaml` package, as the metadata rule says: what
+ * YAML 1.2 reads, or why it refuses.
+ */
+export function metadataOracle(body: string): { value: unknown } | { error: string } {
+	try {
+		return { value: YAML.parse(body, { logLevel: 'error' }) };
+	} catch (error) {
+		return { error: (error as Error).message.split('\n')[0]! };
+	}
 }

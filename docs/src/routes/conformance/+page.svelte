@@ -233,7 +233,13 @@
 									>{:else}{part.text}{/if}{/each}</pre>
 					</div>
 					<div class="pane">
-						<h3>{r.source === 'markz' ? 'Expected' : 'micromark (oracle)'}</h3>
+						<h3>
+							{r.source === 'markz'
+								? 'Expected'
+								: r.source === 'yaml'
+									? 'yaml (oracle)'
+									: 'micromark (oracle)'}
+						</h3>
 						<pre>{r.expected}</pre>
 					</div>
 					<div class="pane">

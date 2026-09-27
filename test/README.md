@@ -11,7 +11,8 @@ Tests that span the package rather than one module.
   origin, EBNF productions and side rules; [`ebnf.ts`](ebnf.ts) reads the notation.
 - [`syntax.ts`](syntax.ts): what `syntax.md` says about each construct, by id, and the Not
   supported rows, by code.
-- [`oracle.ts`](oracle.ts): micromark with GFM and directives, and the normalization.
+- [`oracle.ts`](oracle.ts): micromark with GFM and directives, the normalization, and `yaml` for
+  metadata.
 - [`examples.test.ts`](examples.test.ts) checks every example and the filing;
   [`grammar.test.ts`](grammar.test.ts) holds the grammar to itself and to `syntax.md`;
   [`oracle.test.ts`](oracle.test.ts) checks the oracle itself.

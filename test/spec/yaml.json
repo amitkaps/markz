@@ -1,0 +1,956 @@
+[
+ {
+  "example": 1,
+  "section": "236B › Invalid value after mapping (error mapping)",
+  "markdown": "---\nfoo:\n  bar\ninvalid\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 2,
+  "section": "26DV › Whitespace around colon in mappings (alias mapping whitespace)",
+  "markdown": "---\n\"top1\" : \n  \"key1\" : &alias1 scalar1\n'top2' : \n  'key2' : &alias2 scalar2\ntop3: &node3 \n  *alias1 : scalar3\ntop4: \n  *alias2 : scalar4\ntop5   :    \n  scalar5\ntop6: \n  &anchor6 'key6' : scalar6\n---\n",
+  "html": "{\n  \"top1\": {\n    \"key1\": \"scalar1\"\n  },\n  \"top2\": {\n    \"key2\": \"scalar2\"\n  },\n  \"top3\": {\n    \"scalar1\": \"scalar3\"\n  },\n  \"top4\": {\n    \"scalar2\": \"scalar4\"\n  },\n  \"top5\": \"scalar5\",\n  \"top6\": {\n    \"key6\": \"scalar6\"\n  }\n}\n"
+ },
+ {
+  "example": 3,
+  "section": "2CMS › Invalid mapping in plain multiline (error mapping)",
+  "markdown": "---\nthis\n is\n  invalid: x\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 4,
+  "section": "2EBW › Allowed characters in keys (mapping scalar)",
+  "markdown": "---\na!\"#$%&'()*+,-./09:;<=>?@AZ[\\]^_`az{|}~: safe\n?foo: safe question mark\n:foo: safe colon\n-foo: safe dash\nthis is#not: a comment\n---\n",
+  "html": "{\n  \"a!\\\"#$%&'()*+,-./09:;<=>?@AZ[\\\\]^_`az{|}~\": \"safe\",\n  \"?foo\": \"safe question mark\",\n  \":foo\": \"safe colon\",\n  \"-foo\": \"safe dash\",\n  \"this is#not\": \"a comment\"\n}\n"
+ },
+ {
+  "example": 5,
+  "section": "2JQS › Block Mapping with Missing Keys (duplicate-key mapping empty-key)",
+  "markdown": "---\n: a\n: b\n---\n",
+  "html": ""
+ },
+ {
+  "example": 6,
+  "section": "2SXE › Anchors With Colon in Name (alias edge mapping 1.3-err)",
+  "markdown": "---\n&a: key: &a value\nfoo:\n  *a:\n---\n",
+  "html": "{\n  \"key\": \"value\",\n  \"foo\": \"key\"\n}\n"
+ },
+ {
+  "example": 7,
+  "section": "3GZX › Spec Example 7.1. Alias Nodes (mapping spec alias)",
+  "markdown": "---\nFirst occurrence: &anchor Foo\nSecond occurrence: *anchor\nOverride anchor: &anchor Bar\nReuse anchor: *anchor\n---\n",
+  "html": "{\n  \"First occurrence\": \"Foo\",\n  \"Second occurrence\": \"Foo\",\n  \"Override anchor\": \"Bar\",\n  \"Reuse anchor\": \"Bar\"\n}\n"
+ },
+ {
+  "example": 8,
+  "section": "3UYS › Escaped slash in double quotes (double)",
+  "markdown": "---\nescaped slash: \"a\\/b\"\n---\n",
+  "html": "{\n  \"escaped slash\": \"a/b\"\n}\n"
+ },
+ {
+  "example": 9,
+  "section": "4ABK › Flow Mapping Separate Values (flow mapping)",
+  "markdown": "---\n{\nunquoted : \"separate\",\nhttp://foo.com,\nomitted value:,\n}\n---\n",
+  "html": ""
+ },
+ {
+  "example": 10,
+  "section": "4CQQ › Spec Example 2.18. Multi-line Flow Scalars (spec scalar)",
+  "markdown": "---\nplain:\n  This unquoted scalar\n  spans many lines.\n\nquoted: \"So does this\n  quoted scalar.\\n\"\n---\n",
+  "html": "{\n  \"plain\": \"This unquoted scalar spans many lines.\",\n  \"quoted\": \"So does this quoted scalar.\\n\"\n}\n"
+ },
+ {
+  "example": 11,
+  "section": "4HVU › Wrong indendation in Sequence (error sequence indent)",
+  "markdown": "---\nkey:\n   - ok\n   - also ok\n  - wrong\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 12,
+  "section": "4JVG › Scalar value with two anchors (anchor error mapping)",
+  "markdown": "---\ntop1: &node1\n  &k1 key1: val1\ntop2: &node2\n  &v2 val2\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 13,
+  "section": "4MUZ › Flow mapping colon on line after key (flow mapping)",
+  "markdown": "---\n{\"foo\"\n: \"bar\"}\n---\n",
+  "html": "{\n  \"foo\": \"bar\"\n}\n"
+ },
+ {
+  "example": 14,
+  "section": "4MUZ:1 › Flow mapping colon on line after key (flow mapping)",
+  "markdown": "---\n{\"foo\"\n: bar}\n---\n",
+  "html": ""
+ },
+ {
+  "example": 15,
+  "section": "4MUZ:2 › Flow mapping colon on line after key (flow mapping)",
+  "markdown": "---\n{foo\n: bar}\n---\n",
+  "html": "{\n  \"foo\": \"bar\"\n}\n"
+ },
+ {
+  "example": 16,
+  "section": "4ZYM › Spec Example 6.4. Line Prefixes (spec scalar literal double upto-1.2 whitespace)",
+  "markdown": "---\nplain: text\n  lines\nquoted: \"text\n  \tlines\"\nblock: |\n  text\n   \tlines\n---\n",
+  "html": "{\n  \"plain\": \"text lines\",\n  \"quoted\": \"text lines\",\n  \"block\": \"text\\n \\tlines\\n\"\n}\n"
+ },
+ {
+  "example": 17,
+  "section": "54T7 › Flow Mapping (flow mapping)",
+  "markdown": "---\n{foo: you, bar: far}\n---\n",
+  "html": "{\n  \"foo\": \"you\",\n  \"bar\": \"far\"\n}\n"
+ },
+ {
+  "example": 18,
+  "section": "565N › Construct Binary (tag unknown-tag)",
+  "markdown": "---\ncanonical: !!binary \"\\\n R0lGODlhDAAMAIQAAP//9/X17unp5WZmZgAAAOfn515eXvPz7Y6OjuDg4J+fn5\\\n OTk6enp56enmlpaWNjY6Ojo4SEhP/++f/++f/++f/++f/++f/++f/++f/++f/+\\\n +f/++f/++f/++f/++f/++SH+Dk1hZGUgd2l0aCBHSU1QACwAAAAADAAMAAAFLC\\\n AgjoEwnuNAFOhpEMTRiggcz4BNJHrv/zCFcLiwMWYNG84BwwEeECcgggoBADs=\"\ngeneric: !!binary |\n R0lGODlhDAAMAIQAAP//9/X17unp5WZmZgAAAOfn515eXvPz7Y6OjuDg4J+fn5\n OTk6enp56enmlpaWNjY6Ojo4SEhP/++f/++f/++f/++f/++f/++f/++f/++f/+\n +f/++f/++f/++f/++f/++SH+Dk1hZGUgd2l0aCBHSU1QACwAAAAADAAMAAAFLC\n AgjoEwnuNAFOhpEMTRiggcz4BNJHrv/zCFcLiwMWYNG84BwwEeECcgggoBADs=\ndescription:\n The binary value above is a tiny arrow encoded as a gif image.\n---\n",
+  "html": "{\n  \"canonical\": \"R0lGODlhDAAMAIQAAP//9/X17unp5WZmZgAAAOfn515eXvPz7Y6OjuDg4J+fn5OTk6enp56enmlpaWNjY6Ojo4SEhP/++f/++f/++f/++f/++f/++f/++f/++f/++f/++f/++f/++f/++f/++SH+Dk1hZGUgd2l0aCBHSU1QACwAAAAADAAMAAAFLCAgjoEwnuNAFOhpEMTRiggcz4BNJHrv/zCFcLiwMWYNG84BwwEeECcgggoBADs=\",\n  \"generic\": \"R0lGODlhDAAMAIQAAP//9/X17unp5WZmZgAAAOfn515eXvPz7Y6OjuDg4J+fn5\\nOTk6enp56enmlpaWNjY6Ojo4SEhP/++f/++f/++f/++f/++f/++f/++f/++f/+\\n+f/++f/++f/++f/++f/++SH+Dk1hZGUgd2l0aCBHSU1QACwAAAAADAAMAAAFLC\\nAgjoEwnuNAFOhpEMTRiggcz4BNJHrv/zCFcLiwMWYNG84BwwEeECcgggoBADs=\\n\",\n  \"description\": \"The binary value above is a tiny arrow encoded as a gif image.\"\n}\n"
+ },
+ {
+  "example": 19,
+  "section": "57H4 › Spec Example 8.22. Block Collection Nodes (sequence mapping tag)",
+  "markdown": "---\nsequence: !!seq\n- entry\n- !!seq\n - nested\nmapping: !!map\n foo: bar\n---\n",
+  "html": "{\n  \"sequence\": [\n    \"entry\",\n    [\n      \"nested\"\n    ]\n  ],\n  \"mapping\": {\n    \"foo\": \"bar\"\n  }\n}\n"
+ },
+ {
+  "example": 20,
+  "section": "58MP › Flow mapping edge cases (edge flow mapping)",
+  "markdown": "---\n{x: :x}\n---\n",
+  "html": "{\n  \"x\": \":x\"\n}\n"
+ },
+ {
+  "example": 21,
+  "section": "5BVJ › Spec Example 5.7. Block Scalar Indicators (spec literal folded scalar)",
+  "markdown": "---\nliteral: |\n  some\n  text\nfolded: >\n  some\n  text\n---\n",
+  "html": "{\n  \"literal\": \"some\\ntext\\n\",\n  \"folded\": \"some text\\n\"\n}\n"
+ },
+ {
+  "example": 22,
+  "section": "5GBF › Spec Example 6.5. Empty Lines (double literal spec scalar upto-1.2 whitespace)",
+  "markdown": "---\nFolding:\n  \"Empty line\n   \t\n  as a line feed\"\nChomping: |\n  Clipped empty lines\n \n\n---\n",
+  "html": "{\n  \"Folding\": \"Empty line\\nas a line feed\",\n  \"Chomping\": \"Clipped empty lines\\n\"\n}\n"
+ },
+ {
+  "example": 23,
+  "section": "5LLU › Block scalar with wrong indented line after spaces only (error folded whitespace)",
+  "markdown": "---\nblock scalar: >\n \n  \n   \n invalid\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 24,
+  "section": "5NYZ › Spec Example 6.9. Separated Comment (mapping spec comment)",
+  "markdown": "---\nkey:    # Comment\n  value\n---\n",
+  "html": "{\n  \"key\": \"value\"\n}\n"
+ },
+ {
+  "example": 25,
+  "section": "5U3A › Sequence on same Line as Mapping Key (error sequence mapping)",
+  "markdown": "---\nkey: - a\n     - b\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 26,
+  "section": "5WE3 › Spec Example 8.17. Explicit Block Mapping Entries (explicit-key spec mapping comment literal sequence)",
+  "markdown": "---\n? explicit key # Empty value\n? |\n  block key\n: - one # Explicit compact\n  - two # block value\n---\n",
+  "html": "{\n  \"explicit key\": null,\n  \"block key\\n\": [\n    \"one\",\n    \"two\"\n  ]\n}\n"
+ },
+ {
+  "example": 27,
+  "section": "652Z › Question mark at start of flow key (flow)",
+  "markdown": "---\n{ ?foo: bar,\nbar: 42\n}\n---\n",
+  "html": "{\n  \"?foo\" : \"bar\",\n  \"bar\" : 42\n}\n"
+ },
+ {
+  "example": 28,
+  "section": "6H3V › Backslashes in singlequotes (scalar single)",
+  "markdown": "---\n'foo: bar\\': baz'\n---\n",
+  "html": "{\n  \"foo: bar\\\\\": \"baz'\"\n}\n"
+ },
+ {
+  "example": 29,
+  "section": "6HB6 › Spec Example 6.1. Indentation Spaces (comment flow spec indent upto-1.2 whitespace)",
+  "markdown": "---\n  # Leading comment line spaces are\n   # neither content nor indentation.\n    \nNot indented:\n By one space: |\n    By four\n      spaces\n Flow style: [    # Leading spaces\n   By two,        # in flow style\n  Also by two,    # are neither\n  \tStill by two   # content nor\n    ]             # indentation.\n---\n",
+  "html": "{\n  \"Not indented\": {\n    \"By one space\": \"By four\\n  spaces\\n\",\n    \"Flow style\": [\n      \"By two\",\n      \"Also by two\",\n      \"Still by two\"\n    ]\n  }\n}\n"
+ },
+ {
+  "example": 30,
+  "section": "6JWB › Tags for Block Objects (mapping sequence tag)",
+  "markdown": "---\nfoo: !!seq\n  - !!str a\n  - !!map\n    key: !!str value\n---\n",
+  "html": "{\n  \"foo\": [\n    \"a\",\n    {\n      \"key\": \"value\"\n    }\n  ]\n}\n"
+ },
+ {
+  "example": 31,
+  "section": "6M2F › Aliases in Explicit Block Mapping (alias explicit-key empty-key)",
+  "markdown": "---\n? &a a\n: &b b\n: *a\n---\n",
+  "html": ""
+ },
+ {
+  "example": 32,
+  "section": "6S55 › Invalid scalar at the end of sequence (error mapping sequence)",
+  "markdown": "---\nkey:\n - bar\n - baz\n invalid\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 33,
+  "section": "6SLA › Allowed characters in quoted mapping key (mapping single double)",
+  "markdown": "---\n\"foo\\nbar:baz\\tx \\\\$%^&*()x\": 23\n'x\\ny:z\\tx $%^&*()x': 24\n---\n",
+  "html": "{\n  \"foo\\nbar:baz\\tx \\\\$%^&*()x\": 23,\n  \"x\\\\ny:z\\\\tx $%^&*()x\": 24\n}\n"
+ },
+ {
+  "example": 34,
+  "section": "74H7 › Tags in Implicit Mapping (tag mapping)",
+  "markdown": "---\n!!str a: b\nc: !!int 42\ne: !!str f\ng: h\n!!str 23: !!bool false\n---\n",
+  "html": "{\n  \"a\": \"b\",\n  \"c\": 42,\n  \"e\": \"f\",\n  \"g\": \"h\",\n  \"23\": false\n}\n"
+ },
+ {
+  "example": 35,
+  "section": "7FWL › Spec Example 6.24. Verbatim Tags (mapping spec tag unknown-tag)",
+  "markdown": "---\n!<tag:yaml.org,2002:str> foo :\n  !<!bar> baz\n---\n",
+  "html": "{\n  \"foo\": \"baz\"\n}\n"
+ },
+ {
+  "example": 36,
+  "section": "7LBH › Multiline double quoted implicit keys (error double)",
+  "markdown": "---\n\"a\\nb\": 1\n\"c\n d\": 1\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 37,
+  "section": "7MNF › Missing colon (error mapping)",
+  "markdown": "---\ntop1:\n  key1: val1\ntop2\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 38,
+  "section": "7W2P › Block Mapping with Missing Values (explicit-key mapping)",
+  "markdown": "---\n? a\n? b\nc:\n---\n",
+  "html": "{\n  \"a\": null,\n  \"b\": null,\n  \"c\": null\n}\n"
+ },
+ {
+  "example": 39,
+  "section": "87E4 › Spec Example 7.8. Single Quoted Implicit Keys (spec flow sequence mapping)",
+  "markdown": "---\n'implicit block key' : [\n  'implicit flow key' : value,\n ]\n---\n",
+  "html": "{\n  \"implicit block key\": [\n    {\n      \"implicit flow key\": \"value\"\n    }\n  ]\n}\n"
+ },
+ {
+  "example": 40,
+  "section": "8QBE › Block Sequence in Block Mapping (mapping sequence)",
+  "markdown": "---\nkey:\n - item1\n - item2\n---\n",
+  "html": "{\n  \"key\": [\n    \"item1\",\n    \"item2\"\n  ]\n}\n"
+ },
+ {
+  "example": 41,
+  "section": "8XDJ › Comment in plain multiline value (error comment scalar)",
+  "markdown": "---\nkey: word1\n#  xxx\n  word2\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 42,
+  "section": "96NN › Leading tab content in literals (indent literal whitespace)",
+  "markdown": "---\nfoo: |-\n \tbar\n---\n",
+  "html": "{\"foo\":\"\\tbar\"}\n"
+ },
+ {
+  "example": 43,
+  "section": "9CWY › Invalid scalar at the end of mapping (error mapping sequence)",
+  "markdown": "---\nkey:\n - item1\n - item2\ninvalid\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 44,
+  "section": "9FMG › Multi-level Mapping Indent (mapping indent)",
+  "markdown": "---\na:\n  b:\n    c: d\n  e:\n    f: g\nh: i\n---\n",
+  "html": "{\n  \"a\": {\n    \"b\": {\n      \"c\": \"d\"\n    },\n    \"e\": {\n      \"f\": \"g\"\n    }\n  },\n  \"h\": \"i\"\n}\n"
+ },
+ {
+  "example": 45,
+  "section": "9J7A › Simple Mapping Indent (simple mapping indent)",
+  "markdown": "---\nfoo:\n  bar: baz\n---\n",
+  "html": "{\n  \"foo\": {\n    \"bar\": \"baz\"\n  }\n}\n"
+ },
+ {
+  "example": 46,
+  "section": "9SHH › Spec Example 5.8. Quoted Scalar Indicators (spec scalar)",
+  "markdown": "---\nsingle: 'text'\ndouble: \"text\"\n---\n",
+  "html": "{\n  \"single\": \"text\",\n  \"double\": \"text\"\n}\n"
+ },
+ {
+  "example": 47,
+  "section": "A2M4 › Spec Example 6.2. Indentation Indicators (explicit-key spec libyaml-err indent whitespace sequence upto-1.2)",
+  "markdown": "---\n? a\n: -\tb\n  -  -\tc\n     - d\n---\n",
+  "html": "{\n  \"a\": [\n    \"b\",\n    [\n      \"c\",\n      \"d\"\n    ]\n  ]\n}\n"
+ },
+ {
+  "example": 48,
+  "section": "A6F9 › Spec Example 8.4. Chomping Final Line Break (spec literal scalar)",
+  "markdown": "---\nstrip: |-\n  text\nclip: |\n  text\nkeep: |+\n  text\n---\n",
+  "html": "{\n  \"strip\": \"text\",\n  \"clip\": \"text\\n\",\n  \"keep\": \"text\\n\"\n}\n"
+ },
+ {
+  "example": 49,
+  "section": "A984 › Multiline Scalar in Mapping (scalar)",
+  "markdown": "---\na: b\n c\nd:\n e\n  f\n---\n",
+  "html": "{\n  \"a\": \"b c\",\n  \"d\": \"e f\"\n}\n"
+ },
+ {
+  "example": 50,
+  "section": "AZ63 › Sequence With Same Indentation as Parent Mapping (indent mapping sequence)",
+  "markdown": "---\none:\n- 2\n- 3\nfour: 5\n---\n",
+  "html": "{\n  \"one\": [\n    2,\n    3\n  ],\n  \"four\": 5\n}\n"
+ },
+ {
+  "example": 51,
+  "section": "BD7L › Invalid mapping after sequence (error mapping sequence)",
+  "markdown": "---\n- item1\n- item2\ninvalid: x\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 52,
+  "section": "BS4K › Comment between plain scalar lines (error scalar)",
+  "markdown": "---\nword1  # comment\nword2\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 53,
+  "section": "BU8L › Node Anchor and Tag on Seperate Lines (anchor indent 1.3-err tag)",
+  "markdown": "---\nkey: &anchor\n !!map\n  a: b\n---\n",
+  "html": "{\n  \"key\": {\n    \"a\": \"b\"\n  }\n}\n"
+ },
+ {
+  "example": 54,
+  "section": "C2DT › Spec Example 7.18. Flow Mapping Adjacent Values (spec flow mapping)",
+  "markdown": "---\n{\n\"adjacent\":value,\n\"readable\": value,\n\"empty\":\n}\n---\n",
+  "html": "{\n  \"adjacent\": \"value\",\n  \"readable\": \"value\",\n  \"empty\": null\n}\n"
+ },
+ {
+  "example": 55,
+  "section": "C2SP › Flow Mapping Key on two lines (error flow mapping)",
+  "markdown": "---\n[23\n]: 42\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 56,
+  "section": "CML9 › Missing comma in flow (error flow comment)",
+  "markdown": "---\nkey: [ word1\n#  xxx\n  word2 ]\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 57,
+  "section": "CUP7 › Spec Example 5.6. Node Property Indicators (local-tag spec tag alias)",
+  "markdown": "---\nanchored: !local &anchor value\nalias: *anchor\n---\n",
+  "html": "{\n  \"anchored\": \"value\",\n  \"alias\": \"value\"\n}\n"
+ },
+ {
+  "example": 58,
+  "section": "D49Q › Multiline single quoted implicit keys (error single mapping)",
+  "markdown": "---\n'a\\nb': 1\n'c\n d': 1\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 59,
+  "section": "D88J › Flow Sequence in Block Mapping (flow sequence mapping)",
+  "markdown": "---\na: [b, c]\n---\n",
+  "html": "{\n  \"a\": [\n    \"b\",\n    \"c\"\n  ]\n}\n"
+ },
+ {
+  "example": 60,
+  "section": "D9TU › Single Pair Block Mapping (simple mapping)",
+  "markdown": "---\nfoo: bar\n---\n",
+  "html": "{\n  \"foo\": \"bar\"\n}\n"
+ },
+ {
+  "example": 61,
+  "section": "DC7X › Various trailing tabs (comment whitespace)",
+  "markdown": "---\na: b\t\nseq:\t\n - a\t\nc: d\t#X\n---\n",
+  "html": "{\n  \"a\": \"b\",\n  \"seq\": [\n    \"a\"\n  ],\n  \"c\": \"d\"\n}\n"
+ },
+ {
+  "example": 62,
+  "section": "DFF7 › Spec Example 7.16. Flow Mapping Entries (explicit-key spec flow mapping)",
+  "markdown": "---\n{\n? explicit: entry,\nimplicit: entry,\n?\n}\n---\n",
+  "html": ""
+ },
+ {
+  "example": 63,
+  "section": "DK95 › Tabs that look like indentation (indent whitespace)",
+  "markdown": "---\nfoo:\n \tbar\n---\n",
+  "html": "{\n  \"foo\" : \"bar\"\n}\n"
+ },
+ {
+  "example": 64,
+  "section": "DK95:1 › Tabs that look like indentation (indent whitespace)",
+  "markdown": "---\nfoo: \"bar\n\tbaz\"\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 65,
+  "section": "DK95:2 › Tabs that look like indentation (indent whitespace)",
+  "markdown": "---\nfoo: \"bar\n  \tbaz\"\n---\n",
+  "html": "{\n  \"foo\" : \"bar baz\"\n}\n"
+ },
+ {
+  "example": 66,
+  "section": "DK95:3 › Tabs that look like indentation (indent whitespace)",
+  "markdown": "---\n \t\nfoo: 1\n---\n",
+  "html": "{\n  \"foo\" : 1\n}\n"
+ },
+ {
+  "example": 67,
+  "section": "DK95:4 › Tabs that look like indentation (indent whitespace)",
+  "markdown": "---\nfoo: 1\n\t\nbar: 2\n---\n",
+  "html": "{\n  \"foo\" : 1,\n  \"bar\" : 2\n}\n"
+ },
+ {
+  "example": 68,
+  "section": "DK95:5 › Tabs that look like indentation (indent whitespace)",
+  "markdown": "---\nfoo: 1\n \t\nbar: 2\n---\n",
+  "html": "{\n  \"foo\" : 1,\n  \"bar\" : 2\n}\n"
+ },
+ {
+  "example": 69,
+  "section": "DK95:6 › Tabs that look like indentation (indent whitespace)",
+  "markdown": "---\nfoo:\n  a: 1\n  \tb: 2\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 70,
+  "section": "DK95:8 › Tabs that look like indentation (indent whitespace)",
+  "markdown": "---\nfoo: \"bar\n \t \t baz \t \t \"\n---\n",
+  "html": "{\n  \"foo\" : \"bar baz \\t \\t \"\n}\n"
+ },
+ {
+  "example": 71,
+  "section": "DMG6 › Wrong indendation in Map (error mapping indent)",
+  "markdown": "---\nkey:\n  ok: 1\n wrong: 2\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 72,
+  "section": "E76Z › Aliases in Implicit Block Mapping (mapping alias)",
+  "markdown": "---\n&a a: &b b\n*b : *a\n---\n",
+  "html": "{\n  \"a\": \"b\",\n  \"b\": \"a\"\n}\n"
+ },
+ {
+  "example": 73,
+  "section": "EHF6 › Tags for Flow Objects (tag flow mapping sequence)",
+  "markdown": "---\n!!map {\n  k: !!seq\n  [ a, !!str b]\n}\n---\n",
+  "html": "{\n  \"k\": [\n    \"a\",\n    \"b\"\n  ]\n}\n"
+ },
+ {
+  "example": 74,
+  "section": "EW3V › Wrong indendation in mapping (error mapping indent)",
+  "markdown": "---\nk1: v1\n k2: v2\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 75,
+  "section": "F8F9 › Spec Example 8.5. Chomping Trailing Lines (spec literal scalar comment)",
+  "markdown": "---\n # Strip\n  # Comments:\nstrip: |-\n  # text\n  \n # Clip\n  # comments:\n\nclip: |\n  # text\n \n # Keep\n  # comments:\n\nkeep: |+\n  # text\n\n # Trail\n  # comments.\n---\n",
+  "html": "{\n  \"strip\": \"# text\",\n  \"clip\": \"# text\\n\",\n  \"keep\": \"# text\\n\\n\"\n}\n"
+ },
+ {
+  "example": 76,
+  "section": "FBC9 › Allowed characters in plain scalars (scalar)",
+  "markdown": "---\nsafe: a!\"#$%&'()*+,-./09:;<=>?@AZ[\\]^_`az{|}~\n     !\"#$%&'()*+,-./09:;<=>?@AZ[\\]^_`az{|}~\nsafe question mark: ?foo\nsafe colon: :foo\nsafe dash: -foo\n---\n",
+  "html": "{\n  \"safe\": \"a!\\\"#$%&'()*+,-./09:;<=>?@AZ[\\\\]^_`az{|}~ !\\\"#$%&'()*+,-./09:;<=>?@AZ[\\\\]^_`az{|}~\",\n  \"safe question mark\": \"?foo\",\n  \"safe colon\": \":foo\",\n  \"safe dash\": \"-foo\"\n}\n"
+ },
+ {
+  "example": 77,
+  "section": "FRK4 › Spec Example 7.3. Completely Empty Flow Nodes (empty-key explicit-key spec flow mapping)",
+  "markdown": "---\n{\n  ? foo :,\n  : bar,\n}\n---\n",
+  "html": ""
+ },
+ {
+  "example": 78,
+  "section": "G4RS › Spec Example 2.17. Quoted Scalars (spec scalar)",
+  "markdown": "---\nunicode: \"Sosa did fine.\\u263A\"\ncontrol: \"\\b1998\\t1999\\t2000\\n\"\nhex esc: \"\\x0d\\x0a is \\r\\n\"\n\nsingle: '\"Howdy!\" he cried.'\nquoted: ' # Not a ''comment''.'\ntie-fighter: '|\\-*-/|'\n---\n",
+  "html": "{\n  \"unicode\": \"Sosa did fine.☺\",\n  \"control\": \"\\b1998\\t1999\\t2000\\n\",\n  \"hex esc\": \"\\r\\n is \\r\\n\",\n  \"single\": \"\\\"Howdy!\\\" he cried.\",\n  \"quoted\": \" # Not a 'comment'.\",\n  \"tie-fighter\": \"|\\\\-*-/|\"\n}\n"
+ },
+ {
+  "example": 79,
+  "section": "G7JE › Multiline implicit keys (error mapping)",
+  "markdown": "---\na\\nb: 1\nc\n d: 1\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 80,
+  "section": "GDY7 › Comment that looks like a mapping key (comment error mapping)",
+  "markdown": "---\nkey: value\nthis is #not a: key\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 81,
+  "section": "GH63 › Mixed Block Mapping (explicit to implicit) (explicit-key mapping)",
+  "markdown": "---\n? a\n: 1.3\nfifteen: d\n---\n",
+  "html": "{\n  \"a\": 1.3,\n  \"fifteen\": \"d\"\n}\n"
+ },
+ {
+  "example": 82,
+  "section": "GT5M › Node anchor in sequence (anchor error sequence)",
+  "markdown": "---\n- item1\n&node\n- item2\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 83,
+  "section": "H2RW › Blank lines (comment literal scalar whitespace)",
+  "markdown": "---\nfoo: 1\n\nbar: 2\n    \ntext: |\n  a\n    \n  b\n\n  c\n \n  d\n---\n",
+  "html": "{\n  \"foo\": 1,\n  \"bar\": 2,\n  \"text\": \"a\\n  \\nb\\n\\nc\\n\\nd\\n\"\n}\n"
+ },
+ {
+  "example": 84,
+  "section": "H7J7 › Node anchor not indented (anchor error indent tag)",
+  "markdown": "---\nkey: &x\n!!map\n  a: b\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 85,
+  "section": "HMK4 › Spec Example 2.16. Indentation determines scope (spec folded literal)",
+  "markdown": "---\nname: Mark McGwire\naccomplishment: >\n  Mark set a major league\n  home run record in 1998.\nstats: |\n  65 Home Runs\n  0.278 Batting Average\n---\n",
+  "html": "{\n  \"name\": \"Mark McGwire\",\n  \"accomplishment\": \"Mark set a major league home run record in 1998.\\n\",\n  \"stats\": \"65 Home Runs\\n0.278 Batting Average\\n\"\n}\n"
+ },
+ {
+  "example": 86,
+  "section": "HMQ5 › Spec Example 6.23. Node Properties (spec tag alias)",
+  "markdown": "---\n!!str &a1 \"foo\":\n  !!str bar\n&a2 baz : *a1\n---\n",
+  "html": "{\n  \"foo\": \"bar\",\n  \"baz\": \"foo\"\n}\n"
+ },
+ {
+  "example": 87,
+  "section": "HU3P › Invalid Mapping in plain scalar (error mapping scalar)",
+  "markdown": "---\nkey:\n  word1 word2\n  no: key\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 88,
+  "section": "J3BT › Spec Example 5.12. Tabs and Spaces (spec whitespace upto-1.2)",
+  "markdown": "---\n# Tabs and spaces\nquoted: \"Quoted \t\"\nblock:\t|\n  void main() {\n  \tprintf(\"Hello, world!\\n\");\n  }\n---\n",
+  "html": "{\n  \"quoted\": \"Quoted \\t\",\n  \"block\": \"void main() {\\n\\tprintf(\\\"Hello, world!\\\\n\\\");\\n}\\n\"\n}\n"
+ },
+ {
+  "example": 89,
+  "section": "J5UC › Multiple Pair Block Mapping (mapping)",
+  "markdown": "---\nfoo: blue\nbar: arrr\nbaz: jazz\n---\n",
+  "html": "{\n  \"foo\": \"blue\",\n  \"bar\": \"arrr\",\n  \"baz\": \"jazz\"\n}\n"
+ },
+ {
+  "example": 90,
+  "section": "J7VC › Empty Lines Between Mapping Elements (whitespace mapping)",
+  "markdown": "---\none: 2\n\n\nthree: 4\n---\n",
+  "html": "{\n  \"one\": 2,\n  \"three\": 4\n}\n"
+ },
+ {
+  "example": 91,
+  "section": "JKF3 › Multiline unidented double quoted block key (indent)",
+  "markdown": "---\n- - \"bar\nbar\": x\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 92,
+  "section": "JQ4R › Spec Example 8.14. Block Sequence (mapping spec sequence)",
+  "markdown": "---\nblock sequence:\n  - one\n  - two : three\n---\n",
+  "html": "{\n  \"block sequence\": [\n    \"one\",\n    {\n      \"two\": \"three\"\n    }\n  ]\n}\n"
+ },
+ {
+  "example": 93,
+  "section": "JS2J › Spec Example 6.29. Node Anchors (spec alias)",
+  "markdown": "---\nFirst occurrence: &anchor Value\nSecond occurrence: *anchor\n---\n",
+  "html": "{\n  \"First occurrence\": \"Value\",\n  \"Second occurrence\": \"Value\"\n}\n"
+ },
+ {
+  "example": 94,
+  "section": "JTV5 › Block Mapping with Multiline Scalars (explicit-key mapping scalar)",
+  "markdown": "---\n? a\n  true\n: null\n  d\n? e\n  42\n---\n",
+  "html": "{\n  \"a true\": \"null d\",\n  \"e 42\": null\n}\n"
+ },
+ {
+  "example": 95,
+  "section": "JY7Z › Trailing content that looks like a mapping (error mapping double)",
+  "markdown": "---\nkey1: \"quoted1\"\nkey2: \"quoted2\" no key: nor value\nkey3: \"quoted3\"\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 96,
+  "section": "K858 › Spec Example 8.6. Empty Scalar Chomping (spec folded literal whitespace)",
+  "markdown": "---\nstrip: >-\n\nclip: >\n\nkeep: |+\n\n---\n",
+  "html": "{\n  \"strip\": \"\",\n  \"clip\": \"\",\n  \"keep\": \"\\n\"\n}\n"
+ },
+ {
+  "example": 97,
+  "section": "KK5P › Various combinations of explicit block mappings (explicit-key mapping sequence)",
+  "markdown": "---\ncomplex1:\n  ? - a\ncomplex2:\n  ? - a\n  : b\ncomplex3:\n  ? - a\n  : >\n    b\ncomplex4:\n  ? >\n    a\n  :\ncomplex5:\n  ? - a\n  : - b\n---\n",
+  "html": ""
+ },
+ {
+  "example": 98,
+  "section": "KMK3 › Block Submapping (mapping)",
+  "markdown": "---\nfoo:\n  bar: 1\nbaz: 2\n---\n",
+  "html": "{\n  \"foo\": {\n    \"bar\": 1\n  },\n  \"baz\": 2\n}\n"
+ },
+ {
+  "example": 99,
+  "section": "L24T › Trailing line of spaces (whitespace)",
+  "markdown": "---\nfoo: |\n  x\n   \n---\n",
+  "html": "{\n  \"foo\" : \"x\\n \\n\"\n}\n"
+ },
+ {
+  "example": 100,
+  "section": "L94M › Tags in Explicit Mapping (explicit-key tag mapping)",
+  "markdown": "---\n? !!str a\n: !!int 47\n? c\n: !!str d\n---\n",
+  "html": "{\n  \"a\": 47,\n  \"c\": \"d\"\n}\n"
+ },
+ {
+  "example": 101,
+  "section": "L9U5 › Spec Example 7.11. Plain Implicit Keys (spec flow mapping)",
+  "markdown": "---\nimplicit block key : [\n  implicit flow key : value,\n ]\n---\n",
+  "html": "{\n  \"implicit block key\": [\n    {\n      \"implicit flow key\": \"value\"\n    }\n  ]\n}\n"
+ },
+ {
+  "example": 102,
+  "section": "LQZ7 › Spec Example 7.4. Double Quoted Implicit Keys (spec scalar flow)",
+  "markdown": "---\n\"implicit block key\" : [\n  \"implicit flow key\" : value,\n ]\n---\n",
+  "html": "{\n  \"implicit block key\": [\n    {\n      \"implicit flow key\": \"value\"\n    }\n  ]\n}\n"
+ },
+ {
+  "example": 103,
+  "section": "LX3P › Implicit Flow Mapping Key on one line (complex-key mapping flow sequence 1.3-err)",
+  "markdown": "---\n[flow]: block\n---\n",
+  "html": ""
+ },
+ {
+  "example": 104,
+  "section": "M2N8:1 › Question mark edge cases (edge empty-key)",
+  "markdown": "---\n? []: x\n---\n",
+  "html": ""
+ },
+ {
+  "example": 105,
+  "section": "M5C3 › Spec Example 8.21. Block Scalar Nodes (indent spec literal folded tag local-tag 1.3-err)",
+  "markdown": "---\nliteral: |2\n  value\nfolded:\n   !foo\n  >1\n value\n---\n",
+  "html": "{\n  \"literal\": \"value\\n\",\n  \"folded\": \"value\\n\"\n}\n"
+ },
+ {
+  "example": 106,
+  "section": "M5DY › Spec Example 2.11. Mapping between Sequences (complex-key explicit-key spec mapping sequence)",
+  "markdown": "---\n? - Detroit Tigers\n  - Chicago cubs\n:\n  - 2001-07-23\n\n? [ New York Yankees,\n    Atlanta Braves ]\n: [ 2001-07-02, 2001-08-12,\n    2001-08-14 ]\n---\n",
+  "html": ""
+ },
+ {
+  "example": 107,
+  "section": "N4JP › Bad indentation in mapping (error mapping indent double)",
+  "markdown": "---\nmap:\n  key1: \"quoted1\"\n key2: \"bad indentation\"\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 108,
+  "section": "NB6Z › Multiline plain value with tabs on empty lines (scalar whitespace)",
+  "markdown": "---\nkey:\n  value\n  with\n  \t\n  tabs\n---\n",
+  "html": "{\n  \"key\": \"value with\\ntabs\"\n}\n"
+ },
+ {
+  "example": 109,
+  "section": "NHX8 › Empty Lines at End of Document (empty-key whitespace)",
+  "markdown": "---\n:\n\n\n---\n",
+  "html": ""
+ },
+ {
+  "example": 110,
+  "section": "P94K › Spec Example 6.11. Multi-Line Comments (spec comment)",
+  "markdown": "---\nkey:    # Comment\n        # lines\n  value\n\n\n---\n",
+  "html": "{\n  \"key\": \"value\"\n}\n"
+ },
+ {
+  "example": 111,
+  "section": "PBJ2 › Spec Example 2.3. Mapping Scalars to Sequences (spec mapping sequence)",
+  "markdown": "---\namerican:\n  - Boston Red Sox\n  - Detroit Tigers\n  - New York Yankees\nnational:\n  - New York Mets\n  - Chicago Cubs\n  - Atlanta Braves\n---\n",
+  "html": "{\n  \"american\": [\n    \"Boston Red Sox\",\n    \"Detroit Tigers\",\n    \"New York Yankees\"\n  ],\n  \"national\": [\n    \"New York Mets\",\n    \"Chicago Cubs\",\n    \"Atlanta Braves\"\n  ]\n}\n"
+ },
+ {
+  "example": 112,
+  "section": "Q4CL › Trailing content after quoted value (error mapping double)",
+  "markdown": "---\nkey1: \"quoted1\"\nkey2: \"quoted2\" trailing content\nkey3: \"quoted3\"\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 113,
+  "section": "Q5MG › Tab at beginning of line followed by a flow mapping (flow whitespace)",
+  "markdown": "---\n\t{}\n---\n",
+  "html": "{}\n"
+ },
+ {
+  "example": 114,
+  "section": "Q9WF › Spec Example 6.12. Separation Spaces (complex-key flow spec comment whitespace 1.3-err)",
+  "markdown": "---\n{ first: Sammy, last: Sosa }:\n# Statistics:\n  hr:  # Home runs\n     65\n  avg: # Average\n   0.278\n---\n",
+  "html": ""
+ },
+ {
+  "example": 115,
+  "section": "RLU9 › Sequence Indent (sequence indent)",
+  "markdown": "---\nfoo:\n- 42\nbar:\n  - 44\n---\n",
+  "html": "{\n  \"foo\": [\n    42\n  ],\n  \"bar\": [\n    44\n  ]\n}\n"
+ },
+ {
+  "example": 116,
+  "section": "RR7F › Mixed Block Mapping (implicit to explicit) (explicit-key mapping)",
+  "markdown": "---\na: 4.2\n? d\n: 23\n---\n",
+  "html": "{\n  \"d\": 23,\n  \"a\": 4.2\n}\n"
+ },
+ {
+  "example": 117,
+  "section": "RZP5 › Various Trailing Comments [1.3] (anchor comment folded mapping 1.3-mod)",
+  "markdown": "---\na: \"double\n  quotes\" # lala\nb: plain\n value  # lala\nc  : #lala\n  d\n? # lala\n - seq1\n: # lala\n - #lala\n  seq2\ne: &node # lala\n - x: y\nblock: > # lala\n  abcde\n---\n",
+  "html": ""
+ },
+ {
+  "example": 118,
+  "section": "S3PD › Spec Example 8.18. Implicit Block Mapping Entries (empty-key spec mapping)",
+  "markdown": "---\nplain key: in-line value\n: # Both empty\n\"quoted key\":\n- entry\n---\n",
+  "html": ""
+ },
+ {
+  "example": 119,
+  "section": "S98Z › Block scalar with more spaces than first content line (error folded comment scalar whitespace)",
+  "markdown": "---\nempty block scalar: >\n \n  \n   \n # comment\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 120,
+  "section": "S9E8 › Spec Example 5.3. Block Structure Indicators (explicit-key spec mapping sequence)",
+  "markdown": "---\nsequence:\n- one\n- two\nmapping:\n  ? sky\n  : blue\n  sea : green\n---\n",
+  "html": "{\n  \"sequence\": [\n    \"one\",\n    \"two\"\n  ],\n  \"mapping\": {\n    \"sky\": \"blue\",\n    \"sea\": \"green\"\n  }\n}\n"
+ },
+ {
+  "example": 121,
+  "section": "SBG9 › Flow Sequence in Flow Mapping (complex-key sequence mapping flow)",
+  "markdown": "---\n{a: [b, c], [d, e]: f}\n---\n",
+  "html": ""
+ },
+ {
+  "example": 122,
+  "section": "SM9W:1 › Single character streams (mapping)",
+  "markdown": "---\n:\n---\n",
+  "html": ""
+ },
+ {
+  "example": 123,
+  "section": "SR86 › Anchor plus Alias (alias error)",
+  "markdown": "---\nkey1: &a value\nkey2: &b *a\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 124,
+  "section": "SU5Z › Comment without whitespace after doublequoted scalar (comment error double whitespace)",
+  "markdown": "---\nkey: \"value\"# invalid comment\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 125,
+  "section": "SU74 › Anchor and alias as mapping key (error anchor alias mapping)",
+  "markdown": "---\nkey1: &alias value1\n&b *alias : value2\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 126,
+  "section": "SY6V › Anchor before sequence entry on same line (anchor error sequence)",
+  "markdown": "---\n&anchor - sequence entry\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 127,
+  "section": "SYW4 › Spec Example 2.2. Mapping Scalars to Scalars (spec scalar comment)",
+  "markdown": "---\nhr:  65    # Home runs\navg: 0.278 # Batting average\nrbi: 147   # Runs Batted In\n---\n",
+  "html": "{\n  \"hr\": 65,\n  \"avg\": 0.278,\n  \"rbi\": 147\n}\n"
+ },
+ {
+  "example": 128,
+  "section": "TD5N › Invalid scalar after sequence (error sequence scalar)",
+  "markdown": "---\n- item1\n- item2\ninvalid\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 129,
+  "section": "TE2A › Spec Example 8.16. Block Mappings (spec mapping)",
+  "markdown": "---\nblock mapping:\n key: value\n---\n",
+  "html": "{\n  \"block mapping\": {\n    \"key\": \"value\"\n  }\n}\n"
+ },
+ {
+  "example": 130,
+  "section": "U44R › Bad indentation in mapping (2) (error mapping indent double)",
+  "markdown": "---\nmap:\n  key1: \"quoted1\"\n   key2: \"bad indentation\"\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 131,
+  "section": "U99R › Invalid comma in tag (error tag)",
+  "markdown": "---\n- !!str, xxx\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 132,
+  "section": "UDR7 › Spec Example 5.4. Flow Collection Indicators (spec flow sequence mapping)",
+  "markdown": "---\nsequence: [ one, two, ]\nmapping: { sky: blue, sea: green }\n---\n",
+  "html": "{\n  \"sequence\": [\n    \"one\",\n    \"two\"\n  ],\n  \"mapping\": {\n    \"sky\": \"blue\",\n    \"sea\": \"green\"\n  }\n}\n"
+ },
+ {
+  "example": 133,
+  "section": "UKK6:1 › Syntax character edge cases (edge empty-key)",
+  "markdown": "---\n::\n---\n",
+  "html": "{\n  \":\": null\n}\n"
+ },
+ {
+  "example": 134,
+  "section": "UV7Q › Legal tab after indentation (indent whitespace)",
+  "markdown": "---\nx:\n - x\n  \tx\n---\n",
+  "html": "{\n  \"x\": [\n    \"x x\"\n  ]\n}\n"
+ },
+ {
+  "example": 135,
+  "section": "VJP3 › Flow collections over many lines (flow indent)",
+  "markdown": "---\nk: {\nk\n:\nv\n}\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 136,
+  "section": "VJP3:1 › Flow collections over many lines (flow indent)",
+  "markdown": "---\nk: {\n k\n :\n v\n }\n---\n",
+  "html": "{\n  \"k\" : {\n    \"k\" : \"v\"\n  }\n}\n"
+ },
+ {
+  "example": 137,
+  "section": "W5VH › Allowed characters in alias (alias 1.3-err)",
+  "markdown": "---\na: &:@*!$\"<foo>: scalar a\nb: *:@*!$\"<foo>:\n---\n",
+  "html": "{\n  \"a\": \"scalar a\",\n  \"b\": \"scalar a\"\n}\n"
+ },
+ {
+  "example": 138,
+  "section": "WZ62 › Spec Example 7.2. Empty Content (spec flow scalar tag)",
+  "markdown": "---\n{\n  foo : !!str,\n  !!str : bar,\n}\n---\n",
+  "html": "{\n  \"foo\": \"\",\n  \"\": \"bar\"\n}\n"
+ },
+ {
+  "example": 139,
+  "section": "X38W › Aliases in Flow Objects (alias complex-key flow)",
+  "markdown": "---\n{ &a [a, &b b]: *b, *a : [c, *b, d]}\n---\n",
+  "html": ""
+ },
+ {
+  "example": 140,
+  "section": "X4QW › Comment without whitespace after block scalar indicator (folded comment error whitespace)",
+  "markdown": "---\nblock: ># comment\n  scalar\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 141,
+  "section": "XV9V › Spec Example 6.5. Empty Lines [1.3] (literal spec scalar 1.3-mod)",
+  "markdown": "---\nFolding:\n  \"Empty line\n\n  as a line feed\"\nChomping: |\n  Clipped empty lines\n \n\n---\n",
+  "html": "{\n  \"Folding\": \"Empty line\\nas a line feed\",\n  \"Chomping\": \"Clipped empty lines\\n\"\n}\n"
+ },
+ {
+  "example": 142,
+  "section": "XW4D › Various Trailing Comments (comment explicit-key folded 1.3-err)",
+  "markdown": "---\na: \"double\n  quotes\" # lala\nb: plain\n value  # lala\nc  : #lala\n  d\n? # lala\n - seq1\n: # lala\n - #lala\n  seq2\ne:\n &node # lala\n - x: y\nblock: > # lala\n  abcde\n---\n",
+  "html": ""
+ },
+ {
+  "example": 143,
+  "section": "Y79Y › Tabs in various contexts (whitespace)",
+  "markdown": "---\nfoo: |\n\t\nbar: 1\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 144,
+  "section": "Y79Y:1 › Tabs in various contexts (whitespace)",
+  "markdown": "---\nfoo: |\n \t\nbar: 1\n---\n",
+  "html": "{\n  \"foo\": \"\\t\\n\",\n  \"bar\": 1\n}\n"
+ },
+ {
+  "example": 145,
+  "section": "Y79Y:3 › Tabs in various contexts (whitespace)",
+  "markdown": "---\n- [\n\tfoo,\n foo\n ]\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 146,
+  "section": "Y79Y:4 › Tabs in various contexts (whitespace)",
+  "markdown": "---\n-\t-\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 147,
+  "section": "Y79Y:5 › Tabs in various contexts (whitespace)",
+  "markdown": "---\n- \t-\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 148,
+  "section": "Y79Y:6 › Tabs in various contexts (whitespace)",
+  "markdown": "---\n?\t-\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 149,
+  "section": "Y79Y:7 › Tabs in various contexts (whitespace)",
+  "markdown": "---\n? -\n:\t-\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 150,
+  "section": "Y79Y:8 › Tabs in various contexts (whitespace)",
+  "markdown": "---\n?\tkey:\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 151,
+  "section": "Y79Y:9 › Tabs in various contexts (whitespace)",
+  "markdown": "---\n? key:\n:\tkey:\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 152,
+  "section": "YJV2 › Dash in flow sequence (flow sequence)",
+  "markdown": "---\n[-]\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 153,
+  "section": "Z67P › Spec Example 8.21. Block Scalar Nodes [1.3] (indent spec literal folded tag local-tag 1.3-mod)",
+  "markdown": "---\nliteral: |2\n  value\nfolded: !foo >1\n value\n---\n",
+  "html": "{\n  \"literal\": \"value\\n\",\n  \"folded\": \"value\\n\"\n}\n"
+ },
+ {
+  "example": 154,
+  "section": "ZCZ6 › Invalid mapping in plain single line value (error mapping scalar)",
+  "markdown": "---\na: b: c: d\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 155,
+  "section": "ZF4X › Spec Example 2.6. Mapping of Mappings (flow spec mapping)",
+  "markdown": "---\nMark McGwire: {hr: 65, avg: 0.278}\nSammy Sosa: {\n    hr: 63,\n    avg: 0.288\n  }\n---\n",
+  "html": "{\n  \"Mark McGwire\": {\n    \"hr\": 65,\n    \"avg\": 0.278\n  },\n  \"Sammy Sosa\": {\n    \"hr\": 63,\n    \"avg\": 0.288\n  }\n}\n"
+ },
+ {
+  "example": 156,
+  "section": "ZH7C › Anchors in Mapping (anchor mapping)",
+  "markdown": "---\n&a a: b\nc: &d d\n---\n",
+  "html": "{\n  \"a\": \"b\",\n  \"c\": \"d\"\n}\n"
+ },
+ {
+  "example": 157,
+  "section": "ZK9H › Nested top level flow mapping (flow indent mapping sequence)",
+  "markdown": "---\n{ key: [[[\n  value\n ]]]\n}\n---\n",
+  "html": "{\n  \"key\": [\n    [\n      [\n        \"value\"\n      ]\n    ]\n  ]\n}\n"
+ },
+ {
+  "example": 158,
+  "section": "ZVH3 › Wrong indented sequence item (error sequence indent)",
+  "markdown": "---\n- key: value\n - item1\n---\n",
+  "html": "error"
+ },
+ {
+  "example": 159,
+  "section": "ZXT5 › Implicit key followed by newline and adjacent value (error flow mapping sequence)",
+  "markdown": "---\n[ \"key\"\n  :value ]\n---\n",
+  "html": "error"
+ }
+]

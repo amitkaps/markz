@@ -179,6 +179,14 @@ and markz has no 32-level bracket limit. Of micromark's wider attribute syntax, 
 bare keys for HTML's boolean attributes (`:::details{open}`), and a `{…}` after a directive, link
 or image that doesn't parse now warns `attribute-syntax` rather than staying silent text.
 
+**YAML — done.** The yaml-test-suite's tests, each between `---` fences and held to the `yaml`
+package key by key: a key markz keeps must have YAML's value, and a block YAML rejects must warn.
+Kept to what `yaml` reads as a mapping or rejects, without document markers: 159 of the 406 tests and variants. None
+failed. Of those, 9 are accepted clean, 58 accepted with warnings (20 of them invalid YAML), and
+92 aren't metadata in markz, mostly flow mappings, `?` keys, anchors and tags. A few are
+ordinary frontmatter with a key markz doesn't allow (`plain key: value`, `"title": x`); those
+read as Markdown, and the closing `---` warns `setext-heading`.
+
 ### 13. The site by the dialect
 
 The Conformance page becomes Metadata, Block, Inline and Not supported, each opening to its
