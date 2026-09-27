@@ -509,6 +509,10 @@ that holds the code and its range. markz never evaluates it.
 explicit, and GitHub renders it too. Any other line ending inside a paragraph is a soft break. For
 a poem, see `{.verse}` under [Paragraphs](#paragraph).
 
+Spaces or tabs after the `\` don't change that: `\ ` at the end of a line is a hard break, not a
+[non-breaking space](#escape). The space can't be seen, and formatters strip it, which leaves the
+same hard break. CommonMark reads it as a literal `\` and a soft break.
+
 {#escape}
 
 ### Escapes and references

@@ -4,8 +4,7 @@
  * The upstream examples curation leaves out, held only to what any input must satisfy: markz
  * finishes in well under a second, doesn't throw, and builds a valid tree. A bare URL GFM would
  * link, or a footnote it would read, must still be warned about, since that is the signal a
- * reader relies on. Plan step 16 adds
- * generated and adversarial input here.
+ * reader relies on. Generated and adversarial input is `fuzz.test.ts`'s and `complexity.test.ts`'s.
  */
 import { describe, expect, it } from 'vite-plus/test';
 import { parse } from '../src/index';

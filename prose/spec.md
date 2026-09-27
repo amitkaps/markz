@@ -249,9 +249,14 @@ construct whose meaning depends on text after it. What remains is openers (`[`, 
 - **Openers go on a stack.** The inline pass keeps what it has read as a linked list of items. A
   closer wraps the items since its opener into one node; an opener still unmatched at the end of
   its block is text. The input is never read again.
-- **Scans that can fail are bounded.** A link destination `](…`, an attribute block `{…}` or an
-  autolink `<…>` is scanned forward once. Each records the furthest point where it failed, so later
-  scans stop there, and a line full of unclosed `](` stays linear.
+- **A scan that fails settles the ones after it.** An opener that never closes (`${`, `[` in a
+  label, `<!--`, a `` ` `` run, `{`) scans to the end of its range. That scan records what it
+  learned, such as where each brace it passed closed, or that no closer is left, so a later opener
+  reads the answer instead of scanning again. A paragraph full of unclosed openers stays linear.
+- **Nesting costs nothing per line.** A line is checked against the containers that consume a
+  prefix from it (`>`, an item's indent). Directives and blank lines, which consume none, are
+  settled for a whole run of containers at once, so a thousand unclosed `:::` don't make every
+  line cost a thousand.
 - **Block attributes are one line**, so the block pass never looks ahead.
 
 **The grammar states the dialect, and the parser is its one reading.** [`syntax.md`](syntax.md)
@@ -317,7 +322,7 @@ const out = html(markdown); // or html(doc)
 - `parse(source): Document`
 - `doc.warnings`: rejected syntax in source order, each `{ code, start, end, message, instead }`,
   where `instead` is the supported form, as `syntax.md`'s "Not supported" table writes it
-- `html(source | Document): string`
+- `html(source | Document): string`, rendered without recursion, like `walk`
 - `walk(doc, { enter?, exit? }, node?)`: depth-first from `node` (the root by default), without
   recursion. `enter` returning `false` skips that node's children.
 - `textContent(doc, node?): string`, the text `html()` writes for a node, as a browser's
@@ -409,9 +414,11 @@ markdown-exit and Comark. The unified/remark ecosystem stays out.
   the same parts, each opening with its origin.
 - **Differential against micromark + GFM:** every CommonMark and GFM spec example in a shared
   construct must give identical `html()` output, compared with smart punctuation normalized back
-  to straight characters. So must fuzzed documents generated from the shared grammar. An example
-  where markz keeps a construct under its own rule (no run splitting) is filed as differing, under
-  that construct.
+  to straight characters. So must documents the fuzzer generates from the CommonMark and GFM
+  productions of the grammar, unless markz reported a cut form. An example where markz keeps a
+  construct under its own rule (no run splitting) is filed as differing, under that construct, and
+  a generated document that needs one is left out with its reason, as are the few where micromark
+  parts from commonmark.js.
 - **Rejected syntax:** an example that uses a form `syntax.md` cuts must raise that row's warning,
   so the cuts are tested rather than skipped. markz's own examples (`test/dialect/*.md`, in the
   CommonMark spec's format) also give their exact HTML and the text each warning covers.
@@ -424,15 +431,18 @@ markdown-exit and Comark. The unified/remark ecosystem stays out.
     JavaScript that still closes; the regex-literal limit
   - attributes: the three placements, text fallbacks such as `{a, b}`, and oxfmt's blank line
     before headings
-- **No backtracking:** adversarial inputs (unclosed `](`, `{`, `<` and `_` repeated thousands of
-  times) parse in linear time.
+- **No backtracking:** every adversarial pattern (unclosed openers, deep nesting, long repeats)
+  takes less than eight times as long at four times the size, where quadratic work would take
+  sixteen.
 - **Heading ids:** `syntax.md`'s contract cases, verbatim, plus apostrophes and quotes, which
   slug the same straight or curled (`Don't` and `Don’t` both give `dont`), and a reused explicit
   id producing a warning.
 - **Offsets** are asserted against known source, never against rendered output. This includes
   escapes, numeric references, astral characters, CRLF and nested containers.
 - **Tree structure:** parent, child and sibling invariants.
-- **Robustness:** malformed input, and a multi-MB document that guards against quadratic
+- **Robustness:** fuzzed noise, mutated examples and documents from the whole grammar must be
+  sound: no throw, a valid tree, warnings inside the source, the same page whatever the line
+  endings, and safe HTML. A multi-MB document guards the ordinary path against quadratic
   behaviour.
 - **Consumer fixtures:** base's content docs, prose's `prose/*.md`, and visdown's examples.
 

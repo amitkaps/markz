@@ -9,20 +9,31 @@
  */
 import { type Attribute, type Attributes } from './ast';
 import { isSpace, unescape } from './chars';
-import { scanExpression } from './expression';
+import { scanExpression, type Memo } from './expression';
 
-/** `source[at]` is a `{`. Returns the attributes, whose `end` is just past the `}`, or `null`. */
-export function parseAttributes(source: string, at: number, end: number): Attributes | null {
+/**
+ * `source[at]` is a `{`. Returns the attributes, whose `end` is just past the `}`, or `null`.
+ * `multiline` reads a line ending as a space, only to tell whether lines would parse if joined.
+ * `memo` is `scanExpression`'s, for `source` and `end`.
+ */
+export function parseAttributes(
+	source: string,
+	at: number,
+	end: number,
+	multiline = false,
+	memo?: Memo
+): Attributes | null {
+	const space = multiline ? (c: number) => isSpace(c) || c === 10 || c === 13 : isSpace;
 	const items: Attribute[] = [];
 	let i = at + 1;
 	for (;;) {
-		while (i < end && isSpace(source.charCodeAt(i))) i++;
+		while (i < end && space(source.charCodeAt(i))) i++;
 		if (i >= end) return null;
 		const c = source[i];
 		if (c === '}') return { start: at, end: i + 1, items };
 		const start = i;
 		if (c === '#' || c === '.') {
-			i = name(source, i + 1, end);
+			i = name(source, i + 1, end, space);
 			if (i === start + 1) return null;
 			items.push({
 				key: c === '#' ? 'id' : 'class',
@@ -40,18 +51,18 @@ export function parseAttributes(source: string, at: number, end: number): Attrib
 				if (!/[A-Za-z]/.test(c!)) return null;
 				i = keyEnd;
 			} else if (source[valueStart] === '"') {
-				i = quoted(source, valueStart, end);
+				i = quoted(source, valueStart, end, memo);
 				if (i < 0) return null;
 				value = unescape(source.slice(valueStart + 1, i - 1));
 			} else {
-				i = bare(source, valueStart, end);
+				i = bare(source, valueStart, end, space, memo);
 				if (i < 0 || i === valueStart) return null;
 				value = source.slice(valueStart, i);
 			}
 			items.push({ key: source.slice(start, keyEnd), value, start, end: i });
 		}
 		// Items are separated by whitespace, or end at the `}`.
-		if (i < end && !isSpace(source.charCodeAt(i)) && source[i] !== '}') return null;
+		if (i < end && !space(source.charCodeAt(i)) && source[i] !== '}') return null;
 	}
 }
 
@@ -66,14 +77,14 @@ export function bareOnly(source: string, a: Attributes): boolean {
 
 /** Where a `{…}` that didn't parse ends, just past its `}` on the same line, or -1. */
 export function braceEnd(source: string, at: number, end: number): number {
-	const close = source.indexOf('}', at);
-	return close >= 0 && close < end ? close + 1 : -1;
+	for (let i = at; i < end; i++) if (source.charCodeAt(i) === 125) return i + 1;
+	return -1;
 }
 
 /** An id or class name: anything up to whitespace or one of the characters that delimit items. */
-function name(source: string, at: number, end: number): number {
+function name(source: string, at: number, end: number, space = isSpace): number {
 	let i = at;
-	while (i < end && !isSpace(source.charCodeAt(i)) && !'{}#."\'='.includes(source[i]!)) i++;
+	while (i < end && !space(source.charCodeAt(i)) && !'{}#."\'='.includes(source[i]!)) i++;
 	return i;
 }
 
@@ -84,13 +95,13 @@ function key(source: string, at: number, end: number): number {
 }
 
 /** A `"…"` value, with backslash escapes and `${…}` inside. Returns the offset past the `"`. */
-function quoted(source: string, at: number, end: number): number {
+function quoted(source: string, at: number, end: number, memo?: Memo): number {
 	for (let i = at + 1; i < end;) {
 		const c = source[i];
 		if (c === '\\') i += 2;
 		else if (c === '"') return i + 1;
 		else if (c === '$' && source[i + 1] === '{') {
-			i = scanExpression(source, i, end);
+			i = scanExpression(source, i, end, memo);
 			if (i < 0) return -1;
 		} else i++;
 	}
@@ -98,14 +109,20 @@ function quoted(source: string, at: number, end: number): number {
 }
 
 /** An unquoted value runs to whitespace or `}`, with `${…}` skipped whole. */
-function bare(source: string, at: number, end: number): number {
+function bare(
+	source: string,
+	at: number,
+	end: number,
+	space: (c: number) => boolean,
+	memo?: Memo
+): number {
 	let i = at;
 	while (i < end) {
 		const c = source[i]!;
 		if (c === '$' && source[i + 1] === '{') {
-			i = scanExpression(source, i, end);
+			i = scanExpression(source, i, end, memo);
 			if (i < 0) return -1;
-		} else if (isSpace(c.charCodeAt(0)) || '{}"\'='.includes(c)) break;
+		} else if (space(c.charCodeAt(0)) || '{}"\'='.includes(c)) break;
 		else i++;
 	}
 	return i;

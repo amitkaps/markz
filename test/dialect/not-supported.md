@@ -223,6 +223,18 @@ b
 b
 ```
 
+````example
+> a
+```b`c
+.
+<blockquote>
+<p>a</p>
+</blockquote>
+<p>```b`c</p>
+.
+```b`c
+````
+
 ## reference-link
 
 ```example
@@ -359,6 +371,16 @@ In an attribute value too, the reference stays as written.
 
 ```example
 a␣␣
+b
+.
+<p>a
+b</p>
+.
+␣␣
+```
+
+```example
+a→␣␣
 b
 .
 <p>a

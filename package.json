@@ -24,12 +24,14 @@
 		"test": "vp test --run",
 		"prepublishOnly": "vp pack",
 		"size": "node scripts/size.ts",
+		"fuzz": "FUZZ_RUNS=20000 FUZZ_SEED=$RANDOM vp test --run test/fuzz.test.ts",
 		"docs": "pnpm --filter markz-docs dev",
 		"docs:build": "pnpm --filter markz-docs build"
 	},
 	"devDependencies": {
 		"@amitkaps/prose": "https://github.com/amitkaps/prose/releases/download/v0.1.0/amitkaps-prose-0.1.0.tgz",
 		"@types/node": "^26.0.0",
+		"fast-check": "^4.10.2",
 		"github-slugger": "^2.0.0",
 		"micromark": "^4.0.3",
 		"micromark-extension-directive": "^4.0.0",

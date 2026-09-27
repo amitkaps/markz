@@ -242,7 +242,9 @@ export const CONSTRUCTS: Construct[] = [
 		`,
 		rules: {
 			'table-columns':
-				'The header row and the delimiter row have the same number of cells, and the delimiter row has a pipe or a colon.',
+				'The header row and the delimiter row have the same number of cells, at least one, and the delimiter row has a pipe or a colon. A row of only a pipe has no cells.',
+			'table-header':
+				"The header row is a paragraph's last line, and not one indented four columns or more.",
 			'table-end':
 				'A table ends at a blank line, a line indented four columns or more, or a line that opens another block.'
 		}
@@ -421,7 +423,10 @@ export const CONSTRUCTS: Construct[] = [
 		grammar: `
 			line-break ::= '\\' line-end | line-end
 		`,
-		rules: {}
+		rules: {
+			'trailing-backslash':
+				'Spaces and tabs between a `\\` and the line ending are trailing whitespace, so `\\ ` there is a hard break, not a non-breaking space.'
+		}
 	},
 	{
 		id: 'escape',

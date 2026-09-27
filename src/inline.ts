@@ -16,7 +16,7 @@ import { type Attributes, type Builder, type NodeData, type NodeType, type Range
 import { bareOnly, braceEnd, parseAttributes } from './attributes';
 import { NAMED, unescape } from './chars';
 import { element } from './elements';
-import { scanExpression } from './expression';
+import { memo, scanExpression, type Memo } from './expression';
 import { type WarningCode } from './warnings';
 
 /** Writes the inline nodes and returns their plain text, which a heading's id is made from. */
@@ -101,6 +101,14 @@ class InlinePass {
 	noMath = false;
 	/** Runs of dollars that found no closing run of the same length. */
 	readonly noDollars = new Set<number>();
+	/** `scanExpression`'s records by text, the joined text (`t`) or the source (`s`), and range end. */
+	readonly memos = new Map<string, Memo>();
+	/** `labelEnd`'s records by range end. */
+	readonly labels = new Map<number, Map<number, number>>();
+	/** `next`'s last search per token. */
+	readonly found = new Map<string, { from: number; at: number }>();
+	/** The last `braceEnd` search: from where, on which line, and what it found. */
+	lastBrace = { from: -1, lineEnd: -1, close: -1 };
 	/** Openers waiting for a closer, by kind, and link brackets. */
 	stacks: Record<string, Item[]> = {};
 	brackets: Item[] = [];
@@ -118,6 +126,49 @@ class InlinePass {
 			text += src.slice(line.start, line.end) + (i < lines.length - 1 ? '\n' : '');
 		}
 		this.text = text;
+	}
+
+	memo(text: 't' | 's', end: number): Memo {
+		const key = text + end;
+		let record = this.memos.get(key);
+		if (!record) this.memos.set(key, (record = memo()));
+		return record;
+	}
+
+	/**
+	 * The next `token` at or after `t`, or -1. The last search per token is kept, so asking again
+	 * from before what it found, or after it found nothing, costs nothing.
+	 */
+	next(token: string, t: number): number {
+		const last = this.found.get(token);
+		if (last && t >= last.from && (last.at < 0 || t <= last.at)) return last.at;
+		const at = this.text.indexOf(token, t);
+		this.found.set(token, { from: t, at });
+		return at;
+	}
+
+	/**
+	 * The `]` that closes the label opening at `j`, with nested brackets balanced and escapes
+	 * skipped, or -1 before `to`. Like `scanExpression`, one scan settles every `[` it passes: a
+	 * later label starting at one of them closes where the scan's depth fell back below it.
+	 */
+	labelEnd(j: number, to: number): number {
+		let closes = this.labels.get(to);
+		if (!closes) this.labels.set(to, (closes = new Map()));
+		const known = closes.get(j);
+		if (known !== undefined) return known;
+		const open: number[] = [];
+		for (let k = j; k < to; k++) {
+			const c = this.text[k];
+			if (c === '\\') k++;
+			else if (c === '[') open.push(k);
+			else if (c === ']') {
+				closes.set(open.pop()!, k);
+				if (open.length === 0) return k;
+			}
+		}
+		for (const k of open) closes.set(k, -1);
+		return -1;
 	}
 
 	/** @prose
@@ -252,9 +303,11 @@ class InlinePass {
 	 * ## Escapes, breaks and references
 	 *
 	 * `\` before ASCII punctuation is that character, before a line ending it is a hard break,
-	 * and before a space it is a non-breaking space. Anywhere else it is itself. Numeric
-	 * references decode, with U+FFFD for zero, surrogates and anything past U+10FFFF. A named one
-	 * stays text and is reported, since markz has no entity table.
+	 * and before a space it is a non-breaking space. At the end of a line, spaces after the `\`
+	 * are the line's trailing whitespace, gone before it is read, so `\ ⏎` is a hard break too:
+	 * what the author sees, and what it becomes once a formatter strips the space. Anywhere else a
+	 * `\` is itself. Numeric references decode, with U+FFFD for any code point HTML can't hold
+	 * (`character`). A named one stays text and is reported, since markz has no entity table.
 	 */
 	backslash(list: List, t: number, to: number): number {
 		const next = this.text[t + 1];
@@ -288,8 +341,7 @@ class InlinePass {
 			return e;
 		}
 		const code = m[1] ? Number(m[1]) : parseInt(m[2]!, 16);
-		const valid = code > 0 && code <= 0x10ffff && (code < 0xd800 || code > 0xdfff);
-		this.plain(list, t, e, String.fromCodePoint(valid ? code : 0xfffd));
+		this.plain(list, t, e, character(code));
 		return e;
 	}
 
@@ -390,7 +442,7 @@ class InlinePass {
 	}
 
 	expression(list: List, t: number, to: number): number {
-		const e = scanExpression(this.text, t, to);
+		const e = scanExpression(this.text, t, to, this.memo('t', to));
 		if (e < 0) {
 			this.plain(list, t, t + 1);
 			return t + 1;
@@ -435,8 +487,18 @@ class InlinePass {
 				return e;
 			}
 		}
+		// Every tag, comment and declaration ends in its own closer; with none ahead, skip the regex,
+		// whose lazy forms would otherwise search to the end from every `<`.
+		const closer = text.startsWith('<!--', t)
+			? '-->'
+			: text[t + 1] === '?'
+				? '?>'
+				: text.startsWith('<![CDATA[', t)
+					? ']]>'
+					: '>';
+		const close = this.next(closer, t + 2);
 		HTML.lastIndex = t;
-		const m = HTML.exec(text);
+		const m = close >= 0 && close < to && HTML.exec(text);
 		if (m && t + m[0].length <= to) {
 			const e = t + m[0].length;
 			// A PascalCase tag is a JSX component; `<DIV>` is still HTML.
@@ -606,7 +668,13 @@ class InlinePass {
 		if (this.text[end] === '{') {
 			const line = this.line(end);
 			const lineEnd = this.lines[line]!.end;
-			const attributes = parseAttributes(this.src, this.at(end), lineEnd);
+			const attributes = parseAttributes(
+				this.src,
+				this.at(end),
+				lineEnd,
+				false,
+				this.memo('s', lineEnd)
+			);
 			if (attributes) {
 				node.attributes = attributes;
 				end += attributes.end - attributes.start;
@@ -678,7 +746,7 @@ class InlinePass {
 				const c = text[j]!;
 				if (c === '\\' && isPunct(text[j + 1])) j += 2;
 				else if (c === '$' && text[j + 1] === '{') {
-					const e = scanExpression(text, j, to);
+					const e = scanExpression(text, j, to, this.memo('t', to));
 					if (e < 0) break;
 					expressions.push([j, e]);
 					j = e;
@@ -749,21 +817,15 @@ class InlinePass {
 		let j = n + m[0].length;
 		let label: [number, number] | null = null;
 		if (text[j] === '[') {
-			let depth = 0;
-			let k = j;
-			for (; k < to; k++) {
-				if (text[k] === '\\') k++;
-				else if (text[k] === '[') depth++;
-				else if (text[k] === ']' && --depth === 0) break;
-			}
-			if (k >= to) return false;
+			const k = this.labelEnd(j, to);
+			if (k < 0) return false;
 			label = [j + 1, k];
 			j = k + 1;
 		}
 		let attributes: Attributes | null = null;
 		if (text[j] === '{') {
 			const lineEnd = this.lines[this.line(j)]!.end;
-			attributes = parseAttributes(this.src, this.at(j), lineEnd);
+			attributes = parseAttributes(this.src, this.at(j), lineEnd, false, this.memo('s', lineEnd));
 			if (attributes) j += attributes.end - attributes.start;
 			else if (n === t + 1) this.attributeSyntax(j, lineEnd);
 		}
@@ -860,9 +922,10 @@ class InlinePass {
 
 	brace(list: List, t: number): number {
 		const before = this.text[t - 1];
+		const lineEnd = this.lines[this.line(t)]!.end;
 		const attributes =
 			before !== undefined && !/\s/.test(before)
-				? parseAttributes(this.src, this.at(t), this.lines[this.line(t)]!.end)
+				? parseAttributes(this.src, this.at(t), lineEnd, false, this.memo('s', lineEnd))
 				: null;
 		if (!attributes || bareOnly(this.src, attributes)) {
 			this.plain(list, t, t + 1);
@@ -911,7 +974,14 @@ class InlinePass {
 
 	/** A `{…}` where attributes attach that doesn't parse as them stays text, and is reported. */
 	attributeSyntax(t: number, lineEnd: number): void {
-		const close = braceEnd(this.src, this.at(t), lineEnd);
+		// A later `{` before the `}` last found, or with none left on the line, has the same answer.
+		const at = this.at(t);
+		const last = this.lastBrace;
+		const close =
+			lineEnd === last.lineEnd && at > last.from && (last.close < 0 || at < last.close)
+				? last.close
+				: braceEnd(this.src, at, lineEnd);
+		this.lastBrace = { from: at, lineEnd, close };
 		if (close >= 0) this.b.warn('attribute-syntax', this.at(t), close);
 	}
 
@@ -989,12 +1059,28 @@ const EMAIL =
 const HTML =
 	/<(?:[A-Za-z][A-Za-z\d-]*(?:\s+[A-Za-z_:][\w.:-]*(?:\s*=\s*(?:[^\s"'=<>`]+|'[^']*'|"[^"]*"))?)*\s*\/?>|\/[A-Za-z][A-Za-z\d-]*\s*>|!--[\s\S]*?-->|\?[\s\S]*?\?>|![A-Za-z][^>]*>|!\[CDATA\[[\s\S]*?\]\]>)/y;
 
-/** Escapes and numeric references decoded, for a destination or title. */
-function decode(text: string): string {
+/**
+ * The character a numeric reference names, or U+FFFD where HTML has none to give: zero,
+ * surrogates, past U+10FFFF, controls other than whitespace, and noncharacters. micromark's rule.
+ */
+function character(code: number): string {
+	const invalid =
+		code < 9 ||
+		code === 11 ||
+		(code > 13 && code < 32) ||
+		(code > 126 && code < 160) ||
+		(code > 0xd7ff && code < 0xe000) ||
+		(code > 0xfdcf && code < 0xfdf0) ||
+		(code & 0xfffe) === 0xfffe ||
+		code > 0x10ffff;
+	return String.fromCodePoint(invalid ? 0xfffd : code);
+}
+
+/** Escapes and numeric references decoded, for a destination, a title or a fence's info string. */
+export function decode(text: string): string {
 	return unescape(text).replace(/&#(?:(\d{1,7})|[xX]([\da-fA-F]{1,6}));/g, (_, d, h) => {
 		const code = d ? Number(d) : parseInt(h, 16);
-		const valid = code > 0 && code <= 0x10ffff && (code < 0xd800 || code > 0xdfff);
-		return String.fromCodePoint(valid ? code : 0xfffd);
+		return character(code);
 	});
 }
 
