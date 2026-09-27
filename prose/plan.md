@@ -425,28 +425,38 @@ Unclosed forms became hand-written examples with their HTML, rather than the adv
 patterns at a small size; the patterns stay timed in `complexity.test.ts`, and the site's
 Pathological section keeps only the complexity families.
 
-### 19. Inline scanner speed
+### 19. Inline scanner speed — done
 
-markz reads at half markdown-exit's speed, and step 18's cases are the safety net for closing
-some of that. How each parser is built, and which of their ideas markz has taken or leaves, is in
-[`parsers.md`](parsers.md). Both parsers make about one token or item per 18 bytes, and both spend about 60%
-of their time inline and 30% on blocks. markz is about twice as slow in each, so the gap is
-constant-factor cost, not the algorithm, and offsets are not it: mapping one is a binary search
-over a paragraph's few lines.
+markz read at half markdown-exit's speed, and step 18's cases were the safety net for closing
+the gap. How each parser is built, and which of their ideas markz has taken or leaves, is in
+[`parsers.md`](parsers.md). Both parsers made about one token or item per 18 bytes, and both
+spent about 60% of their time inline and 30% on blocks, markz about twice as slow in each: a
+constant-factor gap, not the algorithm.
 
-In the order to try them, each measured on its own, and headings first, since step 18's
-per-construct benchmark shows the widest gap there:
+Each change was measured on its own, warmed up, over every corpus tier (1.2 MB), parse + HTML
+from 10.2 MB/s and parse alone from 12.7:
 
-- **Character codes in the scan loop.** The plain-text loop tests every character against a
-  regex; a lookup table instead gave +15% in a first trial (13.5 to 15.6 MB/s). The case chain
-  compares one-character strings, and the flanking checks run Unicode regexes per character.
-- **One shape for an item.** Items gain optional fields as they go, and `nodeItem` spreads a
-  text item into each node.
-- **Less per leaf.** Each paragraph joins its lines into a new string and allocates three Maps
-  and two Sets, and `plainText` runs for every leaf though only headings use it.
-- **Then, if still worth it, one pass.** Inline builds a linked list of items and then copies it
-  into the tree (about 7% of the time). Writing into the tree directly is the larger change, and
-  is weighed against its bytes, since the budget is 20 KB and markz is at 17.4.
+- **The flat string.** The largest cost wasn't on the list. A leaf's lines were joined with
+  `+=`, which V8 keeps as a rope, and every character read walked it. Joining with `join`, with
+  plain text taken in one sticky regex step per run, was +35%.
+- **Plain text first by lookup table,** +11% before the flat string. The regex that replaced it
+  is a character class, so it can't backtrack.
+- **Block starts by first character,** +8%: each form's regex runs only on a line that starts
+  with its marker. Line ends found by one regex step, +2%.
+- **Less per leaf and per node,** about +12% together: the memo Maps and Sets made on first
+  use, a heading's plain text built only for headings, one object shape for items, and
+  `html()` returning early when a node has no attributes or its text nothing to escape.
+- **Not taken.** A `switch` on codes in the scan loop measured the same as the chain of
+  comparisons. Skipping the bare-URL slice when the character before rules a URL out measured
+  nothing. Writing into the tree without the item list wasn't needed.
+
+The result is 17.0 MB/s parse + HTML (+67%) and 23.0 parse (+81%). Against markdown-exit, both
+run until warm on the same documents, markz is at 17.6 and 23.7 MB/s to its 18.7 and 23.4. The
+bundle went from 17.4 to 17.5 KB gzip.
+
+`pnpm compare` shows less of this: a cell's 40 ms budget is one warm pass and a few timed ones,
+which times code the engine hasn't finished optimizing, and markz's larger functions reach
+that later.
 
 ### 20. Tests and benchmarks by what they are — done
 

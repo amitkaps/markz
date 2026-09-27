@@ -275,9 +275,10 @@ function directive(doc: Document, node: NodeId, a: Attributes | undefined): stri
  * Security). A heading's id comes from its data, so an `id` item is skipped there.
  */
 function attributes(a: Attributes | undefined, skipId = false): string {
+	if (!a) return '';
 	const cls: string[] = [];
 	const other = new Map<string, string | null>();
-	for (const { key, value, start, end } of a?.items ?? []) {
+	for (const { key, value, start, end } of a.items) {
 		if (key === 'class') cls.push(value);
 		else if (!(skipId && key === 'id'))
 			other.set(key, value === '' && end - start === key.length ? null : value);
@@ -328,7 +329,7 @@ function unsafe(value: string, image = true): boolean {
 }
 
 function escape(text: string): string {
-	return text.replace(/[&<>"]/g, (c) => ESCAPES[c]!);
+	return /[&<>"]/.test(text) ? text.replace(/[&<>"]/g, (c) => ESCAPES[c]!) : text;
 }
 
 const ESCAPES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };

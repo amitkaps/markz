@@ -20,6 +20,9 @@ import { decode, inline } from './inline';
 import { parseMetadata } from './metadata';
 import { type WarningCode } from './warnings';
 
+/** The rest of a line, up to its ending: one regex step instead of a test per character. */
+const LINE = /[^\n\r]*/y;
+
 export function blocks(b: Builder, source: string, start: number): void {
 	new BlockParser(b, source).run(start);
 }
@@ -138,8 +141,9 @@ class BlockParser {
 		let at = this.metadata(start);
 		const { src } = this;
 		while (at < src.length) {
-			let end = at;
-			while (end < src.length && src[end] !== '\n' && src[end] !== '\r') end++;
+			LINE.lastIndex = at;
+			LINE.test(src);
+			const end = LINE.lastIndex;
 			this.line(at, end);
 			at = end < src.length ? end + (src[end] === '\r' && src[end + 1] === '\n' ? 2 : 1) : end;
 		}
@@ -358,44 +362,57 @@ class BlockParser {
 			if (isSpace(src.charCodeAt(this.pos))) this.advance(1);
 			return true;
 		}
-		if (paragraph && /^(?:=+|-+)[ \t]*$/.test(src.slice(next, this.lineEnd))) {
+		if (
+			paragraph &&
+			(c === '=' || c === '-') &&
+			/^(?:=+|-+)[ \t]*$/.test(src.slice(next, this.lineEnd))
+		) {
 			this.report('setext-heading', next, end);
 			this.text(next, end);
 			return false;
 		}
-		const heading = /^(#{1,6})(?:[ \t]|$)/.exec(src.slice(next, Math.min(next + 8, this.lineEnd)));
-		if (heading) {
-			this.heading(next, heading[1]!.length, end);
-			return false;
-		}
-		const fence = /^(`{3,}|~{3,})(.*)$/.exec(src.slice(next, this.lineEnd));
-		if (fence && (fence[1]![0] === '~' || !fence[2]!.includes('`'))) {
-			if (fence[1]![0] === '~') {
-				this.report('tilde-fence', next, end);
-				this.text(next, end);
-			} else {
-				this.namedReferences(next + fence[1]!.length, end);
-				this.openFence('fence', next, cols, fence[1]!.length, fence[2]!.trim());
+		// Each form is tried only on its own first character, so an ordinary line pays for none.
+		if (c === '#') {
+			const heading = /^(#{1,6})(?:[ \t]|$)/.exec(
+				src.slice(next, Math.min(next + 8, this.lineEnd))
+			);
+			if (heading) {
+				this.heading(next, heading[1]!.length, end);
+				return false;
 			}
-			return false;
 		}
-		if (/^\$\$[ \t]*$/.test(src.slice(next, this.lineEnd))) {
-			this.openFence('math', next, cols, 2, '');
-			return false;
+		if (c === '`' || c === '~') {
+			const fence = /^(`{3,}|~{3,})(.*)$/.exec(src.slice(next, this.lineEnd));
+			if (fence && (fence[1]![0] === '~' || !fence[2]!.includes('`'))) {
+				if (fence[1]![0] === '~') {
+					this.report('tilde-fence', next, end);
+					this.text(next, end);
+				} else {
+					this.namedReferences(next + fence[1]!.length, end);
+					this.openFence('fence', next, cols, fence[1]!.length, fence[2]!.trim());
+				}
+				return false;
+			}
 		}
-		// `$$E=mc^2$$` alone on a line is a block too, as on GitHub.
-		const display = /^\$\$((?:[^$]|\$(?!\$))*[^$\s](?:[^$]|\$(?!\$))*)\$\$[ \t]*$/.exec(
-			src.slice(next, this.lineEnd)
-		);
-		if (display) {
-			const attributes = this.enter(false);
-			const value = display[1]!;
-			const range = { start: next + 2, end: next + 2 + value.length };
-			const node = this.b.leaf('math', next, end, { block: true, value: `${value}\n`, range });
-			this.leafNode(node, end, attributes);
-			return false;
+		if (c === '$' && src[next + 1] === '$') {
+			if (/^\$\$[ \t]*$/.test(src.slice(next, this.lineEnd))) {
+				this.openFence('math', next, cols, 2, '');
+				return false;
+			}
+			// `$$E=mc^2$$` alone on a line is a block too, as on GitHub.
+			const display = /^\$\$((?:[^$]|\$(?!\$))*[^$\s](?:[^$]|\$(?!\$))*)\$\$[ \t]*$/.exec(
+				src.slice(next, this.lineEnd)
+			);
+			if (display) {
+				const attributes = this.enter(false);
+				const value = display[1]!;
+				const range = { start: next + 2, end: next + 2 + value.length };
+				const node = this.b.leaf('math', next, end, { block: true, value: `${value}\n`, range });
+				this.leafNode(node, end, attributes);
+				return false;
+			}
 		}
-		if (src.startsWith('<!--', next) && this.comment(next)) return false;
+		if (c === '<' && src.startsWith('<!--', next) && this.comment(next)) return false;
 		const rule = this.rule(next);
 		if (rule) {
 			if (rule === '-') {
@@ -523,7 +540,7 @@ class BlockParser {
 		const explicit = attributes?.items.findLast((a) => a.key === 'id');
 		const data = { depth: depth as 1 | 2 | 3 | 4 | 5 | 6, id: '', idExplicit: !!explicit };
 		const node = this.b.open('heading', at, data);
-		const text = inline(this.b, this.src, [{ start: from, end: to }]);
+		const text = inline(this.b, this.src, [{ start: from, end: to }], false, true);
 		this.b.close(end);
 		if (explicit) {
 			data.id = explicit.value;
