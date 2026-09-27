@@ -9,16 +9,18 @@
 import { describe, expect, it } from 'vite-plus/test';
 import { parse } from '../src/index';
 import { unwarned } from './examples';
-import directive from './stress/directive.json' with { type: 'json' };
-import footnote from './stress/gfm-footnote.json' with { type: 'json' };
-import autolink from './stress/gfm-autolink-literal.json' with { type: 'json' };
-import yaml from './stress/yaml.json' with { type: 'json' };
+import directive from './examples/upstream/stress/directive.md?raw';
+import footnote from './examples/upstream/stress/gfm-footnote.md?raw';
+import autolink from './examples/upstream/stress/gfm-autolink-literal.md?raw';
+import yaml from './examples/upstream/stress/yaml.md?raw';
+import { readFences } from './fences';
 import { expectTree } from './tree';
 
 const suites = { directive, 'gfm-autolink-literal': autolink, 'gfm-footnote': footnote, yaml };
 
-describe.each(Object.entries(suites))('%s', (suite, list) => {
-	it.each(list.map((e) => [`${suite}:${e.example} ${e.section}`, e.markdown] as const))(
+describe.each(Object.entries(suites))('%s', (suite, text) => {
+	const list = readFences(text).examples;
+	it.each(list.map((e) => [`${suite}:${e.number} ${e.section}`, e.markdown] as const))(
 		'%s',
 		(_, markdown) => {
 			const start = performance.now();

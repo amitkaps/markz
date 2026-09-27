@@ -1,24 +1,74 @@
 /** @prose
  * # Vendoring an upstream suite
  *
- * Turns an upstream project's own tests into examples for `test/spec/`, from a local clone at the
+ * Turns an upstream project's own tests into examples for `test/examples/upstream/`, in the fence
+ * format `test/fences.ts` reads and writes, from a local clone at the
  * commit its README pins: a micromark extension's, the yaml-test-suite or github-slugger's (below). What markz is held to is the input: every example is compared with
  * markz's oracle, not with the HTML the suite expected, so a test that only configures the HTML
  * side (a directive handler, `allowDangerousHtml`) keeps its input. A test whose options change the
  * syntax (`disable`, `singleTilde`, a frontmatter preset or custom matter) is dropped, as is anything whose input isn't a literal.
  *
  * `node scripts/vendor.ts gfm-table ../micromark-extension-gfm-table` writes
- * `test/spec/gfm-table.json` and prints what it kept and dropped.
+ * `test/examples/upstream/gfm-table.md` and prints what it kept and dropped. Each file's metadata
+ * names the suite's repo at the clone's commit and what its examples are checked by (`SUITES`).
+ * CommonMark and GFM's spec examples were converted once, and aren't written here.
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import ts from 'typescript';
 import YAML from 'yaml';
+import { writeFences } from '../test/fences.ts';
+
+/** Each suite's title, its GitHub repo and the path its tests are in, and what checks them. */
+const SUITES: Record<string, [title: string, repo: string, path: string, checks: string]> = {
+	'gfm-table': [
+		'micromark-extension-gfm-table',
+		'micromark/micromark-extension-gfm-table',
+		'test',
+		'oracle'
+	],
+	'gfm-strikethrough': [
+		'micromark-extension-gfm-strikethrough',
+		'micromark/micromark-extension-gfm-strikethrough',
+		'test',
+		'oracle'
+	],
+	'gfm-autolink-literal': [
+		'micromark-extension-gfm-autolink-literal',
+		'micromark/micromark-extension-gfm-autolink-literal',
+		'test',
+		'oracle'
+	],
+	'gfm-footnote': [
+		'micromark-extension-gfm-footnote',
+		'micromark/micromark-extension-gfm-footnote',
+		'test',
+		'oracle'
+	],
+	directive: [
+		'micromark-extension-directive',
+		'micromark/micromark-extension-directive',
+		'test',
+		'oracle'
+	],
+	frontmatter: [
+		'micromark-extension-frontmatter',
+		'micromark/micromark-extension-frontmatter',
+		'test',
+		'oracle'
+	],
+	math: ['micromark-extension-math', 'micromark/micromark-extension-math', 'test', 'math'],
+	yaml: ['yaml-test-suite', 'yaml/yaml-test-suite', 'src', 'yaml'],
+	slugger: ['github-slugger', 'Flet/github-slugger', 'test', 'slug']
+};
 
 export interface Vendored {
 	example: number;
-	/** `<test group> › <test title>` from `index.js`, or `<fixture file> › <heading>`. */
+	/**
+	 * `<test group> › <test title>` from `index.js`, or `<fixture file> › <heading>`, or the file
+	 * alone for a fixture's untitled start.
+	 */
 	section: string;
 	markdown: string;
 	/**
@@ -49,7 +99,12 @@ function fixtures(dir: string): Vendored[] {
 		for (const [i, [title, markdown]] of md.entries()) {
 			// A heading with nothing under it tests nothing.
 			if (!markdown.replace(/^#.*\n?/, '').trim()) continue;
-			out.push({ example: 0, section: `${file} › ${title}`, markdown, html: html[i]! });
+			out.push({
+				example: 0,
+				section: title ? `${file} › ${title}` : file,
+				markdown,
+				html: html[i]!
+			});
 		}
 	}
 	return out;
@@ -302,7 +357,7 @@ function sluggerSuite(dir: string, dropped: string[]): Vendored[] {
  * A suite is vendored for the decisions markz makes, not for its size. Most of an extension's
  * suite exercises a form markz supports and is kept whole; where a suite enumerates variants of a
  * form markz cuts or doesn't read, a few of each stand for the rest. What curation leaves out goes
- * to `test/stress/`, where it is only checked not to hang, throw or lose a link silently, and stays
+ * to `test/examples/upstream/stress/`, where it is only checked not to hang, throw or lose a link silently, and stays
  * off the Conformance page.
  *
  * - **gfm-autolink-literal:** the fixtures that sweep a character class (`http://` before each
@@ -387,7 +442,9 @@ function curate(suite: string, examples: Vendored[]): [kept: Vendored[], stress:
 }
 
 const [suite, dir] = process.argv.slice(2);
-if (!suite || !dir) throw new Error('usage: node scripts/vendor.ts <suite> <clone>');
+if (!suite || !dir || !SUITES[suite]) {
+	throw new Error(`usage: node scripts/vendor.ts <${Object.keys(SUITES).join('|')}> <clone>`);
+}
 const dropped: string[] = [];
 const examples =
 	suite === 'yaml'
@@ -405,11 +462,28 @@ const kept =
 const [conformance, stress] = curate(suite, kept);
 conformance.forEach((e, i) => (e.example = i + 1));
 stress.forEach((e, i) => (e.example = i + 1));
-writeFileSync(`test/spec/${suite}.json`, JSON.stringify(conformance, null, 1) + '\n');
-if (stress.length) {
-	writeFileSync(`test/stress/${suite}.json`, JSON.stringify(stress, null, 1) + '\n');
-}
 const commit = execFileSync('git', ['-C', dir, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+const [title, repo, path, checks] = SUITES[suite]!;
+const write = (file: string, list: Vendored[], checkedBy: string) => {
+	const meta = {
+		source: suite,
+		url: `https://github.com/${repo}/tree/${commit}/${path}`,
+		commit,
+		checks: checkedBy
+	};
+	const fences = list.map((e) => ({
+		section: e.section,
+		number: e.example,
+		category: null,
+		rule: null,
+		markdown: e.markdown,
+		expected: e.html,
+		warnings: []
+	}));
+	writeFileSync(file, writeFences(title, meta, fences));
+};
+write(`test/examples/upstream/${suite}.md`, conformance, checks);
+if (stress.length) write(`test/examples/upstream/stress/${suite}.md`, stress, 'sound');
 console.log(
 	`${suite} at ${commit}: ${conformance.length} examples, ${stress.length} to stress, ${examples.length - kept.length} duplicate inputs`
 );

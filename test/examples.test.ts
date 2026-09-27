@@ -5,11 +5,14 @@
  * held to `syntax.md`: every warning code is named there, each Not supported row's "Write instead"
  * is its code's, every construct and row has examples, the hand list names real examples, and
  * most upstream examples are still compared with the oracle, so a rule that swallowed a suite
- * would show.
+ * would show. Each vendored file is exactly what `fences.ts` writes, so an edit by hand shows.
  */
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vite-plus/test';
 import { parse } from '../src/index';
 import { check, examples, listed, type Example } from './examples';
+import { readFences, writeFences } from './fences';
 import { WARNINGS } from '../src/warnings';
 import { CONSTRUCTS } from './grammar';
 import { named, rows } from './syntax';
@@ -42,6 +45,20 @@ describe('filing', () => {
 		const upstream = examples.filter((e) => e.source !== 'markz');
 		const compared = upstream.filter((e) => e.kind === 'oracle');
 		expect(compared.length).toBeGreaterThan(upstream.length * 0.4);
+	});
+});
+
+describe('upstream files', () => {
+	const dir = join(import.meta.dirname, 'examples/upstream');
+	const files = ['', 'stress/'].flatMap((sub) =>
+		readdirSync(join(dir, sub))
+			.filter((f) => f.endsWith('.md') && f !== 'README.md')
+			.map((f) => sub + f)
+	);
+	it.each(files)('%s is as fences.ts writes it', (file) => {
+		const text = readFileSync(join(dir, file), 'utf8');
+		const { title, meta, examples: fences } = readFences(text);
+		expect(writeFences(title, meta, fences)).toBe(text);
 	});
 });
 
