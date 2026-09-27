@@ -466,6 +466,16 @@ markdown-exit's renderer; a destination with nothing to encode now skips the per
 loop, which brings it level (8.7 against 8.8 ms per MB). What is left is in parsing. A copy of
 `walk`'s loop inside `html()` (+3%) and a hand-written `escape` loop (slower) weren't taken.
 
+Headings looked slow for a reason that wasn't theirs: the construct documents repeated the same
+few headings thousands of times (the comparison's were mostly empty, all `section`), so they
+timed id numbering no author asks for. `repeat` now numbers each later copy's headings, and the
+comparison's construct documents number every heading (`titled` in `test/harness/corpus.ts`).
+On headings that are all different, the cost was the id table: one Map in place of a Set and a
+Map stores each id once, and the closing-`#` and trailing-`{` checks look at the last character
+before copying the line. Parse on the common documents went from 21.1 to 22.0 MB/s (public) and
+18.3 to 19.1 (agent), and on headings from 6.3 to 6.8, to markdown-exit's 12.0: what is left is
+the inline pass run on each short title.
+
 ### 20. Tests and benchmarks by what they are — done
 
 The test suite grew one source at a time, so its files are sorted by where an input came from,

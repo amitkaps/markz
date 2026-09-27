@@ -104,10 +104,12 @@ class BlockParser {
 	clock = 0;
 	blankAt = -1;
 	contentAt = -1;
-	/** Every heading id so far, explicit or generated. */
-	readonly ids = new Set<string>();
-	/** The last number given to each generated id's base, so numbering resumes rather than restarts. */
-	readonly numbered = new Map<string, number>();
+	/**
+	 * Every heading id so far, explicit or generated, with the last number given to it as a
+	 * generated id's base, so numbering resumes rather than restarts. One table, so a new id is
+	 * hashed and stored once.
+	 */
+	readonly ids = new Map<string, number>();
 	/** The whitespace `blank` last found: on which line, and from where to where. */
 	space = { lineEnd: -1, from: -1, to: -1 };
 	/**
@@ -529,12 +531,15 @@ class BlockParser {
 		let from = at + depth;
 		while (from < end && isSpace(this.src.charCodeAt(from))) from++;
 		let to = end;
-		const closing = /(?:^|[ \t])#+$/.exec(this.src.slice(from, end));
+		// Each check first looks at the last character, so a plain heading copies nothing.
+		const closing =
+			this.src[end - 1] === '#' ? /(?:^|[ \t])#+$/.exec(this.src.slice(from, end)) : null;
 		if (closing) to = from + closing.index;
 		while (to > from && isSpace(this.src.charCodeAt(to - 1))) to--;
 		// Search only the heading's own text, not back to the start of the source.
-		const brace = from + this.src.slice(from, to).lastIndexOf(' {') + 1;
-		if (brace > from && this.src[to - 1] === '}' && trailing(this.src, brace, to)) {
+		const brace =
+			this.src[to - 1] === '}' ? from + this.src.slice(from, to).lastIndexOf(' {') + 1 : from;
+		if (brace > from && trailing(this.src, brace, to)) {
 			this.report('trailing-heading-attributes', brace, to);
 		}
 		const explicit = attributes?.items.findLast((a) => a.key === 'id');
@@ -551,15 +556,18 @@ class BlockParser {
 					explicit.end,
 					`id \`${data.id}\` is already used by an earlier heading`
 				);
-			}
+			} else this.ids.set(data.id, 0);
 		} else {
 			const base = slug(text);
 			data.id = base;
-			let n = this.numbered.get(base) ?? 0;
-			while (this.ids.has(data.id)) data.id = `${base}-${++n}`;
-			this.numbered.set(base, n);
+			let n = this.ids.get(base);
+			if (n === undefined) this.ids.set(base, 0);
+			else {
+				while (this.ids.has(data.id)) data.id = `${base}-${++n}`;
+				this.ids.set(base, n);
+				this.ids.set(data.id, 0);
+			}
 		}
-		this.ids.add(data.id);
 		this.leafNode(node, end, attributes);
 	}
 
