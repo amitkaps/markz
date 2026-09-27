@@ -423,7 +423,10 @@ export const CONSTRUCTS: Construct[] = [
 		grammar: `
 			line-break ::= '\\' line-end | line-end
 		`,
-		rules: {}
+		rules: {
+			'trailing-backslash':
+				'Spaces and tabs between a `\\` and the line ending are trailing whitespace, so `\\ ` there is a hard break, not a non-breaking space.'
+		}
 	},
 	{
 		id: 'escape',

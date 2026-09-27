@@ -303,13 +303,12 @@ class InlinePass {
 	 * ## Escapes, breaks and references
 	 *
 	 * `\` before ASCII punctuation is that character, before a line ending it is a hard break,
-	 * and before a space it is a non-breaking space. Anywhere else it is itself. Numeric
-	 * references decode, with U+FFFD for any code point HTML can't hold (`character`). A named one
-	 * stays text and is reported, since markz has no entity table.
+	 * and before a space it is a non-breaking space. At the end of a line, spaces after the `\`
+	 * are the line's trailing whitespace, gone before it is read, so `\ ⏎` is a hard break too:
+	 * what the author sees, and what it becomes once a formatter strips the space. Anywhere else a
+	 * `\` is itself. Numeric references decode, with U+FFFD for any code point HTML can't hold
+	 * (`character`). A named one stays text and is reported, since markz has no entity table.
 	 */
-	// @note A `\ ` at the end of a line is a hard break, not a non-breaking space: the line's
-	// trailing space is gone before the backslash is read. CommonMark reads `\ ⏎` as a literal
-	// backslash and a soft break. Keep the hard break, or make it a non-breaking space?
 	backslash(list: List, t: number, to: number): number {
 		const next = this.text[t + 1];
 		if (next === '\n' && t + 1 < to) {

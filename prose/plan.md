@@ -329,6 +329,7 @@ columns 0-based. The README shows the whole API.
   After an unclosed opening `---`, the frontmatter extension also leaves the next lines a
   paragraph. `normalize` now reads CR and CRLF as LF, as HTML does, and drops spaces beside
   `<pre>`.
+
 - **Bugs found and fixed**, each now a dialect example:
   - an empty title written as `title=""`;
   - control characters and noncharacters in numeric references, which now become U+FFFD;
@@ -337,8 +338,8 @@ columns 0-based. The README shows the whole API.
   - a fence-like line that silently wasn't a lazy line;
   - a lone `|` as a table row, and a header indented four columns;
   - trailing spaces after a tab, which weren't reported.
-- **Open.** `\ ` at the end of a line is a hard break, where it could be a non-breaking space.
-  There's a `@note` in `inline.ts`.
+- **Decided.** `\ ` at the end of a line is a hard break, not a non-breaking space. The space
+  is invisible, and oxfmt strips it, which leaves the same hard break (`syntax.md`: Line breaks).
 
 ### 17. Benchmarks and bundle size
 

@@ -164,6 +164,14 @@ b
 c</p>
 ```
 
+```example
+a\␣
+b
+.
+<p>a<br />
+b</p>
+```
+
 ## escape
 
 ```example
