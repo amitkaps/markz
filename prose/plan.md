@@ -341,9 +341,45 @@ columns 0-based. The README shows the whole API.
 - **Decided.** `\ ` at the end of a line is a hard break, not a non-breaking space. The space
   is invisible, and oxfmt strips it, which leaves the same hard break (`syntax.md`: Line breaks).
 
-### 17. Benchmarks and bundle size
+### 17. Benchmarks and bundle size — done
 
-`bench/` (not published): parse throughput and AST memory versus micromark, markdown-it, marked, markdown-exit and Comark. The size gate is already in CI; this step adds the comparisons.
+`bench/` is a private workspace package, like `docs/`, so the competitors never reach the library.
+It measures throughput, cold start, retained memory, pathological input and bundle size, against
+micromark, remark, markdown-it, markdown-exit, marked and Comark (`bench/README.md`).
+
+- **remark joined the list.** It is how micromark is usually used, and how its tree is built, so
+  the unified/remark ecosystem is benchmarked but still never used by markz.
+- **The corpus.** The agent-written docs (markz's own, base, prose, visdown) are one voice, so
+  human-written public docs (Node.js API, the Rust book, Vite) sit beside them as the headline.
+  The CommonMark spec is there for comparison with published numbers, and adversarial patterns
+  are labelled as not a workload. All of it is vendored and pinned (`bench/fixtures/README.md`).
+- **Two modes.** _Common_ is defaults on the blocks every parser shares, filtered by markz's
+  own tree. _Dialect_ is each parser configured as close to markz as its plugins get.
+- **Two ways to run.** `pnpm bench` is a quick look in Vitest's benchmark runner, with markz
+  compared to its own last run. `pnpm bench:full` has Hyperfine time each parser in its own
+  processes at `k` and `2k` passes, differencing the fastest runs, and is the only source the
+  site publishes. `bench:update-results` publishes it in a commit of its own. CI runs a smoke
+  pass only.
+- **The site** gains a Performance page, and Performance and Size cards on Conformance. Both
+  appear once a snapshot is published.
+
+What the first runs found:
+
+- **Throughput.** markz reads about 9 to 13 MB/s to HTML, level with markdown-it and marked, and
+  twenty to thirty times micromark and remark. markdown-exit is about twice as fast as markz,
+  which is worth studying.
+- **Memory.** A markz tree keeps about 7 bytes per source byte, against 10 to 18 for the others.
+- **Size.** Parse + HTML, gzip: markz 17 KB, marked 13, micromark 20 to 23, markdown-it 40 to
+  42, markdown-exit and remark about 45, Comark 105.
+- **marked is quadratic where markz is linear.** On emphasis and strikethrough openers it
+  takes seconds at 20 KB and times out at 80 KB, and deep nesting overflows its stack.
+- **Comark throws on the CommonMark spec** with its default plugins: its frontmatter hands the
+  spec's YAML header, which ends in `...`, to js-yaml, which rejects it.
+- **oxfmt makes documents more common.** Formatting rewrites forms markz cuts (visdown's plan
+  keeps a quarter of its blocks as written, all of them once formatted).
+- **A busy laptop can't publish.** Background load swamped the `k`/`2k` difference into negative
+  speeds, which is why each side is now its fastest run and a non-positive difference is
+  recorded as unmeasurable. The published numbers wait for a full run on a quiet machine.
 
 ## Definition of done for v1
 
