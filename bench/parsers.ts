@@ -5,12 +5,14 @@
  * parse, if it has one, and its parse to HTML, set up for a mode. An adapter imports its library
  * only when it's loaded, so a process that times one parser never pays for another's startup.
  *
+ * Three parsers, each for what markz can learn from it: markdown-exit, the fastest, a TypeScript
+ * rewrite of markdown-it; marked, the smallest, a regex lexer; and micromark, the spec-exact state
+ * machine that is also the tests' oracle. markz isn't a general-purpose replacement for any of
+ * them. The parsers studied and left out are in `README.md`.
+ *
  * The structured parses aren't the same thing, and each adapter names what it builds: markz a
- * flat tree with offsets, markdown-it and markdown-exit a flat token stream, marked a nested token
- * list, Comark a nested array tree, remark a nested tree with positions (mdast). micromark alone
- * has none in public: remark is how its tree is built and how most people get HTML from it, so
- * both are here, and the gap between them is what the pipeline costs. That difference is part
- * of what's measured.
+ * flat tree with offsets, markdown-exit a flat token stream, marked a nested token list.
+ * micromark has none in public. That difference is part of what's measured.
  *
  * Each adapter declares its configuration and what it reads beyond CommonMark, and the runner
  * reports both, so the README's and the site's tables are generated from what ran.
@@ -21,10 +23,9 @@
  *   share, each set up as its adapter lists (mostly its defaults, GFM where it has it).
  * - **dialect**: each parser as close to markz as its plugins get. Math is on wherever it can be
  *   read without typesetting, which is rendering, not parsing: micromark's syntax extension with a
- *   handler that writes the TeX as text (its own HTML extension runs KaTeX), remark-math, and
- *   markdown-it's and markdown-exit's tex plugin with the same handler. marked's math extension
- *   and Comark's math plugin both run KaTeX, so theirs stays off. marked reads directives through
- *   marked-directive.
+ *   handler that writes the TeX as text (its own HTML extension runs KaTeX), and markdown-exit's
+ *   tex plugin with the same handler. marked's math extension runs KaTeX, so its stays off.
+ *   marked reads directives through marked-directive.
  */
 import type MarkdownIt from 'markdown-it';
 
@@ -42,19 +43,11 @@ export interface Parser {
 	capabilities: string[];
 }
 
-export const PARSERS = [
-	'markz',
-	'micromark',
-	'remark',
-	'markdown-it',
-	'markdown-exit',
-	'marked',
-	'comark'
-];
+export const PARSERS = ['markz', 'markdown-exit', 'marked', 'micromark'];
 
 /** @prose
  * micromark-extension-math's HTML extension runs KaTeX, so the benchmark writes math as the
- * markdown-it adapters do: the TeX, escaped, in a span that says inline or display. The fence and
+ * markdown-exit adapter does: the TeX, escaped, in a span that says inline or display. The fence and
  * line-ending bookkeeping is the extension's own.
  */
 const MATH_HTML: import('micromark-util-types').HtmlExtension = {
@@ -179,12 +172,8 @@ export async function load(name: string, mode: Mode): Promise<Parser> {
 					: ['GFM']
 			};
 		}
-		case 'markdown-it':
 		case 'markdown-exit': {
-			const md =
-				name === 'markdown-it'
-					? new (await import('markdown-it')).default()
-					: new (await import('markdown-exit')).MarkdownExit();
+			const md = new (await import('markdown-exit')).MarkdownExit();
 			if (dialect) {
 				const front = (await import('markdown-it-front-matter')).default;
 				const { tex } = await import('@mdit/plugin-tex');
@@ -231,77 +220,6 @@ export async function load(name: string, mode: Mode): Promise<Parser> {
 				html: (s) => marked.parse(s) as string,
 				configuration: dialect ? '{ gfm: true }, marked-directive' : '{ gfm: true }',
 				capabilities: dialect ? ['GFM', 'directives'] : ['GFM']
-			};
-		}
-		case 'remark': {
-			const { unified } = await import('unified');
-			const remarkParse = (await import('remark-parse')).default;
-			const remarkRehype = (await import('remark-rehype')).default;
-			const rehypeStringify = (await import('rehype-stringify')).default;
-			const parser = unified().use(remarkParse);
-			if (!dialect) parser.use((await import('remark-gfm')).default);
-			else {
-				const { gfmTable } = await import('micromark-extension-gfm-table');
-				const { gfmStrikethrough } = await import('micromark-extension-gfm-strikethrough');
-				const { gfmTaskListItem } = await import('micromark-extension-gfm-task-list-item');
-				const { gfmTableFromMarkdown } = await import('mdast-util-gfm-table');
-				const { gfmStrikethroughFromMarkdown } = await import('mdast-util-gfm-strikethrough');
-				const { gfmTaskListItemFromMarkdown } = await import('mdast-util-gfm-task-list-item');
-				// remark-gfm can't leave parts out, so the parts markz has go in as remark-gfm adds them.
-				parser.use(function () {
-					const data = this.data();
-					(data.micromarkExtensions ??= []).push(gfmTable(), gfmStrikethrough(), gfmTaskListItem());
-					(data.fromMarkdownExtensions ??= []).push(
-						gfmTableFromMarkdown(),
-						gfmStrikethroughFromMarkdown(),
-						gfmTaskListItemFromMarkdown()
-					);
-				});
-				parser.use((await import('remark-frontmatter')).default);
-				parser.use((await import('remark-directive')).default);
-				parser.use((await import('remark-math')).default);
-				// remark-rehype drops a directive it has no handler for; this makes each its element.
-				parser.use(() => (tree) => {
-					const stack: import('mdast').Nodes[] = [tree as import('mdast').Root];
-					for (let node = stack.pop(); node; node = stack.pop()) {
-						if (
-							node.type === 'containerDirective' ||
-							node.type === 'leafDirective' ||
-							node.type === 'textDirective'
-						) {
-							node.data = { ...node.data, hName: node.name };
-						}
-						if ('children' in node) stack.push(...node.children);
-					}
-				});
-			}
-			const processor = parser().use(remarkRehype).use(rehypeStringify);
-			return {
-				representation: 'nested tree with positions (mdast)',
-				structured: (s) => parser.parse(s),
-				html: (s) => String(processor.processSync(s)),
-				configuration: dialect
-					? 'remark-parse, the GFM table, strikethrough and task-list parts, remark-frontmatter, remark-directive (each as its element), remark-math (untypeset), remark-rehype, rehype-stringify'
-					: 'remark-parse, remark-gfm, remark-rehype, rehype-stringify',
-				capabilities: dialect
-					? ['tables', 'strikethrough', 'task lists', 'directives', 'frontmatter', 'math']
-					: ['GFM']
-			};
-		}
-		case 'comark': {
-			const { createMarkdownParser } = await import('comark');
-			const { createHtmlRenderer } = await import('@comark/html');
-			// Common turns off Comark's default plugins (raw HTML, frontmatter, and the rest); its
-			// component and attribute syntax is core and stays.
-			const options = { registerDefaultPlugins: dialect };
-			return {
-				representation: 'nested array tree',
-				structured: createMarkdownParser(options),
-				html: createHtmlRenderer(options),
-				configuration: `{ registerDefaultPlugins: ${dialect} }`,
-				capabilities: dialect
-					? ['GFM', 'components', 'attributes', 'frontmatter', 'raw HTML']
-					: ['GFM', 'components', 'attributes']
 			};
 		}
 	}

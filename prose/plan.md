@@ -521,8 +521,9 @@ One PR each, the moves first:
    working tree in about two seconds without a build. `bench/worker.ts` replaces Hyperfine's `k`
    and `2k` runs with a time budget per cell in one fresh process per parser and mode; a slow
    parser on a large file gets one timed pass once an earlier cell has warmed it. `pnpm compare`
-   takes about 35 s, not the 30 aimed for: micromark and remark read under 1 MB/s, and one pass
-   each over every tier and the 1 MB size is most of it. Sizes are cached by package version,
+   takes about 18 s, since the comparison was cut to the three parsers markz learns from
+   (markdown-exit, marked, micromark); markdown-it, remark and Comark are recorded in
+   `bench/README.md` and left out, since markz isn't a general-purpose replacement for them. Sizes are cached by package version,
    and `pnpm snapshot` regenerates the README's adapters table.
 
 ## Definition of done for v1

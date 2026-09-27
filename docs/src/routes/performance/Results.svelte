@@ -2,8 +2,8 @@
 	/** @prose
 	 * # Performance results
 	 *
-	 * The published benchmark (`bench/`): markz beside micromark, remark, markdown-it,
-	 * markdown-exit, marked and Comark. Every table names its mode and what it measures, and the
+	 * The published benchmark (`bench/`): markz beside the three parsers it learns from,
+	 * markdown-exit, marked and micromark, and not as a general-purpose replacement for them. Every table names its mode and what it measures, and the
 	 * page opens with the machine and corpus the numbers came from, since they belong to that run and
 	 * nowhere else, and the adapters table, generated from what ran, says how each parser was set up.
 	 * The headline is warm throughput on agent-written and on public docs, side by side. Each other
@@ -90,8 +90,11 @@
 <header>
 	<h1>Performance</h1>
 	<p>
-		How fast markz parses, what it keeps in memory and how large it is, beside the parsers it would
-		replace. Each parser runs in a fresh process of its own, one after another. Throughput is
+		How fast markz parses, what it keeps in memory and how large it is, beside three parsers it
+		learns from: markdown-exit, the fastest; marked, the smallest; and micromark, the spec-exact
+		one. markz is for Markdown you control, in its dialect, and isn't a general-purpose replacement
+		for any of them. Each parser runs in a fresh process of its own, one after another. Throughput
+		is
 		<em>warm</em>: the median of repeated passes after one unmeasured pass, in a process that has
 		already loaded the parser, which is what a server or a watch build pays per document.
 		<em>Cold</em> start is a whole new process, timed by
