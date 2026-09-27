@@ -9,8 +9,13 @@
  * uses them.
  *
  * This is a comparison, not the budget: markz's 20 KB gate stays in `scripts/size.ts`.
+ *
+ * A size changes only when an entry or a package does, so each is cached (`results/sizes.json`,
+ * gitignored) under its entry's text, the versions of the packages it imports, and for markz the
+ * hash of its build. A run bundles only what changed, which keeps a plain `pnpm compare` fast.
  */
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { brotliCompressSync, gzipSync } from 'node:zlib';
 import { build, type Rolldown } from 'vite-plus';
@@ -19,6 +24,8 @@ import type { Mode } from './parsers.ts';
 export interface Size {
 	parser: string;
 	mode: Mode;
+	/** The packages the entry imports. */
+	entry: string[];
 	minified: number;
 	gzip: number;
 	brotli: number;
@@ -114,22 +121,53 @@ export default (s) => md.render(s);`
 	};
 }
 
+const here = import.meta.dirname;
+const CACHE = join(here, 'results/sizes.json');
+
+/** What the entry imports, and the key its size is cached under. */
+function identify(source: string): { entry: string[]; key: string } {
+	const entry = [...new Set([...source.matchAll(/from '([^']+)'/g)].map((m) => m[1]!))];
+	const versions = entry.map((name) => {
+		if (name === 'markz') {
+			const built = readFileSync(join(here, '../dist/index.js'));
+			return `markz@${createHash('sha256').update(built).digest('hex').slice(0, 16)}`;
+		}
+		const pkg = join(here, 'node_modules', name, 'package.json');
+		return `${name}@${(JSON.parse(readFileSync(pkg, 'utf8')) as { version: string }).version}`;
+	});
+	const key = createHash('sha256').update(source).update(versions.join()).digest('hex');
+	return { entry, key };
+}
+
 export async function sizes(parsers: readonly string[]): Promise<Size[]> {
-	const dir = join(import.meta.dirname, '.size');
+	let cache: Record<string, Omit<Size, 'parser' | 'mode' | 'entry'>> = {};
+	try {
+		cache = JSON.parse(readFileSync(CACHE, 'utf8')) as typeof cache;
+	} catch {
+		// Nothing cached yet.
+	}
+	const dir = join(here, '.size');
 	rmSync(dir, { recursive: true, force: true });
 	mkdirSync(dir);
 	const out: Size[] = [];
 	try {
 		for (const parser of parsers) {
 			for (const mode of ['common', 'dialect'] as const) {
-				const entry = join(dir, `${parser}-${mode}.js`);
-				writeFileSync(entry, ENTRIES[parser]![mode]);
-				out.push({ parser, mode, ...(await measure(entry)) });
+				const source = ENTRIES[parser]![mode];
+				const { entry, key } = identify(source);
+				if (!cache[key]) {
+					const file = join(dir, `${parser}-${mode}.js`);
+					writeFileSync(file, source);
+					cache[key] = await measure(file);
+				}
+				out.push({ parser, mode, entry, ...cache[key]! });
 			}
 		}
 	} finally {
 		rmSync(dir, { recursive: true, force: true });
 	}
+	mkdirSync(join(CACHE, '..'), { recursive: true });
+	writeFileSync(CACHE, JSON.stringify(cache, null, '\t'));
 	return out;
 }
 

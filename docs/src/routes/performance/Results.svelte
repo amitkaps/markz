@@ -5,9 +5,11 @@
 	 * The published benchmark (`bench/`): markz beside micromark, remark, markdown-it,
 	 * markdown-exit, marked and Comark. Every table names its mode and what it measures, and the
 	 * page opens with the machine and corpus the numbers came from, since they belong to that run and
-	 * nowhere else. The headline is throughput on agent-written and on public docs, side by side.
-	 * The pathological section comes last and says what it is: a view of how each parser scales on
-	 * input built to hurt, not a workload.
+	 * nowhere else, and the adapters table, generated from what ran, says how each parser was set up.
+	 * The headline is warm throughput on agent-written and on public docs, side by side. Each other
+	 * measure has its own table: scaling, one construct at a time, retained memory after parse, cold
+	 * start, bundle size. The pathological section comes last and says what it is: a view of how
+	 * each parser scales on input built to hurt, not a workload.
 	 */
 	import {
 		bench as published,
@@ -24,8 +26,8 @@
 	const bench = published!;
 	const env = bench.environment;
 	const MODES: [Mode, string][] = [
-		['common', 'Common: defaults, on the blocks every parser shares'],
-		['dialect', 'Dialect: each configured as close to markz as it gets, on whole documents']
+		['common', 'Common: the same workload for all, the blocks every parser shares'],
+		['dialect', 'Dialect: whole documents, each parser configured as close to markz as it gets']
 	];
 	const MEASURES: [Measure, string][] = [
 		['html', 'Parse + HTML'],
@@ -36,6 +38,9 @@
 		...new Map(bench.throughput.filter((t) => t.tier === 'scaling').map((t) => [t.name, t.bytes]))
 	].sort((a, b) => a[1] - b[1]);
 	const patterns = [...new Set(bench.pathological.map((p) => p.pattern))];
+	const constructs = [...new Set(bench.constructs.map((c) => c.construct))];
+	const construct = (id: string, parser: string) =>
+		bench.constructs.find((c) => c.construct === id && c.parser === parser);
 
 	const cell = (mode: Mode, measure: Measure, tier: string, name: string, parser: string) => {
 		const t = throughput(mode, measure, tier, name, parser);
@@ -86,24 +91,60 @@
 	<h1>Performance</h1>
 	<p>
 		How fast markz parses, what it keeps in memory and how large it is, beside the parsers it would
-		replace. Timing is by <a href="https://github.com/sharkdp/hyperfine">Hyperfine</a>, over whole
-		processes, with startup cancelled out: each command runs at <var>k</var> and
-		<var>2k</var> passes, and the difference is <var>k</var> warm passes.
+		replace. Each parser runs in a fresh process of its own, one after another. Throughput is
+		<em>warm</em>: the median of repeated passes after one unmeasured pass, in a process that has
+		already loaded the parser, which is what a server or a watch build pays per document.
+		<em>Cold</em> start is a whole new process, timed by
+		<a href="https://github.com/sharkdp/hyperfine">Hyperfine</a>, which is what a CLI pays.
 		<a href="{REPO}/blob/main/bench/README.md">How to read these numbers</a>.
 	</p>
 	<p class="meta">
 		{env.cpu} · {env.os}
 		{env.arch} · Node {env.node} · markz {env.markz.commit}{env.markz.dirty
 			? ' (uncommitted changes)'
-			: ''} · corpus {bench.corpus.hash} · {new Date(env.date).toUTCString()}
+			: ''} · corpus {bench.corpus.hash} · {new Date(env.date).toUTCString()}{bench.settings.deep
+			? ''
+			: ' · not a deep run'}
 	</p>
 </header>
 
 <section>
+	<h2>Adapters</h2>
+	<p>
+		How each parser was set up, as the run reported it. <em>Common</em> is the same input for all, not
+		the same defaults: documents cut to the blocks every parser reads alike.
+	</p>
+	<table>
+		<thead>
+			<tr>
+				<th></th>
+				<th>Structured parse</th>
+				<th>Common</th>
+				<th>Dialect</th>
+				<th>Dialect reads beyond CommonMark</th>
+			</tr>
+		</thead>
+		<tbody>
+			{#each PARSERS as p (p)}
+				{@const a = bench.adapters[p]!}
+				<tr>
+					<th>{p}</th>
+					<td class="text">{a.common.representation ?? 'none'}</td>
+					<td class="text">{a.common.configuration}</td>
+					<td class="text">{a.dialect.configuration}</td>
+					<td class="text">{a.dialect.capabilities.join(', ')}</td>
+				</tr>
+			{/each}
+		</tbody>
+	</table>
+</section>
+
+<section>
 	<h2>Throughput</h2>
 	<p>
-		MB/s, higher is faster; the fastest in each row is bold. A <span class="noisy">?</span> marks a spread
-		of more than a quarter of the time.
+		MB/s warm, higher is faster; the fastest in each row is bold. A <span class="noisy">?</span>
+		marks passes that spread over half their median. <em>Agent-written</em> docs are written by
+		coding agents in real repos; <em>public</em> docs by people.
 	</p>
 	{#each MEASURES as [measure, label] (measure)}
 		{#each MODES as [mode, what] (mode)}
@@ -133,15 +174,19 @@
 		{/each}
 	{/each}
 	<p class="note">
-		micromark alone has no public structured parse; remark builds its tree (mdast). The structures
-		differ: markz builds a flat tree with offsets, remark a nested tree with positions, markdown-it
-		and markdown-exit a flat token stream, marked a nested token list, Comark a nested array tree.
+		The structured parses build different things (the adapters table), and that difference is part
+		of the result. A parser with no public structured parse has none here.
 	</p>
 </section>
 
 <section>
 	<h2>Scaling</h2>
-	<p>Parse + HTML in the common mode, MB/s by document size. A flat line is linear time.</p>
+	<p>
+		Parse + HTML in the common mode, MB/s by document size. A flat line is approximately linear
+		time. From 100 KB to the largest size, time per byte grew by:
+		{#each bench.scaling as s, i (s.parser)}{i ? ', ' : ''}{s.parser}
+			<span class:bad={!s.linear}>{s.ratio.toFixed(2)}×</span>{/each}.
+	</p>
 	<svg viewBox="0 0 {W} {H}" role="img" aria-label="MB/s by document size, per parser">
 		{#each [0, 0.5, 1] as f (f)}
 			<line class="grid" x1={PAD.l} x2={W - PAD.r} y1={y(top * f)} y2={y(top * f)} />
@@ -170,43 +215,77 @@
 	</svg>
 </section>
 
-<section>
-	<h2>Cold start</h2>
-	<p>
-		One whole process over the agent-written docs, in milliseconds: Node starting, the parser
-		loading, and one pass before the JIT has warmed. <em>none</em> is Node alone. This is what a CLI or
-		a build step pays.
-	</p>
-	<table>
-		<thead>
-			<tr>
-				<th></th>
-				<th>none</th>
-				{#each PARSERS as p (p)}<th>{p}</th>{/each}
-			</tr>
-		</thead>
-		<tbody>
-			{#each MODES as [mode] (mode)}
+{#if constructs.length}
+	<section>
+		<h2>One construct at a time</h2>
+		<p>
+			Structured parse, MB/s warm, on about 30 KB of one construct written from markz's grammar,
+			beside markdown-exit where the construct is CommonMark's or GFM's. Generated text is nothing
+			anyone writes: this shows which constructs carry the time, not a workload.
+		</p>
+		<table>
+			<thead>
 				<tr>
-					<th>{mode}</th>
-					{#each ['none', ...PARSERS] as p (p)}
-						<td
-							>{bench.cold.find((c) => c.mode === mode && c.parser === p)?.ms.toFixed(0) ?? '—'}</td
-						>
-					{/each}
+					<th></th>
+					<th>origin</th>
+					<th>markz</th>
+					<th>markdown-exit</th>
 				</tr>
-			{/each}
-		</tbody>
-	</table>
-</section>
+			</thead>
+			<tbody>
+				{#each constructs as id (id)}
+					<tr>
+						<th>{id}</th>
+						<td class="text">{construct(id, 'markz')?.origin}</td>
+						<td>{construct(id, 'markz')?.mbPerSecond?.toFixed(1) ?? '—'}</td>
+						<td>{construct(id, 'markdown-exit')?.mbPerSecond?.toFixed(1) ?? '—'}</td>
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+	</section>
+{/if}
+
+{#if bench.cold.length}
+	<section>
+		<h2>Cold start</h2>
+		<p>
+			One whole process over the agent-written docs, in milliseconds: Node starting, the parser
+			loading, and one pass before the JIT has warmed. <em>none</em> is Node alone. This is what a CLI
+			or a build step pays.
+		</p>
+		<table>
+			<thead>
+				<tr>
+					<th></th>
+					<th>none</th>
+					{#each PARSERS as p (p)}<th>{p}</th>{/each}
+				</tr>
+			</thead>
+			<tbody>
+				{#each MODES as [mode] (mode)}
+					<tr>
+						<th>{mode}</th>
+						{#each ['none', ...PARSERS] as p (p)}
+							<td
+								>{bench.cold.find((c) => c.mode === mode && c.parser === p)?.ms.toFixed(0) ??
+									'—'}</td
+							>
+						{/each}
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+	</section>
+{/if}
 
 <section>
-	<h2>Memory</h2>
+	<h2>Retained memory after parse</h2>
 	<p>
-		Retained heap per document: what holding one structured result keeps alive, per byte of source,
-		on a 100 KB document. Every parser is given the same source string, so one that keeps a
-		reference to it pays nothing for it. RSS and GC are the process's view, and are diagnostics
-		only.
+		What holding one structured result keeps alive, per byte of source, on a 10 KB document: the
+		heap after a full collection, with twenty results held, less the heap before. Every parser is
+		given the same source string, so one that keeps a reference to it pays nothing for it. The RSS
+		change is the process's view, and is a diagnostic only.
 	</p>
 	<table>
 		<thead>
@@ -231,13 +310,6 @@
 						<td>{m ? kb(m.rss) : '—'}</td>
 					{/each}
 				</tr>
-				<tr class="minor">
-					<th>{mode}, GC ms per parse</th>
-					{#each PARSERS as p (p)}
-						{@const m = bench.memory.find((m) => m.mode === mode && m.parser === p)}
-						<td>{m ? m.gcMs.toFixed(2) : '—'}</td>
-					{/each}
-				</tr>
 			{/each}
 		</tbody>
 	</table>
@@ -246,71 +318,80 @@
 <section>
 	<h2 id="bundle-size">Bundle size</h2>
 	<p>
-		Each parser's parse-to-HTML entry, bundled and minified with its configuration, in KB gzip.
-		markz's own 20 KB budget is enforced separately, in CI.
+		Each parser's parse-to-HTML entry, with its configuration for the mode, bundled and minified,
+		then compressed. markz's own 20 KB budget is enforced separately, in CI.
 	</p>
 	<table>
 		<thead>
 			<tr>
 				<th></th>
-				<th>common</th>
-				<th>dialect</th>
-				<th>dialect, brotli</th>
-				<th>dialect features</th>
+				<th>mode</th>
+				<th>entry</th>
+				<th>reads beyond CommonMark</th>
+				<th>minified</th>
+				<th>gzip</th>
+				<th>brotli</th>
 			</tr>
 		</thead>
 		<tbody>
 			{#each PARSERS as p (p)}
-				{@const c = bench.size.find((s) => s.parser === p && s.mode === 'common')}
-				{@const d = bench.size.find((s) => s.parser === p && s.mode === 'dialect')}
-				<tr>
-					<th>{p}</th>
-					<td>{c ? kb(c.gzip) : '—'}</td>
-					<td>{d ? kb(d.gzip) : '—'}</td>
-					<td>{d ? kb(d.brotli) : '—'}</td>
-					<td class="text">{bench.features[p]?.dialect}</td>
-				</tr>
+				{#each MODES as [mode] (mode)}
+					{@const z = bench.size.find((s) => s.parser === p && s.mode === mode)}
+					{#if z}
+						<tr>
+							<th>{p}</th>
+							<td class="text">{mode}</td>
+							<td class="text">{z.entry.join(', ')}</td>
+							<td class="text">{bench.adapters[p]?.[mode].capabilities.join(', ')}</td>
+							<td>{kb(z.minified)}</td>
+							<td>{kb(z.gzip)}</td>
+							<td>{kb(z.brotli)}</td>
+						</tr>
+					{/if}
+				{/each}
 			{/each}
 		</tbody>
 	</table>
 </section>
 
-<section>
-	<h2>Pathological input</h2>
-	<p class="caveat">
-		Included to show scaling behaviour, not as a representative workload. Each pattern is an
-		adversarial input from markz's complexity tests, at about 20 KB and then four times that, in
-		milliseconds for parse + HTML at each parser's defaults. Linear work takes about four times as
-		long at four times the size; a cell is marked when it takes more than eight, times out, or
-		crashes.
-	</p>
-	<table>
-		<thead>
-			<tr>
-				<th></th>
-				{#each PARSERS as p (p)}<th>{p}</th>{/each}
-			</tr>
-		</thead>
-		<tbody>
-			{#each patterns as pattern (pattern)}
+{#if patterns.length}
+	<section>
+		<h2>Pathological input</h2>
+		<p class="caveat">
+			Included to show scaling behaviour, not as a representative workload. Each pattern is an
+			adversarial input from markz's complexity tests, at about 20 KB and then four times that, in
+			milliseconds for parse + HTML at each parser's defaults. Linear work takes about four times as
+			long at four times the size; a cell is marked when it takes more than eight, times out, or
+			crashes.
+		</p>
+		<table>
+			<thead>
 				<tr>
-					<th>{pattern}</th>
-					{#each PARSERS as p (p)}
-						{@const [a, b] = run(pattern, p)}
-						<td class:bad={superlinear(a, b)}>{show(a)} → {show(b)}</td>
-					{/each}
+					<th></th>
+					{#each PARSERS as p (p)}<th>{p}</th>{/each}
 				</tr>
-			{/each}
-		</tbody>
-	</table>
-</section>
+			</thead>
+			<tbody>
+				{#each patterns as pattern (pattern)}
+					<tr>
+						<th>{pattern}</th>
+						{#each PARSERS as p (p)}
+							{@const [a, b] = run(pattern, p)}
+							<td class:bad={superlinear(a, b)}>{show(a)} → {show(b)}</td>
+						{/each}
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+	</section>
+{/if}
 
 <section>
 	<h2>Versions</h2>
 	<p class="meta">
 		{Object.entries(env.packages)
 			.map(([name, version]) => `${name} ${version}`)
-			.join(' · ')} · {env.hyperfine}
+			.join(' · ')}{env.hyperfine ? ` · ${env.hyperfine}` : ''}
 	</p>
 </section>
 

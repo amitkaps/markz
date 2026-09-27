@@ -1,31 +1,21 @@
 # bench
 
-How fast markz is, how much memory it keeps and how large it is, next to micromark, remark,
-markdown-it, markdown-exit, marked and Comark. This is a private workspace package, like
-`docs/`: the competitors are its dependencies and never reach the library. It measures this
-commit's build of markz.
+The published comparison: how fast markz is, how much memory it keeps and how large it is, next
+to micromark, remark, markdown-it, markdown-exit, marked and Comark. This is a private workspace
+package, like `docs/`: the competitors are its dependencies and never reach the library. It
+measures this commit's build of markz. markz alone, while you work, is `pnpm bench`
+([`test/speed.ts`](../test/speed.ts)), in about two seconds.
 
 ```sh
-pnpm bench                # a quick look, in Vitest: a few minutes, MB/s per group as it lands
-pnpm bench constructs     # just the per-construct look
-mise install              # Hyperfine, pinned in mise.toml, for the full run
-pnpm bench:full           # everything, each parser in its own process: most of an hour
-pnpm bench:update-results # copy the latest full results to the site (docs/src/lib/bench.json)
+pnpm compare          # every parser, each in a fresh process: about half a minute
+mise install          # Hyperfine, pinned in mise.toml, for the deep run
+pnpm compare --deep   # adds 10 MB, the formatted tier, pathological input and cold start
+pnpm snapshot         # copy the latest results to the site, and this README's adapters table
 ```
 
-There are two ways to run it, for two purposes:
-
-- **`pnpm bench` is for looking.** It runs every parser through Vitest's benchmark runner
-  (Tinybench) on the document tiers and the scaling curve, and prints Vitest's table and a line
-  in MB/s for each group. markz is also compared with its own last run on this machine
-  (`results/baseline/`), which shows whether a change moved it. All the parsers share one worker,
-  so these numbers are never published.
-- **`pnpm bench:full` is for publishing.**
-  - Hyperfine times whole processes, one parser each.
-  - It adds cold start, memory, pathological input and bundle size.
-  - It writes `results/latest.json`, which is gitignored, since it belongs to the machine it ran
-    on.
-  - The site shows only the snapshot that `bench:update-results` wrote and a commit checked in.
+`pnpm compare` writes `results/latest.json`, which is gitignored, since it belongs to the machine
+it ran on. The site shows only the snapshot `pnpm snapshot` wrote and a commit checked in, from a
+deep run on a quiet machine.
 
 CI runs `pnpm --filter markz-bench smoke`, which exercises every adapter once and times nothing.
 Throughput is never a CI gate: the 20 KB size gate stays in `scripts/size.ts`, and linear time is
@@ -33,36 +23,43 @@ held by `test/complexity.test.ts`.
 
 ## Files
 
-- [`corpus.ts`](corpus.ts): the tiers and their two variants, built from
-  [`test/documents/`](../test/documents/) by the test harness's corpus
-  into `corpus/` with a hash
-- [`parsers.ts`](parsers.ts): one adapter per parser, per mode
-- [`cli.ts`](cli.ts): one timed command, which is what Hyperfine runs
-- [`memory.ts`](memory.ts): retained heap and RSS per document, with GC as a diagnostic
-- [`size.ts`](size.ts): each parser's parse-to-HTML entry, bundled and compressed
-- [`compare.bench.ts`](compare.bench.ts): the quick look, in Vitest
-- [`constructs.bench.ts`](constructs.bench.ts): one construct at a time, from the grammar's
-  cases, to see which constructs carry markz's time
-- [`run.ts`](run.ts): the full suite, which writes the results
+- [`corpus.ts`](corpus.ts): writes the test harness's documents and variants
+  ([`test/harness/corpus.ts`](../test/harness/corpus.ts)) to `corpus/` with a hash, adding the
+  tiers only timing needs: the scaling sizes, one construct at a time, and pathological input
+- [`parsers.ts`](parsers.ts): one adapter per parser, per mode, each declaring its configuration
+  and what it reads
+- [`worker.ts`](worker.ts): one parser's fresh process, running its cells on a time budget, and
+  retained memory after parse
+- [`size.ts`](size.ts): each parser's parse-to-HTML entry, bundled and compressed, cached by
+  package version
+- [`run.ts`](run.ts): the comparison, which writes the results
 
 ## Reading the numbers
 
 **Two modes.** They are there so a parser isn't slower only because it does more:
 
-- _Common_: every parser at its defaults (GFM on), reading only the blocks they all share. It
-  compares like with like.
+- _Common_: the same input workload for every parser, the documents cut to the blocks they all
+  read alike. It means the same work, not the same defaults: each parser's configuration is in the
+  table below.
 - _Dialect_: each parser configured as close to markz as its plugins get, reading the documents
   whole. markz reads constructs it cuts as text with a warning, and so still does work on them.
 
-| Parser        | Common                   | Dialect                                                                        |
-| ------------- | ------------------------ | ------------------------------------------------------------------------------ |
-| markz         | its dialect (no options) | the same                                                                       |
-| micromark     | GFM                      | tables, strikethrough, task lists, directives, frontmatter                     |
-| remark        | remark-gfm               | the same GFM parts as micromark, remark-frontmatter, remark-directive          |
-| markdown-it   | default preset           | task lists, frontmatter, `$` math (untypeset), `:::` containers                |
-| markdown-exit | default preset           | as markdown-it                                                                 |
-| marked        | GFM                      | the same: it has no plugins here                                               |
-| Comark        | no default plugins       | default plugins (frontmatter, raw HTML, …); components and attributes are core |
+The table is generated: each adapter in `parsers.ts` declares its configuration and what it reads,
+the run reports them, and `pnpm snapshot` writes them here.
+
+<!-- adapters -->
+
+| Parser        | Structured parse                   | Common: configuration                                     | Dialect: configuration                                                                                                                                      | Dialect: reads beyond CommonMark                                                       |
+| ------------- | ---------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| markz         | flat tree with offsets             | none: it has no options                                   | none: it has no options                                                                                                                                     | tables, strikethrough, task lists, directives, metadata, math, attributes, expressions |
+| micromark     | none                               | micromark-extension-gfm                                   | the GFM table, strikethrough and task-list extensions, directive (each as its element), frontmatter                                                         | tables, strikethrough, task lists, directives, frontmatter                             |
+| remark        | nested tree with positions (mdast) | remark-parse, remark-gfm, remark-rehype, rehype-stringify | remark-parse, the GFM table, strikethrough and task-list parts, remark-frontmatter, remark-directive (each as its element), remark-rehype, rehype-stringify | tables, strikethrough, task lists, directives, frontmatter                             |
+| markdown-it   | flat token stream                  | default preset                                            | default preset, front-matter, @mdit/plugin-tex (untypeset), container (any name), task-lists                                                                | tables, strikethrough, task lists, frontmatter, dollar math, ::: containers            |
+| markdown-exit | flat token stream                  | default preset                                            | default preset, front-matter, @mdit/plugin-tex (untypeset), container (any name), task-lists                                                                | tables, strikethrough, task lists, frontmatter, dollar math, ::: containers            |
+| marked        | nested token list                  | { gfm: true }: it has no plugins here                     | { gfm: true }: it has no plugins here                                                                                                                       | GFM                                                                                    |
+| comark        | nested array tree                  | { registerDefaultPlugins: false }                         | { registerDefaultPlugins: true }                                                                                                                            | GFM, components, attributes, frontmatter, raw HTML                                     |
+
+<!-- /adapters -->
 
 Some things can't be matched exactly. Math is on only where the plugin parses without
 typesetting: micromark's and Comark's run KaTeX, which is rendering, not parsing. Raw HTML and
@@ -80,24 +77,32 @@ parser's public parse without rendering, and the structures aren't equivalent:
 
 That difference is part of the result, not noise to explain away.
 
-**Warm and cold.** Throughput is warm: each command runs at `k` and `2k` passes, and the
-difference is divided by `k`, which cancels the ~40 ms Node takes to start. _Cold start_ is one
-whole process over the agent tier, next to a process that loads nothing: what a CLI or a build
-step pays.
+**Warm and cold.** Throughput is _warm_: each parser runs in a fresh process of its own, one
+after another, and each figure is the median of repeated passes after one unmeasured pass, which
+is what a server or a watch build pays per document. A slow parser on a large file gets one timed
+pass, after an earlier cell has warmed it, and shows no spread. _Cold start_ (deep) is a whole new
+process reading the agent tier once, timed by Hyperfine next to a process that loads nothing:
+what a CLI or a one-off build step pays.
 
 **Tiers.**
 
-- _Agent_ and _public_ are the headline, side by side: one is agent-written, the other written by
-  people.
+- _Agent_ and _public_ are the headline, side by side. _Agent_ is documents written by coding
+  agents in real repos (markz's and its consumers'); _public_ is documentation written by people.
 - _Spec_ is the CommonMark spec, for setting beside other parsers' published numbers.
-- _Scaling_ is the curve from 10 KB to 10 MB (to 1 MB in `pnpm bench`), parse + HTML in the
-  common mode.
+- _Scaling_ is the curve from 10 KB to 1 MB (10 MB in a deep run), parse + HTML in the common
+  mode. It is approximately linear when time per byte grows by less than 1.5× from 100 KB to the
+  largest size.
+- _Construct_ is one construct over and over, written from the grammar, markz beside
+  markdown-exit where the construct is CommonMark's or GFM's. It shows where the time goes, and
+  never feeds a headline.
 - _Pathological_ inputs are there to show scaling behaviour, not as a representative workload,
   and never feed a headline. A timeout or a crash there is a result.
 
-**Memory.** Memory is the retained heap per document: what holding a structured result keeps
-alive, whatever each parser chooses to keep. It is shown as bytes per source byte, beside the
-RSS delta. GC counts and times are diagnostics only.
+**Retained memory after parse.** What holding one structured result keeps alive, whatever each
+parser chooses to keep, on a 10 KB document: the heap after a full collection with twenty results
+held, less the heap before, as bytes per source byte. The RSS change is beside it, as a
+diagnostic.
 
-**Size.** Each parser's parse-to-HTML entry, with its dialect configuration, is minified and
-gzipped the way `scripts/size.ts` measures markz. Lazily loaded chunks count.
+**Size.** A table of its own: each parser's parse-to-HTML entry for each mode, what it imports and
+reads, minified, gzip and brotli, bundled the way `scripts/size.ts` measures markz. Lazily loaded
+chunks count. A size is cached until its entry or a package version changes.

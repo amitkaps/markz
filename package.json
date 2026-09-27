@@ -25,11 +25,11 @@
 		"prepublishOnly": "vp pack",
 		"size": "node scripts/size.ts",
 		"fuzz": "SEARCH=50 SEED=$RANDOM vp test --run test/constructs.test.ts test/robustness.test.ts",
-		"bench": "pnpm --filter markz-bench bench",
-		"bench:full": "pnpm --filter markz-bench bench:full",
-		"bench:update-results": "pnpm --filter markz-bench update-results",
-		"docs": "pnpm --filter markz-docs dev",
-		"docs:build": "pnpm --filter markz-docs build"
+		"bench": "node test/speed.ts",
+		"compare": "pnpm --filter markz-bench compare",
+		"snapshot": "pnpm --filter markz-bench snapshot",
+		"vendor": "node scripts/vendor.ts",
+		"docs": "pnpm --filter markz-docs dev"
 	},
 	"devDependencies": {
 		"@amitkaps/prose": "https://github.com/amitkaps/prose/releases/download/v0.1.0/amitkaps-prose-0.1.0.tgz",

@@ -25,6 +25,8 @@ live here, so one change to how an example is filed or judged reaches both at on
 - [`corpus.ts`](corpus.ts): the real documents in [`../documents/`](../documents/) by tier, and
   the variants built from them: common, formatted and repeated to a size. The benchmark builds
   its corpus from it too.
+- [`node.ts`](node.ts): lets a plain Node script load `src/` and the harness, which Vite
+  otherwise resolves.
 - [`adversarial.ts`](adversarial.ts): patterns that would make a careless parser quadratic, each
   growing in proportion to a count.
 
