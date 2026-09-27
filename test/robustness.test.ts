@@ -1,33 +1,37 @@
 /** @prose
- * # Fuzzing
+ * # Robustness
  *
- * Generated documents, held to what must always be true. Three sources feed the same properties:
- * noise drawn from Markdown's characters, known examples with a few random edits, and documents
- * written from the dialect's own grammar. Each must be sound (`fuzz/sound.ts`). Where the grammar
- * writes only CommonMark and GFM constructs, from plain letters, markz must also match the
- * oracle, unless it raised a Not supported warning: the side rules often turn a generated document
- * into a form the dialect cuts (a lazy line, `*` emphasis), which markz reads differently on
- * purpose and reports. The one rule that differs without a warning is that emphasis runs never
- * split, and a document that needs one is left out, as the spec examples that need one differ.
+ * Input no example chose, held to what must always be true of any document. Three generated
+ * sources feed the same properties: noise drawn from Markdown's characters, known examples with
+ * a few random edits, and documents written from the dialect's own grammar. Each must be sound
+ * (`harness/sound.ts`). Where the grammar writes only CommonMark and GFM constructs, from plain
+ * letters, markz must also match the oracle, unless it raised a Not supported warning: the side
+ * rules often turn a generated document into a form the dialect cuts (a lazy line, `*` emphasis),
+ * which markz reads differently on purpose and reports. The one rule that differs without a
+ * warning is that emphasis runs never split, and a document that needs one is left out, as the
+ * spec examples that need one differ.
  *
- * The seed is fixed, so `pnpm test` is deterministic and a red run can be replayed. `FUZZ_RUNS`
- * and `FUZZ_SEED` in the environment run longer or elsewhere, for a search rather than a check;
- * fast-check prints the seed and the shrunk counterexample of any failure.
+ * The upstream sweeps curation leaves off the Conformance page (`examples/upstream/stress/`) are
+ * held to the same floor: markz finishes in well under a second, doesn't throw, and builds a
+ * valid tree. A bare URL GFM would link, or a footnote it would read, must still be warned about,
+ * since that is the signal a reader relies on. Adversarial input is `complexity.test.ts`'s.
+ *
+ * The search is `harness/generate.ts`'s: a fixed seed, and `SEARCH` and `SEED` to go further.
  */
 import fc from 'fast-check';
 import { describe, expect, it } from 'vite-plus/test';
 import { html, parse } from '../src/index';
-import { examples } from './examples';
-import { grammarDocument, mutated, noise } from './fuzz/generate';
-import { expectSound } from './fuzz/sound';
-import { normalize, reference, tokens, type Token } from './oracle';
-import { row } from './syntax';
+import { examples, unwarned } from './harness/examples';
+import { readFences } from './harness/fences';
+import { grammarDocument, mutated, noise, search } from './harness/generate';
+import { normalize, reference, tokens, type Token } from './harness/oracle';
+import { expectSound } from './harness/sound';
+import { row } from './harness/syntax';
+import { expectTree } from './harness/tree';
 
-const runs = Number(process.env.FUZZ_RUNS ?? 300);
-const seed = Number(process.env.FUZZ_SEED ?? 20260927);
-const settings = { numRuns: runs, seed };
+const settings = (({ runs, seed }) => ({ numRuns: runs, seed }))(search(300));
 // A longer search needs longer than the default five seconds.
-const timeout = Math.max(5000, runs * 10);
+const timeout = Math.max(5000, settings.numRuns * 10);
 
 describe('sound', () => {
 	it('on noise', () => fc.assert(fc.property(noise, expectSound), settings), timeout);
@@ -118,3 +122,29 @@ const APART: [reason: string, test: (markdown: string, found: Token[]) => boolea
 		(markdown) => /^---[ \t]*\n/.test(markdown)
 	]
 ];
+
+const stress = Object.values(
+	import.meta.glob<string>(['./examples/upstream/stress/*.md', '!**/README.md'], {
+		query: '?raw',
+		import: 'default',
+		eager: true
+	})
+).map((text) => readFences(text));
+
+describe.each(stress.map((f) => [f.meta['source'], f.examples] as const))(
+	'stress %s',
+	(suite, list) => {
+		it.each(list.map((e) => [`${suite}:${e.number} ${e.section}`, e.markdown] as const))(
+			'%s',
+			(_, markdown) => {
+				const start = performance.now();
+				const doc = parse(markdown);
+				expect(performance.now() - start).toBeLessThan(500);
+				expectTree(doc);
+				// GitHub links more than micromark in places, so only a missed URL or footnote fails.
+				expect(unwarned('bare-url', markdown, doc, true)).toBe(null);
+				expect(unwarned('footnote', markdown, doc, true)).toBe(null);
+			}
+		);
+	}
+);

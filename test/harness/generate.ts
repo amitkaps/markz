@@ -15,8 +15,8 @@
  * becomes, it must be sound, and where it is CommonMark or GFM, it must match the oracle.
  */
 import fc from 'fast-check';
-import { type Expr } from '../ebnf';
-import { construct, PRODUCTIONS, type Origin } from '../grammar';
+import { type Expr } from './ebnf';
+import { construct, PRODUCTIONS, type Origin } from './grammar';
 
 export interface Options {
 	/**
@@ -147,4 +147,17 @@ export function mutated(documents: readonly string[]): fc.Arbitrary<string> {
 			}
 			return out;
 		});
+}
+
+/** @prose
+ * ## How far a search goes
+ *
+ * The fuzzer and the edge cases search from one fixed seed, so `pnpm test` is deterministic and a
+ * red run replays. `SEARCH` in the environment multiplies every search's runs, and `SEED` moves
+ * it elsewhere: `pnpm test:long` runs fifty times as far from a random seed. fast-check prints the
+ * seed of any failure.
+ */
+export function search(runs: number): { runs: number; seed: number } {
+	const times = Number(process.env['SEARCH'] ?? 1);
+	return { runs: Math.ceil(runs * times), seed: Number(process.env['SEED'] ?? 20260927) };
 }

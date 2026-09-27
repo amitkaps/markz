@@ -28,7 +28,7 @@ import { frontmatter, frontmatterHtml } from 'micromark-extension-frontmatter';
 import { math } from 'micromark-extension-math';
 import GithubSlugger from 'github-slugger';
 import YAML from 'yaml';
-import { custom } from '../src/elements';
+import { custom } from '../../src/elements';
 
 const LABEL: Record<string, string> = { details: 'summary', figure: 'figcaption' };
 

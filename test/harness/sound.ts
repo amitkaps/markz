@@ -12,7 +12,7 @@
 import { expect } from 'vite-plus/test';
 import { html, parse, position, textContent, walk } from '../../src/index';
 import { WARNINGS } from '../../src/warnings';
-import { expectTree } from '../tree';
+import { expectTree } from './tree';
 
 export function expectSound(markdown: string): void {
 	const doc = parse(markdown);

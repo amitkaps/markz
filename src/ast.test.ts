@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from 'vite-plus/test';
 import { Builder, NONE, T } from './ast';
-import { expectTree } from '../test/tree';
+import { expectTree } from '../test/harness/tree';
 
 // `# Hi\n\n> a _b_\n`, built the way the parser will build it.
 const source = '# Hi\n\n> a _b_\n';

@@ -2,7 +2,7 @@
  * # Vendoring an upstream suite
  *
  * Turns an upstream project's own tests into examples for `test/examples/upstream/`, in the fence
- * format `test/fences.ts` reads and writes, from a local clone at the
+ * format `test/harness/fences.ts` reads and writes, from a local clone at the
  * commit its README pins: a micromark extension's, the yaml-test-suite or github-slugger's (below). What markz is held to is the input: every example is compared with
  * markz's oracle, not with the HTML the suite expected, so a test that only configures the HTML
  * side (a directive handler, `allowDangerousHtml`) keeps its input. A test whose options change the
@@ -18,7 +18,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import ts from 'typescript';
 import YAML from 'yaml';
-import { writeFences } from '../test/fences.ts';
+import { writeFences } from '../test/harness/fences.ts';
 
 /** Each suite's title, its GitHub repo and the path its tests are in, and what checks them. */
 const SUITES: Record<string, [title: string, repo: string, path: string, checks: string]> = {

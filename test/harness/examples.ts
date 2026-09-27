@@ -18,7 +18,7 @@
  * - **expected:** markz's own example, which must give its HTML and warn over exactly its listed
  *   text, and nothing else.
  */
-import { html, parse, type Document, type NodeId, type Warning } from '../src/index';
+import { html, parse, type Document, type NodeId, type Warning } from '../../src/index';
 import {
 	collapse,
 	mathOracle,
@@ -30,20 +30,20 @@ import {
 	type MathSpan,
 	type Token
 } from './oracle';
-import commonmark from './examples/upstream/commonmark.md?raw';
-import directive from './examples/upstream/directive.md?raw';
-import frontmatter from './examples/upstream/frontmatter.md?raw';
-import math from './examples/upstream/math.md?raw';
-import slugger from './examples/upstream/slugger.md?raw';
-import yamlSuite from './examples/upstream/yaml.md?raw';
-import gfmFootnote from './examples/upstream/gfm-footnote.md?raw';
-import gfmAutolinkLiteral from './examples/upstream/gfm-autolink-literal.md?raw';
-import gfmStrikethrough from './examples/upstream/gfm-strikethrough.md?raw';
-import gfmTable from './examples/upstream/gfm-table.md?raw';
-import gfm from './examples/upstream/gfm.md?raw';
+import commonmark from '../examples/upstream/commonmark.md?raw';
+import directive from '../examples/upstream/directive.md?raw';
+import frontmatter from '../examples/upstream/frontmatter.md?raw';
+import math from '../examples/upstream/math.md?raw';
+import slugger from '../examples/upstream/slugger.md?raw';
+import yamlSuite from '../examples/upstream/yaml.md?raw';
+import gfmFootnote from '../examples/upstream/gfm-footnote.md?raw';
+import gfmAutolinkLiteral from '../examples/upstream/gfm-autolink-literal.md?raw';
+import gfmStrikethrough from '../examples/upstream/gfm-strikethrough.md?raw';
+import gfmTable from '../examples/upstream/gfm-table.md?raw';
+import gfm from '../examples/upstream/gfm.md?raw';
 import { readFences, type Fence } from './fences';
 import { part, row, type Part } from './syntax';
-import { element } from '../src/elements';
+import { element } from '../../src/elements';
 
 export type Upstream =
 	| 'commonmark'
@@ -383,7 +383,7 @@ function upstream(source: Upstream, text: string): Example[] {
 	return vendored.map((e) => upstreamExample(source, checks, e));
 }
 
-const own = import.meta.glob<string>(['./examples/markz/*.md', '!**/README.md'], {
+const own = import.meta.glob<string>(['../examples/markz/*.md', '!**/README.md'], {
 	query: '?raw',
 	import: 'default',
 	eager: true

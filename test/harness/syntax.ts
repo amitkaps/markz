@@ -7,8 +7,8 @@
  * here depends on wording: headings, leads and cells can be reworded as long as the ids, the codes
  * and the origin leads stay.
  */
-import syntax from '../prose/syntax.md?raw';
-import { type WarningCode } from '../src/index';
+import syntax from '../../prose/syntax.md?raw';
+import { type WarningCode } from '../../src/index';
 
 export type Part = 'Metadata' | 'Block' | 'Inline' | 'Not supported';
 

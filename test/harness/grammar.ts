@@ -14,8 +14,8 @@
  * a side rule here must say why (step 18). A misreading of the page by markz would show there as
  * a grammar that isn't well formed or doesn't match `syntax.md`.
  */
-import grammar from '../prose/grammar.md?raw';
-import { parse, textContent } from '../src/index';
+import grammar from '../../prose/grammar.md?raw';
+import { parse, textContent } from '../../src/index';
 import { productions, references, type Production } from './ebnf';
 import { origin, type Origin } from './syntax';
 

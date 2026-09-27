@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from 'vite-plus/test';
 import { html, parse, type Document, type NodeId, type NodeType } from './index';
-import { expectTree } from '../test/tree';
+import { expectTree } from '../test/harness/tree';
 
 /** The tree as `type "source"` lines, indented by depth. */
 function outline(doc: Document, node: NodeId = doc.root, depth = 0): string[] {

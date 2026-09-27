@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from 'vite-plus/test';
 import { html, parse, type Document, type NodeId, type NodeType } from './index';
-import { expectTree } from '../test/tree';
+import { expectTree } from '../test/harness/tree';
 
 function parsed(source: string): Document {
 	const doc = parse(source);

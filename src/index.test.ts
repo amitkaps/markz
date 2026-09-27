@@ -3,7 +3,7 @@
  */
 import { describe, expect, it } from 'vite-plus/test';
 import { html, parse } from './index';
-import { expectTree } from '../test/tree';
+import { expectTree } from '../test/harness/tree';
 
 describe('parse', () => {
 	it('returns a document rooted after any BOM', () => {

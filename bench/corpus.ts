@@ -37,7 +37,7 @@ import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSyn
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { parse, walk, type Document, type NodeId } from 'markz';
-import { PATTERNS } from '../test/fuzz/adversarial.ts';
+import { PATTERNS } from '../test/harness/adversarial.ts';
 
 export type Tier = 'agent' | 'public' | 'spec' | 'formatted' | 'scaling' | 'pathological';
 export type Profile = 'smoke' | 'fast' | 'full';

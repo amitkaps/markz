@@ -7,7 +7,7 @@
  * the parser tests check every parsed document with it from step 4 on.
  */
 import { expect } from 'vite-plus/test';
-import { NONE, type Document, type NodeId } from '../src/index';
+import { NONE, type Document, type NodeId } from '../../src/index';
 
 export function expectTree(doc: Document): void {
 	expect(doc.type(doc.root)).toBe('document');

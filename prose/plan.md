@@ -497,8 +497,8 @@ stays beside markz per construct. From the external review:
 - warm and cold are worded plainly, scaling as approximately linear, and _agent_ is defined as
   written by coding agents in real repos.
 
-Scripts: `pnpm test`, `pnpm test:long` (one `RUNS` and `SEED` for fuzz and cases, in place of
-`pnpm fuzz`), `pnpm bench` (markz alone), `pnpm bench:compare` and `bench:publish`, and `pnpm
+Scripts: `pnpm test`, `pnpm test:long` (one `SEARCH` multiplier and `SEED` for fuzz and cases,
+in place of `pnpm fuzz`), `pnpm bench` (markz alone), `pnpm bench:compare` and `bench:publish`, and `pnpm
 vendor`.
 
 One PR each, the moves first:
@@ -507,7 +507,9 @@ One PR each, the moves first:
 2. markz's own examples one file per construct, numbered once in today's order.
 3. The grammar in `prose/grammar.md`, with its page.
 4. The harness in `test/harness/`, the checks by construct, the categories on the Conformance
-   page.
+   page. Done: `oracle.test.ts` and the settling checks joined `dialect.test.ts`, the stress
+   sweeps `robustness.test.ts`, and each construct's generated edge counts come from the one
+   `edges()` the test and the page share.
 5. Documents and the corpus in `test/`, and `documents.test.ts`.
 6. `test/speed.ts`, `bench/` as the comparison alone, and the review's changes.
 

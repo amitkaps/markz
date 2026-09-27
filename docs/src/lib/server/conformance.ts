@@ -6,13 +6,20 @@
  * page is the test suite, browsable, and it can't disagree with the tests because it runs their
  * code.
  *
+ * Each construct's edges come from the same search `constructs.test.ts` runs, from the same seed:
+ * how many generated cases reached each edge, and why a construct has no ambiguous or unclosed
+ * example where it can't.
+ *
  * Server-only: it pulls in micromark and the vendored spec suites, which never reach the client.
  */
 import { parse } from 'markz';
-import { check, examples } from '../../../../test/examples';
-import { normalize } from '../../../../test/oracle';
-import { title } from '../../../../test/syntax';
-import type { Row } from '../site';
+import { EDGES, edges } from '../../../../test/harness/cases';
+import { check, examples } from '../../../../test/harness/examples';
+import { search } from '../../../../test/harness/generate';
+import { CONSTRUCTS } from '../../../../test/harness/grammar';
+import { normalize } from '../../../../test/harness/oracle';
+import { title } from '../../../../test/harness/syntax';
+import type { Edges, Row } from '../site';
 
 const ORACLE: Record<string, string> = {
 	markz: 'markz',
@@ -35,6 +42,8 @@ export function conformance(): Row[] {
 			title: title(e.section),
 			upstream: e.upstream,
 			kind: e.kind,
+			category: e.category,
+			rule: e.rule,
 			markdown: e.markdown,
 			status: r.status,
 			detail: r.detail,
@@ -50,4 +59,14 @@ export function conformance(): Row[] {
 			)
 		};
 	});
+}
+
+export function constructEdges(): Record<string, Edges> {
+	const { runs, seed } = search(8);
+	return Object.fromEntries(
+		CONSTRUCTS.map(({ id }) => {
+			const { unsettled, ...reached } = edges(id, runs, seed);
+			return [id, { ...reached, unsettled: unsettled.length, none: EDGES[id] ?? {} }];
+		})
+	);
 }
