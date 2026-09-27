@@ -260,7 +260,7 @@ construct whose meaning depends on text after it. What remains is openers (`[`, 
 - **Block attributes are one line**, so the block pass never looks ahead.
 
 **The grammar states the dialect, and the parser is its one reading.** [`syntax.md`](syntax.md)
-explains the dialect, and `test/grammar.ts` states it: each construct's productions in EBNF, plus
+explains the dialect, and [`grammar.md`](grammar.md) states it: each construct's productions in EBNF, plus
 the side rules EBNF can't state (container prefixes, fence lengths, flanking, which block a line
 opens first). The productions alone are ambiguous, as every Markdown grammar is, and the side
 rules settle each choice. The parser isn't generated from the grammar. It is written by hand and
@@ -425,7 +425,7 @@ used, and how its tree is built. The unified/remark ecosystem stays out of markz
 - **One set of examples, filed by the dialect:** every example, upstream or markz's own, is filed
   under a construct's id or a Not supported row's warning code, and every construct and row has
   examples. Where an example comes from is a label, not a category.
-- **The grammar:** `test/grammar.ts` is well formed (every name defined, every production
+- **The grammar:** [`grammar.md`](grammar.md), read by markz, is well formed (every name defined, every production
   reachable) and matches [`syntax.md`](syntax.md): the same construct ids in the same order, under
   the same parts, each opening with its origin.
 - **Every construct at its edges:** cases written from a construct's productions, and every

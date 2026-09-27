@@ -3,11 +3,13 @@
  *
  * The grammar is well formed (every name defined, every production reachable from `document`,
  * every name used once) and it is `syntax.md`'s: the same constructs in the same order, under the
- * same parts, each opening with its origin's lead.
+ * same parts, each opening with an origin's lead. The element names it lists are the ones markz
+ * writes, from `src/elements.ts`.
  */
 import { describe, expect, it } from 'vite-plus/test';
-import { references } from './ebnf';
-import { CONSTRUCTS, DOCUMENT, LEADS, PRODUCTIONS, reachable } from './grammar';
+import { BLOCK, INLINE } from '../src/elements';
+import { references, type Expr } from './ebnf';
+import { CONSTRUCTS, DOCUMENT, PRODUCTIONS, reachable } from './grammar';
 import { anchor, anchors } from './syntax';
 
 describe('productions', () => {
@@ -39,9 +41,19 @@ describe('syntax.md', () => {
 		expect(anchors.map((a) => a.id)).toEqual(CONSTRUCTS.map((c) => c.id));
 	});
 
-	it.each(CONSTRUCTS)('$id is under $part and opens with its origin', (c) => {
-		const a = anchor(c.id)!;
-		expect(a.part).toBe(c.part);
-		expect(a.lead.startsWith(`**${LEADS[c.origin]}`), a.lead).toBe(true);
+	it.each(CONSTRUCTS)('$id is under $part, from $origin', (c) => {
+		expect(anchor(c.id)!.part).toBe(c.part);
+		expect(c.origin).toBeTruthy();
+	});
+});
+
+describe('element names', () => {
+	const literals = (e: Expr): string[] =>
+		e.kind === 'alt' ? e.options.flatMap(literals) : e.kind === 'literal' ? [e.text] : [];
+	it.each([
+		['block-element', BLOCK],
+		['inline-element', INLINE]
+	] as const)('%s lists what src/elements.ts does', (name, names) => {
+		expect(literals(PRODUCTIONS.get(name)!.expr)).toEqual([...names]);
 	});
 });

@@ -11,6 +11,7 @@ describe('pages', () => {
 		expect(pages.map((p) => [p.slug, p.title])).toEqual([
 			['', 'markz'],
 			['syntax', 'Syntax'],
+			['grammar', 'Grammar'],
 			['design', 'Design'],
 			['plan', 'Plan']
 		]);

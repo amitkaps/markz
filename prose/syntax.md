@@ -636,8 +636,8 @@ One case needs care. For two adjacent lists, oxfmt keeps them apart by switching
 
 ## Grammar
 
-[`test/grammar.ts`](../test/grammar.ts) states the dialect as data. For each construct it holds
-the id, the part, the origin, the productions in EBNF, and the side rules EBNF can't state:
+[`grammar.md`](grammar.md) states the dialect. For each construct it holds the id, under the
+same part as here, the productions in EBNF, and the side rules EBNF can't state:
 container prefixes, fence lengths, emphasis flanking, which block a line opens first. A form cut
 above has no production. It is a Not supported row, keyed by its warning code.
 
@@ -645,8 +645,8 @@ The productions say what markz accepts, not how it reads it. On their own they a
 every Markdown grammar is, and the side rules settle each choice. The parser is written by hand
 as the one reading of both: a single pass, deterministic, with lookahead that is bounded or
 remembers where it failed ([spec](spec.md#parser-foundation)). The tests hold the grammar to this
-page, with the same constructs, parts and origins, and from plan step 16 the fuzzer generates
-documents from it.
+page, with the same constructs and parts, and take each construct's origin from its lead here.
+The fuzzer generates documents from it, and every construct is held to it at its edges.
 
 ## Pending decisions
 

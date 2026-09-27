@@ -11,7 +11,8 @@ Tests that span the package rather than one module.
   one format they are in. [`markz/`](examples/markz/) holds markz's own, one file per construct
   and one for the Not supported rows, numbered as `markz:17`, some labelled with the edge they
   try.
-- [`grammar.ts`](grammar.ts): the dialect's grammar, one entry per construct with its id, part,
+- [`grammar.ts`](grammar.ts): the dialect's grammar, read from
+  [`prose/grammar.md`](../prose/grammar.md) with markz: one entry per construct with its id, part,
   origin, EBNF productions and side rules; [`ebnf.ts`](ebnf.ts) reads the notation and recognizes
   a string by it.
 - [`cases.ts`](cases.ts) and [`cases.test.ts`](cases.test.ts): every construct at its edges.
