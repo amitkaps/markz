@@ -95,8 +95,9 @@
 		one. markz is for Markdown you control, in its dialect, and isn't a general-purpose replacement
 		for any of them. Each parser runs in a fresh process of its own, one after another. Throughput
 		is
-		<em>warm</em>: the median of repeated passes after one unmeasured pass, in a process that has
-		already loaded the parser, which is what a server or a watch build pays per document.
+		<em>warm</em>: the median of repeated passes, in a process that has already loaded the parser
+		and run it over its documents for a second, which is what a server or a watch build pays per
+		document.
 		<em>Cold</em> start is a whole new process, timed by
 		<a href="https://github.com/sharkdp/hyperfine">Hyperfine</a>, which is what a CLI pays.
 		<a href="{REPO}/blob/main/bench/README.md">How to read these numbers</a>.
@@ -146,8 +147,8 @@
 	<h2>Throughput</h2>
 	<p>
 		MB/s warm, higher is faster; the fastest in each row is bold. A <span class="noisy">?</span>
-		marks passes that spread over half their median. <em>Agent-written</em> docs are written by
-		coding agents in real repos; <em>public</em> docs by people.
+		marks a cell whose middle half of passes spread over half its median. <em>Agent-written</em>
+		docs are written by coding agents in real repos; <em>public</em> docs by people.
 	</p>
 	{#each MEASURES as [measure, label] (measure)}
 		{#each MODES as [mode, what] (mode)}

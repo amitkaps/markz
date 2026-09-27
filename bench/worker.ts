@@ -5,13 +5,18 @@
  * and runs every cell of the job in that fresh process, then reports on stdout. The runner starts
  * one per parser and mode, in turn, so no parser's heap or JIT state colours another's numbers.
  *
+ * First the process warms up: it runs every measure over the job's documents, one document at a
+ * time, until the job's warm-up time is spent, so the engine has optimized the parser's code
+ * before anything is timed. Without it the first cells time code still being compiled, and a
+ * parser with larger functions, which the engine optimizes later, looks slower than it is.
+ *
  * A cell is one measure over some files (a directory stands for its Markdown files). It runs one
- * warm pass, then passes until its time budget is spent, at least two, and reports the median
- * pass and how widely the passes spread around it. A slow parser on a large file would otherwise
- * take most of the run, so where an earlier cell of the same measure has warmed the process and
- * says one pass will outlast the budget, the cell skips its warm pass and times one, with no
- * spread to report. A warm pass is what a server or a watch build
- * pays for each document once it is running.
+ * warm pass of its own, then passes until its time budget is spent, at least `LEAST`, and reports
+ * the median pass and the spread of the middle half of the passes around it, so one pass slowed
+ * by a collection doesn't mark the cell noisy. A slow parser on a large file would otherwise take
+ * most of the run, so where an earlier cell of the same measure says one pass will outlast the
+ * budget, the cell skips its warm pass and times one, with no spread to report. A warm pass is
+ * what a server or a watch build pays for each document once it is running.
  *
  * The job may also ask for **retained memory after parse**: what holding a structured result keeps
  * alive. The one source string is parsed `HELD` times and every result held; the heap after a full
@@ -35,6 +40,8 @@ export interface Cell {
 
 export interface Job {
 	cells: Cell[];
+	/** How long to run the parser over the job's documents before timing anything. */
+	warmMs: number;
 	/** The file to measure retained memory on, when the parser has a structured parse. */
 	memory?: string;
 }
@@ -43,7 +50,7 @@ export interface CellResult {
 	key: string;
 	/** The median pass, or `null` when the parser threw; `error` says what. */
 	ms: number | null;
-	/** The passes' spread, as a fraction of the median; `null` after one pass. */
+	/** The middle half of the passes' spread, as a fraction of the median; `null` after one pass. */
 	noise: number | null;
 	passes: number;
 	error?: string;
@@ -56,6 +63,8 @@ export interface MemoryResult {
 }
 
 const HELD = 20;
+/** The fewest timed passes a cell runs, unless one pass would outlast its budget. */
+const LEAST = 5;
 
 const read = (files: string[]) =>
 	files
@@ -90,6 +99,7 @@ if (rest[0] === '--once') {
 	process.stdout.write(`${JSON.stringify({ ms, kept: kept !== undefined })}\n`);
 } else {
 	const job = JSON.parse(readFileSync(rest[0]!, 'utf8')) as Job;
+	await warm(job);
 	const cells: CellResult[] = [];
 	/** Milliseconds per byte, by measure, from the last cell that ran it. */
 	const rate = new Map<Measure, number>();
@@ -102,7 +112,7 @@ if (rest[0] === '--once') {
 		try {
 			const slow = predicted >= cell.budgetMs;
 			if (!slow) await pass(run, sources);
-			const least = slow ? 1 : 2;
+			const least = slow ? 1 : LEAST;
 			const passes: number[] = [];
 			for (let spent = 0; spent < cell.budgetMs || passes.length < least;) {
 				const ms = await pass(run, sources);
@@ -112,7 +122,9 @@ if (rest[0] === '--once') {
 			passes.sort((a, b) => a - b);
 			const median = passes[passes.length >> 1]!;
 			rate.set(cell.measure, median / bytes);
-			const noise = passes.length > 1 ? (passes.at(-1)! - passes[0]!) / median : null;
+			const q = passes.length >> 2;
+			const noise =
+				passes.length > 1 ? (passes[passes.length - 1 - q]! - passes[q]!) / median : null;
 			cells.push({ key: cell.key, ms: median, noise, passes: passes.length });
 		} catch (error) {
 			const message = String(error).split('\n')[0]!.slice(0, 200);
@@ -122,6 +134,22 @@ if (rest[0] === '--once') {
 	let memory: MemoryResult | undefined;
 	if (job.memory && parser.structured) memory = await retained(parser.structured, job.memory);
 	process.stdout.write(`${JSON.stringify({ cells, memory })}\n`);
+}
+
+/** Every measure the job times, over its documents one at a time, until `warmMs` is spent. */
+async function warm(job: Job): Promise<void> {
+	const runs = [...new Set(job.cells.map((c) => c.measure))].flatMap((m) => runner(m) ?? []);
+	// Smallest first, so a slow parser warms on many documents before it reaches a large one.
+	const sources = read([...new Set(job.cells.flatMap((c) => c.files))]).sort(
+		(a, b) => a.length - b.length
+	);
+	const start = performance.now();
+	while (sources.length && runs.length) {
+		for (const source of sources) {
+			for (const run of runs) await pass(run, [source]);
+			if (performance.now() - start >= job.warmMs) return;
+		}
+	}
 }
 
 async function retained(parse: (s: string) => unknown, file: string): Promise<MemoryResult> {

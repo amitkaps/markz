@@ -10,7 +10,7 @@ measures this commit's build of markz. markz alone, while you work, is `pnpm ben
 ([`test/speed.ts`](../test/speed.ts)), in about two seconds.
 
 ```sh
-pnpm compare          # every parser, each in a fresh process: about half a minute
+pnpm compare          # every parser, each in a fresh process: under a minute
 mise install          # Hyperfine, pinned in mise.toml, for the deep run
 pnpm compare --deep   # adds 10 MB, the formatted tier, pathological input and cold start
 pnpm snapshot         # copy the latest results to the site, and this README's adapters table
@@ -78,7 +78,8 @@ parser's public parse without rendering, and the structures aren't equivalent:
 That difference is part of the result, not noise to explain away.
 
 **Warm and cold.** Throughput is _warm_: each parser runs in a fresh process of its own, one
-after another, and each figure is the median of repeated passes after one unmeasured pass, which
+after another, warms up on its documents for a second before anything is timed, and each figure
+is the median of at least five passes after one unmeasured pass, which
 is what a server or a watch build pays per document. A slow parser on a large file gets one timed
 pass, after an earlier cell has warmed it, and shows no spread. _Cold start_ (deep) is a whole new
 process reading the agent tier once, timed by Hyperfine next to a process that loads nothing:
