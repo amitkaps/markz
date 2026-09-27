@@ -363,6 +363,24 @@ word{.x}
 {.x}
 ```
 
+## math-delimiter
+
+```example
+The energy is $$E = mc^2$$ here.
+.
+<p>The energy is $$E = mc^2$$ here.</p>
+.
+$$E = mc^2$$
+```
+
+```example
+the $`x^2`$ form
+.
+<p>the $`x^2`$ form</p>
+.
+$`x^2`$
+```
+
 ## jsx
 
 ```example

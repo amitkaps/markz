@@ -171,6 +171,15 @@ $$
 </code></pre>
 ```
 
+```example
+Mass and energy:
+$$E=mc^2$$
+.
+<p>Mass and energy:</p>
+<pre><code class="language-math math-display">E=mc^2
+</code></pre>
+```
+
 ## table
 
 ```example

@@ -38,6 +38,7 @@ export const WARNINGS = {
 	'underscore-strong': ['`__strong__`', '`**strong**`'],
 	'star-emphasis': ['`*emphasis*`', '`_emphasis_`'],
 	'single-tilde': ['`~single~` strikethrough', '`~~text~~`'],
+	'math-delimiter': ['math delimiters other than `$…$` in a line', '`$x$`, or a `$$` block'],
 	'inline-attributes': ['attributes after inline text', '`:span[text]{.x}`'],
 	jsx: ['JSX', 'directives, `${…}`'],
 	// A construct's own.
