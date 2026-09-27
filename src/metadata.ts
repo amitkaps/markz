@@ -19,20 +19,31 @@ export function parseMetadata(
 	b: Pick<Builder, 'warn'>
 ): Record<string, MetadataValue> {
 	const value: Record<string, MetadataValue> = {};
-	// The key the previous line set, so an indented line after it can skip it.
+	// The key the previous line set, so a line that continues its value can skip it.
 	let last: string | null = null;
+	// Brackets a rejected line left open (`{`, `a: [1,`): the lines until they close are inside it.
+	let open = 0;
 	for (let at = start; at < end;) {
 		let lineEnd = at;
 		while (lineEnd < end && source[lineEnd] !== '\n' && source[lineEnd] !== '\r') lineEnd++;
 		const line = source.slice(at, lineEnd);
-		const fail = (code: WarningCode, message?: string) => b.warn(code, at, lineEnd, message);
+		const fail = (code: WarningCode, message?: string) => {
+			b.warn(code, at, lineEnd, message);
+			open = Math.max(0, open + brackets(line));
+		};
 
-		if (/^[ \t]/.test(line) && line.trim() !== '') {
+		if (line.trim() === '') {
+			// A blank line keeps the key: YAML allows one before a value's next line.
+		} else if (open > 0) {
+			fail('metadata-line');
+		} else if (/^[ \t]/.test(line)) {
 			fail('metadata-indented');
 			if (last !== null) delete value[last];
 			last = null;
-		} else if (line.trim() !== '' && line[0] !== '#') {
+		} else if (line[0] !== '#') {
 			const match = /^([A-Za-z_][\w-]*):(?:[ \t]+|$)/.exec(line);
+			// Not a key line: part of the value before it (`one:` over `- 2`), or an error.
+			if (!match && last !== null) delete value[last];
 			last = null;
 			if (!match) fail('metadata-line');
 			else if (Object.hasOwn(value, match[1]!)) {
@@ -55,6 +66,13 @@ export function parseMetadata(
 		if (source[at] === '\n') at++;
 	}
 	return value;
+}
+
+/** How many more `{` and `[` than `}` and `]` a line has. */
+function brackets(line: string): number {
+	let n = 0;
+	for (const c of line) n += c === '{' || c === '[' ? 1 : c === '}' || c === ']' ? -1 : 0;
+	return n;
 }
 
 /** A value, or a `!message` string when it is rejected. */

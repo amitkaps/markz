@@ -68,14 +68,15 @@ describe('metadata', () => {
 		expect(source.slice(range.start, range.end)).toBe('a: 1');
 	});
 
-	it('is not metadata when a line between the rules is not metadata', () => {
-		const doc = parse('---\n\n## foo\n\n---\n');
-		expect(doc.metadata).toBeUndefined();
-		expect([...doc.children(doc.root)].map((n) => doc.type(n))).toEqual([
-			'thematicBreak',
-			'heading',
-			'thematicBreak'
-		]);
+	it('is metadata whatever it holds, and reports the lines it cannot read', () => {
+		const doc = parse('---\nhello\ntitle: x\n---\n');
+		expect(doc.metadata).toEqual({ title: 'x' });
+		expect(doc.warnings.map((w) => w.code)).toEqual(['metadata-line']);
+	});
+
+	it('skips a key whose value continues on later lines', () => {
+		const doc = parse('---\none:\n- 2\nb: {\nc: 1\n}\nd: 4\n---\n');
+		expect(doc.metadata).toEqual({ d: 4 });
 	});
 
 	it('is only metadata at the very start, and only when closed', () => {

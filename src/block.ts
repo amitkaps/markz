@@ -118,12 +118,13 @@ class BlockParser {
 	/** @prose
 	 * ## Metadata
 	 *
-	 * A `---` line at the very start opens a metadata block, and the next `---` line closes it. The
-	 * closing line is found by one forward scan, and every line between must look like metadata
-	 * (`key:`, a comment, an indented line or a blank one), with at least one key. Otherwise the first line is an ordinary
-	 * thematic break and the document is read from there, so a page that opens with a rule never
-	 * loses its content to a metadata block. A closed `+++` block is TOML, which stays text and is
-	 * reported.
+	 * A `---` line at the very start opens a metadata block, and the next `---` line closes it, as
+	 * micromark-extension-frontmatter and GitHub read it: opening a document with `---` asks for
+	 * metadata. The closing line is found by one forward scan. Whatever is between is metadata, and
+	 * a line the rule can't read is a warning, not a reason to read the block as Markdown. With no
+	 * closing line the first line is an ordinary thematic break, reported when the next line is a
+	 * `key:` line, since that is a block missing its end. A closed `+++` block is TOML, which stays
+	 * text and is reported.
 	 */
 	metadata(start: number): number {
 		const { src } = this;
@@ -139,15 +140,16 @@ class BlockParser {
 		const close = /^---[ \t]*$/gm;
 		close.lastIndex = bodyStart;
 		const match = close.exec(src);
-		if (!match) return start;
+		if (!match) {
+			if (KEY.test(src.slice(bodyStart, bodyStart + 64))) {
+				this.report('metadata-unclosed', start, bodyStart - (src[bodyStart - 2] === '\r' ? 2 : 1));
+			}
+			return start;
+		}
 		const end = match.index + match[0].length;
 		let bodyEnd = match.index;
 		if (bodyEnd > bodyStart)
 			bodyEnd -= src[bodyEnd - 2] === '\r' && src[bodyEnd - 1] === '\n' ? 2 : 1;
-		// Every line must look like metadata, and one must be a key: `# Title` alone is a heading.
-		const lines = src.slice(bodyStart, bodyEnd).split(/\r\n|\r|\n/);
-		const key = (l: string) => /^[A-Za-z_][\w-]*:(?:[ \t]|$)/.test(l);
-		if (!lines.some(key) || !lines.every((l) => key(l) || /^(?:$|#|[ \t])/.test(l))) return start;
 		const value = parseMetadata(src, bodyStart, bodyEnd, this.b);
 		this.b.leaf('metadata', start, end, { value, range: { start: bodyStart, end: bodyEnd } });
 		this.top.children++;
@@ -950,6 +952,9 @@ function trailing(src: string, at: number, end: number): boolean {
 	const attributes = parseAttributes(src, at, end);
 	return attributes?.end === end && !bareOnly(src, attributes);
 }
+
+/** A metadata key line, as `parseMetadata` reads one. */
+const KEY = /^[A-Za-z_][\w-]*:(?:[ \t\r\n]|$)/;
 
 /** @prose
  * ## Table rows

@@ -16,13 +16,15 @@ against it where it has any.
   [micromark-extension-gfm-strikethrough](https://github.com/micromark/micromark-extension-gfm-strikethrough/tree/895451f924c543c6a528e80b7340236e164eb384/test)
   (commit `895451f`), and `directive.json`, from
   [micromark-extension-directive](https://github.com/micromark/micromark-extension-directive/blob/75da8c52a3f40de6485ac1928fdcdefd7ea0c3fb/test/index.js)
-  (commit `75da8c5`), written by [`scripts/vendor.ts`](../../scripts/vendor.ts). Each fixture
+  (commit `75da8c5`), and `frontmatter.json`, from
+  [micromark-extension-frontmatter](https://github.com/micromark/micromark-extension-frontmatter/blob/f05bf24461d31041f37f4562fd48877af4dcc67b/test/index.js)
+  (commit `f05bf24`), written by [`scripts/vendor.ts`](../../scripts/vendor.ts). Each fixture
   section is an example, with GitHub's HTML for it, and each `micromark(input, …)` in
   `test/index.js` with a literal input is one, numbered in that order, under its `test()` group
   and title. The expected HTML is kept only where the options are written out in place: the
   directive suite's `options(…)` helper installs handlers, so its examples have none, and the
   oracle isn't checked against them. Left out: tests of an
-  option that changes the syntax (`disable.null`, `singleTilde`), the fixture loops, whose input
+  option that changes the syntax (`disable.null`, `singleTilde`, a TOML or custom matter), the fixture loops, whose input
   isn't a literal, repeated inputs, and the 80,000-line `large.offline.md`, which belongs with step 15's stress tests.
 - `yaml.json`: the [yaml-test-suite](https://github.com/yaml/yaml-test-suite/tree/da267a5c4782e7361e82889e76c0dc7df0e1e870/src)
   (commit `da267a5`), also by `vendor.ts`. Each test, and each variant, is its YAML between `---`
