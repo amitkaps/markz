@@ -401,10 +401,12 @@ about 6 KB, judging by micromark's HTML compiler. The dialect also drops named e
 build carries the roughly 12 KB entity table, and one budget covers Node, Workers and the
 browser.
 
-**Benchmarks** (`bench/`, a private workspace package) compare markz with micromark, remark,
-markdown-it, markdown-exit, marked and Comark on throughput, cold start, retained memory,
-pathological input and bundle size. remark is there because it is how micromark is usually
-used, and how its tree is built. The unified/remark ecosystem stays out of markz itself.
+**Benchmarks** (`bench/`, a private workspace package) compare markz with three parsers it learns
+from, on throughput, cold start, retained memory, pathological input and bundle size:
+markdown-exit, the fastest; marked, the smallest; and micromark, the spec-exact one, which is also
+the tests' oracle. markz isn't a general-purpose replacement for them, so the comparison is for
+learning where its time and bytes go, not for winning a table. markdown-it, remark and Comark
+were measured and left out, each with its reason in `bench/README.md`.
 
 - `pnpm compare` runs each parser in a fresh process of its own, one after another, each cell on
   a time budget, in about half a minute: the document tiers, scaling to 1 MB checked for a

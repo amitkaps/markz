@@ -4,9 +4,8 @@
  * What each parser costs a page that renders Markdown to HTML with it, bundled, minified and
  * compressed exactly as `scripts/size.ts` measures markz. Every entry does the same job, parse to
  * HTML with the benchmark's configuration for its mode, so the table compares entry points that
- * do the same work, not packages. A parser that loads code lazily
- * (Comark's plugins) is counted with every chunk it can load, since a page pays for them once it
- * uses them.
+ * do the same work, not packages. A parser that loads code lazily is counted with every chunk it
+ * can load, since a page pays for them once it uses them.
  *
  * This is a comparison, not the budget: markz's 20 KB gate stays in `scripts/size.ts`.
  *
@@ -72,55 +71,12 @@ export default (s) => micromark(s, {
 	htmlExtensions: [gfmTableHtml(), gfmStrikethroughHtml(), gfmTaskListItemHtml(), directiveHtml(${DIRECTIVE}), frontmatterHtml(), ${MATH_HTML}]
 });`
 	},
-	remark: {
-		common: `import { unified } from 'unified';
-import remarkParse from 'remark-parse';
-import remarkGfm from 'remark-gfm';
-import remarkRehype from 'remark-rehype';
-import rehypeStringify from 'rehype-stringify';
-const processor = unified().use(remarkParse).use(remarkGfm).use(remarkRehype).use(rehypeStringify);
-export default (s) => String(processor.processSync(s));`,
-		dialect: `import { unified } from 'unified';
-import remarkParse from 'remark-parse';
-import remarkFrontmatter from 'remark-frontmatter';
-import remarkDirective from 'remark-directive';
-import remarkMath from 'remark-math';
-import remarkRehype from 'remark-rehype';
-import rehypeStringify from 'rehype-stringify';
-import { gfmTable } from 'micromark-extension-gfm-table';
-import { gfmStrikethrough } from 'micromark-extension-gfm-strikethrough';
-import { gfmTaskListItem } from 'micromark-extension-gfm-task-list-item';
-import { gfmTableFromMarkdown } from 'mdast-util-gfm-table';
-import { gfmStrikethroughFromMarkdown } from 'mdast-util-gfm-strikethrough';
-import { gfmTaskListItemFromMarkdown } from 'mdast-util-gfm-task-list-item';
-function gfmParts() {
-	const data = this.data();
-	(data.micromarkExtensions ??= []).push(gfmTable(), gfmStrikethrough(), gfmTaskListItem());
-	(data.fromMarkdownExtensions ??= []).push(gfmTableFromMarkdown(), gfmStrikethroughFromMarkdown(), gfmTaskListItemFromMarkdown());
-}
-function elements() {
-	return (tree) => {
-		const stack = [tree];
-		for (let node = stack.pop(); node; node = stack.pop()) {
-			if (node.type.endsWith('Directive')) node.data = { ...node.data, hName: node.name };
-			if (node.children) stack.push(...node.children);
-		}
-	};
-}
-const processor = unified().use(remarkParse).use(gfmParts).use(remarkFrontmatter).use(remarkDirective).use(remarkMath).use(elements).use(remarkRehype).use(rehypeStringify);
-export default (s) => String(processor.processSync(s));`
-	},
-	'markdown-it': itEntry(`import MarkdownIt from 'markdown-it';\nconst md = new MarkdownIt();`),
 	'markdown-exit': itEntry(
 		`import { MarkdownExit } from 'markdown-exit';\nconst md = new MarkdownExit();`
 	),
 	marked: {
 		common: `import { Marked } from 'marked';\nconst marked = new Marked({ gfm: true });\nexport default (s) => marked.parse(s);`,
 		dialect: `import { Marked } from 'marked';\nimport { createDirectives } from 'marked-directive';\nconst marked = new Marked({ gfm: true });\nmarked.use(createDirectives());\nexport default (s) => marked.parse(s);`
-	},
-	comark: {
-		common: `import { createHtmlRenderer } from '@comark/html';\nexport default createHtmlRenderer({ registerDefaultPlugins: false });`,
-		dialect: `import { createHtmlRenderer } from '@comark/html';\nexport default createHtmlRenderer({ registerDefaultPlugins: true });`
 	}
 };
 

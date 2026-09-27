@@ -1,8 +1,11 @@
 # bench
 
 The published comparison: how fast markz is, how much memory it keeps and how large it is, next
-to micromark, remark, markdown-it, markdown-exit, marked and Comark. This is a private workspace
-package, like `docs/`: the competitors are its dependencies and never reach the library. It
+to three parsers it learns from. markdown-exit is the fastest, marked the smallest, and micromark
+the spec-exact one, which is also the tests' oracle. markz isn't a general-purpose replacement
+for any of them: it is for Markdown you control, in its dialect, and it drops most of the spec to
+be that. This is a private workspace package, like `docs/`: the other parsers are its
+dependencies and never reach the library. It
 measures this commit's build of markz. markz alone, while you work, is `pnpm bench`
 ([`test/speed.ts`](../test/speed.ts)), in about two seconds.
 
@@ -49,38 +52,28 @@ the run reports them, and `pnpm snapshot` writes them here.
 
 <!-- adapters -->
 
-| Parser        | Structured parse                   | Common: configuration                                     | Dialect: configuration                                                                                                                                                               | Dialect: reads beyond CommonMark                                                       |
-| ------------- | ---------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
-| markz         | flat tree with offsets             | none: it has no options                                   | none: it has no options                                                                                                                                                              | tables, strikethrough, task lists, directives, metadata, math, attributes, expressions |
-| micromark     | none                               | micromark-extension-gfm                                   | the GFM table, strikethrough and task-list extensions, directive (each as its element), frontmatter, math (untypeset)                                                                | tables, strikethrough, task lists, directives, frontmatter, math                       |
-| remark        | nested tree with positions (mdast) | remark-parse, remark-gfm, remark-rehype, rehype-stringify | remark-parse, the GFM table, strikethrough and task-list parts, remark-frontmatter, remark-directive (each as its element), remark-math (untypeset), remark-rehype, rehype-stringify | tables, strikethrough, task lists, directives, frontmatter, math                       |
-| markdown-it   | flat token stream                  | default preset                                            | default preset, front-matter, @mdit/plugin-tex (untypeset), container (any name), task-lists                                                                                         | tables, strikethrough, task lists, frontmatter, dollar math, ::: containers            |
-| markdown-exit | flat token stream                  | default preset                                            | default preset, front-matter, @mdit/plugin-tex (untypeset), container (any name), task-lists                                                                                         | tables, strikethrough, task lists, frontmatter, dollar math, ::: containers            |
-| marked        | nested token list                  | { gfm: true }                                             | { gfm: true }, marked-directive                                                                                                                                                      | GFM, directives                                                                        |
-| comark        | nested array tree                  | { registerDefaultPlugins: false }                         | { registerDefaultPlugins: true }                                                                                                                                                     | GFM, components, attributes, frontmatter, raw HTML                                     |
+| Parser        | Structured parse       | Common: configuration   | Dialect: configuration                                                                                                | Dialect: reads beyond CommonMark                                                       |
+| ------------- | ---------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| markz         | flat tree with offsets | none: it has no options | none: it has no options                                                                                               | tables, strikethrough, task lists, directives, metadata, math, attributes, expressions |
+| micromark     | none                   | micromark-extension-gfm | the GFM table, strikethrough and task-list extensions, directive (each as its element), frontmatter, math (untypeset) | tables, strikethrough, task lists, directives, frontmatter, math                       |
+| markdown-exit | flat token stream      | default preset          | default preset, front-matter, @mdit/plugin-tex (untypeset), container (any name), task-lists                          | tables, strikethrough, task lists, frontmatter, dollar math, ::: containers            |
+| marked        | nested token list      | { gfm: true }           | { gfm: true }, marked-directive                                                                                       | GFM, directives                                                                        |
 
 <!-- /adapters -->
 
 Some things can't be matched exactly. Math is on wherever it can be read without typesetting,
 which is rendering, not parsing: micromark (its syntax, with a handler that writes the TeX as
-text), remark-math, and markdown-it's and markdown-exit's tex plugin. marked's math extension and
-Comark's math plugin both run KaTeX, so theirs is off, and marked's KaTeX import would land in
-its bundle even unused. No marked extension reads frontmatter without rendering it. Raw HTML and
-reference links, which markz cuts, can't be turned off in most of the others.
-
-Comark's bundle is large for what its core imports whatever the plugins: js-yaml, the full HTML
-entity tables and htmlparser2, beside its own copy of markdown-exit. No framework renderer is in
-it; those are separate packages.
+text) and markdown-exit's tex plugin. marked's math extension runs KaTeX, so its is off, and its
+KaTeX import would land in the bundle even unused. No marked extension reads frontmatter without
+rendering it. Raw HTML and reference links, which markz cuts, can't be turned off in the others.
 
 **Two measures.** _Parse + HTML_ is the same job for all of them. _Structured parse_ is each
 parser's public parse without rendering, and the structures aren't equivalent:
 
 - markz: a flat tree with offsets;
-- remark: mdast, a nested tree with positions;
-- markdown-it and markdown-exit: a flat token stream;
+- markdown-exit: a flat token stream;
 - marked: a nested token list;
-- Comark: a nested array tree;
-- micromark alone has none; remark is its tree.
+- micromark: none in public.
 
 That difference is part of the result, not noise to explain away.
 
@@ -113,3 +106,19 @@ diagnostic.
 **Size.** A table of its own: each parser's parse-to-HTML entry for each mode, what it imports and
 reads, minified, gzip and brotli, bundled the way `scripts/size.ts` measures markz. Lazily loaded
 chunks count. A size is cached until its entry or a package version changes.
+
+## Parsers studied and left out
+
+Each was measured beside markz and dropped because the three above already teach what it would.
+The figures are from `pnpm compare` at `d95d505` (2026-09-27, the laptop the plan's numbers come
+from), common mode, public docs: markz read them at 5.6 MB/s parse + HTML, 17.1 KB gzip, and kept
+6.9 bytes per source byte.
+
+- **markdown-it** (7.9 MB/s, 39.6 KB gzip, 17.5 bytes kept): markdown-exit's ancestor, about half
+  its speed. Anything it shows, markdown-exit shows faster.
+- **remark** (0.6 MB/s, 46.0 KB gzip, 14.5 bytes kept): micromark with a full mdast tree built on
+  top. Its time is the pipeline's cost, not parsing's, and it stays out of markz itself.
+- **Comark** (3.8 MB/s, 105.4 KB gzip, 10.5 bytes kept): markdown-exit underneath, and its core
+  imports js-yaml, the full HTML entity tables and htmlparser2 whatever the plugins; no framework
+  renderer is in its bundle. Its compact array tree is where markz's flat tree started
+  (`prose/spec.md`). It threw on the CommonMark spec in its dialect configuration.
