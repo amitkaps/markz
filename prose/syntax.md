@@ -521,11 +521,15 @@ and a bare `{…}`.
 
 ### Metadata forms
 
+{.cuts}
+
 | Code            | Syntax                | Write instead          | Why         |
 | --------------- | --------------------- | ---------------------- | ----------- |
 | `toml-metadata` | TOML metadata (`+++`) | a `---` metadata block | One format. |
 
 ### Block forms
+
+{.cuts}
 
 | Code                          | Syntax                                                                                       | Write instead                                             | Why                                                                                                                                       |
 | ----------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
@@ -539,6 +543,8 @@ and a bare `{…}`.
 | `lazy-line`                   | Lazy continuation lines (a quoted or listed paragraph continuing without `>` or indentation) | `>` on every line, or indent to the item's content column | Lazy lines are the main reason CommonMark's block structure depends on context. Formatters already write them out in full.                |
 
 ### Inline forms
+
+{.cuts}
 
 | Code                | Syntax                                                                                      | Write instead                                                     | Why                                                                                                                                                                         |
 | ------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

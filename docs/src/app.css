@@ -130,6 +130,28 @@
 		background: var(--surface-hover);
 	}
 
+	/* syntax.md's Not supported tables, one per part, with the same columns at the same widths. */
+	table.cuts {
+		display: table;
+		table-layout: fixed;
+	}
+
+	table.cuts :is(th, td) {
+		overflow-wrap: anywhere;
+	}
+
+	table.cuts th:nth-child(1) {
+		width: 20%;
+	}
+
+	table.cuts th:nth-child(2) {
+		width: 27%;
+	}
+
+	table.cuts th:nth-child(3) {
+		width: 21%;
+	}
+
 	:focus-visible {
 		outline: 2px solid var(--accent);
 		outline-offset: 2px;
