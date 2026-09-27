@@ -98,6 +98,8 @@ class InlinePass {
 	/** Backtick run lengths with no closing run left in the text. */
 	readonly noCode = new Set<number>();
 	noMath = false;
+	/** Runs of dollars that found no closing run of the same length. */
+	readonly noDollars = new Set<number>();
 	/** Openers waiting for a closer, by kind, and link brackets. */
 	stacks: Record<string, Item[]> = {};
 	brackets: Item[] = [];
@@ -337,7 +339,23 @@ class InlinePass {
 	math(list: List, t: number, to: number): number {
 		const { text } = this;
 		const next = text[t + 1];
-		if (!this.noMath && !isSpace(next) && next !== '$') {
+		let n = 1;
+		while (text[t + n] === '$') n++;
+		// Math is `$x$` in a line and a `$$` block on lines of its own. `$$x$$` in a line and
+		// GitHub's `` $`x`$ `` are math elsewhere; here they stay text and are reported, and a run of
+		// dollars never opens `$x$`, so `$$x$` doesn't lose a dollar silently.
+		const other =
+			n > 1 ? this.dollars(t, n, to) : next === '`' ? text.indexOf('`$', t + 2) + 2 : -1;
+		if (other > t + n && other <= to) {
+			this.report('math-delimiter', t, other);
+			this.plain(list, t, other);
+			return other;
+		}
+		if (n > 1) {
+			this.plain(list, t, t + n);
+			return t + n;
+		}
+		if (!this.noMath && !isSpace(next)) {
 			// The first unescaped `$` closes the math or ends the attempt: TeX here holds no `$`.
 			let j = t + 2;
 			while (j < to && text[j] !== '$') j += text[j] === '\\' ? 2 : 1;
@@ -352,6 +370,22 @@ class InlinePass {
 		}
 		this.plain(list, t, t + 1);
 		return t + 1;
+	}
+
+	/** Where a run of `n` dollars closes on a run of the same length, or -1. */
+	dollars(t: number, n: number, to: number): number {
+		const { text } = this;
+		if (this.noDollars.has(n)) return -1;
+		for (let j = t + n; j < to;) {
+			const k = text.indexOf('$', j);
+			if (k < 0 || k >= to) break;
+			let m = 1;
+			while (text[k + m] === '$') m++;
+			if (m === n) return k + n;
+			j = k + m;
+		}
+		if (to === text.length) this.noDollars.add(n);
+		return -1;
 	}
 
 	expression(list: List, t: number, to: number): number {

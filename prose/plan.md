@@ -237,6 +237,12 @@ suite found one bug, fixed: a `$` that failed as a closer (`x$, $$c`) was skippe
 math swallowed it, where pandoc's TeX holds no unescaped `$`. The scan now stops at the first
 `$`, which also bounds it by the distance to the next one.
 
+Math then got one way each, as GitHub writes it: `$x$` in a line, and a `$$` block, fenced or
+`$$E=mc^2$$` alone on a line. `$$x$$` inside a line of text had been read as `$`, math and `$`
+with no report; it now stays text and warns `math-delimiter`, as does GitHub's ``$`x`$``, which
+exists because GitHub's `$…$` went through Markdown first, which markz's doesn't. Of the math
+suite, 18 match, 8 warn and 4 differ.
+
 ### 13. The site by the dialect — done
 
 The Conformance page becomes Metadata, Block, Inline and Not supported, each opening to its

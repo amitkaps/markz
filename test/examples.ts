@@ -193,11 +193,13 @@ export const listed: Record<string, string> = {
 	'directive:143': 'text-directive',
 	// A leaf or container name starts with a letter in markz, as a text directive's does.
 	...Object.fromEntries([66, 67, 93, 94].map((n) => [`directive:${n}`, 'directive'])),
-	// micromark-extension-math pairs dollar runs as code spans pair backticks; markz's inline math
-	// is pandoc's single `$`, whose TeX holds no `$` and has no space inside either end.
-	...Object.fromEntries([1, 3, 5, 6, 7, 8, 10, 11, 13].map((n) => [`math:${n}`, 'inline-math'])),
+	// micromark-extension-math pairs dollar runs as code spans pair backticks. markz's inline math
+	// is pandoc's single `$`, whose TeX holds no `$` and has no space inside either end, and a run
+	// of dollars around math in a line, or a `$$$` fence, is text that warns.
+	...Object.fromEntries([1, 5, 6, 7, 8, 10, 11, 15].map((n) => [`math:${n}`, 'math-delimiter'])),
+	...Object.fromEntries([3, 13].map((n) => [`math:${n}`, 'inline-math'])),
 	// A math block's fence is exactly `$$` on a line of its own, with no meta string.
-	...Object.fromEntries([15, 19, 20].map((n) => [`math:${n}`, 'math-block'])),
+	...Object.fromEntries([19, 20].map((n) => [`math:${n}`, 'math-block'])),
 	// micromark's tight list drops the `<p>` inside a container directive in the item, too.
 	'directive:103': 'directive',
 	// `&apos;` in an attribute value, which the oracle shows as no reference token.
@@ -567,7 +569,8 @@ function againstSlugger(e: Example, doc: Document): Result {
  * ## Math against micromark-extension-math
  *
  * The extension writes KaTeX's HTML, so a math example is held to structure instead: markz must
- * find the same math spans, inline or display, starting at the same place and holding the same TeX. Where pandoc's rule, which
+ * find the same math spans, inline or display, starting at the same place and holding the same TeX.
+ * One that uses a math delimiter markz cuts holds when its warning fires. Where pandoc's rule, which
  * markz follows, and the extension's code-span-like dollar runs disagree, the example is filed as
  * differ under the construct.
  */
@@ -584,12 +587,17 @@ function againstMath(e: Example, doc: Document, markz: string): Result {
 	const show = (list: MathSpan[]) =>
 		list.map((m) => `${m.start}: ${m.block ? `$$ ${m.value} $$` : `$${m.value}$`}`).join('\n');
 	const oracle = show(mathOracle(e.markdown));
+	const fired = doc.warnings.some((w) => w.code === e.section);
 	const [status, detail]: [Status, string] =
 		e.kind === 'differ'
 			? ['differ', 'by design']
-			: show(spans) === oracle
-				? ['match', 'oracle']
-				: ['fail', 'different math from micromark-extension-math'];
+			: e.kind === 'not supported'
+				? fired
+					? ['warn', e.section]
+					: ['fail', `no \`${e.section}\` warning`]
+				: show(spans) === oracle
+					? ['match', 'oracle']
+					: ['fail', 'different math from micromark-extension-math'];
 	return {
 		status,
 		detail,

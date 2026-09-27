@@ -217,9 +217,12 @@ export const CONSTRUCTS: Construct[] = [
 		origin: 'GitHub',
 		grammar: `
 			math-block ::= indent? '$$' space* line-end code-line* (indent? '$$' space* line-end)?
+			             | indent? '$$' tex '$$' space* line-end
+			tex ::= ([^$] | '$' [^$])+
 		`,
 		rules: {
-			'math-close': 'The first line holding only `$$` closes it.'
+			'math-close': 'The first line holding only `$$` closes it.',
+			'math-one-line': 'On one line, the TeX between the `$$`s is not blank and holds no `$$`.'
 		}
 	},
 	{
@@ -380,7 +383,9 @@ export const CONSTRUCTS: Construct[] = [
 			inline-math ::= '$' [^ #x9#xA#xD\${] ([^$]* [^ #x9#xA#xD$])? '$'
 		`,
 		rules: {
-			'math-end': 'The closing `$` is not followed by a digit, so `$5 and $10` is text.'
+			'math-end': 'The closing `$` is not followed by a digit, so `$5 and $10` is text.',
+			'math-dollars':
+				'A run of two or more dollars never opens it. Closed by a run of the same length later in the paragraph, it is text reported as `math-delimiter`, as is `` $`…`$ ``.'
 		}
 	},
 	{

@@ -225,8 +225,8 @@ backtracking:
 
 ### Math blocks
 
-**As GitHub.** `$$` fences on lines of their own. The node holds the raw TeX, and markz doesn't
-typeset it. `html()` writes `<pre><code class="language-math math-display">`, and the host adds
+**As GitHub.** `$$` fences on lines of their own, or `$$E=mc^2$$` alone on a line. The node holds
+the raw TeX, and markz doesn't typeset it. `html()` writes `<pre><code class="language-math math-display">`, and the host adds
 KaTeX or Temml. A ` ```math ` fence stays an ordinary code block with `lang: "math"`, and its HTML
 is already the `language-math` shape.
 
@@ -457,8 +457,12 @@ apply to text directives only. `::sup` and `:::mark` are ordinary divs.
 
 **From pandoc**, in GitHub's HTML shape. `$…$`: the opening `$` is followed by a non-space
 character, and the closing `$` follows a non-space character and isn't followed by a digit, so
-`costs $5 and $10` stays text. `${` always starts an expression and never math. The node holds the
-raw TeX, and `html()` writes `<code class="language-math math-inline">`.
+`costs $5 and $10` stays text. The TeX holds no unescaped `$`, and a run of two or more dollars
+never opens it: `$$x$$` inside a line of text and GitHub's ``$`x`$`` stay text with a
+[`math-delimiter`](#not-supported) warning. GitHub added the backtick form because its `$…$`
+went through Markdown first; markz reads math before emphasis and escapes, so `$a_1 * b_2$` is
+already safe. `${` always starts an expression and never math. The
+node holds the raw TeX, and `html()` writes `<code class="language-math math-inline">`.
 
 {#expression}
 
@@ -575,6 +579,7 @@ and a bare `{…}`.
 | `underscore-strong` | `__strong__`                                                                                | `**strong**`                                                      | One marker. oxfmt rewrites it.                                                                                                                                              |
 | `star-emphasis`     | `*emphasis*`, except inside `_…_` or touching a letter ([Emphasis](#emphasis))              | `_emphasis_`                                                      | One marker, and the source of most emphasis edge cases. oxfmt rewrites it.                                                                                                  |
 | `single-tilde`      | `~single~` strikethrough                                                                    | `~~text~~`                                                        | One marker. oxfmt rewrites it.                                                                                                                                              |
+| `math-delimiter`    | Other math delimiters: `$$x$$` inside a line of text, ``$`x`$``                             | `$x$`, or a `$$` block                                            | One way each: `$x$` in a line, and `$$` for a block, fenced or alone on its line. Read by the `$x$` rule, `$$x$$` would lose a dollar at each end with no report.           |
 | `inline-attributes` | Attributes after words, inline code or emphasis (`word{.x}`), and djot spans (`[text]{.x}`) | `:span[text]{.x}`                                                 | Directives already wrap inline text, so one way. Keeping `{` special only after a `)` means braces in prose are plain text.                                                 |
 | `jsx`               | MDX: JSX (a capitalised tag, `<Chart />`) and bare `{…}` expressions                        | directives, `${…}`                                                | A `{` is only attributes where the rules above say so. Any other brace is prose, so a bare `{…}` stays text without a report.                                               |
 

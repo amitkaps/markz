@@ -301,6 +301,18 @@ class BlockParser {
 			this.openFence('math', next, cols, 2, '');
 			return false;
 		}
+		// `$$E=mc^2$$` alone on a line is a block too, as on GitHub.
+		const display = /^\$\$((?:[^$]|\$(?!\$))*[^$\s](?:[^$]|\$(?!\$))*)\$\$[ \t]*$/.exec(
+			src.slice(next, this.lineEnd)
+		);
+		if (display) {
+			const attributes = this.enter(false);
+			const value = display[1]!;
+			const range = { start: next + 2, end: next + 2 + value.length };
+			const node = this.b.leaf('math', next, end, { block: true, value: `${value}\n`, range });
+			this.leafNode(node, end, attributes);
+			return false;
+		}
 		if (src.startsWith('<!--', next) && this.comment(next)) return false;
 		const rule = /^([-*_])(?:[ \t]*\1){2,}[ \t]*$/.exec(src.slice(next, this.lineEnd));
 		if (rule) {
