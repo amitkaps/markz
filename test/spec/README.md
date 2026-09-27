@@ -25,7 +25,7 @@ against it where it has any.
   directive suite's `options(…)` helper installs handlers, so its examples have none, and the
   oracle isn't checked against them. Left out: tests of an
   option that changes the syntax (`disable.null`, `singleTilde`, a TOML or custom matter), the fixture loops, whose input
-  isn't a literal, repeated inputs, and the 80,000-line `large.offline.md`, which belongs with step 15's stress tests. The
+  isn't a literal, repeated inputs, and the 80,000-line `large.offline.md`, which belongs with step 16's stress tests. The
   directive suite is curated to 156 of its 251: the name, label and attribute rules it repeats for
   each kind of directive, and each directive next to a block form markz cuts, are in
   [`../stress/`](../stress/).

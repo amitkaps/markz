@@ -2,7 +2,7 @@
  * # EBNF
  *
  * The notation `grammar.ts` is written in, read into a tree so the grammar can be checked (every
- * name defined, every production reachable) and, from step 15, generate documents. It is the W3C
+ * name defined, every production reachable) and, from step 16, generate documents. It is the W3C
  * notation of the XML spec, kept small: `name ::= expression`, `|` for alternatives, juxtaposition
  * for sequence, `?`, `*` and `+`, parentheses, `'literal'` or `"literal"`, `#xA` for a character by
  * code point, and `[a-z]` or `[^…]` for a character class, which may hold `#x…` too.

@@ -12,7 +12,7 @@
  * reading of productions plus rules (`spec.md`, Parser foundation). A form the dialect cuts has no
  * production here; it is a Not supported row, keyed by its warning code.
  *
- * It lives in `test/` and never ships. The tests hold it to `syntax.md`, and from step 15 the
+ * It lives in `test/` and never ships. The tests hold it to `syntax.md`, and from step 16 the
  * fuzzer generates documents from it.
  */
 import { productions, references, type Production } from './ebnf';

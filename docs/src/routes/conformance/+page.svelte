@@ -9,7 +9,7 @@
 	 * what markz is held to, markz's output, where they first differ, and the warnings.
 	 *
 	 * Correctness is the one card for now. Performance, size, robustness, a real-world corpus,
-	 * formatter agreement and HTML safety join it as plan steps 15 and 16 produce them.
+	 * formatter agreement and HTML safety join it as plan steps 16 and 17 produce them.
 	 */
 	import { onMount } from 'svelte';
 	import { PARTS, STATUSES, type Status } from '#lib/site.ts';

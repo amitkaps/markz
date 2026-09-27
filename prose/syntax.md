@@ -621,19 +621,20 @@ The productions say what markz accepts, not how it reads it. On their own they a
 every Markdown grammar is, and the side rules settle each choice. The parser is written by hand
 as the one reading of both: a single pass, deterministic, with lookahead that is bounded or
 remembers where it failed ([spec](spec.md#parser-foundation)). The tests hold the grammar to this
-page, with the same constructs, parts and origins, and from plan step 15 the fuzzer generates
+page, with the same constructs, parts and origins, and from plan step 16 the fuzzer generates
 documents from it.
 
 ## Pending decisions
 
-- **Directive names as elements.** Parked in [`directive.md`](directive.md): whether a
-  directive's name should be the element `html()` writes, for Web Components.
+- **Directive names as elements.** Decided in [`directive.md`](directive.md) and built in
+  [plan](plan.md) step 14: a directive's name is the element it writes, and the name is no longer
+  a class. Until then, this page describes what markz does today.
 
 The amitkaps.github.io audit settled raw blocks, verse and smart punctuation. Its
 Markdown gets migrated to the dialect:
 
 - `<img>` becomes `![](…){…}`.
-- The `<div class="video-container">` wrappers become `:::video-container`.
+- The `<div class="video-container">` wrappers become `:::div{.video-container}`.
 - `<br>` becomes a trailing `\`.
 - Embeds, SVG and the Stripe script go into ` ```=html ` blocks.
 - Poems get `{.verse}`.

@@ -269,7 +269,7 @@ keeps one invariant:
   supported form, and every construct is a case.
 - **Bounded local lookahead:** a scan ahead either stays within the line (a fence, an attribute
   line, a table's delimiter row) or records where it failed, so no character is scanned more than
-  a constant number of times. Unclosed `${` breaks this today, and [plan](plan.md) step 15 fixes
+  a constant number of times. Unclosed `${` breaks this today, and [plan](plan.md) step 16 fixes
   it.
 
 **micromark is the test oracle, not a runtime dependency.** It is thoroughly tested, and nothing
