@@ -8,5 +8,5 @@ It is markz's first consumer. Its pages are the repo's own Markdown (the README 
 rendered by markz at build time, and its Conformance page runs the library's test harness. It is
 a private workspace package: nothing here reaches the published `markz` package.
 
-From the repo root, `pnpm docs` runs it and `pnpm docs:build` builds it. Inside `docs/`, `dev`,
+From the repo root, `pnpm docs` runs it, and `pnpm --filter markz-docs build` builds it. Inside `docs/`, `dev`,
 `build`, `check`, `test` and `deploy` are the interface, as in base.

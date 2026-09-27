@@ -1,5 +1,5 @@
 [tools]
 node = "26"
 pnpm = "12.6.0"
-# Times the benchmarks (`pnpm bench`); not needed to build or test.
+# Times cold start in `pnpm compare --deep`; not needed to build or test.
 hyperfine = "1.20.0"

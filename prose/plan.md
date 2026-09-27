@@ -516,7 +516,14 @@ One PR each, the moves first:
    endings dropped inside a fence after a tight item's line, now in `APART`). Formatting is
    compared with code inside fences set aside, since oxfmt formats it, and on the whole document
    only where markz cut nothing, since oxfmt rewrites some cut forms into kept ones.
-6. `test/speed.ts`, `bench/` as the comparison alone, and the review's changes.
+6. `test/speed.ts`, `bench/` as the comparison alone, and the review's changes. Done:
+   `test/harness/node.ts` lets plain Node load `src/` and the harness, so `pnpm bench` times the
+   working tree in about two seconds without a build. `bench/worker.ts` replaces Hyperfine's `k`
+   and `2k` runs with a time budget per cell in one fresh process per parser and mode; a slow
+   parser on a large file gets one timed pass once an earlier cell has warmed it. `pnpm compare`
+   takes about 35 s, not the 30 aimed for: micromark and remark read under 1 MB/s, and one pass
+   each over every tier and the 1 MB size is most of it. Sizes are cached by package version,
+   and `pnpm snapshot` regenerates the README's adapters table.
 
 ## Definition of done for v1
 

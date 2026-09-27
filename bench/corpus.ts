@@ -4,21 +4,23 @@
  * The documents every parser reads, written to `corpus/` (gitignored) with a manifest and one
  * hash over all of them, so two runs can be compared only when they read the same text. The
  * documents, their tiers and their variants are the test harness's (`test/harness/corpus.ts`),
- * so the benchmark times the same documents `documents.test.ts` holds markz to. Here they are
- * read with the built package, and two tiers are added for timing alone:
+ * so the benchmark times the same documents `documents.test.ts` holds markz to: _agent_ (written by
+ * coding agents in real repos), _public_ (written by people) and _spec_. Here they are read with
+ * the built package, and the tiers for timing alone are added:
  *
- * - **formatted**: the agent documents after oxfmt, which is how the consumers store them.
- * - **scaling**: the agent and public documents repeated to 10 KB, 100 KB, 1 MB and 10 MB, for
- *   the curve.
- * - **pathological**: adversarial patterns from the complexity tests, each at a size and four
- *   times it, to show how each parser scales on input built to hurt. They aren't a workload.
+ * - **scaling**: the agent and public documents repeated to 10 KB, 100 KB and 1 MB, and 10 MB in a
+ *   deep run, for the curve.
+ * - **construct**: one construct over and over, about 30 KB of the cases `test/harness/cases.ts`
+ *   writes from the grammar that markz reads cleanly, each where its reading puts it. It shows
+ *   which constructs carry markz's time, beside markdown-exit's on the ones CommonMark and GFM
+ *   define. Generated text is nothing anyone writes, so it never feeds a headline.
+ * - **formatted** (deep): the agent documents after oxfmt, which is how the consumers store them.
+ * - **pathological** (deep): adversarial patterns from the complexity tests, each at a size and
+ *   four times it, to show how each parser scales on input built to hurt. They aren't a workload.
  *
- * Every document but a pathological one comes in two variants, _dialect_ and _common_. A
- * pathological pattern has one, shared by both modes.
- *
- * A profile decides how much of this is built (`Profile`): *full* is all of it, for `run.ts`;
- * *fast* is what `compare.bench.ts` times, the document tiers and sizes to 1 MB; and *smoke* is
- * the least that exercises every adapter.
+ * Every document but a construct or a pathological one comes in two variants, _dialect_ and
+ * _common_. A profile decides how much is built: _fast_ for a plain run, _deep_ for `--deep`, and
+ * _smoke_, the least that exercises every adapter.
  */
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -27,14 +29,23 @@ import { parse } from 'markz';
 import { PATTERNS } from '../test/harness/adversarial.ts';
 import { documents, format, repeat, common as commonOf } from '../test/harness/corpus.ts';
 
-export type Tier = 'agent' | 'public' | 'spec' | 'formatted' | 'scaling' | 'pathological';
-export type Profile = 'smoke' | 'fast' | 'full';
+export type Tier =
+	| 'agent'
+	| 'public'
+	| 'spec'
+	| 'formatted'
+	| 'scaling'
+	| 'construct'
+	| 'pathological';
+export type Profile = 'smoke' | 'fast' | 'deep';
 export type Variant = 'common' | 'dialect';
 
 export interface Entry {
 	tier: Tier;
-	/** Absent for a pathological pattern, which both modes read. */
+	/** Absent for a construct or a pathological pattern, which one mode reads. */
 	variant?: Variant;
+	/** A construct's origin, from `syntax.md`. */
+	origin?: string;
 	name: string;
 	/** Relative to `corpus/`. */
 	file: string;
@@ -87,7 +98,7 @@ export const PATHOLOGICAL = [
 ];
 const PATHOLOGICAL_BYTES = 20_000;
 
-export function build(profile: Profile): Manifest {
+export async function build(profile: Profile): Promise<Manifest> {
 	rmSync(CORPUS, { recursive: true, force: true });
 	const entries: Entry[] = [];
 	const write = (entry: Omit<Entry, 'bytes'>, text: string) => {
@@ -112,10 +123,16 @@ export function build(profile: Profile): Manifest {
 		both('public', published);
 		both('spec', documents('spec'));
 	}
-	if (profile === 'full') both('formatted', format(agent));
+	if (profile === 'deep') both('formatted', format(agent));
 
 	const sizes =
 		profile === 'smoke' ? SIZES.slice(0, 1) : profile === 'fast' ? SIZES.slice(0, 3) : SIZES;
+	for (const c of await constructs(profile === 'smoke' ? 1 : Infinity)) {
+		write(
+			{ tier: 'construct', name: c.id, origin: c.origin, file: `construct/${c.id}.md` },
+			c.text
+		);
+	}
 	for (const variant of ['dialect', 'common'] as const) {
 		const mix = [...agent.values(), ...published.values()]
 			.map((t) => (variant === 'common' ? common(t) : t))
@@ -129,7 +146,7 @@ export function build(profile: Profile): Manifest {
 	}
 
 	const patterns =
-		profile === 'smoke' ? PATHOLOGICAL.slice(0, 1) : profile === 'fast' ? [] : PATHOLOGICAL;
+		profile === 'smoke' ? PATHOLOGICAL.slice(0, 1) : profile === 'deep' ? PATHOLOGICAL : [];
 	for (const name of patterns) {
 		const make = PATTERNS[name]!;
 		const n = Math.round((PATHOLOGICAL_BYTES * 100) / make(100).length);
@@ -149,6 +166,36 @@ export function build(profile: Profile): Manifest {
 
 export function manifest(): Manifest {
 	return JSON.parse(readFileSync(join(CORPUS, 'manifest.json'), 'utf8')) as Manifest;
+}
+
+/** @prose
+ * ## Constructs
+ *
+ * The cases come from the test harness, which reads the grammar with Vite's `?raw` imports, so
+ * they load through `test/harness/node.ts`. Metadata is left out, since a document holds only one
+ * block of it.
+ */
+const CONSTRUCT_BYTES = 30_000;
+
+async function constructs(count: number): Promise<{ id: string; origin: string; text: string }[]> {
+	await import('../test/harness/node.ts');
+	const { judge, reading, valid } = await import('../test/harness/cases.ts');
+	const { CONSTRUCTS } = await import('../test/harness/grammar.ts');
+	const out = [];
+	for (const c of CONSTRUCTS.filter((c) => c.id !== 'metadata').slice(0, count)) {
+		const r = reading(c.id);
+		const cases = valid(c.id, 200, 20260927)
+			.filter((s) => {
+				const v = judge(c.id, s);
+				return v.agree && v.accepted;
+			})
+			.map((s) => r.wrap(s).replace(/\s*$/, '\n'));
+		if (!cases.length) continue;
+		let text = '';
+		for (let i = 0; text.length < CONSTRUCT_BYTES; i++) text += `${cases[i % cases.length]!}\n`;
+		out.push({ id: c.id, origin: c.origin, text });
+	}
+	return out;
 }
 
 /** The common variant of `text`, read by the built package. */

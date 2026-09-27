@@ -288,7 +288,7 @@
 					{@render bars(tier.parsers.map((p) => ({ label: p.parser, value: p.mbPerSecond })))}
 				{/each}
 				<p class="what">
-					Parse + HTML, each parser at its defaults · {data.bench.measured.cpu} ·
+					Parse + HTML warm, the common workload · {data.bench.measured.cpu} ·
 					{new Date(data.bench.measured.date).toDateString()}
 				</p>
 			</a>

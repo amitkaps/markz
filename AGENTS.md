@@ -24,9 +24,10 @@ Read **`prose/spec.md`** first — it is the design for markz.
   wrangler) must not reach the library. `pnpm docs` runs it; CI checks, tests and builds it, and
   deploys it from `main`.
 - `bench/` is the benchmark: a private workspace package whose dependencies are the parsers markz
-  is compared with. Like `docs/`, it never reaches the library. `pnpm bench` is a quick look;
-  published numbers come only from `pnpm bench:full` on a quiet machine, copied to the site by
-  `pnpm bench:update-results` in a commit of their own.
+  is compared with. Like `docs/`, it never reaches the library. `pnpm bench` is markz alone
+  (`test/speed.ts`), in seconds; `pnpm compare` is the comparison, in about half a minute.
+  Published numbers come only from `pnpm compare --deep` on a quiet machine, copied to the site by
+  `pnpm snapshot` in a commit of their own. Scripts are one word; a variant is a flag.
 - The invariant: unsupported syntax stays literal text and produces a warning. It is never
   silently reinterpreted as a different supported construct.
 

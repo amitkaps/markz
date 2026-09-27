@@ -4,10 +4,9 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"bench": "vp test bench --run --reporter=verbose",
-		"bench:full": "node run.ts",
+		"compare": "node run.ts",
 		"smoke": "node run.ts --smoke",
-		"update-results": "node run.ts --update"
+		"snapshot": "node run.ts --snapshot"
 	},
 	"devDependencies": {
 		"@comark/html": "^0.7.0",

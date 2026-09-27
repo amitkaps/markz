@@ -33,6 +33,11 @@ The checks:
 - [`complexity.test.ts`](complexity.test.ts): every adversarial pattern, and a multi-megabyte
   document, held to linear time. It runs last, on its own.
 
+[`speed.ts`](speed.ts) is `pnpm bench`: markz alone, on the working tree, in about two seconds,
+in MB/s per document tier and per construct, against this machine's baseline with a noise band.
+It is a plain Node script, which [`harness/node.ts`](harness/node.ts) lets load `src/` and the
+harness. The comparison with other parsers is `pnpm compare`, in [`../bench/`](../bench/).
+
 `pnpm test` searches from a fixed seed. `pnpm fuzz` runs the construct and robustness checks
 fifty times as far from a random one; `SEARCH` and `SEED` set both by hand.
 

@@ -406,12 +406,17 @@ markdown-it, markdown-exit, marked and Comark on throughput, cold start, retaine
 pathological input and bundle size. remark is there because it is how micromark is usually
 used, and how its tree is built. The unified/remark ecosystem stays out of markz itself.
 
-- The published numbers come from Hyperfine, which times whole processes, one parser each. Each
-  command runs at `k` and `2k` passes, so startup cancels out and the per-pass time is warm.
-- A quick look (`pnpm bench`) runs every parser in Vitest's benchmark runner, and compares markz
-  with its own last run. Its parsers share a process, so it is never published.
-- There are two modes. _Common_ is every parser at its defaults on the blocks they all share.
-  _Dialect_ is each configured as close to markz as it gets, reading whole documents.
+- `pnpm compare` runs each parser in a fresh process of its own, one after another, each cell on
+  a time budget, in about half a minute: the document tiers, scaling to 1 MB checked for a
+  straight line, one construct at a time, retained memory after parse and bundle size.
+  `--deep` adds 10 MB, pathological input and cold start timed by Hyperfine, and is what gets
+  published.
+- `pnpm bench` is markz alone (`test/speed.ts`), on the working tree, in seconds, against this
+  machine's baseline with a noise band. It is never published.
+- There are two modes. _Common_ is the same input workload for every parser, the blocks they all
+  share, with each parser's configuration listed. _Dialect_ is each configured as close to markz
+  as it gets, reading whole documents. Each adapter declares its configuration and what it
+  reads, so the tables are generated from what ran.
 - The corpus is agent-written docs (markz's and its consumers') beside human-written public
   docs, plus the CommonMark spec, sizes from 10 KB up, and adversarial patterns, which are
   labelled as not a workload.

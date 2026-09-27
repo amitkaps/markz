@@ -12,10 +12,13 @@
  * both are here, and the gap between them is what the pipeline costs. That difference is part
  * of what's measured.
  *
+ * Each adapter declares its configuration and what it reads beyond CommonMark, and the runner
+ * reports both, so the README's and the site's tables are generated from what ran.
+ *
  * The two modes (`README.md`):
  *
- * - **common**: each parser at its defaults, with GFM tables and strikethrough, reading documents
- *   that use only what all of them share.
+ * - **common**: every parser on the same workload, documents that use only what all of them
+ *   share, each set up as its adapter lists (mostly its defaults, GFM where it has it).
  * - **dialect**: each parser as close to markz as its plugins get. Math is on only where the
  *   plugin doesn't typeset (micromark's and Comark's run KaTeX, which isn't parsing), so it is
  *   markdown-it's and markdown-exit's alone. marked has no plugins here, and stays at its GFM
@@ -31,8 +34,10 @@ export interface Parser {
 	representation: string | null;
 	structured?: (source: string) => unknown;
 	html: (source: string) => string | Promise<string>;
-	/** What the configuration reads beyond CommonMark, for the tables. */
-	features: string;
+	/** How it is set up for the mode, as its options or plugins. */
+	configuration: string;
+	/** What it reads beyond CommonMark in the mode. */
+	capabilities: string[];
 }
 
 export const PARSERS = [
@@ -54,7 +59,17 @@ export async function load(name: string, mode: Mode): Promise<Parser> {
 				representation: 'flat tree with offsets',
 				structured: parse,
 				html: (s) => html(parse(s)),
-				features: 'its dialect (it has no options)'
+				configuration: 'none: it has no options',
+				capabilities: [
+					'tables',
+					'strikethrough',
+					'task lists',
+					'directives',
+					'metadata',
+					'math',
+					'attributes',
+					'expressions'
+				]
 			};
 		}
 		case 'micromark': {
@@ -101,7 +116,12 @@ export async function load(name: string, mode: Mode): Promise<Parser> {
 			return {
 				representation: null,
 				html: (s) => micromark(s, { extensions, htmlExtensions }),
-				features: dialect ? 'tables, strikethrough, task lists, directives, frontmatter' : 'GFM'
+				configuration: dialect
+					? 'the GFM table, strikethrough and task-list extensions, directive (each as its element), frontmatter'
+					: 'micromark-extension-gfm',
+				capabilities: dialect
+					? ['tables', 'strikethrough', 'task lists', 'directives', 'frontmatter']
+					: ['GFM']
 			};
 		}
 		case 'markdown-it':
@@ -131,9 +151,19 @@ export async function load(name: string, mode: Mode): Promise<Parser> {
 				representation: 'flat token stream',
 				structured: (s) => md.parse(s, {}),
 				html: (s) => md.render(s),
-				features: dialect
-					? 'tables, strikethrough, task lists, frontmatter, dollar math, `:::` containers'
-					: 'tables, strikethrough'
+				configuration: dialect
+					? 'default preset, front-matter, @mdit/plugin-tex (untypeset), container (any name), task-lists'
+					: 'default preset',
+				capabilities: dialect
+					? [
+							'tables',
+							'strikethrough',
+							'task lists',
+							'frontmatter',
+							'dollar math',
+							'::: containers'
+						]
+					: ['tables', 'strikethrough']
 			};
 		}
 		case 'marked': {
@@ -143,7 +173,8 @@ export async function load(name: string, mode: Mode): Promise<Parser> {
 				representation: 'nested token list',
 				structured: (s) => marked.lexer(s),
 				html: (s) => marked.parse(s) as string,
-				features: 'GFM'
+				configuration: '{ gfm: true }: it has no plugins here',
+				capabilities: ['GFM']
 			};
 		}
 		case 'remark': {
@@ -192,7 +223,12 @@ export async function load(name: string, mode: Mode): Promise<Parser> {
 				representation: 'nested tree with positions (mdast)',
 				structured: (s) => parser.parse(s),
 				html: (s) => String(processor.processSync(s)),
-				features: dialect ? 'tables, strikethrough, task lists, directives, frontmatter' : 'GFM'
+				configuration: dialect
+					? 'remark-parse, the GFM table, strikethrough and task-list parts, remark-frontmatter, remark-directive (each as its element), remark-rehype, rehype-stringify'
+					: 'remark-parse, remark-gfm, remark-rehype, rehype-stringify',
+				capabilities: dialect
+					? ['tables', 'strikethrough', 'task lists', 'directives', 'frontmatter']
+					: ['GFM']
 			};
 		}
 		case 'comark': {
@@ -205,9 +241,10 @@ export async function load(name: string, mode: Mode): Promise<Parser> {
 				representation: 'nested array tree',
 				structured: createMarkdownParser(options),
 				html: createHtmlRenderer(options),
-				features: dialect
-					? 'GFM, components, attributes, frontmatter, raw HTML'
-					: 'GFM, components, attributes'
+				configuration: `{ registerDefaultPlugins: ${dialect} }`,
+				capabilities: dialect
+					? ['GFM', 'components', 'attributes', 'frontmatter', 'raw HTML']
+					: ['GFM', 'components', 'attributes']
 			};
 		}
 	}
