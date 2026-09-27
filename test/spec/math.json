@@ -1,0 +1,182 @@
+[
+ {
+  "example": 1,
+  "section": "math › should support one, two, or more dollars by default",
+  "markdown": "$a$, $$b$$, $$$c$$$",
+  "html": ""
+ },
+ {
+  "example": 2,
+  "section": "math › should support an escaped dollar sign which would otherwise open math",
+  "markdown": "a \\$b$",
+  "html": "<p>a $b$</p>"
+ },
+ {
+  "example": 3,
+  "section": "math › should not support escaped dollar signs in math (text)",
+  "markdown": "a $b\\$",
+  "html": ""
+ },
+ {
+  "example": 4,
+  "section": "math › should support math (text) right after an escaped dollar sign",
+  "markdown": "a \\$$b$",
+  "html": ""
+ },
+ {
+  "example": 5,
+  "section": "math › should support a single dollar in math (text) w/ padding and two dollar signs",
+  "markdown": "a $$ $ $$",
+  "html": ""
+ },
+ {
+  "example": 6,
+  "section": "math › should support nested math by using more dollars outside of math (text)",
+  "markdown": "a $$\\raisebox{0.25em}{$\\frac a b$}$$ b",
+  "html": ""
+ },
+ {
+  "example": 7,
+  "section": "math › should support an “escaped” dollar right on the KaTeX level, not on the Markdown level",
+  "markdown": "a $$ \\$ $$ b",
+  "html": ""
+ },
+ {
+  "example": 8,
+  "section": "math › should support padding with a line ending in math (text)",
+  "markdown": "a $$\na\\$ $$ b",
+  "html": ""
+ },
+ {
+  "example": 9,
+  "section": "math › should support math (text) w/ one dollar sign",
+  "markdown": "a $b$",
+  "html": ""
+ },
+ {
+  "example": 10,
+  "section": "math › should support math (text) w/ two dollar signs",
+  "markdown": "a $$b$$",
+  "html": ""
+ },
+ {
+  "example": 11,
+  "section": "math › should support math (text) w/ three dollar signs",
+  "markdown": "a $$$b$$$",
+  "html": ""
+ },
+ {
+  "example": 12,
+  "section": "math › should support EOLs in math",
+  "markdown": "a $b\nc\rd\r\ne$ f",
+  "html": ""
+ },
+ {
+  "example": 13,
+  "section": "math › should not support math (flow) w/ one dollar sign",
+  "markdown": "$\na\n$",
+  "html": ""
+ },
+ {
+  "example": 14,
+  "section": "math › should support math (flow) w/ two dollar sign",
+  "markdown": "$$\na\n$$",
+  "html": ""
+ },
+ {
+  "example": 15,
+  "section": "math › should support math (flow) w/ three dollar sign",
+  "markdown": "$$$\na\n$$$",
+  "html": ""
+ },
+ {
+  "example": 16,
+  "section": "math › should support math (flow) w/o content",
+  "markdown": "$$\n$$",
+  "html": ""
+ },
+ {
+  "example": 17,
+  "section": "math › should support math (flow) w/o closing fence",
+  "markdown": "$$\na",
+  "html": ""
+ },
+ {
+  "example": 18,
+  "section": "math › should support math (flow) w/o closing fence ending at an EOL",
+  "markdown": "$$\na\n",
+  "html": ""
+ },
+ {
+  "example": 19,
+  "section": "math › should support math (flow) w/ a meta string",
+  "markdown": "$$asd &amp; \\& asd\na\n$$",
+  "html": ""
+ },
+ {
+  "example": 20,
+  "section": "math › should not support math (flow) w/ a dollar sign in the meta string",
+  "markdown": "$$asd$asd\na\n$$",
+  "html": ""
+ },
+ {
+  "example": 21,
+  "section": "math › should not support math (flow) w/ content on the closing fence",
+  "markdown": "$$\na\n$$ b",
+  "html": ""
+ },
+ {
+  "example": 22,
+  "section": "math › should support whitespace on the closing fence",
+  "markdown": "$$\na\n$$  ",
+  "html": ""
+ },
+ {
+  "example": 23,
+  "section": "math › should strip the prefix of the opening fence from content lines",
+  "markdown": "  $$\n\ta\n  b\n c\nd\n$$",
+  "html": ""
+ },
+ {
+  "example": 24,
+  "section": "math › should support math (flow) in a block quote",
+  "markdown": "> $$\n> a\n> $$\n> b",
+  "html": ""
+ },
+ {
+  "example": 25,
+  "section": "math › should support math (flow) in a list (item)",
+  "markdown": "* $$\n  a\n  $$\n  b",
+  "html": ""
+ },
+ {
+  "example": 26,
+  "section": "math › should support `<`",
+  "markdown": "a $\\sum_{\\substack{0<i<m\\\\0<j<n}}$ b",
+  "html": ""
+ },
+ {
+  "example": 27,
+  "section": "math › should support `\"`",
+  "markdown": "a $\\text{a \\\"{a} c}$ b",
+  "html": ""
+ },
+ {
+  "example": 28,
+  "section": "math › should not support laziness (1)",
+  "markdown": "> $$\na\n$$",
+  "html": ""
+ },
+ {
+  "example": 29,
+  "section": "math › should not support laziness (2)",
+  "markdown": "> $$\n> a\n$$",
+  "html": ""
+ },
+ {
+  "example": 30,
+  "section": "math › should not support laziness (3)",
+  "markdown": "a\n> $$",
+  "html": ""
+ }
+]

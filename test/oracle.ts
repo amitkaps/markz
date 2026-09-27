@@ -25,6 +25,7 @@ import { micromark, parse, postprocess, preprocess } from 'micromark';
 import { gfm, gfmHtml } from 'micromark-extension-gfm';
 import { directive, directiveHtml, type Handle } from 'micromark-extension-directive';
 import { frontmatter, frontmatterHtml } from 'micromark-extension-frontmatter';
+import { math } from 'micromark-extension-math';
 import GithubSlugger from 'github-slugger';
 import YAML from 'yaml';
 
@@ -121,6 +122,49 @@ export function tokens(markdown: string): Token[] {
 			end: t.end.offset
 		}));
 }
+
+/** @prose
+ * ## Math
+ *
+ * micromark-extension-math writes KaTeX's HTML, so what is compared is structure: each math span
+ * it finds, display or inline, where it starts (so `$$b$$` isn't taken for `$` and `$b$`), and
+ * the TeX inside, read from its tokens with whitespace collapsed.
+ */
+export interface MathSpan {
+	block: boolean;
+	start: number;
+	value: string;
+}
+
+export function mathOracle(markdown: string): MathSpan[] {
+	const chunks = preprocess()(markdown, undefined, true);
+	const events = postprocess(
+		parse({ extensions: [gfm(), math()] })
+			.document()
+			.write(chunks)
+	);
+	const out: MathSpan[] = [];
+	let current: string[] | null = null;
+	for (const [kind, t] of events) {
+		if (t.type === 'mathFlow' || t.type === 'mathText') {
+			if (kind === 'enter') current = [];
+			else {
+				const block = t.type === 'mathFlow';
+				out.push({ block, start: t.start.offset, value: collapse(current!.join(' ')) });
+				current = null;
+			}
+		} else if (current && kind === 'enter') {
+			// A flow's value is a token per line, after any container prefix; text data may split
+			// at line endings, so it is joined the same way.
+			if (t.type === 'mathFlowValue' || t.type === 'mathTextData') {
+				current.push(markdown.slice(t.start.offset, t.end.offset));
+			}
+		}
+	}
+	return out;
+}
+
+export const collapse = (tex: string) => tex.replace(/\s+/g, ' ').trim();
 
 /** @prose
  * ## Metadata

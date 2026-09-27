@@ -29,7 +29,7 @@ export interface Row {
 	status: Status;
 	/** What it matched, the codes it warned with, or why it fails. */
 	detail: string;
-	/** Who holds it: `micromark`, `yaml` or `github-slugger` for an upstream example, else `markz`. */
+	/** Who holds it: `micromark`, `micromark-extension-math`, `yaml` or `github-slugger` for an upstream example, else `markz`. */
 	oracle: string;
 	/** What markz is held to: the oracle's output, or markz's own expected HTML. */
 	expected: string;

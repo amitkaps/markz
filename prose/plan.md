@@ -230,6 +230,13 @@ reverse: GFM makes `[^x]` a footnote only when `x` is defined, which markz doesn
 suite found two misses, both fixed: `![^1]` is a `!` before a footnote in GFM, not an image, and a
 `[^1]:` can start a definition partway through a paragraph.
 
+**Math — done.** micromark-extension-math's 30 tests, held to its math spans rather than its
+KaTeX HTML. 18 match and 12 differ by design: the extension pairs dollar runs as code spans pair
+backticks, where markz follows pandoc's single `$`, and its `$$` fence takes a meta string. The
+suite found one bug, fixed: a `$` that failed as a closer (`x$, $$c`) was skipped over, so the
+math swallowed it, where pandoc's TeX holds no unescaped `$`. The scan now stops at the first
+`$`, which also bounds it by the distance to the next one.
+
 ### 13. The site by the dialect — done
 
 The Conformance page becomes Metadata, Block, Inline and Not supported, each opening to its

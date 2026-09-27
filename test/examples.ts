@@ -18,15 +18,26 @@
  * - **expected:** markz's own example, which must give its HTML and warn over exactly its listed
  *   text, and nothing else.
  */
-import { html, parse, type Document, type Warning } from '../src/index';
+import { html, parse, type Document, type NodeId, type Warning } from '../src/index';
 import block from './dialect/block.md?raw';
 import inline from './dialect/inline.md?raw';
 import metadata from './dialect/metadata.md?raw';
 import notSupported from './dialect/not-supported.md?raw';
-import { metadataOracle, normalize, reference, slugOracle, tokens, type Token } from './oracle';
+import {
+	collapse,
+	mathOracle,
+	metadataOracle,
+	normalize,
+	reference,
+	slugOracle,
+	tokens,
+	type MathSpan,
+	type Token
+} from './oracle';
 import commonmark from './spec/commonmark.json' with { type: 'json' };
 import directive from './spec/directive.json' with { type: 'json' };
 import frontmatter from './spec/frontmatter.json' with { type: 'json' };
+import math from './spec/math.json' with { type: 'json' };
 import slugger from './spec/slugger.json' with { type: 'json' };
 import yamlSuite from './spec/yaml.json' with { type: 'json' };
 import gfmFootnote from './spec/gfm-footnote.json' with { type: 'json' };
@@ -46,7 +57,8 @@ export type Upstream =
 	| 'directive'
 	| 'frontmatter'
 	| 'yaml'
-	| 'slugger';
+	| 'slugger'
+	| 'math';
 export type Source = Upstream | 'markz';
 export type Kind = 'oracle' | 'differ' | 'not supported' | 'expected';
 export type Status = 'match' | 'warn' | 'differ' | 'fail';
@@ -79,6 +91,7 @@ export interface Example {
  * whatever its section.
  */
 const DIRECTIVE = 'by directive kind';
+const MATH = 'by math kind';
 
 export const sections: Record<string, string> = {
 	'commonmark:Tabs': 'list',
@@ -123,7 +136,8 @@ export const sections: Record<string, string> = {
 	'directive:content': DIRECTIVE,
 	frontmatter: 'metadata',
 	yaml: 'metadata',
-	slugger: 'heading'
+	slugger: 'heading',
+	math: MATH
 };
 
 /** A leaf or container directive files the example under `directive`, else `text-directive`. */
@@ -179,6 +193,11 @@ export const listed: Record<string, string> = {
 	'directive:143': 'text-directive',
 	// A leaf or container name starts with a letter in markz, as a text directive's does.
 	...Object.fromEntries([66, 67, 93, 94].map((n) => [`directive:${n}`, 'directive'])),
+	// micromark-extension-math pairs dollar runs as code spans pair backticks; markz's inline math
+	// is pandoc's single `$`, whose TeX holds no `$` and has no space inside either end.
+	...Object.fromEntries([1, 3, 5, 6, 7, 8, 10, 11, 13].map((n) => [`math:${n}`, 'inline-math'])),
+	// A math block's fence is exactly `$$` on a line of its own, with no meta string.
+	...Object.fromEntries([15, 19, 20].map((n) => [`math:${n}`, 'math-block'])),
 	// micromark's tight list drops the `<p>` inside a container directive in the item, too.
 	'directive:103': 'directive',
 	// `&apos;` in an attribute value, which the oracle shows as no reference token.
@@ -254,10 +273,13 @@ function upstreamExample(
 		sections[`${source}:${e.section.split(' › ')[0]}`] ??
 		sections[source];
 	if (home === DIRECTIVE) home = directiveKind(e.markdown);
+	if (home === MATH) {
+		home = mathOracle(e.markdown).some((m) => m.block) ? 'math-block' : 'inline-math';
+	}
 	if (!home) throw new Error(`${source} section "${e.section}" is not mapped to syntax.md`);
 	// micromark's tokens say nothing about a YAML block or a heading's id.
 	const token =
-		source === 'yaml' || source === 'slugger'
+		source === 'yaml' || source === 'slugger' || source === 'math'
 			? undefined
 			: cuts.find(([, test]) => tokens(e.markdown).some(test));
 	let found = listed[id] ?? token?.[0];
@@ -337,6 +359,7 @@ export const examples: Example[] = [
 	...frontmatter.map((e) => upstreamExample('frontmatter', e)),
 	...yamlSuite.map((e) => upstreamExample('yaml', e)),
 	// Each slugger fixture follows the ones before it in one document, so repeats are numbered.
+	...math.map((e) => upstreamExample('math', e)),
 	...slugger.map((e, i) =>
 		upstreamExample('slugger', {
 			...e,
@@ -396,6 +419,7 @@ export function check(e: Example): Result {
 	}
 	if (e.source === 'yaml') return againstYaml(e, doc);
 	if (e.source === 'slugger') return againstSlugger(e, doc);
+	if (e.source === 'math') return againstMath(e, doc, markz);
 	const oracle = e.source === 'markz' ? null : reference(e.markdown);
 	const code = e.part === 'Not supported' ? e.section : null;
 	const result = (status: Status, detail: string): Result => ({
@@ -533,6 +557,43 @@ function againstSlugger(e: Example, doc: Document): Result {
 		status,
 		detail,
 		markz: mine,
+		oracle,
+		warnings: [...doc.warnings],
+		problem: status === 'fail' ? detail : null
+	};
+}
+
+/** @prose
+ * ## Math against micromark-extension-math
+ *
+ * The extension writes KaTeX's HTML, so a math example is held to structure instead: markz must
+ * find the same math spans, inline or display, starting at the same place and holding the same TeX. Where pandoc's rule, which
+ * markz follows, and the extension's code-span-like dollar runs disagree, the example is filed as
+ * differ under the construct.
+ */
+function againstMath(e: Example, doc: Document, markz: string): Result {
+	const spans: MathSpan[] = [];
+	const walk = (n: NodeId) => {
+		if (doc.type(n) === 'math') {
+			const d = doc.data(n, 'math');
+			spans.push({ block: d.block, start: doc.start(n), value: collapse(d.value) });
+		}
+		for (const c of doc.children(n)) walk(c);
+	};
+	walk(doc.root);
+	const show = (list: MathSpan[]) =>
+		list.map((m) => `${m.start}: ${m.block ? `$$ ${m.value} $$` : `$${m.value}$`}`).join('\n');
+	const oracle = show(mathOracle(e.markdown));
+	const [status, detail]: [Status, string] =
+		e.kind === 'differ'
+			? ['differ', 'by design']
+			: show(spans) === oracle
+				? ['match', 'oracle']
+				: ['fail', 'different math from micromark-extension-math'];
+	return {
+		status,
+		detail,
+		markz: `${show(spans)}\n\n${markz}`,
 		oracle,
 		warnings: [...doc.warnings],
 		problem: status === 'fail' ? detail : null

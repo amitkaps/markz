@@ -55,3 +55,9 @@ against it where it has any.
   definitions, `[^x]` beside links, images and references, `^[x]` as text), 20 of 49; the
   fixtures on a footnote's own content are in [`../stress/`](../stress/). Left out: the
   `disable.null` test and the fixture loop.
+- `math.json`: the tests of
+  [micromark-extension-math](https://github.com/micromark/micromark-extension-math/blob/4c9e82c46f4ee3bb794382b84f9fa537f7452f9e/test/index.js)
+  (commit `4c9e82c`), 30 inputs, by `vendor.ts`. The extension writes KaTeX's HTML, so there is
+  no expected HTML: the harness holds markz to the extension's math spans (display or inline,
+  where each starts, the TeX inside). Left out: the `disable.null` test and one that turns off
+  indented code.

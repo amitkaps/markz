@@ -120,6 +120,12 @@ costs $5 and $10
 <p>costs $5 and $10</p>
 ```
 
+```example
+a $, $$b and $a $b$
+.
+<p>a $, $$b and $a <code class="language-math math-inline">b</code></p>
+```
+
 ## expression
 
 ```example
