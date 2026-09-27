@@ -146,7 +146,7 @@ const alignment = (align: string | null | undefined) => (align ? ` align="${alig
  * A `<div>` for leaf and container directives and a `<span>` for text ones, with the name as the
  * first class. The six element names (`sup`, `sub`, `ins`, `mark`, `kbd`, `abbr`) are written as
  * that element when used as text directives. A container's label comes first, in its own
- * `directive-label` div.
+ * `directive-label` div, unless it is empty (`:::name[]`).
  */
 const ELEMENTS = new Set(['sup', 'sub', 'ins', 'mark', 'kbd', 'abbr']);
 
@@ -155,7 +155,7 @@ function directive(doc: Document, node: NodeId, a: Attributes | undefined): stri
 	const element = kind === 'text' && ELEMENTS.has(name);
 	const tag = element ? name : kind === 'text' ? 'span' : 'div';
 	let out = `<${tag}${attributes(a, element ? [] : [name])}>`;
-	if (kind === 'container' && label) {
+	if (kind === 'container' && label?.value) {
 		out += `<div class="directive-label">${escape(label.value)}</div>\n`;
 	}
 	return out + children(doc, node) + `</${tag}>` + (kind === 'text' ? '' : '\n');

@@ -268,7 +268,7 @@ are for any element. The label means different things by kind:
   directive's children.
 - **container:** the body is the content, and the label is metadata: a title for a callout, a
   summary for a disclosure. It is plain text, with backslash escapes decoded and no inline
-  parsing, and `html()` writes it first, in its own element:
+  parsing, and `html()` writes it first, in its own element, unless it is empty:
 
 ```md
 :::callout[Warning]{.important}

@@ -168,6 +168,15 @@ a colon and no pipe (`a` over `:-:`) was a paragraph with no warning, where GFM 
 a row indented four columns continued the table or became its delimiter row, where the grammar's
 `indent` stops at three.
 
+**Directives — done.** 251 examples from micromark-extension-directive's test file, filed by
+its `test()` groups (text, leaf, container), and by the oracle's tokens for the two that mix
+kinds. #33's bare `:name` passes as it is, since the oracle writes it back as text. Two gaps,
+both fixed: a named reference in an attribute value (`title="a&apos;b"`) got no warning, and an
+empty container label (`:::a[]`) wrote an empty label element. 38 examples differ by design:
+micromark's wider attribute syntax (bare keys, single quotes, spaces around `=`, `.a.b`, braces
+across lines) is text in markz, names start with a letter, a container's label is plain text,
+and markz has no 32-level bracket limit.
+
 ### 13. The site by the dialect
 
 The Conformance page becomes Metadata, Block, Inline and Not supported, each opening to its

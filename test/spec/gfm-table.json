@@ -349,247 +349,247 @@
  },
  {
   "example": 59,
-  "section": "index.js › should not support a table w/ the head row ending in an eof (1)",
+  "section": "markdown -> html (micromark) › should not support a table w/ the head row ending in an eof (1)",
   "markdown": "| a |",
   "html": "<p>| a |</p>"
  },
  {
   "example": 60,
-  "section": "index.js › should not support a table w/ the head row ending in an eof (2)",
+  "section": "markdown -> html (micromark) › should not support a table w/ the head row ending in an eof (2)",
   "markdown": "| a",
   "html": "<p>| a</p>"
  },
  {
   "example": 61,
-  "section": "index.js › should not support a table w/ the head row ending in an eof (3)",
+  "section": "markdown -> html (micromark) › should not support a table w/ the head row ending in an eof (3)",
   "markdown": "a |",
   "html": "<p>a |</p>"
  },
  {
   "example": 62,
-  "section": "index.js › should support a table w/ a delimiter row ending in an eof (1)",
+  "section": "markdown -> html (micromark) › should support a table w/ a delimiter row ending in an eof (1)",
   "markdown": "| a |\n| - |",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n</table>"
  },
  {
   "example": 63,
-  "section": "index.js › should support a table w/ a delimiter row ending in an eof (2)",
+  "section": "markdown -> html (micromark) › should support a table w/ a delimiter row ending in an eof (2)",
   "markdown": "| a\n| -",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n</table>"
  },
  {
   "example": 64,
-  "section": "index.js › should support a table w/ a body row ending in an eof (1)",
+  "section": "markdown -> html (micromark) › should support a table w/ a body row ending in an eof (1)",
   "markdown": "| a |\n| - |\n| b |",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>b</td>\n</tr>\n</tbody>\n</table>"
  },
  {
   "example": 65,
-  "section": "index.js › should support a table w/ a body row ending in an eof (2)",
+  "section": "markdown -> html (micromark) › should support a table w/ a body row ending in an eof (2)",
   "markdown": "| a\n| -\n| b",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>b</td>\n</tr>\n</tbody>\n</table>"
  },
  {
   "example": 66,
-  "section": "index.js › should support a table w/ a body row ending in an eof (3)",
+  "section": "markdown -> html (micromark) › should support a table w/ a body row ending in an eof (3)",
   "markdown": "a|b\n-|-\nc|d",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n<th>b</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>c</td>\n<td>d</td>\n</tr>\n</tbody>\n</table>"
  },
  {
   "example": 67,
-  "section": "index.js › should support rows w/ trailing whitespace (1)",
+  "section": "markdown -> html (micromark) › should support rows w/ trailing whitespace (1)",
   "markdown": "| a  \n| -\t\n| b |     ",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>b</td>\n</tr>\n</tbody>\n</table>"
  },
  {
   "example": 68,
-  "section": "index.js › should support rows w/ trailing whitespace (2)",
+  "section": "markdown -> html (micromark) › should support rows w/ trailing whitespace (2)",
   "markdown": "| a | \n| - |",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n</table>"
  },
  {
   "example": 69,
-  "section": "index.js › should support rows w/ trailing whitespace (3)",
+  "section": "markdown -> html (micromark) › should support rows w/ trailing whitespace (3)",
   "markdown": "| a |\n| - | ",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n</table>"
  },
  {
   "example": 70,
-  "section": "index.js › should support rows w/ trailing whitespace (4)",
+  "section": "markdown -> html (micromark) › should support rows w/ trailing whitespace (4)",
   "markdown": "| a |\n| - |\n| b | ",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>b</td>\n</tr>\n</tbody>\n</table>"
  },
  {
   "example": 71,
-  "section": "index.js › should support empty first header cells",
+  "section": "markdown -> html (micromark) › should support empty first header cells",
   "markdown": "||a|\n|-|-|",
   "html": "<table>\n<thead>\n<tr>\n<th></th>\n<th>a</th>\n</tr>\n</thead>\n</table>"
  },
  {
   "example": 72,
-  "section": "index.js › should support empty last header cells",
+  "section": "markdown -> html (micromark) › should support empty last header cells",
   "markdown": "|a||\n|-|-|",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n<th></th>\n</tr>\n</thead>\n</table>"
  },
  {
   "example": 73,
-  "section": "index.js › should support empty header cells",
+  "section": "markdown -> html (micromark) › should support empty header cells",
   "markdown": "a||b\n-|-|-",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n<th></th>\n<th>b</th>\n</tr>\n</thead>\n</table>"
  },
  {
   "example": 74,
-  "section": "index.js › should support empty first body cells",
+  "section": "markdown -> html (micromark) › should support empty first body cells",
   "markdown": "|a|b|\n|-|-|\n||c|",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n<th>b</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td></td>\n<td>c</td>\n</tr>\n</tbody>\n</table>"
  },
  {
   "example": 75,
-  "section": "index.js › should support empty last body cells",
+  "section": "markdown -> html (micromark) › should support empty last body cells",
   "markdown": "|a|b|\n|-|-|\n|c||",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n<th>b</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>c</td>\n<td></td>\n</tr>\n</tbody>\n</table>"
  },
  {
   "example": 76,
-  "section": "index.js › should support empty body cells",
+  "section": "markdown -> html (micromark) › should support empty body cells",
   "markdown": "a|b|c\n-|-|-\nd||e",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n<th>b</th>\n<th>c</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>d</td>\n<td></td>\n<td>e</td>\n</tr>\n</tbody>\n</table>"
  },
  {
   "example": 77,
-  "section": "index.js › should support a list after a table",
+  "section": "markdown -> html (micromark) › should support a list after a table",
   "markdown": "| a |\n| - |\n- b",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n</table>\n<ul>\n<li>b</li>\n</ul>"
  },
  {
   "example": 78,
-  "section": "index.js › should not support a lazy delimiter row (1)",
+  "section": "markdown -> html (micromark) › should not support a lazy delimiter row (1)",
   "markdown": "> | a |\n| - |",
   "html": "<blockquote>\n<p>| a |\n| - |</p>\n</blockquote>"
  },
  {
   "example": 79,
-  "section": "index.js › should not support a lazy delimiter row (2)",
+  "section": "markdown -> html (micromark) › should not support a lazy delimiter row (2)",
   "markdown": "> a\n> | b |\n| - |",
   "html": "<blockquote>\n<p>a\n| b |\n| - |</p>\n</blockquote>"
  },
  {
   "example": 80,
-  "section": "index.js › should not support a lazy delimiter row (3)",
+  "section": "markdown -> html (micromark) › should not support a lazy delimiter row (3)",
   "markdown": "| a |\n> | - |",
   "html": "<p>| a |</p>\n<blockquote>\n<p>| - |</p>\n</blockquote>"
  },
  {
   "example": 81,
-  "section": "index.js › should not support a lazy delimiter row (4)",
+  "section": "markdown -> html (micromark) › should not support a lazy delimiter row (4)",
   "markdown": "> a\n> | b |\n|-",
   "html": "<blockquote>\n<p>a\n| b |\n|-</p>\n</blockquote>"
  },
  {
   "example": 82,
-  "section": "index.js › should not support a lazy body row (1)",
+  "section": "markdown -> html (micromark) › should not support a lazy body row (1)",
   "markdown": "> | a |\n> | - |\n| b |",
   "html": "<blockquote>\n<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n</table>\n</blockquote>\n<p>| b |</p>"
  },
  {
   "example": 83,
-  "section": "index.js › should not support a lazy body row (2)",
+  "section": "markdown -> html (micromark) › should not support a lazy body row (2)",
   "markdown": "> a\n> | b |\n> | - |\n| c |",
   "html": "<blockquote>\n<p>a</p>\n<table>\n<thead>\n<tr>\n<th>b</th>\n</tr>\n</thead>\n</table>\n</blockquote>\n<p>| c |</p>"
  },
  {
   "example": 84,
-  "section": "index.js › should not support a lazy body row (3)",
+  "section": "markdown -> html (micromark) › should not support a lazy body row (3)",
   "markdown": "> | A |\n> | - |\n> | 1 |\n| 2 |",
   "html": "<blockquote>\n<table>\n<thead>\n<tr>\n<th>A</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>1</td>\n</tr>\n</tbody>\n</table>\n</blockquote>\n<p>| 2 |</p>"
  },
  {
   "example": 85,
-  "section": "index.js › should not change how lists and lazyness work",
+  "section": "markdown -> html (micromark) › should not change how lists and lazyness work",
   "markdown": "   - d\n    - e",
   "html": ""
  },
  {
   "example": 86,
-  "section": "index.js › should form a table if the delimiter row is indented w/ 3 spaces",
+  "section": "markdown -> html (micromark) › should form a table if the delimiter row is indented w/ 3 spaces",
   "markdown": "| a |\n   | - |",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n</table>"
  },
  {
   "example": 87,
-  "section": "index.js › should not form a table if the delimiter row is indented w/ 4 spaces",
+  "section": "markdown -> html (micromark) › should not form a table if the delimiter row is indented w/ 4 spaces",
   "markdown": "| a |\n    | - |",
   "html": "<p>| a |\n| - |</p>"
  },
  {
   "example": 88,
-  "section": "index.js › should be interrupted by a block quote",
+  "section": "markdown -> html (micromark) › should be interrupted by a block quote",
   "markdown": "| a |\n| - |\n> block quote?",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n</table>\n<blockquote>\n<p>block quote?</p>\n</blockquote>"
  },
  {
   "example": 89,
-  "section": "index.js › should be interrupted by a block quote (empty)",
+  "section": "markdown -> html (micromark) › should be interrupted by a block quote (empty)",
   "markdown": "| a |\n| - |\n>",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n</table>\n<blockquote>\n</blockquote>"
  },
  {
   "example": 90,
-  "section": "index.js › should be interrupted by a list",
+  "section": "markdown -> html (micromark) › should be interrupted by a list",
   "markdown": "| a |\n| - |\n- list?",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n</table>\n<ul>\n<li>list?</li>\n</ul>"
  },
  {
   "example": 91,
-  "section": "index.js › should be interrupted by a list (empty)",
+  "section": "markdown -> html (micromark) › should be interrupted by a list (empty)",
   "markdown": "| a |\n| - |\n-",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n</table>\n<ul>\n<li></li>\n</ul>"
  },
  {
   "example": 92,
-  "section": "index.js › should be interrupted by HTML (flow)",
+  "section": "markdown -> html (micromark) › should be interrupted by HTML (flow)",
   "markdown": "| a |\n| - |\n<!-- HTML? -->",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n</table>\n<!-- HTML? -->"
  },
  {
   "example": 93,
-  "section": "index.js › should be interrupted by code (indented)",
+  "section": "markdown -> html (micromark) › should be interrupted by code (indented)",
   "markdown": "| a |\n| - |\n\tcode?",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n</table>\n<pre><code>code?\n</code></pre>"
  },
  {
   "example": 94,
-  "section": "index.js › should be interrupted by code (fenced)",
+  "section": "markdown -> html (micromark) › should be interrupted by code (fenced)",
   "markdown": "| a |\n| - |\n```js\ncode?",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n</table>\n<pre><code class=\"language-js\">code?\n</code></pre>\n"
  },
  {
   "example": 95,
-  "section": "index.js › should be interrupted by a thematic break",
+  "section": "markdown -> html (micromark) › should be interrupted by a thematic break",
   "markdown": "| a |\n| - |\n***",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n</table>\n<hr />"
  },
  {
   "example": 96,
-  "section": "index.js › should be interrupted by a heading (ATX)",
+  "section": "markdown -> html (micromark) › should be interrupted by a heading (ATX)",
   "markdown": "| a |\n| - |\n# heading?",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n</table>\n<h1>heading?</h1>"
  },
  {
   "example": 97,
-  "section": "index.js › should *not* be interrupted by a heading (setext)",
+  "section": "markdown -> html (micromark) › should *not* be interrupted by a heading (setext)",
   "markdown": "| a |\n| - |\nheading\n=",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>heading</td>\n</tr>\n<tr>\n<td>=</td>\n</tr>\n</tbody>\n</table>"
  },
  {
   "example": 98,
-  "section": "index.js › should *not* be interrupted by a heading (setext), but interrupt if the underline is also a thematic break",
+  "section": "markdown -> html (micromark) › should *not* be interrupted by a heading (setext), but interrupt if the underline is also a thematic break",
   "markdown": "| a |\n| - |\nheading\n---",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>heading</td>\n</tr>\n</tbody>\n</table>\n<hr />"
  },
  {
   "example": 99,
-  "section": "index.js › should *not* be interrupted by a heading (setext), but interrupt if the underline is also an empty list item bullet",
+  "section": "markdown -> html (micromark) › should *not* be interrupted by a heading (setext), but interrupt if the underline is also an empty list item bullet",
   "markdown": "| a |\n| - |\nheading\n-",
   "html": "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>heading</td>\n</tr>\n</tbody>\n</table>\n<ul>\n<li></li>\n</ul>"
  }

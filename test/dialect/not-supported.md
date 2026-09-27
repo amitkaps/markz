@@ -255,6 +255,16 @@ go </docs/intro>
 &nbsp;
 ```
 
+In an attribute value too, the reference stays as written.
+
+```example
+:abbr[x]{title="a&apos;b"}
+.
+<p><abbr title="a&amp;apos;b">x</abbr></p>
+.
+&apos;
+```
+
 ## trailing-spaces
 
 ```example

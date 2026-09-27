@@ -6,6 +6,7 @@
  * table. The parser fills a `Builder`, which hands over a `Document` once and is done: there is no
  * mutation API, so offsets can never drift from the source they point into (spec: AST).
  */
+import { NAMED } from './chars';
 import { WARNINGS, type WarningCode } from './warnings';
 
 /** @prose
@@ -293,8 +294,15 @@ export class Builder {
 		this.#data[node] = data;
 	}
 
+	/** Named character references in the values stay as written, and are reported, as elsewhere. */
 	setAttributes(node: NodeId, attributes: Attributes): void {
 		this.#attributes[node] = attributes;
+		for (const item of attributes.items) {
+			for (const m of this.#source.slice(item.start, item.end).matchAll(NAMED)) {
+				const at = item.start + m.index;
+				this.warn('named-reference', at, at + m[0].length, `named character reference \`${m[0]}\``);
+			}
+		}
 	}
 
 	/** A warning by its code; the message defaults to the code's, and `instead` is always its. */

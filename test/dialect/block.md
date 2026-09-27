@@ -319,6 +319,17 @@ y
 {.y}
 ```
 
+An empty label writes no label element.
+
+```example
+:::note[]
+x
+:::
+.
+<div class="note"><p>x</p>
+</div>
+```
+
 ## attributes
 
 ```example
