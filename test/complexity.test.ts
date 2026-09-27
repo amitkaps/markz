@@ -12,8 +12,8 @@
  */
 import { describe, expect, it } from 'vite-plus/test';
 import { html, parse } from '../src/index';
-import { examples } from './examples';
-import { PATTERNS } from './fuzz/adversarial';
+import { examples } from './harness/examples';
+import { PATTERNS } from './harness/adversarial';
 
 const time = (input: string): number => {
 	let best = Infinity;

@@ -2,7 +2,7 @@
  * # One construct at a time
  *
  * Where markz's time goes, by construct. Each document is one construct over and over: the cases
- * `test/cases.ts` writes from the grammar that markz reads cleanly, each where its reading puts it
+ * `test/harness/cases.ts` writes from the grammar that markz reads cleanly, each where its reading puts it
  * (a block on its own, an inline construct between words), joined by blank lines to about 200 KB.
  * markz's structured parse is timed on each, and markdown-exit's beside it for the constructs
  * CommonMark and GFM define, which it reads too. The corpus benchmarks say how fast markz is on
@@ -12,8 +12,8 @@
  * Metadata is left out, since a document holds only one block of it.
  */
 import { test, type BenchRegistration } from 'vite-plus/test';
-import { judge, reading, valid } from '../test/cases.ts';
-import { CONSTRUCTS } from '../test/grammar.ts';
+import { judge, reading, valid } from '../test/harness/cases.ts';
+import { CONSTRUCTS } from '../test/harness/grammar.ts';
 import { load } from './parsers.ts';
 
 const SIZE = 200_000;

@@ -3,10 +3,13 @@
 	 * # Conformance
 	 *
 	 * The test suite, laid out as `syntax.md` is: Metadata, Block, Inline and Not supported, each
-	 * listing its constructs (or rows), and each construct opening to its examples. A summary card
-	 * comes first, then a search that narrows every construct at once. An example shows its
-	 * status with what backs it (`match oracle`, `warn setext-heading`), and opens to its Markdown,
-	 * what markz is held to, markz's output, where they first differ, and the warnings.
+	 * listing its constructs (or rows), and each construct opening to its edges and its examples.
+	 * A summary card comes first, then a search that narrows every construct at once. A construct's
+	 * edges are how many cases generated from the grammar reached valid, boundary and near miss, and
+	 * its hand-written ambiguous and unclosed examples, or why it can't have one. An example shows
+	 * its status with what backs it (`match oracle`, `warn setext-heading`), its source, and for
+	 * markz's own the edge it tries, and opens to its Markdown, what markz is held to, markz's
+	 * output, where they first differ, and the warnings.
 	 *
 	 * Correctness comes first, then performance and size from the published benchmark, which link to
 	 * the Performance page for the rest. Robustness, a real-world corpus, formatter agreement and
@@ -50,7 +53,9 @@
 						? String(r.number) === number
 						: r.markdown.toLowerCase().includes(q) ||
 							r.detail.toLowerCase().includes(q) ||
-							r.codes.includes(q)))
+							r.codes.includes(q) ||
+							r.category === q ||
+							r.rule === q))
 		);
 	});
 	const totals = $derived(tally(rows));
@@ -148,6 +153,25 @@
 	{/each}
 {/snippet}
 
+{#snippet edges(e: (typeof data.edges)[string], all: Row[])}
+	<div class="edges">
+		<p>
+			Generated from the grammar: <b>{e.valid}</b> valid, <b>{e.boundary}</b> boundary and
+			<b>{e['near-miss']}</b> near misses{#if e.unsettled}, <span class="fail-n"
+					>{e.unsettled} unsettled</span
+				>{/if}.
+		</p>
+		<p>
+			Written by hand:
+			{#each ['ambiguous', 'unclosed'] as const as k, i (k)}
+				{#if i}·{/if}
+				{#if e.none[k]}no {k}: <span class="why">{e.none[k]}</span>
+				{:else}<b>{all.filter((r) => r.category === k).length}</b> {k}{/if}
+			{/each}
+		</p>
+	</div>
+{/snippet}
+
 {#snippet example(r: Row)}
 	<details class="ex {r.status}">
 		<summary>
@@ -157,6 +181,9 @@
 				{#if r.detail}<code class="detail">{r.detail}</code>{/if}</span
 			>
 			<span class="suite">{r.source}</span>
+			{#if r.category}<span class="edge"
+					>{r.category}{#if r.rule}&nbsp;· {r.rule}{/if}</span
+				>{/if}
 			<span class="preview">{r.markdown.replace(/\n/g, '⏎ ')}</span>
 		</summary>
 		<div class="body">
@@ -341,6 +368,7 @@
 					{#if open}
 						{@const limit = opened[c.name] ?? PAGE}
 						<div class="list">
+							{#if data.edges[c.name]}{@render edges(data.edges[c.name]!, c.all)}{/if}
 							{#each c.shown.slice(0, limit) as r (r.id)}
 								{@render example(r)}
 							{:else}
@@ -670,6 +698,25 @@
 	}
 	.name .suite {
 		margin-left: 0.4rem;
+	}
+	.edge {
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		padding: 0 0.4rem;
+		border: 1px solid var(--border);
+		border-radius: 999px;
+	}
+	.edges {
+		font-size: 0.85rem;
+		color: var(--text-muted);
+		padding: 0.25rem 0.25rem 0.4rem;
+	}
+	.edges p {
+		margin: 0.15rem 0;
+	}
+	.edges b {
+		color: var(--text);
+		font-variant-numeric: tabular-nums;
 	}
 	.preview {
 		flex: 1 1 12rem;

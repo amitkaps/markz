@@ -1,7 +1,7 @@
 # upstream
 
 Vendored upstream examples, read-only inputs to the oracle harness, one file per suite in the
-fence format [`fences.ts`](../../fences.ts) reads. Each file's metadata names the suite's source
+fence format [`fences.ts`](../../harness/fences.ts) reads. Each file's metadata names the suite's source
 at its pinned commit and what its examples are checked by: `oracle` (micromark), `yaml`, `slug`
 or `math`. Examples keep the suite's own numbers, as `commonmark:42`. The expected output in them
 is each suite's own; markz is compared with its oracle, not with it, and the oracle is checked

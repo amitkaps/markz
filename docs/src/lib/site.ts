@@ -11,6 +11,16 @@ export const STATUSES: Status[] = ['match', 'warn', 'differ', 'fail'];
 export type Part = 'Metadata' | 'Block' | 'Inline' | 'Not supported';
 export const PARTS: Part[] = ['Metadata', 'Block', 'Inline', 'Not supported'];
 
+/** A construct's generated edges, from the grammar, and why it has no hand-written one it can't have. */
+export interface Edges {
+	valid: number;
+	boundary: number;
+	'near-miss': number;
+	/** Cases markz and the grammar read differently that nothing settles; the tests hold it at 0. */
+	unsettled: number;
+	none: Partial<Record<'ambiguous' | 'unclosed', string>>;
+}
+
 export interface Row {
 	/** The upstream suite (`commonmark`, `gfm`, `gfm-table`, …), or `markz` for its own examples. */
 	source: string;
@@ -25,6 +35,9 @@ export interface Row {
 	upstream: string | null;
 	/** How it is checked: `oracle`, `differ`, `not supported` or `expected`. */
 	kind: string;
+	/** For markz's own: the edge it tries, and for an ambiguous one the side rule that settles it. */
+	category: string | null;
+	rule: string | null;
 	markdown: string;
 	status: Status;
 	/** What it matched, the codes it warned with, or why it fails. */

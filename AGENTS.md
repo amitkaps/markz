@@ -8,14 +8,14 @@ Read **`prose/spec.md`** first — it is the design for markz.
 - markz is one package: parser, AST utilities and `html()`. The dialect is `prose/syntax.md`. No framework renderers, no parser options, no
   unified/remark dependencies, and a 20 KB gzip budget (`prose/spec.md#performance-and-size`).
 - `syntax.md` explains the dialect and `prose/grammar.md` states it, with a stable id per
-  construct (`{#id}` above its heading); `test/grammar.ts` reads it with markz. Each construct names its origin: CommonMark, GFM, directives,
+  construct (`{#id}` above its heading); `test/harness/grammar.ts` reads it with markz. Each construct names its origin: CommonMark, GFM, directives,
   djot, or markz's own. micromark is only the oracle for the constructs marked "As CommonMark" or
   "As GFM"; don't let "same as GFM" leak past them. Every example is filed under a construct id
-  or a Not supported row's warning code (`test/examples.ts`). When
+  or a Not supported row's warning code (`test/harness/examples.ts`). When
   the oracle disagrees with `syntax.md`, file the example as `differ` under the construct whose
   rule explains it, rather than bending the parser. markz's own examples go in
   `test/examples/markz/<id>.md`, each numbered in its fence with the next unused `markz:N`.
-- `test/cases.ts` holds every construct to its edges with the grammar as the judge. When it and
+- `test/harness/cases.ts` holds every construct to its edges with the grammar as the judge. When it and
   markz read a case differently, fix whichever is wrong, or name the side rule that decides it
   and give that rule a test as narrow as its text. Never widen a settle test to quiet a failure.
 - `docs/` is the site (markz.amitkaps.com): a private workspace package, trimmed from base, that

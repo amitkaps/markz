@@ -13,11 +13,11 @@
  * an unclosed construct ends) is written by hand, as dialect examples filed with their category.
  */
 import fc from 'fast-check';
-import { parse, textContent, type Document, type NodeId, type NodeType } from '../src/index';
+import { parse, textContent, type Document, type NodeId, type NodeType } from '../../src/index';
 import { productions, recognizer, type Expr } from './ebnf';
 import { CONSTRUCTS, DOCUMENT, PRODUCTIONS } from './grammar';
 import { row } from './syntax';
-import { grammarDocument } from './fuzz/generate';
+import { grammarDocument } from './generate';
 
 /** @prose
  * ## Reading a case
@@ -447,6 +447,36 @@ export function valid(id: string, count: number, seed: number): string[] {
 		numRuns: count,
 		seed
 	});
+}
+
+/** @prose
+ * A construct's search: its valid cases and their neighbours, counted by the edge each reached,
+ * with every case markz and the grammar read differently that nothing settles. The test holds
+ * the counts above zero and the unsettled list empty, and the Conformance page shows the counts.
+ */
+export interface Reached {
+	valid: number;
+	boundary: number;
+	'near-miss': number;
+	unsettled: string[];
+}
+
+export function edges(id: string, runs: number, seed: number): Reached {
+	const reached: Reached = { valid: 0, boundary: 0, 'near-miss': 0, unsettled: [] };
+	for (const s of valid(id, runs, seed)) {
+		const v = judge(id, s);
+		if (v.agree && v.accepted) reached.valid++;
+		else if (!v.agree && !v.settled) reached.unsettled.push(`valid ${JSON.stringify(s)}`);
+		for (const n of neighbours(id, s)) {
+			const w = judge(id, n);
+			if (w.agree) reached[w.accepted ? 'boundary' : 'near-miss']++;
+			else if (!w.settled) {
+				const side = w.grammar ? 'grammar accepts' : 'markz reads';
+				reached.unsettled.push(`only ${side} ${JSON.stringify(n)}`);
+			}
+		}
+	}
+	return reached;
 }
 
 export const constructIds = CONSTRUCTS.map((c) => c.id);

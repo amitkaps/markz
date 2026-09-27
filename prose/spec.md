@@ -431,7 +431,7 @@ used, and how its tree is built. The unified/remark ecosystem stays out of markz
 - **Every construct at its edges:** cases written from a construct's productions, and every
   one-character edit of them, must be read by markz exactly when the grammar accepts them, with
   the node their delimiters decide. Where the two part, a Not supported warning or a named side
-  rule must say why (`test/cases.ts`). Each construct also has a hand-written ambiguous and
+  rule must say why (`test/harness/cases.ts`). Each construct also has a hand-written ambiguous and
   unclosed example, or a reason it can't.
 - **Differential against micromark + GFM:** every CommonMark and GFM spec example in a shared
   construct must give identical `html()` output, compared with smart punctuation normalized back
