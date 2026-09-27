@@ -5,7 +5,7 @@
  * commit its README pins: a micromark extension's, or the yaml-test-suite (below). What markz is held to is the input: every example is compared with
  * markz's oracle, not with the HTML the suite expected, so a test that only configures the HTML
  * side (a directive handler, `allowDangerousHtml`) keeps its input. A test whose options change the
- * syntax (`disable`, `singleTilde`) is dropped, as is anything whose input isn't a literal.
+ * syntax (`disable`, `singleTilde`, a frontmatter preset or custom matter) is dropped, as is anything whose input isn't a literal.
  *
  * `node scripts/vendor.ts gfm-table ../micromark-extension-gfm-table` writes
  * `test/spec/gfm-table.json` and prints what it kept and dropped.
@@ -29,7 +29,7 @@ export interface Vendored {
 }
 
 /** Options that change what micromark parses, so the suite's input no longer means the same. */
-const SYNTAX_OPTIONS = /\bdisable\b|singleTilde/;
+const SYNTAX_OPTIONS = /\bdisable\b|singleTilde|frontmatter\([^)]/;
 
 /** @prose
  * ## Fixtures

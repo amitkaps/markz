@@ -179,13 +179,20 @@ and markz has no 32-level bracket limit. Of micromark's wider attribute syntax, 
 bare keys for HTML's boolean attributes (`:::details{open}`), and a `{…}` after a directive, link
 or image that doesn't parse now warns `attribute-syntax` rather than staying silent text.
 
-**YAML — done.** The yaml-test-suite's tests, each between `---` fences and held to the `yaml`
-package key by key: a key markz keeps must have YAML's value, and a block YAML rejects must warn.
-Kept to what `yaml` reads as a mapping or rejects, without document markers: 159 of the 406 tests and variants. None
-failed. Of those, 9 are accepted clean, 58 accepted with warnings (20 of them invalid YAML), and
-92 aren't metadata in markz, mostly flow mappings, `?` keys, anchors and tags. A few are
-ordinary frontmatter with a key markz doesn't allow (`plain key: value`, `"title": x`); those
-read as Markdown, and the closing `---` warns `setext-heading`.
+**YAML and frontmatter — done.** Two suites, one per half of the metadata rule. The
+yaml-test-suite tests the values: each test's YAML between `---` fences, held to the `yaml`
+package key by key, so a key markz keeps must have YAML's value and a block YAML rejects must warn.
+It is kept to what `yaml` reads as a mapping or rejects, without document markers: 159 of the 406
+tests and variants. micromark-extension-frontmatter's tests (18) test the block, and the extension
+joined the oracle, so every example checks that markz finds the same block micromark does.
+
+They changed the rule. A closed `---` block at offset 0 is now metadata whatever it holds, as
+micromark and GitHub read it, and a line markz can't read is a warning; before, one such line made
+the whole block Markdown. An unclosed block stays a rule and Markdown, as everywhere but
+gray-matter, and warns `metadata-unclosed` when it looks like metadata. The suites found one bug:
+a key whose value continued on later lines (`one:` over `- 2`, or an open `{`) was kept as `null`;
+it is now skipped with the lines that continue it. All 159 YAML tests are now read as metadata:
+9 clean, 98 valid YAML with warnings, and 52 invalid YAML, all warned.
 
 ### 13. The site by the dialect
 

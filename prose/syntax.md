@@ -36,11 +36,13 @@ of Not supported, keyed by its warning code.
 **markz.** Kept to what YAML 1.2, GitHub and formatters read the same way.
 
 A document can open with a metadata block: key/value pairs between `---` lines, starting at
-offset 0 (what other tools call frontmatter). It is a metadata block only when a closing `---`
-line follows, every line between looks like metadata (`key:`, a comment, an indented line or a
-blank line), and at least one is a `key:` line. Otherwise the first `---` is a thematic break, so
-a document that opens with a rule keeps its content. markz parses it into `doc.metadata`, a flat
-object, and keeps the block's range.
+offset 0 (what other tools call frontmatter). Opening a document with `---` asks for metadata:
+when a closing `---` line follows, everything between is the block, as micromark-extension-frontmatter
+and GitHub read it, and a line the rule below can't read is a warning rather than a reason to read
+the block as Markdown. So a document can't open with a thematic break. Without a closing line, the
+first `---` is a thematic break, and if the next line is a `key:` line it gets the warning
+`metadata-unclosed`. markz parses the block into `doc.metadata`, a flat object, and keeps its
+range.
 
 The rule is JSON-like, with quotes optional: one `key: value` per line, where a value that doesn't
 look like anything else is a string as written.
@@ -83,7 +85,9 @@ tags: [svelte, vite]
   quote it.
 - **Everything else in YAML is out:** indented lines (nested maps, `- item` lists, multi-line
   strings), `|` and `>`, `{a: b}`, anchors, aliases and tags. Each gets a warning
-  (`metadata-indented`, `metadata-line` or `metadata-value`), and its key is skipped. Of two
+  (`metadata-indented`, `metadata-line` or `metadata-value`), and its key is skipped. A line that
+  isn't a key line belongs to the value before it (`tags:` over `- a`), so that key is skipped too,
+  and so are the lines inside brackets a rejected line leaves open. Of two
   duplicate keys, the first wins and the second gets the warning `metadata-duplicate-key`.
 
 markz is not a YAML parser. The `yaml` package is its dev-only test oracle, as micromark is for

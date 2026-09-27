@@ -54,6 +54,7 @@ export const WARNINGS = {
 		'text after `-->` is part of the comment',
 		'end the comment on a line of its own'
 	],
+	'metadata-unclosed': ['metadata block with no closing `---`', 'a `---` line after the metadata'],
 	'metadata-indented': [
 		'indented metadata line: nested values, lists and multi-line strings are not supported',
 		'a one-line value, or a `[a, b]` list'

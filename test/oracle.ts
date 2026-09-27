@@ -1,8 +1,9 @@
 /** @prose
  * # Oracle
  *
- * The reference markz's `html()` is held to: micromark with GFM and directives, which are
- * well-tested and dev-only (spec: Testing). Two settings make it render what markz should, not
+ * The reference markz's `html()` is held to: micromark with GFM, directives and YAML frontmatter,
+ * which are well-tested and dev-only (spec: Testing). Frontmatter writes nothing, as metadata
+ * doesn't in `html()`, so every example checks that markz finds the same block. Two settings make it render what markz should, not
  * what micromark's own policy would:
  *
  * - `allowDangerousProtocol`: micromark blanks any URL outside its scheme allowlist, and markz
@@ -23,6 +24,7 @@
 import { micromark, parse, postprocess, preprocess } from 'micromark';
 import { gfm, gfmHtml } from 'micromark-extension-gfm';
 import { directive, directiveHtml, type Handle } from 'micromark-extension-directive';
+import { frontmatter, frontmatterHtml } from 'micromark-extension-frontmatter';
 import YAML from 'yaml';
 
 const ELEMENTS = new Set(['sup', 'sub', 'ins', 'mark', 'kbd', 'abbr']);
@@ -49,12 +51,12 @@ const shape: Handle = function (d) {
 	return true;
 };
 
-const extensions = [gfm(), directive()];
+const extensions = [gfm(), directive(), frontmatter()];
 
 export function reference(markdown: string): string {
 	return micromark(markdown, {
 		extensions,
-		htmlExtensions: [gfmHtml(), directiveHtml({ '*': shape })],
+		htmlExtensions: [gfmHtml(), directiveHtml({ '*': shape }), frontmatterHtml()],
 		allowDangerousProtocol: true
 	});
 }

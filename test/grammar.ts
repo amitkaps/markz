@@ -113,7 +113,9 @@ export const CONSTRUCTS: Construct[] = [
 		`,
 		rules: {
 			'metadata-start':
-				'Only at offset 0, and only when a closing `---` follows and at least one line is a `key:` line. Otherwise the first `---` is a thematic break.',
+				'Only at offset 0, and only when a closing `---` follows; whatever is between is metadata, and a line this grammar does not match is a warning. Without the closing line the first `---` is a thematic break.',
+			'metadata-continuation':
+				'A line that is not a key line belongs to the value before it, which is skipped; lines inside brackets a rejected line left open are skipped too.',
 			'metadata-keys': 'A key appears once.',
 			'plain-value':
 				'A plain value contains no `: ` and is not one YAML 1.2 reads as another type (`True`, `~`, `0x1F`, `.5`, `1e3`).',

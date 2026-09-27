@@ -18,6 +18,9 @@ tags: [svelte, vite]
 <h1 id="report">Report</h1>
 ```
 
+A closed block at the start is metadata whatever it holds, so a page can't open with a rule.
+Lines it can't read are reported, but a `#` line is a YAML comment.
+
 ```example
 ---
 
@@ -25,10 +28,22 @@ tags: [svelte, vite]
 
 ---
 .
-<hr />
-<h2 id="foo">foo</h2>
-<hr />
+
 ```
+
+```example
+---
+hello
+title: x
+---
+# Doc
+.
+<h1 id="doc">Doc</h1>
+.
+hello
+```
+
+Without a closing line, the first is a rule, reported when the block looks like metadata.
 
 ```example
 ---
@@ -36,6 +51,8 @@ title: x
 .
 <hr />
 <p>title: x</p>
+.
+---
 ```
 
 ```example

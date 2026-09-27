@@ -26,6 +26,7 @@ import notSupported from './dialect/not-supported.md?raw';
 import { metadataOracle, normalize, reference, tokens, type Token } from './oracle';
 import commonmark from './spec/commonmark.json' with { type: 'json' };
 import directive from './spec/directive.json' with { type: 'json' };
+import frontmatter from './spec/frontmatter.json' with { type: 'json' };
 import yamlSuite from './spec/yaml.json' with { type: 'json' };
 import gfmStrikethrough from './spec/gfm-strikethrough.json' with { type: 'json' };
 import gfmTable from './spec/gfm-table.json' with { type: 'json' };
@@ -38,6 +39,7 @@ export type Upstream =
 	| 'gfm-table'
 	| 'gfm-strikethrough'
 	| 'directive'
+	| 'frontmatter'
 	| 'yaml';
 export type Source = Upstream | 'markz';
 export type Kind = 'oracle' | 'differs' | 'not supported' | 'expected';
@@ -111,6 +113,7 @@ export const sections: Record<string, string> = {
 	'directive:micromark-extension-directive (syntax, container)': 'directive',
 	'directive:micromark-extension-directive (compile)': DIRECTIVE,
 	'directive:content': DIRECTIVE,
+	frontmatter: 'metadata',
 	yaml: 'metadata'
 };
 
@@ -148,6 +151,8 @@ export const listed: Record<string, string> = {
 	),
 	...Object.fromEntries([78, 79, 81, 85].map((n) => [`gfm-table:${n}`, 'lazy-line'])),
 	'gfm-table:58': 'escape',
+	// Content after the block: a `***` rule and indented code, both cut.
+	'frontmatter:4': 'rule-marker',
 	// micromark's attribute syntax is wider than markz's one line of `#id .class key=value key`:
 	// single quotes, spaces around `=`, `.a.b` with no space, braces across lines, and keys outside
 	// ASCII or starting with `_`. markz's is looser in one place: any character but a space, brace,
@@ -183,7 +188,8 @@ export const oracleDiffers: Record<string, string> = {
 	'gfm:280': 'cmark-gfm orders task-item input attributes differently and omits the void slash',
 	'gfm-table:58':
 		'GitHub reads an escaped backslash before a pipe as escaping the pipe (cmark-gfm#277)',
-	'yaml:18': '`yaml` reads `!!binary` as bytes, where the suite writes the base64 string'
+	'yaml:18': '`yaml` reads `!!binary` as bytes, where the suite writes the base64 string',
+	'commonmark:98': 'the oracle reads the opening `---` block as frontmatter, as markz does'
 };
 
 /** @prose
@@ -311,6 +317,7 @@ export const examples: Example[] = [
 	...gfmTable.map((e) => upstreamExample('gfm-table', e)),
 	...gfmStrikethrough.map((e) => upstreamExample('gfm-strikethrough', e)),
 	...directive.map((e) => upstreamExample('directive', e)),
+	...frontmatter.map((e) => upstreamExample('frontmatter', e)),
 	...yamlSuite.map((e) => upstreamExample('yaml', e)),
 	...dialect('metadata', metadata),
 	...dialect('block', block),
