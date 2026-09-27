@@ -15,6 +15,7 @@
 import { type Attributes, type Builder, type NodeId, type Range, type Align } from './ast';
 import { bareOnly, braceEnd, parseAttributes } from './attributes';
 import { isSpace, NAMED, unescape } from './chars';
+import { element, labelled } from './elements';
 import { inline } from './inline';
 import { parseMetadata } from './metadata';
 import { type WarningCode } from './warnings';
@@ -585,9 +586,11 @@ class BlockParser {
 	 * ## Directives
 	 *
 	 * `::name[label]{…}` is a leaf and `:::name[label]{…}` opens a container, each on a line of its
-	 * own. The name starts with a letter. A leaf's label is inline content; a container's is plain
-	 * text with escapes decoded. A line that doesn't fit is paragraph text, with no warning,
-	 * since `::` in prose isn't a construct.
+	 * own. The name is the element it writes, a block element or a custom element; any other name
+	 * leaves the line as paragraph text and is reported. A leaf's label is inline content; a
+	 * container's is plain text with escapes decoded, reported on a block with no place for it. A
+	 * line that doesn't fit the shape is paragraph text, with no warning, since `::` in prose isn't
+	 * a construct.
 	 */
 	directive(at: number, end: number): boolean {
 		const { src } = this;
@@ -616,6 +619,13 @@ class BlockParser {
 			i = own.end;
 		}
 		if (i !== end) return false;
+		if (!element(name, false)) {
+			this.report('directive-name', at, end, `\`${name}\` is not an element name`);
+			return false;
+		}
+		if (colons > 2 && label && label.end > label.start && !labelled(name)) {
+			this.report('directive-label', label.start - 1, label.end + 1, `\`${name}\` takes no label`);
+		}
 
 		const pending = this.enter(false);
 		const attributes = merge(pending, own);

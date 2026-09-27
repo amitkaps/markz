@@ -121,6 +121,68 @@ ___
 {#id}
 ```
 
+## directive-name
+
+A name that isn't an element leaves the whole directive as text, nothing in it read as other
+syntax.
+
+```example
+::chart[Sales]{type=bar}
+.
+<p>::chart[Sales]{type=bar}</p>
+.
+::chart[Sales]{type=bar}
+```
+
+For a container, only the fence lines are text; the body is still Markdown.
+
+```example
+:::note
+- a _b_
+:::
+.
+<p>:::note</p>
+<ul>
+<li>a <em>b</em></li>
+</ul>
+<p>:::</p>
+.
+:::note
+```
+
+```example
+A :note[**x**]{.y} here
+.
+<p>A :note[**x**]{.y} here</p>
+.
+:note[**x**]{.y}
+```
+
+Elements Markdown already writes, and anything that could run code, aren't names.
+
+```example
+:em[x] and :script[x]
+.
+<p>:em[x] and :script[x]</p>
+.
+:em[x]
+:script[x]
+```
+
+Inline and block elements don't mix.
+
+```example
+:div[x] and
+
+::span[y]
+.
+<p>:div[x] and</p>
+<p>::span[y]</p>
+.
+:div[x]
+::span[y]
+```
+
 ## multiline-attributes
 
 ```example

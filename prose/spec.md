@@ -341,9 +341,10 @@ string and never touches the DOM.
 - **Math, expressions and directives** are written in the shapes [`syntax.md`](syntax.md)
   gives for each.
 
-Framework output is not part of markz. Svelte, React and custom-element rendering are each a
-consumer's own fold over the AST. visdown's Svelte codegen is the first of those, and it maps
-directive names to its components.
+Framework output is not part of markz. A directive's name is the element `html()` writes, custom
+elements included, but Svelte and React rendering are each a consumer's own fold over the AST.
+visdown's Svelte codegen is the first of those, and it maps directive names to its components
+(`chart-view` to `ChartView`).
 
 ## Security
 

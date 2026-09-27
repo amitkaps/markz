@@ -15,6 +15,7 @@
 import { type Attributes, type Builder, type NodeData, type NodeType, type Range } from './ast';
 import { bareOnly, braceEnd, parseAttributes } from './attributes';
 import { NAMED, unescape } from './chars';
+import { element } from './elements';
 import { scanExpression } from './expression';
 import { type WarningCode } from './warnings';
 
@@ -730,17 +731,22 @@ class InlinePass {
 	 *
 	 * `:name[label]`, `:name{…}` or both, as in micromark-extension-directive: not straight after
 	 * another `:`, and with a label or attributes, so a colon in prose is never a directive. The
-	 * label's brackets balance, and it is scanned as inline content of its own.
+	 * label's brackets balance, and it is scanned as inline content of its own. The name is the
+	 * element it writes, an inline element or a custom element. Any other name is reported and the
+	 * whole `:name[…]{…}` stays text, nothing in it read as other syntax, as does a `::name[…]` in
+	 * a line: the block pass reported it if it was a line of its own.
 	 */
 	directiveEnd = 0;
 
 	directive(list: List, t: number, to: number): boolean {
 		const { text } = this;
 		if (text[t - 1] === ':') return false;
-		NAME.lastIndex = t + 1;
+		let n = t;
+		while (text[n] === ':') n++;
+		NAME.lastIndex = n;
 		const m = NAME.exec(text);
 		if (!m) return false;
-		let j = t + 1 + m[0].length;
+		let j = n + m[0].length;
 		let label: [number, number] | null = null;
 		if (text[j] === '[') {
 			let depth = 0;
@@ -759,9 +765,16 @@ class InlinePass {
 			const lineEnd = this.lines[this.line(j)]!.end;
 			attributes = parseAttributes(this.src, this.at(j), lineEnd);
 			if (attributes) j += attributes.end - attributes.start;
-			else this.attributeSyntax(j, lineEnd);
+			else if (n === t + 1) this.attributeSyntax(j, lineEnd);
 		}
 		if (!label && !attributes) return false;
+		// A leaf or container shape in a line, or a name that isn't an inline element, is text.
+		if (n > t + 1 || !element(m[0], true)) {
+			if (n === t + 1) this.report('directive-name', t, j, `\`${m[0]}\` is not an element name`);
+			this.plain(list, t, j);
+			this.directiveEnd = j;
+			return true;
+		}
 		const data: NodeData['directive'] = {
 			kind: 'text',
 			name: m[0],

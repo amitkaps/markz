@@ -263,38 +263,29 @@ in place to its examples, failures first, and `#construct-id` links open one. On
 the Markdown and the warning codes, narrows every construct at once, and the status cards filter.
 An example with metadata shows what markz read. Correctness is the only card until steps 16 and 17.
 
-### 14. Directive names are element names
+### 14. Directive names are element names — done
 
-The decision in [`directive.md`](directive.md), built: a directive's name is the element it
-writes, an HTML element on its kind's allowlist or a custom-element name, and any other name is
-text with a warning. The name stops being a class.
+The decision in [`directive.md`](directive.md), built. A directive's name is the element it
+writes: an HTML element on its kind's allowlist ([`src/elements.ts`](../src/elements.ts)) or a
+custom-element name. The name is no longer a class, and classes come only from `{…}`.
 
-- **Parser.** A name check for text directives in `src/inline.ts` and for leaf and container
-  directives in `src/block.ts`, against the two allowlists and the custom-element pattern (less
-  the reserved names). A failed name leaves the whole `:name[…]{…}` as literal text, nothing in it
-  read as other syntax; for a container, only the two fence lines. The container label check
-  warns on a block that takes no label (anything but `details`, `figure` and custom elements).
-- **Warnings.** Two codes in `src/warnings.ts`, one for the name and one for the label, each
-  saying what to write instead (`::div{.chart}` or `::chart-view`; a heading inside).
-- **`html()`.** Writes the name as the tag, with no name class. `details` puts its label in
-  `<summary>` and `figure` in `<figcaption>`; a custom element keeps today's `directive-label`;
-  other blocks don't write it. A bare key is written as `dismissible`, not `dismissible=""`
-  (today `:span[x]{dismissible}` writes `<span class="span" dismissible="">`). The refusal of
-  `script`, `iframe` and `style` stays as a second line.
-- **Dialect and grammar.** `syntax.md`'s Directives and Text directives sections say the rule,
-  with the allowlists, and its Pending decisions entry goes. `test/grammar.ts`'s `directive` and
-  `text-directive` productions take the name rule, with a rule for each warning, and the two codes
-  get Not supported rows.
-- **Tests.** Dialect examples in `test/dialect/` for each allowlist kind, custom elements, a bad
-  name in each form (text, leaf, container with a Markdown body), `:em[x]`, `:script[x]`, the
-  labels (`details`, `figure`, a custom element, `section`) and a bare boolean key. The oracle's
-  `shape` handler in `test/oracle.ts` writes the name as the tag. The vendored directive suite
-  mostly uses one-letter names (`:a[b]`), so most of its examples become `warn`; file them by the
-  new codes rather than rewriting them, and keep the ones about fences, labels and attributes
-  checking what they check, with a valid name where the rule needs one.
-- **Migration.** `:sup`, `:sub`, `:ins` and `:abbr` stay valid. The site's `:::video-container`
-  becomes `:::div{.video-container}`, since its CSS targets the class.
-- **Size.** Two lists and a pattern; check the bundle stays well under budget.
+- **Parser.** The block pass checks leaf and container names and the inline pass text-directive
+  names. A bad name is `directive-name` (a Not supported row) and leaves the whole `:name[…]{…}`
+  as text; for a container, only the fence lines. A `::name[…]` inside a line is text with no
+  report. A container label on a block with no place for it is `directive-label`.
+- **`html()`.** The name is the tag, and a hand-built document's name off the allowlists falls
+  back to `div` or `span`. `details` takes its label as `<summary>`, `figure` as `<figcaption>`,
+  and a custom element keeps the `directive-label` div. A bare key is written bare, so
+  `{open}` gives `open`, not `open=""`.
+- **Tests.** The grammar builds its `block-element` and `inline-element` alternatives from the
+  same lists. The vendored directive suite names its directives `a` and `youtube`; the harness
+  maps a plain word that isn't an element to a custom one (`x-a`), so its fence, label and
+  attribute tests are still compared with micromark (129 match, as before). The oracle writes the
+  same shapes, and normalization drops an empty attribute value, since micromark can't tell a bare
+  key from one. A cut rule now matches only when markz raised its row's warning, so the first
+  rule that fired wins. New dialect examples cover each list, custom elements, labels, `dl`, bare
+  keys and five bad names.
+- **Size.** 15.67 KB gzip, up from 15.12, most of it the two lists and the two messages.
 
 ### 15. Traversal and position utilities
 

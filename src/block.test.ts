@@ -83,21 +83,28 @@ describe('attributes', () => {
 
 describe('directives', () => {
 	it('keep the container label as plain text', () => {
-		const doc = parsed(':::box[a *b*]\n:::\n');
+		const doc = parsed(':::info-box[a *b*]\n:::\n');
 		const d = doc.data(first(doc, 'directive'), 'directive');
-		expect(d).toMatchObject({ kind: 'container', name: 'box', label: { value: 'a *b*' } });
+		expect(d).toMatchObject({ kind: 'container', name: 'info-box', label: { value: 'a *b*' } });
 		expect(doc.firstChild(first(doc, 'directive'))).toBe(-1);
 	});
 
 	it('nest with a longer outer fence', () => {
-		expect(outline(parsed('::::a\n:::b\nx\n:::\ny\n::::\n')).slice(1)).toEqual([
-			'  directive "::::a\\n:::b\\nx\\n:::\\ny\\n::::"',
-			'    directive ":::b\\nx\\n:::"',
+		expect(outline(parsed('::::div\n:::aside\nx\n:::\ny\n::::\n')).slice(1)).toEqual([
+			'  directive "::::div\\n:::aside\\nx\\n:::\\ny\\n::::"',
+			'    directive ":::aside\\nx\\n:::"',
 			'      paragraph "x"',
 			'        text "x"',
 			'    paragraph "y"',
 			'      text "y"'
 		]);
+	});
+
+	it('keep the label in the AST where html() has no place for it', () => {
+		const doc = parsed(':::section[Intro]\nx\n:::\n');
+		expect(doc.data(first(doc, 'directive'), 'directive').label?.value).toBe('Intro');
+		expect(doc.warnings.map((w) => w.code)).toEqual(['directive-label']);
+		expect(html(doc)).toBe('<section><p>x</p>\n</section>\n');
 	});
 });
 

@@ -46,6 +46,7 @@ import gfmStrikethrough from './spec/gfm-strikethrough.json' with { type: 'json'
 import gfmTable from './spec/gfm-table.json' with { type: 'json' };
 import gfm from './spec/gfm.json' with { type: 'json' };
 import { part, row, type Part } from './syntax';
+import { element } from '../src/elements';
 
 export type Upstream =
 	| 'commonmark'
@@ -230,9 +231,10 @@ export const oracleDiffers: Record<string, string> = {
  *
  * Each rule names the oracle token that shows a form markz reads differently, and where the
  * example goes: a Not supported row, or a construct markz keeps under its own rule. The first
- * matching rule wins. A token only suggests the form: when markz raises no warning for that row,
- * it read the input as supported (`*` touching a word), so the example stays in its construct and
- * is compared with the oracle.
+ * matching rule wins. A token only suggests the form: a row's rule matches only when markz raised
+ * that row's warning, since otherwise it read the input as supported (`*` touching a word, or
+ * `http:example` that micromark takes for a bare `:example`). An example no rule matches stays in
+ * its construct and is compared with the oracle.
  */
 const first = (t: Token) => t.text.trimStart()[0];
 
@@ -240,6 +242,7 @@ export const cuts: [section: string, test: (t: Token) => boolean][] = [
 	['comment', (t) => t.type === 'htmlFlow' && t.text.trimStart().startsWith('<!--')],
 	['jsx', (t) => /^html(?:Flow|Text)$/.test(t.type) && /^<\/?[A-Z][a-z]/.test(t.text.trimStart())],
 	['raw-html', (t) => t.type === 'htmlFlow' || t.type === 'htmlText'],
+	['directive-name', (t) => t.type in NAMES && !element(t.text, NAMES[t.type]!)],
 	['setext-heading', (t) => t.type === 'setextHeading'],
 	['indented-code', (t) => t.type === 'codeIndented'],
 	['tilde-fence', (t) => t.type === 'codeFencedFenceSequence' && t.text[0] === '~'],
@@ -265,10 +268,41 @@ function filed(
 	return { section, part: p, kind };
 }
 
+/** @prose
+ * ## Directive names
+ *
+ * The directive suite names its directives `a`, `b` and `youtube`, words markz rejects since a
+ * name is the element it writes. What most of its tests check is everything else (fences, labels,
+ * attributes), so a plain lowercase word that isn't an element of its kind becomes a custom
+ * element, `a` to `x-a`, and the example is compared with the oracle as before. The names the
+ * suite tests as names (`a_b`, `a-`, capitals) keep theirs, and those that markz rejects are
+ * filed under `directive-name`.
+ */
+const NAMES: Record<string, boolean> = {
+	directiveTextName: true,
+	directiveLeafName: false,
+	directiveContainerName: false
+};
+
+export function markzNames(markdown: string): string {
+	let out = '';
+	let at = 0;
+	for (const t of tokens(markdown)) {
+		const inline = NAMES[t.type];
+		if (inline === undefined || !/^[a-z][a-z\d]*$/.test(t.text) || element(t.text, inline))
+			continue;
+		out += `${markdown.slice(at, t.start)}x-${t.text}`;
+		at = t.end;
+	}
+	return out + markdown.slice(at);
+}
+
 function upstreamExample(
 	source: Upstream,
-	e: { example: number; section: string; markdown: string; html: string }
+	vendored: { example: number; section: string; markdown: string; html: string }
 ): Example {
+	const e =
+		source === 'directive' ? { ...vendored, markdown: markzNames(vendored.markdown) } : vendored;
 	const id = `${source}:${e.example}`;
 	let home =
 		sections[`${source}:${e.section}`] ??
@@ -280,14 +314,15 @@ function upstreamExample(
 	}
 	if (!home) throw new Error(`${source} section "${e.section}" is not mapped to syntax.md`);
 	// micromark's tokens say nothing about a YAML block or a heading's id.
-	const token =
-		source === 'yaml' || source === 'slugger' || source === 'math'
-			? undefined
-			: cuts.find(([, test]) => tokens(e.markdown).some(test));
-	let found = listed[id] ?? token?.[0];
+	const oracleTokens =
+		source === 'yaml' || source === 'slugger' || source === 'math' ? [] : tokens(e.markdown);
+	const codes = new Set(parse(e.markdown).warnings.map((w) => w.code));
 	// Where markz accepts what the token looked like (`*` touching a word), it isn't a cut.
-	const cut = found && !listed[id] && row(found);
-	if (cut && !parse(e.markdown).warnings.some((w) => w.code === cut.code)) found = undefined;
+	const token = cuts.find(([section, test]) => {
+		const cut = row(section);
+		return oracleTokens.some(test) && (!cut || codes.has(cut.code));
+	});
+	const found = listed[id] ?? token?.[0];
 	// `filed` calls an example "oracle" when it stays in its own construct.
 	const where = filed(found ?? home, found ? null : home);
 	return {

@@ -83,9 +83,9 @@ Not links in GFM: www.a_b.com, react@0.14.1, xhttp://a.com, [see https://a.com
 ## text-directive
 
 ```example
-:span[x]{.y} and :badge{n=3}
+:span[x]{.y} and :badge-count{n=3}
 .
-<p><span class="span y">x</span> and <span class="badge" n="3"></span></p>
+<p><span class="y">x</span> and <badge-count n="3"></badge-count></p>
 ```
 
 ```example
@@ -95,9 +95,15 @@ H:sub[2]O and x:sup[2] and :abbr[HTML]{title="HyperText"}
 ```
 
 ```example
-:note[a _b_]
+:kbd[Ctrl] :mark[a _b_] :q[hi] :time[today]{datetime=2026-09-27}
 .
-<p><span class="note">a <em>b</em></span></p>
+<p><kbd>Ctrl</kbd> <mark>a <em>b</em></mark> <q>hi</q> <time datetime="2026-09-27">today</time></p>
+```
+
+```example
+:span[open]{hidden}
+.
+<p><span hidden>open</span></p>
 ```
 
 ```example

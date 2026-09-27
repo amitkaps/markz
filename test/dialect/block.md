@@ -278,65 +278,117 @@ b
 ## directive
 
 ```example
-::chart{data=sales type="bar"}
+::div{.chart data=sales type="bar"}
 .
 <div class="chart" data="sales" type="bar"></div>
 ```
 
 ```example
-:::callout[Warn \*x]{.important}
+::chart-view[Sales]{type=bar}
+.
+<chart-view type="bar">Sales</chart-view>
+```
+
+A custom element's label comes first, for its component to read.
+
+```example
+:::call-out[Warn \*x]{.important}
 Body
 :::
 .
-<div class="callout important"><div class="directive-label">Warn *x</div>
+<call-out class="important"><div class="directive-label">Warn *x</div>
 <p>Body</p>
-</div>
+</call-out>
 ```
 
 ```example
-::::a
-:::b
+:::details[Show the proof]
+Body
+:::
+.
+<details><summary>Show the proof</summary>
+<p>Body</p>
+</details>
+```
+
+```example
+:::figure[Sales by month]
+![chart](c.png)
+:::
+.
+<figure><figcaption>Sales by month</figcaption>
+<p><img src="c.png" alt="chart" /></p>
+</figure>
+```
+
+Any other block has no place for a label, so it is reported and not written.
+
+```example
+:::section[Intro]{.x}
+Body
+:::
+.
+<section class="x"><p>Body</p>
+</section>
+.
+[Intro]
+```
+
+An empty label writes no label element, and isn't reported.
+
+```example
+:::aside[]
+x
+:::
+.
+<aside><p>x</p>
+</aside>
+```
+
+```example
+::::div
+:::div
 x
 :::
 y
 ::::
 .
-<div class="a"><div class="b"><p>x</p>
+<div><div><p>x</p>
 </div>
 <p>y</p>
 </div>
 ```
 
 ```example
-:::a
-:::b
+:::div
+:::div
 x
 :::
 y
 .
-<div class="a"><div class="b"><p>x</p>
+<div><div><p>x</p>
 </div>
 </div>
 <p>y</p>
 ```
 
 ```example
-::a[x]{.y} z
-.
-<p>::a[x]{.y} z</p>
-.
-{.y}
-```
-
-An empty label writes no label element.
-
-```example
-:::note[]
-x
+:::dl
+::dt[Term]
+::dd[What it means]
 :::
 .
-<div class="note"><p>x</p>
-</div>
+<dl><dt>Term</dt>
+<dd>What it means</dd>
+</dl>
+```
+
+A leaf or container shape in the middle of a line is text, with no report.
+
+```example
+::div[x]{.y} z
+.
+<p>::div[x]{.y} z</p>
 ```
 
 ## attributes
@@ -348,8 +400,8 @@ A bare key is one of HTML's boolean attributes.
 x
 :::
 .
-<div class="details" open=""><p>x</p>
-</div>
+<details open><p>x</p>
+</details>
 ```
 
 ```example
@@ -357,7 +409,7 @@ x
 
 para
 .
-<p class="x" hidden="">para</p>
+<p class="x" hidden>para</p>
 ```
 
 Bare keys alone count only after a directive, link or image. On a line or after a word they are
@@ -375,9 +427,9 @@ prose, with no warning.
 After a directive, link or image, a `{…}` that doesn't parse stays text and is reported.
 
 ```example
-::chart{type='bar'}
+::div{type='bar'}
 .
-<p>::chart{type=’bar’}</p>
+<p>::div{type=’bar’}</p>
 .
 {type='bar'}
 ```
