@@ -409,7 +409,7 @@ learning where its time and bytes go, not for winning a table. markdown-it, rema
 were measured and left out, each with its reason in `bench/README.md`.
 
 - `pnpm compare` runs each parser in a fresh process of its own, one after another, each cell on
-  a time budget, in about half a minute: the document tiers, scaling to 1 MB checked for a
+  a time budget after a second's warm-up, in under a minute: the document tiers, scaling to 1 MB checked for a
   straight line, one construct at a time, retained memory after parse and bundle size.
   `--deep` adds 10 MB, pathological input and cold start timed by Hyperfine, and is what gets
   published.

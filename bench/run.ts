@@ -13,8 +13,8 @@
  * adapters from them, which is how published numbers change: on purpose, in a commit of their own.
  * `--smoke` runs every adapter once and times nothing, so CI knows they still work.
  *
- * **Warm and cold.** Every throughput figure is warm: the median of repeated passes after one
- * unmeasured pass, in a process that has already loaded the parser, which is what a server or a
+ * **Warm and cold.** Every throughput figure is warm: the median of repeated passes, in a process
+ * that has already loaded the parser and run it over its documents for a second, which is what a server or a
  * watch build pays per document. Cold is a whole new process reading the agent tier once, Node's
  * startup and the parser's import included, which is what a CLI or a one-off build step pays.
  */
@@ -38,13 +38,15 @@ const MEASURES: Measure[] = ['html', 'structured'];
 
 export interface Settings {
 	deep: boolean;
-	/** How long a cell's timed passes may take; a slow parser still runs two. */
+	/** How long a parser's process warms up on its documents before any cell is timed. */
+	warmMs: number;
+	/** How long a cell's timed passes may take; a slow parser still runs five. */
 	budgetMs: number;
 	/** How long a pathological run may take before it counts as a timeout. */
 	timeoutMs: number;
 }
 
-const SETTINGS = { budgetMs: 40, timeoutMs: 10_000 };
+const SETTINGS = { warmMs: 1_000, budgetMs: 200, timeoutMs: 10_000 };
 /** Past this ratio of time per byte, from 100 KB to the largest size, scaling isn't linear. */
 const LINEAR = 1.5;
 
@@ -64,12 +66,12 @@ export interface Throughput {
 	measure: Measure;
 	/** One warm pass, the median; `null` when the parser threw, and `error` says what. */
 	ms: number | null;
-	/** The passes' spread, as a fraction of the median; `null` when one pass was all it took. */
+	/** The middle half of the passes' spread, as a fraction of the median; `null` after one pass. */
 	noise: number | null;
 	passes: number;
 	mbPerSecond: number | null;
 	error?: string;
-	/** When the passes spread over half the median, which makes the number a rough one. */
+	/** When the middle half of the passes spread over half the median: a rough number. */
 	noisy: boolean;
 }
 
@@ -158,7 +160,7 @@ async function smoke() {
 	}
 	const [small] = manifest.entries.filter((e) => e.tier === 'scaling');
 	const cell: Cell = { key: 'smoke', measure: 'html', files: [path(small!)], budgetMs: 0 };
-	const out = worker('markz', 'dialect', { cells: [cell], memory: path(small!) });
+	const out = worker('markz', 'dialect', { cells: [cell], warmMs: 0, memory: path(small!) });
 	if (out.cells[0]?.ms == null || !out.memory) throw new Error('the worker failed');
 	const [pattern] = manifest.entries.filter((e) => e.tier === 'pathological');
 	if (typeof once('markz', 'common', path(pattern!), 10_000) !== 'number') {
@@ -217,6 +219,7 @@ async function main(deep: boolean) {
 			);
 			const out = worker(parser, mode, {
 				cells,
+				warmMs: settings.warmMs,
 				memory: structured && memory ? path(memory) : undefined
 			});
 			for (const r of out.cells) {
@@ -532,7 +535,7 @@ function report(r: Results) {
 	);
 	for (const measure of MEASURES) {
 		console.log(
-			`\nMB/s warm, ${measure === 'html' ? 'parse + HTML' : 'structured parse'} (? marks passes spread over half the median)`
+			`\nMB/s warm, ${measure === 'html' ? 'parse + HTML' : 'structured parse'} (? marks a middle half of passes spread over half the median)`
 		);
 		row(['', ...parsers]);
 		for (const mode of MODES) {

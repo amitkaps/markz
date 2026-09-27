@@ -21,12 +21,12 @@ export interface Throughput {
 	measure: Measure;
 	/** One warm pass, the median; `null` when the parser threw, and `error` says what. */
 	ms: number | null;
-	/** The passes' spread, as a fraction of the median; `null` after one pass. */
+	/** The middle half of the passes' spread, as a fraction of the median; `null` after one pass. */
 	noise: number | null;
 	passes: number;
 	mbPerSecond: number | null;
 	error?: string;
-	/** The passes spread over half the median: a rough number. */
+	/** The middle half of the passes spread over half the median: a rough number. */
 	noisy: boolean;
 }
 

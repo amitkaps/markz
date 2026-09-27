@@ -454,9 +454,11 @@ The result is 17.0 MB/s parse + HTML (+67%) and 23.0 parse (+81%). Against markd
 run until warm on the same documents, markz is at 17.6 and 23.7 MB/s to its 18.7 and 23.4. The
 bundle went from 17.4 to 17.5 KB gzip.
 
-`pnpm compare` shows less of this: a cell's 40 ms budget is one warm pass and a few timed ones,
-which times code the engine hasn't finished optimizing, and markz's larger functions reach
-that later.
+`pnpm compare` first showed less of this: a cell's 40 ms budget was one warm pass and a few
+timed ones, which timed code the engine hadn't finished optimizing, and markz's larger functions
+reach that later. Each parser's process now warms up on its documents for a second before any
+cell is timed, and a cell runs at least five passes in 200 ms, with its spread taken from the
+middle half. Runs agree within about 3%, and take about 42 s.
 
 ### 20. Tests and benchmarks by what they are — done
 
@@ -532,7 +534,7 @@ One PR each, the moves first:
    working tree in about two seconds without a build. `bench/worker.ts` replaces Hyperfine's `k`
    and `2k` runs with a time budget per cell in one fresh process per parser and mode; a slow
    parser on a large file gets one timed pass once an earlier cell has warmed it. `pnpm compare`
-   takes about 18 s, since the comparison was cut to the three parsers markz learns from
+   took about 18 s (42 s once step 19 gave it a warm-up), since the comparison was cut to the three parsers markz learns from
    (markdown-exit, marked, micromark); markdown-it, remark and Comark are recorded in
    `bench/README.md` and left out, since markz isn't a general-purpose replacement for them. Sizes are cached by package version,
    and `pnpm snapshot` regenerates the README's adapters table.
