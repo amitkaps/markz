@@ -259,7 +259,10 @@ comment ::= indent? '<!--' (('>' | '->' | (char | line-end)* '-->') space* line-
 ### Emphasis
 
 ```ebnf
-emphasis ::= '_' inline '_' | '*' inline '*' | '**' inline '**' | '~~' inline '~~'
+emphasis ::= italic | strong | strikethrough
+italic ::= '_' inline '_' | '*' inline '*'
+strong ::= '**' inline '**'
+strikethrough ::= '~~' inline '~~'
 ```
 
 - `flanking`: A run can't open before whitespace, or before punctuation that follows a letter, and the mirror image for closing. `_` never opens or closes inside a word.
