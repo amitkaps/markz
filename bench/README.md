@@ -7,6 +7,7 @@ commit's build of markz.
 
 ```sh
 pnpm bench                # a quick look, in Vitest: a few minutes, MB/s per group as it lands
+pnpm bench constructs     # just the per-construct look
 mise install              # Hyperfine, pinned in mise.toml, for the full run
 pnpm bench:full           # everything, each parser in its own process: most of an hour
 pnpm bench:update-results # copy the latest full results to the site (docs/src/lib/bench.json)
@@ -39,6 +40,8 @@ held by `test/complexity.test.ts`.
 - [`memory.ts`](memory.ts): retained heap and RSS per document, with GC as a diagnostic
 - [`size.ts`](size.ts): each parser's parse-to-HTML entry, bundled and compressed
 - [`compare.bench.ts`](compare.bench.ts): the quick look, in Vitest
+- [`constructs.bench.ts`](constructs.bench.ts): one construct at a time, from the grammar's
+  cases, to see which constructs carry markz's time
 - [`run.ts`](run.ts): the full suite, which writes the results
 
 ## Reading the numbers

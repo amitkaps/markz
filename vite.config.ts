@@ -15,6 +15,8 @@ const vendored = ['test/spec/*.json', 'bench/fixtures/**'];
 const bench = ['bench/corpus/**', 'bench/results/**', 'bench/.size/**', 'docs/src/lib/bench.json'];
 // The site's generated files. `vp` reads this config for the whole workspace, `docs/` included.
 const site = ['docs/.svelte-kit/**', 'docs/build/**', 'docs/worker-configuration.d.ts'];
+// Tests that measure time, which run after the rest.
+const timing = 'test/complexity.test.ts';
 
 export default defineConfig({
 	plugins: process.env.VITEST ? [] : [prose()],
@@ -48,10 +50,22 @@ export default defineConfig({
 		ignorePatterns: [...generated, ...bench, ...site]
 	},
 
-	// Vitest — `vp test`.
+	// Vitest — `vp test`. The linear-time tests measure time, so they run last, on their own:
+	// alongside the fuzzer and the edge cases, a busy CPU can make a linear pattern look slow.
 	test: {
 		expect: { requireAssertions: true },
 		environment: 'node',
-		include: ['src/**/*.{test,spec}.ts', 'test/**/*.{test,spec}.ts']
+		projects: [
+			{
+				extends: true,
+				test: {
+					name: 'tests',
+					include: ['src/**/*.{test,spec}.ts', 'test/**/*.{test,spec}.ts'],
+					exclude: [timing],
+					sequence: { groupOrder: 0 }
+				}
+			},
+			{ extends: true, test: { name: 'timing', include: [timing], sequence: { groupOrder: 1 } } }
+		]
 	}
 });

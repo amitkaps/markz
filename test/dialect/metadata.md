@@ -21,7 +21,7 @@ tags: [svelte, vite]
 A closed block at the start is metadata whatever it holds, so a page can't open with a rule.
 Lines it can't read are reported, but a `#` line is a YAML comment.
 
-```example
+```example ambiguous metadata-start
 ---
 
 ## foo
@@ -45,7 +45,7 @@ hello
 
 Without a closing line, the first is a rule, reported when the block looks like metadata.
 
-```example
+```example unclosed
 ---
 title: x
 .

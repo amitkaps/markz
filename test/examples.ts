@@ -62,6 +62,9 @@ export type Upstream =
 	| 'math';
 export type Source = Upstream | 'markz';
 export type Kind = 'oracle' | 'differ' | 'not supported' | 'expected';
+/** The edges a construct is tried at (`cases.ts`); a valid case needs no label. */
+export type Category = 'valid' | 'boundary' | 'near-miss' | 'ambiguous' | 'unclosed';
+export const CATEGORIES: Category[] = ['valid', 'boundary', 'near-miss', 'ambiguous', 'unclosed'];
 export type Status = 'match' | 'warn' | 'differ' | 'fail';
 
 export interface Example {
@@ -80,6 +83,9 @@ export interface Example {
 	html: string;
 	/** For markz's own: the source text each warning covers, in order. */
 	warnings: string[];
+	/** For markz's own: the edge it tries (`cases.ts`), and for an ambiguous one, the side rule. */
+	category: Category | null;
+	rule: string | null;
 }
 
 /** @prose
@@ -333,6 +339,8 @@ function upstreamExample(
 		markdown: e.markdown,
 		html: e.html,
 		warnings: [],
+		category: null,
+		rule: null,
 		...where
 	};
 }
@@ -346,7 +354,9 @@ function upstreamExample(
  * warning covers, one per line. Without that part, the example must warn about nothing. `→` is a
  * tab, `␣` a space that would otherwise be invisible at the end of a line, and `⏎` a line ending
  * inside a warning's text. Each example is filed under the nearest `##` heading: a construct id
- * or a warning code.
+ * or a warning code. The info string may go on to name the edge the example tries (`example
+ * near-miss`), and an ambiguous one names the side rule that settles it (`example ambiguous
+ * block-order`).
  */
 function dialect(file: string, text: string): Example[] {
 	const out: Example[] = [];
@@ -355,8 +365,12 @@ function dialect(file: string, text: string): Example[] {
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i]!;
 		if (line.startsWith('## ')) section = line.slice(3).trim();
-		const fence = /^(`{3,})example$/.exec(line)?.[1];
-		if (!fence) continue;
+		const info = /^(`{3,})example(?: ([a-z-]+))?(?: ([a-z-]+))?$/.exec(line);
+		if (!info) continue;
+		const [, fence, category = null, rule = null] = info;
+		if (category && !CATEGORIES.includes(category as Category)) {
+			throw new Error(`${file}: "${category}" is not a category`);
+		}
 		const body: string[] = [];
 		for (i++; lines[i] !== fence; i++) body.push(lines[i]!);
 		const parts: string[][] = [[]];
@@ -378,6 +392,8 @@ function dialect(file: string, text: string): Example[] {
 				.split('\n')
 				.filter(Boolean)
 				.map((w) => decode(w).replace(/⏎/g, '\n')),
+			category: category as Category | null,
+			rule,
 			...filed(section, null),
 			kind: 'expected'
 		});

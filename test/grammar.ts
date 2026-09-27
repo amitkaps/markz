@@ -12,8 +12,9 @@
  * reading of productions plus rules (`spec.md`, Parser foundation). A form the dialect cuts has no
  * production here; it is a Not supported row, keyed by its warning code.
  *
- * It lives in `test/` and never ships. The tests hold it to `syntax.md`, and from step 16 the
- * fuzzer generates documents from it.
+ * It lives in `test/` and never ships. The tests hold it to `syntax.md`, the fuzzer generates
+ * documents from it (step 16), and `cases.ts` holds markz to it at every construct's edges: where
+ * the two read a case differently, a side rule here must say why (step 18).
  */
 import { BLOCK, INLINE } from '../src/elements';
 import { productions, references, type Production } from './ebnf';
@@ -66,9 +67,11 @@ export const DOCUMENT: Omit<Construct, 'id' | 'part' | 'origin'> = {
 		document ::= metadata? blank-line* (block blank-line*)*
 		block ::= paragraph | heading | blockquote | list | code-block | raw-block | math-block | table
 			| thematic-break | directive | block-attributes | comment
-		inline ::= inline-item+
+		inline ::= inline-line (line-break inline-line)*
+		inline-line ::= inline-item+
+		span ::= (inline-item | line-break)+
 		inline-item ::= text | inline-code | inline-math | expression | link | text-directive | emphasis
-			| escape | line-break | smart-punctuation
+			| escape | smart-punctuation
 		text ::= char+
 		char ::= [^#xA#xD]
 		line-end ::= #xD #xA | #xA | #xD
@@ -88,7 +91,11 @@ export const DOCUMENT: Omit<Construct, 'id' | 'part' | 'origin'> = {
 			"A container's content is written with its prefix removed from every line: `>` and one space for a blockquote, the item's content column for a list item. What is left is read as blocks by these same productions.",
 		'inline-order':
 			'Inline code, math and expressions bind tightest, then autolinks, directives and links, then emphasis. An opener either closes or stays text, and the input is never read again.',
-		text: 'Text is any run of characters that opens no other inline construct, or whose construct does not close.'
+		text: 'Text is any run of characters that opens no other inline construct, or whose construct does not close.',
+		'blank-lines':
+			'A line of only spaces and tabs is blank, whatever else could read it, and a blank line ends a paragraph.',
+		brackets:
+			"The brackets in a link's text or a text directive's label balance, unless a `\\` escapes one."
 	}
 };
 
@@ -113,7 +120,7 @@ export const CONSTRUCTS: Construct[] = [
 			number ::= '-'? ('0' | [1-9] digit*) ('.' digit+)?
 			double-quoted ::= '"' ([^"\\#xA#xD] | '\\' ["\\/bfnrt] | '\\u' hex hex hex hex)* '"'
 			single-quoted ::= "'" ([^'#xA#xD] | "''")* "'"
-			plain ::= [^ #x9#xA#xD"'{}#x5B#x5D&*!|>%@\`,#?:-] char*
+			plain ::= ([^ #x9#xA#xD"'{}#x5B#x5D&*!|>%@\`,#?:-] | [?:-] [^ #x9#xA#xD]) char*
 		`,
 		rules: {
 			'metadata-start':
@@ -148,6 +155,8 @@ export const CONSTRUCTS: Construct[] = [
 		`,
 		rules: {
 			'heading-line': "A heading's content is one line.",
+			'closing-hashes':
+				'A run of `#`s ends the heading only after a space and at the end of the line, so `# b#` keeps its `#`, as does an escaped `\\#`.',
 			'heading-id':
 				'Every heading gets an id as it closes: the `id` of its block attributes, or else the slug of its plain text numbered past the ids already used.'
 		}
@@ -157,7 +166,7 @@ export const CONSTRUCTS: Construct[] = [
 		part: 'Block',
 		origin: 'CommonMark',
 		grammar: `
-			blockquote ::= indent? '>' space? block+
+			blockquote ::= indent? '>' (space? block+ | blank-line)
 		`,
 		rules: {
 			'quote-lines':
@@ -191,7 +200,7 @@ export const CONSTRUCTS: Construct[] = [
 		part: 'Block',
 		origin: 'CommonMark',
 		grammar: `
-			code-block ::= indent? fence info? line-end code-line* closing-fence?
+			code-block ::= indent? fence info? space* line-end code-line* closing-fence?
 			fence ::= '\`\`\`' '\`'*
 			info ::= space* [^ #x9#xA#xD\`=] [^#xA#xD\`]*
 			code-line ::= char* line-end
@@ -210,7 +219,7 @@ export const CONSTRUCTS: Construct[] = [
 		part: 'Block',
 		origin: 'djot',
 		grammar: `
-			raw-block ::= indent? fence '=' format [^#xA#xD\`]* line-end code-line* closing-fence?
+			raw-block ::= indent? fence space* '=' format [^#xA#xD\`]* line-end code-line* closing-fence?
 			format ::= [^ #x9#xA#xD\`]+
 		`,
 		rules: {}
@@ -222,11 +231,12 @@ export const CONSTRUCTS: Construct[] = [
 		grammar: `
 			math-block ::= indent? '$$' space* line-end code-line* (indent? '$$' space* line-end)?
 			             | indent? '$$' tex '$$' space* line-end
-			tex ::= ([^$] | '$' [^$])+
+			tex ::= ([^$#xA#xD] | '$' [^$#xA#xD])+
 		`,
 		rules: {
 			'math-close': 'The first line holding only `$$` closes it.',
-			'math-one-line': 'On one line, the TeX between the `$$`s is not blank and holds no `$$`.'
+			'math-one-line':
+				'On one line, the TeX between the `$$`s holds no `$$`, and holds something other than spaces and dollars: `$$ $$` and `$$$ $$` are text.'
 		}
 	},
 	{
@@ -235,16 +245,16 @@ export const CONSTRUCTS: Construct[] = [
 		origin: 'GFM',
 		grammar: `
 			table ::= table-row delimiter-row table-row*
-			table-row ::= indent? '|'? cell ('|' cell)* '|'? line-end
-			cell ::= ([^|\\#xA#xD] | '\\' char)*
-			delimiter-row ::= indent? '|'? delimiter-cell ('|' delimiter-cell)* '|'? line-end
+			table-row ::= indent? '|'? cell ('|' cell)* '|'? space* line-end
+			cell ::= ([^|\\#xA#xD] | '\\' char)* '\\'?
+			delimiter-row ::= indent? '|'? delimiter-cell ('|' delimiter-cell)* '|'? space* line-end
 			delimiter-cell ::= space* ':'? '-'+ ':'? space*
 		`,
 		rules: {
 			'table-columns':
 				'The header row and the delimiter row have the same number of cells, at least one, and the delimiter row has a pipe or a colon. A row of only a pipe has no cells.',
 			'table-header':
-				"The header row is a paragraph's last line, and not one indented four columns or more.",
+				"The header row is a paragraph's last line, and not one indented four columns or more. Neither it nor the delimiter row opens another block: `- | -` is a list item.",
 			'table-end':
 				'A table ends at a blank line, a line indented four columns or more, or a line that opens another block.'
 		}
@@ -266,7 +276,7 @@ export const CONSTRUCTS: Construct[] = [
 			directive ::= leaf-directive | container-directive
 			leaf-directive ::= indent? '::' directive-name directive-label? attributes? space* line-end
 			container-directive ::= indent? ':::' ':'* directive-name directive-label? attributes? space*
-				line-end block* directive-close?
+				line-end (block | blank-line)* directive-close?
 			directive-close ::= indent? ':::' ':'* space* line-end
 			directive-name ::= block-element | custom-element
 			block-element ::= ${names(BLOCK)}
@@ -294,7 +304,7 @@ export const CONSTRUCTS: Construct[] = [
 			boolean-key ::= [A-Za-z] [A-Za-z0-9_:-]*
 			attribute-name ::= [^ #x9#xA#xD{}#."'=]+
 			attribute-key ::= [A-Za-z0-9_:-]+
-			attribute-value ::= '"' ([^"\\] | '\\' char | expression)* '"'
+			attribute-value ::= '"' ([^"\\#xA#xD] | '\\' char | expression)* '"'
 				| ([^ #x9#xA#xD{}"'=$] | '$' | expression)+
 			block-attributes ::= indent? attributes space* line-end
 		`,
@@ -315,11 +325,12 @@ export const CONSTRUCTS: Construct[] = [
 		part: 'Block',
 		origin: 'markz',
 		grammar: `
-			comment ::= indent? '<!--' (char | line-end)* '-->' space* line-end
+			comment ::= indent? '<!--' (('>' | '->' | (char | line-end)* '-->') space* line-end
+				| (char | line-end)*)
 		`,
 		rules: {
 			'comment-close':
-				'A comment ends at the first `-->`. Unclosed, it runs to the end of its container. A `<!--` after other text on its line is inline text.'
+				'A comment ends at the first `-->`, and `<!-->` and `<!--->` are whole comments, as in CommonMark. Unclosed, it runs to the end of its container. A `<!--` after other text on its line is inline text.'
 		}
 	},
 	{
@@ -357,10 +368,13 @@ export const CONSTRUCTS: Construct[] = [
 		part: 'Inline',
 		origin: 'CommonMark',
 		grammar: `
-			link ::= '[' inline? ']' link-target | '!' '[' inline? ']' link-target | autolink
-			link-target ::= '(' space* destination? (space+ title)? space* ')' attributes?
-			destination ::= '<' [^<>#xA#xD]* '>' | destination-part+
-			destination-part ::= [^ #x9#xA#xD()<] | '(' destination-part* ')'
+			link ::= '[' span? ']' link-target | '!' '[' span? ']' link-target | autolink
+			link-target ::= '(' gap (destination ((space+ | space* line-end space*) title)?)? gap ')'
+				attributes?
+			gap ::= space* (line-end space*)?
+			destination ::= '<' [^<>#xA#xD]* '>' | destination-start destination-part*
+			destination-start ::= [^ #x9#xA#xD()<] | '(' destination-part* ')'
+			destination-part ::= [^ #x9#xA#xD()] | '(' destination-part* ')'
 			title ::= '"' [^"]* '"' | "'" [^']* "'" | '(' [^()]* ')'
 			autolink ::= '<' scheme ':' [^ #x9#xA#xD<>]* '>' | '<' email '>'
 			scheme ::= [A-Za-z] [A-Za-z0-9+.-]+
@@ -378,7 +392,7 @@ export const CONSTRUCTS: Construct[] = [
 		part: 'Inline',
 		origin: 'directive',
 		grammar: `
-			text-directive ::= ':' inline-name (directive-label attributes? | attributes)
+			text-directive ::= ':' inline-name ('[' span? ']' attributes? | attributes)
 			inline-name ::= inline-element | custom-element
 			inline-element ::= ${names(INLINE)}
 		`,
@@ -421,7 +435,7 @@ export const CONSTRUCTS: Construct[] = [
 		part: 'Inline',
 		origin: 'CommonMark',
 		grammar: `
-			line-break ::= '\\' line-end | line-end
+			line-break ::= '\\' space* line-end | line-end
 		`,
 		rules: {
 			'trailing-backslash':
@@ -437,7 +451,9 @@ export const CONSTRUCTS: Construct[] = [
 			numeric-reference ::= '&#' digit+ ';' | '&#' [xX] hex+ ';'
 		`,
 		rules: {
-			'reference-digits': 'At most seven decimal or six hexadecimal digits.'
+			'reference-digits': 'At most seven decimal or six hexadecimal digits.',
+			'escape-binds':
+				'A `\\` before ASCII punctuation is always an escape, so the character it escapes opens and closes nothing.'
 		}
 	},
 	{
