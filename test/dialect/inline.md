@@ -25,7 +25,7 @@ snake_case_name
 ```example
 _a ${x * y} b_
 .
-<p><em>a ${x * y} b</em></p>
+<p><em>a <code class="language-js expression">x * y</code> b</em></p>
 ```
 
 ```example unclosed
@@ -183,7 +183,7 @@ a $, $$b and $a $b$
 ```example ambiguous brace-depth
 ${f("}", `${"}"}`, /* } */ {a: 1})} after
 .
-<p>${f(&quot;}&quot;, `${&quot;}&quot;}`, /* } */ {a: 1})} after</p>
+<p><code class="language-js expression">f(&quot;}&quot;, `${&quot;}&quot;}`, /* } */ {a: 1})</code> after</p>
 ```
 
 ```example unclosed

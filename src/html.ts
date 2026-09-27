@@ -121,7 +121,7 @@ function open(doc: Document, node: NodeId, state: State): boolean {
 			out = '<br />\n';
 			break;
 		case 'expression':
-			out = escape(doc.source.slice(doc.start(node), doc.end(node)));
+			out = `<code class="language-js expression">${escape(doc.data(node, 'expression').code)}</code>`;
 			break;
 		case 'link': {
 			const { destination, title } = doc.data(node, 'link');
