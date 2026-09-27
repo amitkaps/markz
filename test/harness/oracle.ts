@@ -202,3 +202,60 @@ export function slugOracle(texts: string[]): string[] {
 	const slugger = new GithubSlugger();
 	return texts.map((t) => slugger.slug(t));
 }
+
+/** @prose
+ * ## Where they part by design or by the oracle
+ *
+ * Input the comparison with micromark leaves out, each with its reason: one rule of the dialect,
+ * and the places micromark parts from CommonMark's reference implementation, commonmark.js, which
+ * agrees with markz. The fuzzer and the documents both use them, so each is written once.
+ */
+const SEQUENCES = new Set(['emphasisSequence', 'strongSequence', 'strikethroughSequence']);
+
+export const APART: [reason: string, test: (markdown: string, found: Token[]) => boolean][] = [
+	[
+		'emphasis runs never split (syntax.md: Emphasis), as the spec examples that need one differ',
+		(markdown, found) =>
+			found.some(
+				(t) =>
+					SEQUENCES.has(t.type) &&
+					(markdown[t.start - 1] === t.text[0] || markdown[t.end] === t.text[0])
+			)
+	],
+	[
+		"micromark keeps a paragraph line's indentation inside a code span that crosses onto it",
+		(_, found) => found.some((t) => t.type === 'codeText' && /\n[ \t]/.test(t.text))
+	],
+	[
+		'micromark moves blank lines at the end of an unclosed fence inside a list item',
+		(_, found) =>
+			found.some((t) => t.type === 'listUnordered' || t.type === 'listOrdered') &&
+			found.filter((t) => t.type === 'codeFencedFence').length <
+				2 * found.filter((t) => t.type === 'codeFenced').length
+	],
+	[
+		'micromark drops the line endings inside a fence that follows a line of a tight list item',
+		(markdown, found) => {
+			const lists = found.filter((t) => t.type === 'listUnordered' || t.type === 'listOrdered');
+			return found.some(
+				(t) =>
+					t.type === 'codeFenced' &&
+					lists.some((l) => l.start < t.start && t.start < l.end) &&
+					/[^\n]\n[ \t]*$/.test(markdown.slice(0, t.start))
+			);
+		}
+	],
+	[
+		'micromark takes no `!` in an email autolink (`<a!b@c>`), where commonmark.js does',
+		(markdown) => /<[^\s<>@]*![^\s<>]*@/.test(markdown)
+	],
+	[
+		'after an opening `---` that never closes, the frontmatter extension leaves the next lines a paragraph',
+		(markdown) => /^---[ \t]*\n/.test(markdown)
+	]
+];
+
+/** The reason the oracle can't judge `markdown`, if one of `APART` applies. */
+export function apart(markdown: string, found = tokens(markdown)): string | null {
+	return APART.find(([, test]) => test(markdown, found))?.[0] ?? null;
+}

@@ -352,7 +352,7 @@ micromark, remark, markdown-it, markdown-exit, marked and Comark (`bench/README.
 - **The corpus.** The agent-written docs (markz's own, base, prose, visdown) are one voice, so
   human-written public docs (Node.js API, the Rust book, Vite) sit beside them as the headline.
   The CommonMark spec is there for comparison with published numbers, and adversarial patterns
-  are labelled as not a workload. All of it is vendored and pinned (`bench/fixtures/README.md`).
+  are labelled as not a workload. All of it is vendored and pinned (`test/documents/README.md`).
 - **Two modes.** _Common_ is defaults on the blocks every parser shares, filtered by markz's
   own tree. _Dialect_ is each parser configured as close to markz as its plugins get.
 - **Two ways to run.** `pnpm bench` is a quick look in Vitest's benchmark runner, with markz
@@ -497,9 +497,9 @@ stays beside markz per construct. From the external review:
 - warm and cold are worded plainly, scaling as approximately linear, and _agent_ is defined as
   written by coding agents in real repos.
 
-Scripts: `pnpm test`, `pnpm test:long` (one `SEARCH` multiplier and `SEED` for fuzz and cases,
-in place of `pnpm fuzz`), `pnpm bench` (markz alone), `pnpm bench:compare` and `bench:publish`, and `pnpm
-vendor`.
+Scripts, one word each: `pnpm test`, `pnpm fuzz` (one `SEARCH` multiplier and `SEED` for fuzz
+and cases), `pnpm bench` (markz alone), `pnpm compare` (`--deep` for the rest), `pnpm snapshot`
+(the published numbers), and `pnpm vendor`.
 
 One PR each, the moves first:
 
@@ -510,7 +510,12 @@ One PR each, the moves first:
    page. Done: `oracle.test.ts` and the settling checks joined `dialect.test.ts`, the stress
    sweeps `robustness.test.ts`, and each construct's generated edge counts come from the one
    `edges()` the test and the page share.
-5. Documents and the corpus in `test/`, and `documents.test.ts`.
+5. Documents and the corpus in `test/`, and `documents.test.ts`. Done: the corpus is
+   `test/harness/corpus.ts`, which the benchmark builds its tiers from with the built package.
+   Its common blocks are compared with micromark one at a time, which found a micromark bug (line
+   endings dropped inside a fence after a tight item's line, now in `APART`). Formatting is
+   compared with code inside fences set aside, since oxfmt formats it, and on the whole document
+   only where markz cut nothing, since oxfmt rewrites some cut forms into kept ones.
 6. `test/speed.ts`, `bench/` as the comparison alone, and the review's changes.
 
 ## Definition of done for v1
