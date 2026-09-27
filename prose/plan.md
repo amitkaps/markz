@@ -202,13 +202,25 @@ decimal digits and keeps alphabetic symbols (`Ⓐ`). github-slugger's 8 KB class
 Unicode properties, which match 77 of the 78 fixtures; the last differs because its class is
 Unicode 13's.
 
-### 13. The site by the dialect
+### 13. The site by the dialect — done
 
 The Conformance page becomes Metadata, Block, Inline and Not supported, each opening to its
 constructs with their examples, sources and statuses. Summary cards above it: correctness now,
 then performance, size, robustness, a real-world corpus (warnings per file in the migrated
 Markdown), formatter agreement (oxfmt doesn't change the parse) and HTML safety as steps 15 and
 16 produce them.
+
+The statuses are now four, in the singular: **match** (the oracle's output or markz's expected
+HTML), **warn** (it holds because markz warned: a Not supported row, or a metadata line YAML
+reads and markz doesn't), **differ** (filed under a construct markz keeps under its own rule) and
+**fail**. The kind `differs` is `differ`. `check` gives each a detail, shown beside it: `match
+oracle`, `match expected`, `warn setext-heading`. Of 1,395 examples, 768 match, 547 warn, 80
+differ and none fail.
+
+Each part is one table on a shared grid, so the columns line up down the page; a construct opens
+in place to its examples, failures first, and `#construct-id` links open one. One search, over
+the Markdown and the warning codes, narrows every construct at once, and the status cards filter.
+An example with metadata shows what markz read. Correctness is the only card until steps 15 and 16.
 
 ### 14. Traversal and position utilities
 

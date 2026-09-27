@@ -11,9 +11,9 @@
  * An example is one of four kinds:
  *
  * - **oracle:** markz's HTML must match micromark's, after normalization.
- * - **differs:** a construct markz keeps under a different rule (no run splitting, `\ `,
+ * - **differ:** a construct markz keeps under a different rule (no run splitting, `\ `,
  *   comments). It is filed under that construct, whose heading is the reason, and not compared.
- * - **not supported:** it uses a form the dialect cuts on principle. It passes when that row's
+ * - **not supported:** it uses a form the dialect cuts on principle. It holds when that row's
  *   warning fires, so the cut is tested rather than skipped.
  * - **expected:** markz's own example, which must give its HTML and warn over exactly its listed
  *   text, and nothing else.
@@ -44,8 +44,8 @@ export type Upstream =
 	| 'yaml'
 	| 'slugger';
 export type Source = Upstream | 'markz';
-export type Kind = 'oracle' | 'differs' | 'not supported' | 'expected';
-export type Status = 'pass' | 'fail' | 'differs';
+export type Kind = 'oracle' | 'differ' | 'not supported' | 'expected';
+export type Status = 'match' | 'warn' | 'differ' | 'fail';
 
 export interface Example {
 	source: Source;
@@ -234,7 +234,7 @@ function filed(
 	const p = part(section);
 	if (!p) throw new Error(`"${section}" is not a construct id or a Not supported code`);
 	const kind: Kind =
-		p === 'Not supported' ? 'not supported' : upstream === section ? 'oracle' : 'differs';
+		p === 'Not supported' ? 'not supported' : upstream === section ? 'oracle' : 'differ';
 	return { section, part: p, kind };
 }
 
@@ -347,13 +347,23 @@ export const examples: Example[] = [
 /** @prose
  * ## Checking an example
  *
- * One function decides every status, for the tests and for the site. `problem` says why an
- * example fails.
+ * One function decides every status, for the tests and for the site. An example holds in one of
+ * three ways and fails in the fourth:
+ *
+ * - **match:** it gives what it is held to, the oracle's output or markz's own expected HTML.
+ * - **warn:** it holds because markz warned: a Not supported row's warning fired, or a metadata
+ *   line markz doesn't read was reported rather than read differently from YAML.
+ * - **differ:** it is filed under a construct markz keeps under its own rule, and not compared.
+ * - **fail:** anything else.
+ *
+ * `detail` says which: what it matched (`oracle`, `expected`), the codes it warned with, or why it
+ * fails. `problem` is set only for a failure, for the tests.
  */
 export interface Result {
 	status: Status;
+	detail: string;
 	markz: string;
-	/** micromark's HTML, for an upstream example. */
+	/** The oracle's output, for an upstream example. */
 	oracle: string | null;
 	warnings: Warning[];
 	problem: string | null;
@@ -366,36 +376,48 @@ export function check(e: Example): Result {
 		doc = parse(e.markdown);
 		markz = html(doc);
 	} catch (error) {
-		return { status: 'fail', markz: String(error), oracle: null, warnings: [], problem: 'threw' };
+		const problem = 'threw';
+		return {
+			status: 'fail',
+			detail: problem,
+			markz: String(error),
+			oracle: null,
+			warnings: [],
+			problem
+		};
 	}
 	if (e.source === 'yaml') return againstYaml(e, doc);
 	if (e.source === 'slugger') return againstSlugger(e, doc);
 	const oracle = e.source === 'markz' ? null : reference(e.markdown);
-	const result = (problem: string | null, status: Status = problem ? 'fail' : 'pass'): Result => ({
+	const code = e.part === 'Not supported' ? e.section : null;
+	const result = (status: Status, detail: string): Result => ({
 		status,
+		detail,
 		markz,
 		oracle,
 		warnings: [...doc.warnings],
-		problem
+		problem: status === 'fail' ? detail : null
 	});
+	const holds = () => (code ? result('warn', code) : result('match', e.kind));
 	if (e.kind === 'oracle') {
-		return result(normalize(markz) === normalize(oracle!) ? null : 'differs from the oracle');
+		return normalize(markz) === normalize(oracle!)
+			? holds()
+			: result('fail', 'differs from the oracle');
 	}
-	if (e.kind === 'differs') return result(null, 'differs');
-	const code = e.part === 'Not supported' ? e.section : null;
+	if (e.kind === 'differ') return result('differ', 'by design');
 	if (e.kind === 'not supported') {
 		const fired = doc.warnings.some((w) => w.code === code);
-		return result(fired ? null : `no \`${code}\` warning`);
+		return fired ? holds() : result('fail', `no \`${code}\` warning`);
 	}
-	if (markz.replace(/\n$/, '') !== e.html) return result('HTML differs from the expected');
+	if (markz.replace(/\n$/, '') !== e.html) return result('fail', 'HTML differs from the expected');
 	const covered = doc.warnings.map((w) => e.markdown.slice(w.start, w.end));
 	if (JSON.stringify(covered) !== JSON.stringify(e.warnings)) {
-		return result(`warned over ${JSON.stringify(covered)}`);
+		return result('fail', `warned over ${JSON.stringify(covered)}`);
 	}
 	if (code && doc.warnings.some((w) => w.code !== code)) {
-		return result(`a warning other than \`${code}\``);
+		return result('fail', `a warning other than \`${code}\``);
 	}
-	return result(null);
+	return holds();
 }
 
 /** @prose
@@ -403,31 +425,37 @@ export function check(e: Example): Result {
  *
  * A yaml-test-suite example is held to the `yaml` package, key by key: every key markz keeps
  * must have the value YAML gives it, and a block YAML rejects must raise a metadata warning. A
- * key markz skipped is fine when it warned about the line. A block markz doesn't read as metadata
- * at all differs, by the metadata rule: its lines don't all look like `key:` lines.
+ * key markz skipped is fine when it warned about the line, and such an example warns rather than
+ * matches. A block markz doesn't read as metadata at all differs, by the metadata rule.
  */
 function againstYaml(e: Example, doc: Document): Result {
 	const oracle = metadataOracle(e.markdown.slice(4, -4));
 	const mine = doc.metadata;
-	const warned = doc.warnings.some((w) => w.code.startsWith('metadata-'));
-	const result = (problem: string | null, status: Status = problem ? 'fail' : 'pass'): Result => ({
+	const codes = [
+		...new Set(doc.warnings.filter((w) => w.code.startsWith('metadata-')).map((w) => w.code))
+	];
+	const result = (status: Status, detail: string): Result => ({
 		status,
+		detail,
 		markz: mine === undefined ? '(not metadata)' : JSON.stringify(mine, null, 1),
 		oracle: 'error' in oracle ? `error: ${oracle.error}` : JSON.stringify(oracle.value, null, 1),
 		warnings: [...doc.warnings],
-		problem
+		problem: status === 'fail' ? detail : null
 	});
-	if (mine === undefined) return result(null, 'differs');
-	if ('error' in oracle) return result(warned ? null : 'accepted a block YAML rejects');
+	const holds = () => (codes.length ? result('warn', codes.join(', ')) : result('match', 'oracle'));
+	if (mine === undefined) return result('differ', 'not metadata');
+	if ('error' in oracle) {
+		return codes.length ? holds() : result('fail', 'accepted a block YAML rejects');
+	}
 	const value = oracle.value as Record<string, unknown>;
 	for (const [key, v] of Object.entries(mine)) {
 		if (JSON.stringify(v) !== JSON.stringify(value[key]))
-			return result(`\`${key}\` differs from YAML`);
+			return result('fail', `\`${key}\` differs from YAML`);
 	}
-	if (!warned && Object.keys(value).length !== Object.keys(mine).length) {
-		return result('dropped a key without a warning');
+	if (!codes.length && Object.keys(value).length !== Object.keys(mine).length) {
+		return result('fail', 'dropped a key without a warning');
 	}
-	return result(null);
+	return holds();
 }
 
 /** @prose
@@ -442,13 +470,19 @@ function againstSlugger(e: Example, doc: Document): Result {
 		.map((n) => doc.data(n, 'heading').id);
 	const oracle = slugOracle(headingTexts(e.markdown)).at(-1)!;
 	const mine = ids.at(-1) ?? '';
-	const same = mine === oracle || e.kind === 'differs';
+	const [status, detail]: [Status, string] =
+		e.kind === 'differ'
+			? ['differ', 'by design']
+			: mine === oracle
+				? ['match', 'oracle']
+				: ['fail', 'a different id from github-slugger'];
 	return {
-		status: e.kind === 'differs' ? 'differs' : same ? 'pass' : 'fail',
+		status,
+		detail,
 		markz: mine,
 		oracle,
 		warnings: [...doc.warnings],
-		problem: same ? null : 'a different id from github-slugger'
+		problem: status === 'fail' ? detail : null
 	};
 }
 

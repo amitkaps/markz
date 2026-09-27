@@ -12,7 +12,7 @@ Read **`prose/spec.md`** first — it is the design for markz.
   djot, or markz's own. micromark is only the oracle for the constructs marked "As CommonMark" or
   "As GFM"; don't let "same as GFM" leak past them. Every example is filed under a construct id
   or a Not supported row's warning code (`test/examples.ts`). When
-  the oracle disagrees with `syntax.md`, file the example as `differs` under the construct whose
+  the oracle disagrees with `syntax.md`, file the example as `differ` under the construct whose
   rule explains it, rather than bending the parser. markz's own examples go in
   `test/dialect/*.md`.
 - `docs/` is the site (markz.amitkaps.com): a private workspace package, trimmed from base, that
