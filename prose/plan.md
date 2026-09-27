@@ -428,7 +428,8 @@ Pathological section keeps only the complexity families.
 ### 19. Inline scanner speed
 
 markz reads at half markdown-exit's speed, and step 18's cases are the safety net for closing
-some of that. Both parsers make about one token or item per 18 bytes, and both spend about 60%
+some of that. How each parser is built, and which of their ideas markz has taken or leaves, is in
+[`parsers.md`](parsers.md). Both parsers make about one token or item per 18 bytes, and both spend about 60%
 of their time inline and 30% on blocks. markz is about twice as slow in each, so the gap is
 constant-factor cost, not the algorithm, and offsets are not it: mapping one is a binary search
 over a paragraph's few lines.
