@@ -5,7 +5,7 @@
  * held to `syntax.md`: every warning code is named there, each Not supported row's "Write instead"
  * is its code's, every construct and row has examples, the hand list names real examples, and
  * most upstream examples are still compared with the oracle, so a rule that swallowed a suite
- * would show. Each vendored file is exactly what `fences.ts` writes, so an edit by hand shows.
+ * would show. markz's own examples each have their own number. Each vendored file is exactly what `fences.ts` writes, so an edit by hand shows.
  */
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -39,6 +39,11 @@ describe('filing', () => {
 
 	it.each(Object.keys(listed))('%s is a real example', (id) => {
 		expect(examples.some((e) => e.id === id)).toBe(true);
+	});
+
+	it("numbers markz's own examples once each", () => {
+		const numbers = examples.filter((e) => e.source === 'markz').map((e) => e.number);
+		expect(numbers.length).toBe(new Set(numbers).size);
 	});
 
 	it('compares most upstream examples with the oracle', () => {

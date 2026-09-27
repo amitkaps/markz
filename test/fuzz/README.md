@@ -11,4 +11,4 @@ and [`../complexity.test.ts`](../complexity.test.ts).
   growing in proportion to a count.
 
 A failure fast-check finds is shrunk to its smallest form. Once fixed, it goes into
-`../dialect/*.md` as an example, so it stays fixed without the fuzzer finding it again.
+its construct's file in `../examples/markz/` as an example, so it stays fixed without the fuzzer finding it again.

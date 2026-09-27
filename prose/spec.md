@@ -441,8 +441,8 @@ used, and how its tree is built. The unified/remark ecosystem stays out of markz
   a generated document that needs one is left out with its reason, as are the few where micromark
   parts from commonmark.js.
 - **Rejected syntax:** an example that uses a form `syntax.md` cuts must raise that row's warning,
-  so the cuts are tested rather than skipped. markz's own examples (`test/dialect/*.md`, in the
-  CommonMark spec's format) also give their exact HTML and the text each warning covers.
+  so the cuts are tested rather than skipped. markz's own examples (`test/examples/markz/`, one file per
+  construct, in the CommonMark spec's format) also give their exact HTML and the text each warning covers.
 - **Constructs beyond GFM:**
   - directives, against `micromark-extension-directive`
   - metadata: every row of the value table in `syntax.md`, each checked against the `yaml`

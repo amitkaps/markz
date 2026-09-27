@@ -8,9 +8,9 @@ Tests that span the package rather than one module.
 - [`examples/`](examples/): every example's file. [`upstream/`](examples/upstream/) holds the
   vendored suites, one file each, with the sweeps curation keeps off the Conformance page in
   [`upstream/stress/`](examples/upstream/stress/). [`fences.ts`](fences.ts) reads and writes the
-  one format they, and `dialect/`, are in.
-- [`dialect/`](dialect/): markz's own examples in the CommonMark spec's format, one file per part
-  of `syntax.md` (metadata, block, inline, not supported), some labelled with the edge they try.
+  one format they are in. [`markz/`](examples/markz/) holds markz's own, one file per construct
+  and one for the Not supported rows, numbered as `markz:17`, some labelled with the edge they
+  try.
 - [`grammar.ts`](grammar.ts): the dialect's grammar, one entry per construct with its id, part,
   origin, EBNF productions and side rules; [`ebnf.ts`](ebnf.ts) reads the notation and recognizes
   a string by it.

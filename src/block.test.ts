@@ -1,7 +1,7 @@
 /** @prose
  * The block pass on what an example's HTML can't show: exact source ranges, node data (heading
  * ids, code bodies, directive labels, list tightness, table cells) and the order of warnings.
- * What the block constructs write is in `test/dialect/block.md`. Every parsed document is also
+ * What the block constructs write is in `test/examples/markz/`. Every parsed document is also
  * held to the tree invariants.
  */
 import { describe, expect, it } from 'vite-plus/test';
