@@ -198,6 +198,17 @@ a claim[^1].
 [^1]:
 ```
 
+```example
+Wow![^1]
+[^1]: a note that interrupts the paragraph
+.
+<p>Wow![^1]
+[^1]: a note that interrupts the paragraph</p>
+.
+[^1]
+[^1]
+```
+
 ## bare-url
 
 ```example

@@ -314,6 +314,10 @@ function sluggerSuite(dir: string, dropped: string[]): Vendored[] {
  *   `content` group's repeats of attribute syntax (line breaks in `{…}`, `.a.b` shortcuts, single
  *   quotes) go too. A directive before or after a block form markz cuts
  *   (setext, indented code, definitions, HTML, `***`) tests that form, which its own row does.
+ * - **gfm-footnote:** footnotes are cut, so what markz decides is that `[^x]` and `[^x]:` warn,
+ *   that `[^x]` is told apart from links, images and references, and that `^[x]` is text. The
+ *   fixtures on those and the inline tests stay (not the ones for the HTML's options); the ones on
+ *   a footnote's own content (blank lines, prefixes, nesting, continuation) go.
  * - **yaml:** valid YAML that looks like plain metadata (`key: value` lines, blanks, comments) stays,
  *   and of the rest, a test stays while one of its feature tags (`anchor`, `flow`, `literal`, …)
  *   has none yet. Tags that say where a test comes from (`spec`, `1.3-err`) or what every
@@ -344,6 +348,9 @@ const CUT_NEIGHBOUR =
 const ATTRIBUTE_REPEAT =
 	/^content › should (?:not )?support (?:EOLs? .*|.*shortcuts.*|.*single(?: quoted)? attribute values)$/;
 
+const FOOTNOTE =
+	/^(?:bang-caret|images-or-footnotes|links-or-footnotes|references-and-definitions|calls|definitions|inline-notes-pandoc)\.md|^micromark-extension-gfm-footnote › (?!should support `options)/;
+
 const SWEEPS = /^(?:http|www)-(?:domain|path)-|-character-reference-like-|^previous-complex/;
 
 function curate(suite: string, examples: Vendored[]): [kept: Vendored[], stress: Vendored[]] {
@@ -353,6 +360,7 @@ function curate(suite: string, examples: Vendored[]): [kept: Vendored[], stress:
 	for (const e of examples) {
 		let keep = true;
 		if (suite === 'gfm-autolink-literal') keep = !SWEEPS.test(e.section);
+		if (suite === 'gfm-footnote') keep = FOOTNOTE.test(e.section);
 		if (suite === 'directive') {
 			// Variants that differ only in one character (`an empty shortcut (\`.\`)`) are one test.
 			const title = e.section
