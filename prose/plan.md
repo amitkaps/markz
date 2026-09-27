@@ -476,6 +476,12 @@ before copying the line. Parse on the common documents went from 21.1 to 22.0 MB
 18.3 to 19.1 (agent), and on headings from 6.3 to 6.8, to markdown-exit's 12.0: what is left is
 the inline pass run on each short title.
 
+Writing nodes during the scan, rather than building an item list and copying it, was weighed and
+left. As a test of what it could save, text items that touch were merged as the scan made them,
+as markdown-exit's pending string does: items fell from one per 18 bytes to one per 34, and
+neither parse nor parse + HTML moved. Making and copying items isn't where the time goes, so the
+rewrite, which would also give up parents before children in the node order, isn't worth it.
+
 ### 20. Tests and benchmarks by what they are — done
 
 The test suite grew one source at a time, so its files are sorted by where an input came from,
