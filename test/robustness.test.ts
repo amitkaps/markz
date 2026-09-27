@@ -24,7 +24,7 @@ import { html, parse } from '../src/index';
 import { examples, unwarned } from './harness/examples';
 import { readFences } from './harness/fences';
 import { grammarDocument, mutated, noise, search } from './harness/generate';
-import { normalize, reference, tokens, type Token } from './harness/oracle';
+import { apart, normalize, reference, tokens } from './harness/oracle';
 import { expectSound } from './harness/sound';
 import { row } from './harness/syntax';
 import { expectTree } from './harness/tree';
@@ -73,7 +73,7 @@ describe('the oracle', () => {
 					// the same way, so the oracle reads the document with LFs.
 					const lf = markdown.replace(/\r\n?/g, '\n');
 					const found = tokens(lf);
-					if (APART.some(([, test]) => test(lf, found))) return;
+					if (apart(lf, found)) return;
 					expect(normalize(html(doc))).toBe(normalize(reference(lf)));
 				}),
 				settings
@@ -82,46 +82,6 @@ describe('the oracle', () => {
 		timeout
 	);
 });
-
-/** @prose
- * ## Where they part by design or by the oracle
- *
- * Documents the comparison leaves out, each with its reason: one rule of the dialect, and the
- * places micromark parts from CommonMark's reference implementation, commonmark.js, which agrees
- * with markz.
- */
-const SEQUENCES = new Set(['emphasisSequence', 'strongSequence', 'strikethroughSequence']);
-
-const APART: [reason: string, test: (markdown: string, found: Token[]) => boolean][] = [
-	[
-		'emphasis runs never split (syntax.md: Emphasis), as the spec examples that need one differ',
-		(markdown, found) =>
-			found.some(
-				(t) =>
-					SEQUENCES.has(t.type) &&
-					(markdown[t.start - 1] === t.text[0] || markdown[t.end] === t.text[0])
-			)
-	],
-	[
-		"micromark keeps a paragraph line's indentation inside a code span that crosses onto it",
-		(_, found) => found.some((t) => t.type === 'codeText' && /\n[ \t]/.test(t.text))
-	],
-	[
-		'micromark moves blank lines at the end of an unclosed fence inside a list item',
-		(_, found) =>
-			found.some((t) => t.type === 'listUnordered' || t.type === 'listOrdered') &&
-			found.filter((t) => t.type === 'codeFencedFence').length <
-				2 * found.filter((t) => t.type === 'codeFenced').length
-	],
-	[
-		'micromark takes no `!` in an email autolink (`<a!b@c>`), where commonmark.js does',
-		(markdown) => /<[^\s<>@]*![^\s<>]*@/.test(markdown)
-	],
-	[
-		'after an opening `---` that never closes, the frontmatter extension leaves the next lines a paragraph',
-		(markdown) => /^---[ \t]*\n/.test(markdown)
-	]
-];
 
 const stress = Object.values(
 	import.meta.glob<string>(['./examples/upstream/stress/*.md', '!**/README.md'], {

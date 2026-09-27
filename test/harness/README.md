@@ -22,6 +22,9 @@ live here, so one change to how an example is filed or judged reaches both at on
   ones that trouble offsets; known examples with a few random edits; and how far a search goes.
 - [`sound.ts`](sound.ts) and [`tree.ts`](tree.ts): what every document must satisfy, whatever the
   input, and the tree invariants among it.
+- [`corpus.ts`](corpus.ts): the real documents in [`../documents/`](../documents/) by tier, and
+  the variants built from them: common, formatted and repeated to a size. The benchmark builds
+  its corpus from it too.
 - [`adversarial.ts`](adversarial.ts): patterns that would make a careless parser quadratic, each
   growing in proportion to a count.
 

@@ -465,7 +465,10 @@ used, and how its tree is built. The unified/remark ecosystem stays out of markz
   sound: no throw, a valid tree, warnings inside the source, the same page whatever the line
   endings, and safe HTML. A multi-MB document guards the ordinary path against quadratic
   behaviour.
-- **Consumer fixtures:** base's content docs, prose's `prose/*.md`, and visdown's examples.
+- **Real documents** (`test/documents/`): markz's docs and its consumers' (base, prose,
+  visdown), and human-written documentation (Node.js, the Rust book, Vite). Each is sound as
+  written and after oxfmt, its common blocks read as micromark reads them, formatting never
+  changes what it means, and its warnings are a snapshot.
 
 The build order is in [`plan.md`](plan.md).
 

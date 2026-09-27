@@ -8,12 +8,13 @@
  * a warm-up, so a garbage collection or a cold JIT doesn't decide it, and a few milliseconds of
  * slack keeps a fast pattern from failing on timer noise alone.
  *
- * A multi-megabyte document of every construct guards the ordinary path the same way.
+ * The corpus's scaling tier, the real agent and public documents repeated to megabytes, guards
+ * the ordinary path the same way.
  */
 import { describe, expect, it } from 'vite-plus/test';
 import { html, parse } from '../src/index';
-import { examples } from './harness/examples';
 import { PATTERNS } from './harness/adversarial';
+import { mix, repeat } from './harness/corpus';
 
 const time = (input: string): number => {
 	let best = Infinity;
@@ -43,12 +44,6 @@ describe('adversarial input', () => {
 });
 
 describe('a large document', () => {
-	const all = examples.map((e) => e.markdown).join('\n\n');
-	const document = (n: number) => {
-		let out = '';
-		while (out.length < n) out += all;
-		return out.slice(0, n);
-	};
-
-	it('stays linear to megabytes', () => expectLinear(document, 1_000_000), 60_000);
+	const text = mix();
+	it('stays linear to megabytes', () => expectLinear((n) => repeat(text, n), 1_000_000), 60_000);
 });

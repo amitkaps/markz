@@ -10,7 +10,7 @@ import { defineConfig } from 'vite-plus';
 import { prose } from '@amitkaps/prose';
 
 const generated = ['dist/**'];
-const vendored = ['test/examples/upstream/**/*.md', 'bench/fixtures/**'];
+const vendored = ['test/examples/upstream/**/*.md', 'test/documents/**'];
 // The benchmark's generated corpus and results, and the published snapshot, which is its output.
 const bench = ['bench/corpus/**', 'bench/results/**', 'bench/.size/**', 'docs/src/lib/bench.json'];
 // The site's generated files. `vp` reads this config for the whole workspace, `docs/` included.

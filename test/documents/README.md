@@ -1,8 +1,10 @@
-# fixtures
+# documents
 
-The benchmark's documents, vendored as they were at the commit named, and never edited. They are
-excluded from the repo's formatter, so they stay exactly as their authors store them. The tier each
-folder feeds is in [`../corpus.ts`](../corpus.ts).
+Real documents, vendored as they were at the commit named, and never edited:
+[`../documents.test.ts`](../documents.test.ts) holds markz to each, and the benchmark times them.
+They are excluded from the repo's formatter, so they stay exactly as their authors store them.
+The tier each folder is, and the variants built from them, are in
+[`../harness/corpus.ts`](../harness/corpus.ts).
 
 ## agent
 

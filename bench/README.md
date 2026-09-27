@@ -33,7 +33,8 @@ held by `test/complexity.test.ts`.
 
 ## Files
 
-- [`corpus.ts`](corpus.ts): the tiers and their two variants, built from [`fixtures/`](fixtures/)
+- [`corpus.ts`](corpus.ts): the tiers and their two variants, built from
+  [`test/documents/`](../test/documents/) by the test harness's corpus
   into `corpus/` with a hash
 - [`parsers.ts`](parsers.ts): one adapter per parser, per mode
 - [`cli.ts`](cli.ts): one timed command, which is what Hyperfine runs
