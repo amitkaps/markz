@@ -1,8 +1,8 @@
 /** @prose
- * # Vendoring an extension suite
+ * # Vendoring an upstream suite
  *
- * Turns a micromark extension's own tests into examples for `test/spec/`, from a local clone at
- * the commit its README pins. What markz is held to is the input: every example is compared with
+ * Turns an upstream project's own tests into examples for `test/spec/`, from a local clone at the
+ * commit its README pins: a micromark extension's, or the yaml-test-suite (below). What markz is held to is the input: every example is compared with
  * markz's oracle, not with the HTML the suite expected, so a test that only configures the HTML
  * side (a directive handler, `allowDangerousHtml`) keeps its input. A test whose options change the
  * syntax (`disable`, `singleTilde`) is dropped, as is anything whose input isn't a literal.
@@ -14,13 +14,17 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import ts from 'typescript';
+import YAML from 'yaml';
 
 export interface Vendored {
 	example: number;
 	/** `<test group> › <test title>` from `index.js`, or `<fixture file> › <heading>`. */
 	section: string;
 	markdown: string;
-	/** What the suite expected, which may be another renderer's or handler's HTML. */
+	/**
+	 * What the suite expected, which may be another renderer's or handler's HTML. For YAML, the
+	 * test's JSON, or `error` when the YAML is invalid.
+	 */
 	html: string;
 }
 
@@ -192,10 +196,84 @@ function expected(call: ts.CallExpression): string {
 	return literal(parent.arguments[1]) ?? '';
 }
 
+/** @prose
+ * ## yaml-test-suite
+ *
+ * Each test in `src/*.yaml`, with its variants, becomes a metadata block: the test's YAML between
+ * `---` fences. What markz is held to is the `yaml` package's reading, so the suite is kept to
+ * what that oracle reads as a mapping, or rejects: a top-level sequence or scalar is not metadata
+ * in any tool. A document marker, `...` or `%` directive line can't sit inside the fences, so
+ * those tests are left out. The suite's own JSON, or its `fail`, checks the oracle.
+ */
+function yamlSuite(dir: string, dropped: string[]): Vendored[] {
+	const out: Vendored[] = [];
+	const base = join(dir, 'src');
+	for (const file of readdirSync(base).sort()) {
+		if (!file.endsWith('.yaml')) continue;
+		const id = file.slice(0, -5);
+		let name = '';
+		let tags = '';
+		for (const [i, test] of (
+			YAML.parse(readFileSync(join(base, file), 'utf8'), { logLevel: 'error' }) as Test[]
+		).entries()) {
+			name = test.name ?? name;
+			tags = test.tags ?? tags;
+			if (test.yaml === undefined) continue;
+			const label = `${id}${i ? `:${i}` : ''}`;
+			const text = visible(test.yaml);
+			if (/^(?:---|\.\.\.)(?:\s|$)|^%/m.test(text) || text.includes('\uFEFF')) {
+				dropped.push(`${label} ${name}: document markers`);
+				continue;
+			}
+			let shape = 'error';
+			try {
+				const value = YAML.parse(text, { logLevel: 'error' });
+				shape =
+					value === null || typeof value !== 'object'
+						? 'scalar'
+						: Array.isArray(value)
+							? 'sequence'
+							: 'mapping';
+			} catch {}
+			if (shape !== 'mapping' && shape !== 'error') {
+				dropped.push(`${label} ${name}: a ${shape}, not a mapping`);
+				continue;
+			}
+			out.push({
+				example: 0,
+				section: `${label} › ${name} (${tags})`,
+				markdown: `---\n${text}${text.endsWith('\n') ? '' : '\n'}---\n`,
+				html: test.fail ? 'error' : (test.json ?? '')
+			});
+		}
+	}
+	return out;
+}
+
+interface Test {
+	name?: string;
+	tags?: string;
+	yaml?: string;
+	json?: string;
+	fail?: boolean;
+}
+
+/** The suite writes invisible characters visibly: `␣` a space, `—»` a tab, `←` a CR, `∎` no final newline. */
+function visible(text: string): string {
+	return text
+		.replace(/␣/g, ' ')
+		.replace(/—*»/g, '\t')
+		.replace(/←/g, '\r')
+		.replace(/↵/g, '')
+		.replace(/⇔/g, '\uFEFF')
+		.replace(/∎\n?$/, '');
+}
+
 const [suite, dir] = process.argv.slice(2);
 if (!suite || !dir) throw new Error('usage: node scripts/vendor.ts <suite> <clone>');
 const dropped: string[] = [];
-const examples = [...fixtures(dir), ...inline(dir, dropped)];
+const examples =
+	suite === 'yaml' ? yamlSuite(dir, dropped) : [...fixtures(dir), ...inline(dir, dropped)];
 // Upstream sometimes asserts the same input twice, under different options.
 const seen = new Set<string>();
 const kept = examples.filter((e) => !seen.has(e.markdown) && seen.add(e.markdown));

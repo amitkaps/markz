@@ -24,3 +24,9 @@ against it where it has any.
   oracle isn't checked against them. Left out: tests of an
   option that changes the syntax (`disable.null`, `singleTilde`), the fixture loops, whose input
   isn't a literal, repeated inputs, and the 80,000-line `large.offline.md`, which belongs with step 15's stress tests.
+- `yaml.json`: the [yaml-test-suite](https://github.com/yaml/yaml-test-suite/tree/da267a5c4782e7361e82889e76c0dc7df0e1e870/src)
+  (commit `da267a5`), also by `vendor.ts`. Each test, and each variant, is its YAML between `---`
+  fences, with the suite's JSON, or `error` for a test marked `fail`. It is kept to what the
+  `yaml` package reads as a mapping or rejects: top-level sequences and scalars (94) aren't
+  metadata anywhere, and tests with document markers or directives (151) can't sit inside the
+  fences. That leaves 159.

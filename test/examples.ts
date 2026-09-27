@@ -4,8 +4,9 @@
  * Every example markz is held to, in one shape and filed by the dialect: under a construct, by its
  * id in `grammar.ts` (Metadata, Block, Inline), or under the Not supported row it exercises, by
  * its warning code. Where an
- * example comes from is a label, not a category. The upstream suites (CommonMark, GFM) are checked
- * against the oracle; markz's own examples, in `dialect/*.md`, carry their expected output.
+ * example comes from is a label, not a category. The upstream suites are checked against an
+ * oracle (micromark for the Markdown, `yaml` for metadata); markz's own examples, in
+ * `dialect/*.md`, carry their expected output.
  *
  * An example is one of four kinds:
  *
@@ -22,15 +23,22 @@ import block from './dialect/block.md?raw';
 import inline from './dialect/inline.md?raw';
 import metadata from './dialect/metadata.md?raw';
 import notSupported from './dialect/not-supported.md?raw';
-import { normalize, reference, tokens, type Token } from './oracle';
+import { metadataOracle, normalize, reference, tokens, type Token } from './oracle';
 import commonmark from './spec/commonmark.json' with { type: 'json' };
 import directive from './spec/directive.json' with { type: 'json' };
+import yamlSuite from './spec/yaml.json' with { type: 'json' };
 import gfmStrikethrough from './spec/gfm-strikethrough.json' with { type: 'json' };
 import gfmTable from './spec/gfm-table.json' with { type: 'json' };
 import gfm from './spec/gfm.json' with { type: 'json' };
 import { part, row, type Part } from './syntax';
 
-export type Upstream = 'commonmark' | 'gfm' | 'gfm-table' | 'gfm-strikethrough' | 'directive';
+export type Upstream =
+	| 'commonmark'
+	| 'gfm'
+	| 'gfm-table'
+	| 'gfm-strikethrough'
+	| 'directive'
+	| 'yaml';
 export type Source = Upstream | 'markz';
 export type Kind = 'oracle' | 'differs' | 'not supported' | 'expected';
 export type Status = 'pass' | 'fail' | 'differs';
@@ -102,7 +110,8 @@ export const sections: Record<string, string> = {
 	'directive:micromark-extension-directive (syntax, leaf)': 'directive',
 	'directive:micromark-extension-directive (syntax, container)': 'directive',
 	'directive:micromark-extension-directive (compile)': DIRECTIVE,
-	'directive:content': DIRECTIVE
+	'directive:content': DIRECTIVE,
+	yaml: 'metadata'
 };
 
 /** A leaf or container directive files the example under `directive`, else `text-directive`. */
@@ -173,7 +182,8 @@ export const oracleDiffers: Record<string, string> = {
 	'gfm:279': 'cmark-gfm orders task-item input attributes differently and omits the void slash',
 	'gfm:280': 'cmark-gfm orders task-item input attributes differently and omits the void slash',
 	'gfm-table:58':
-		'GitHub reads an escaped backslash before a pipe as escaping the pipe (cmark-gfm#277)'
+		'GitHub reads an escaped backslash before a pipe as escaping the pipe (cmark-gfm#277)',
+	'yaml:18': '`yaml` reads `!!binary` as bytes, where the suite writes the base64 string'
 };
 
 /** @prose
@@ -226,7 +236,10 @@ function upstreamExample(
 		sections[source];
 	if (home === DIRECTIVE) home = directiveKind(e.markdown);
 	if (!home) throw new Error(`${source} section "${e.section}" is not mapped to syntax.md`);
-	let found = listed[id] ?? cuts.find(([, test]) => tokens(e.markdown).some(test))?.[0];
+	// micromark's tokens say nothing about a YAML block.
+	const token =
+		source === 'yaml' ? undefined : cuts.find(([, test]) => tokens(e.markdown).some(test));
+	let found = listed[id] ?? token?.[0];
 	// Where markz accepts what the token looked like (`*` touching a word), it isn't a cut.
 	const cut = found && !listed[id] && row(found);
 	if (cut && !parse(e.markdown).warnings.some((w) => w.code === cut.code)) found = undefined;
@@ -298,6 +311,7 @@ export const examples: Example[] = [
 	...gfmTable.map((e) => upstreamExample('gfm-table', e)),
 	...gfmStrikethrough.map((e) => upstreamExample('gfm-strikethrough', e)),
 	...directive.map((e) => upstreamExample('directive', e)),
+	...yamlSuite.map((e) => upstreamExample('yaml', e)),
 	...dialect('metadata', metadata),
 	...dialect('block', block),
 	...dialect('inline', inline),
@@ -328,6 +342,7 @@ export function check(e: Example): Result {
 	} catch (error) {
 		return { status: 'fail', markz: String(error), oracle: null, warnings: [], problem: 'threw' };
 	}
+	if (e.source === 'yaml') return againstYaml(e, doc);
 	const oracle = e.source === 'markz' ? null : reference(e.markdown);
 	const result = (problem: string | null, status: Status = problem ? 'fail' : 'pass'): Result => ({
 		status,
@@ -352,6 +367,38 @@ export function check(e: Example): Result {
 	}
 	if (code && doc.warnings.some((w) => w.code !== code)) {
 		return result(`a warning other than \`${code}\``);
+	}
+	return result(null);
+}
+
+/** @prose
+ * ## Metadata against YAML
+ *
+ * A yaml-test-suite example is held to the `yaml` package, key by key: every key markz keeps
+ * must have the value YAML gives it, and a block YAML rejects must raise a metadata warning. A
+ * key markz skipped is fine when it warned about the line. A block markz doesn't read as metadata
+ * at all differs, by the metadata rule: its lines don't all look like `key:` lines.
+ */
+function againstYaml(e: Example, doc: Document): Result {
+	const oracle = metadataOracle(e.markdown.slice(4, -4));
+	const mine = doc.metadata;
+	const warned = doc.warnings.some((w) => w.code.startsWith('metadata-'));
+	const result = (problem: string | null, status: Status = problem ? 'fail' : 'pass'): Result => ({
+		status,
+		markz: mine === undefined ? '(not metadata)' : JSON.stringify(mine, null, 1),
+		oracle: 'error' in oracle ? `error: ${oracle.error}` : JSON.stringify(oracle.value, null, 1),
+		warnings: [...doc.warnings],
+		problem
+	});
+	if (mine === undefined) return result(null, 'differs');
+	if ('error' in oracle) return result(warned ? null : 'accepted a block YAML rejects');
+	const value = oracle.value as Record<string, unknown>;
+	for (const [key, v] of Object.entries(mine)) {
+		if (JSON.stringify(v) !== JSON.stringify(value[key]))
+			return result(`\`${key}\` differs from YAML`);
+	}
+	if (!warned && Object.keys(value).length !== Object.keys(mine).length) {
+		return result('dropped a key without a warning');
 	}
 	return result(null);
 }
