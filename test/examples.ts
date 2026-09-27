@@ -34,17 +34,18 @@ import {
 	type MathSpan,
 	type Token
 } from './oracle';
-import commonmark from './spec/commonmark.json' with { type: 'json' };
-import directive from './spec/directive.json' with { type: 'json' };
-import frontmatter from './spec/frontmatter.json' with { type: 'json' };
-import math from './spec/math.json' with { type: 'json' };
-import slugger from './spec/slugger.json' with { type: 'json' };
-import yamlSuite from './spec/yaml.json' with { type: 'json' };
-import gfmFootnote from './spec/gfm-footnote.json' with { type: 'json' };
-import gfmAutolinkLiteral from './spec/gfm-autolink-literal.json' with { type: 'json' };
-import gfmStrikethrough from './spec/gfm-strikethrough.json' with { type: 'json' };
-import gfmTable from './spec/gfm-table.json' with { type: 'json' };
-import gfm from './spec/gfm.json' with { type: 'json' };
+import commonmark from './examples/upstream/commonmark.md?raw';
+import directive from './examples/upstream/directive.md?raw';
+import frontmatter from './examples/upstream/frontmatter.md?raw';
+import math from './examples/upstream/math.md?raw';
+import slugger from './examples/upstream/slugger.md?raw';
+import yamlSuite from './examples/upstream/yaml.md?raw';
+import gfmFootnote from './examples/upstream/gfm-footnote.md?raw';
+import gfmAutolinkLiteral from './examples/upstream/gfm-autolink-literal.md?raw';
+import gfmStrikethrough from './examples/upstream/gfm-strikethrough.md?raw';
+import gfmTable from './examples/upstream/gfm-table.md?raw';
+import gfm from './examples/upstream/gfm.md?raw';
+import { readFences, type Fence } from './fences';
 import { part, row, type Part } from './syntax';
 import { element } from '../src/elements';
 
@@ -61,6 +62,13 @@ export type Upstream =
 	| 'slugger'
 	| 'math';
 export type Source = Upstream | 'markz';
+/**
+ * What an example is held to: micromark (`oracle`), the `yaml` package, github-slugger, the math
+ * extension's spans, or, for markz's own, its expected output. An upstream file names it in its
+ * metadata.
+ */
+export type Checks = 'oracle' | 'yaml' | 'slug' | 'math' | 'expected';
+const CHECKS: Checks[] = ['oracle', 'yaml', 'slug', 'math'];
 export type Kind = 'oracle' | 'differ' | 'not supported' | 'expected';
 /** The edges a construct is tried at (`cases.ts`); a valid case needs no label. */
 export type Category = 'valid' | 'boundary' | 'near-miss' | 'ambiguous' | 'unclosed';
@@ -78,6 +86,7 @@ export interface Example {
 	/** The section of the upstream suite, for an upstream example. */
 	upstream: string | null;
 	kind: Kind;
+	checks: Checks;
 	markdown: string;
 	/** The spec's own HTML for an upstream example; the expected HTML for markz's own. */
 	html: string;
@@ -305,6 +314,7 @@ export function markzNames(markdown: string): string {
 
 function upstreamExample(
 	source: Upstream,
+	checks: Checks,
 	vendored: { example: number; section: string; markdown: string; html: string }
 ): Example {
 	const e =
@@ -320,8 +330,7 @@ function upstreamExample(
 	}
 	if (!home) throw new Error(`${source} section "${e.section}" is not mapped to syntax.md`);
 	// micromark's tokens say nothing about a YAML block or a heading's id.
-	const oracleTokens =
-		source === 'yaml' || source === 'slugger' || source === 'math' ? [] : tokens(e.markdown);
+	const oracleTokens = checks === 'oracle' ? tokens(e.markdown) : [];
 	const codes = new Set(parse(e.markdown).warnings.map((w) => w.code));
 	// Where markz accepts what the token looked like (`*` touching a word), it isn't a cut.
 	const token = cuts.find(([section, test]) => {
@@ -338,6 +347,7 @@ function upstreamExample(
 		upstream: e.section,
 		markdown: e.markdown,
 		html: e.html,
+		checks,
 		warnings: [],
 		category: null,
 		rule: null,
@@ -346,82 +356,70 @@ function upstreamExample(
 }
 
 /** @prose
- * ## markz's own
+ * ## Loading
  *
- * `dialect/*.md` holds markz's examples in the CommonMark spec's format, in the fence oxfmt
- * writes: a backtick fence with the info string `example`, long enough for what it holds, then
- * the Markdown, a `.` line, the expected HTML, and optionally a second `.` line and the text each
- * warning covers, one per line. Without that part, the example must warn about nothing. `→` is a
- * tab, `␣` a space that would otherwise be invisible at the end of a line, and `⏎` a line ending
- * inside a warning's text. Each example is filed under the nearest `##` heading: a construct id
- * or a warning code. The info string may go on to name the edge the example tries (`example
- * near-miss`), and an ambiguous one names the side rule that settles it (`example ambiguous
- * block-order`).
+ * Every example is read from its file by `fences.ts`. An upstream suite's metadata names what it
+ * is checked by, and its examples keep the suite's numbers. markz's own, in `dialect/*.md`, are
+ * filed under the nearest `##` heading, a construct id or a warning code, and must give their
+ * expected HTML and warn over exactly the text listed, or about nothing if none is.
  */
+function upstream(source: Upstream, text: string): Example[] {
+	const { meta, examples: fences } = readFences(text);
+	const checks = meta['checks'] as Checks;
+	if (!CHECKS.includes(checks)) throw new Error(`${source}: checked by "${checks}"`);
+	const vendored = fences.map((f: Fence) => ({
+		example: f.number!,
+		section: f.section,
+		markdown: f.markdown,
+		html: f.expected
+	}));
+	// Each slugger fixture follows the ones before it in one document, so repeats are numbered.
+	if (checks === 'slug') {
+		for (const [i, e] of vendored.entries()) {
+			e.markdown = fences
+				.slice(0, i + 1)
+				.map((f) => f.markdown)
+				.join('');
+		}
+	}
+	return vendored.map((e) => upstreamExample(source, checks, e));
+}
+
 function dialect(file: string, text: string): Example[] {
-	const out: Example[] = [];
-	let section = '';
-	const lines = text.split('\n');
-	for (let i = 0; i < lines.length; i++) {
-		const line = lines[i]!;
-		if (line.startsWith('## ')) section = line.slice(3).trim();
-		const info = /^(`{3,})example(?: ([a-z-]+))?(?: ([a-z-]+))?$/.exec(line);
-		if (!info) continue;
-		const [, fence, category = null, rule = null] = info;
-		if (category && !CATEGORIES.includes(category as Category)) {
-			throw new Error(`${file}: "${category}" is not a category`);
+	return readFences(text).examples.map((f, i) => {
+		if (f.category && !CATEGORIES.includes(f.category as Category)) {
+			throw new Error(`${file}: "${f.category}" is not a category`);
 		}
-		const body: string[] = [];
-		for (i++; lines[i] !== fence; i++) body.push(lines[i]!);
-		const parts: string[][] = [[]];
-		for (const l of body) {
-			if (l === '.') parts.push([]);
-			else parts.at(-1)!.push(l);
-		}
-		const [markdown = '', html = '', warnings = ''] = parts.map((p) => p.join('\n'));
-		const decode = (s: string) => s.replace(/→/g, '\t').replace(/␣/g, ' ');
-		const number = out.length + 1;
-		out.push({
+		const number = i + 1;
+		return {
 			source: 'markz',
 			id: `markz:${file}:${number}`,
 			number,
 			upstream: null,
-			markdown: decode(markdown),
-			html: decode(html),
-			warnings: warnings
-				.split('\n')
-				.filter(Boolean)
-				.map((w) => decode(w).replace(/⏎/g, '\n')),
-			category: category as Category | null,
-			rule,
-			...filed(section, null),
+			markdown: f.markdown,
+			html: f.expected,
+			checks: 'expected',
+			warnings: f.warnings,
+			category: f.category as Category | null,
+			rule: f.rule,
+			...filed(f.section, null),
 			kind: 'expected'
-		});
-	}
-	return out;
+		};
+	});
 }
 
 export const examples: Example[] = [
-	...commonmark.map((e) => upstreamExample('commonmark', e)),
-	...gfm.map((e) => upstreamExample('gfm', e)),
-	...gfmTable.map((e) => upstreamExample('gfm-table', e)),
-	...gfmStrikethrough.map((e) => upstreamExample('gfm-strikethrough', e)),
-	...gfmAutolinkLiteral.map((e) => upstreamExample('gfm-autolink-literal', e)),
-	...gfmFootnote.map((e) => upstreamExample('gfm-footnote', e)),
-	...directive.map((e) => upstreamExample('directive', e)),
-	...frontmatter.map((e) => upstreamExample('frontmatter', e)),
-	...yamlSuite.map((e) => upstreamExample('yaml', e)),
-	// Each slugger fixture follows the ones before it in one document, so repeats are numbered.
-	...math.map((e) => upstreamExample('math', e)),
-	...slugger.map((e, i) =>
-		upstreamExample('slugger', {
-			...e,
-			markdown: slugger
-				.slice(0, i + 1)
-				.map((f) => f.markdown)
-				.join('')
-		})
-	),
+	...upstream('commonmark', commonmark),
+	...upstream('gfm', gfm),
+	...upstream('gfm-table', gfmTable),
+	...upstream('gfm-strikethrough', gfmStrikethrough),
+	...upstream('gfm-autolink-literal', gfmAutolinkLiteral),
+	...upstream('gfm-footnote', gfmFootnote),
+	...upstream('directive', directive),
+	...upstream('frontmatter', frontmatter),
+	...upstream('yaml', yamlSuite),
+	...upstream('math', math),
+	...upstream('slugger', slugger),
 	...dialect('metadata', metadata),
 	...dialect('block', block),
 	...dialect('inline', inline),
@@ -470,10 +468,10 @@ export function check(e: Example): Result {
 			problem
 		};
 	}
-	if (e.source === 'yaml') return againstYaml(e, doc);
-	if (e.source === 'slugger') return againstSlugger(e, doc);
-	if (e.source === 'math') return againstMath(e, doc, markz);
-	const oracle = e.source === 'markz' ? null : reference(e.markdown);
+	if (e.checks === 'yaml') return againstYaml(e, doc);
+	if (e.checks === 'slug') return againstSlugger(e, doc);
+	if (e.checks === 'math') return againstMath(e, doc, markz);
+	const oracle = e.checks === 'oracle' ? reference(e.markdown) : null;
 	const code = e.part === 'Not supported' ? e.section : null;
 	const result = (status: Status, detail: string): Result => ({
 		status,

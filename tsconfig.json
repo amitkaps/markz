@@ -15,7 +15,9 @@
 		"forceConsistentCasingInFileNames": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
-		"noEmit": true
+		"noEmit": true,
+		// Node runs `scripts/` directly, and needs the extension.
+		"allowImportingTsExtensions": true
 	},
 	"include": ["src", "test", "scripts", "vite.config.ts"]
 }

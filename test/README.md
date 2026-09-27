@@ -5,6 +5,10 @@ Tests that span the package rather than one module.
 - [`examples.ts`](examples.ts): every example markz is held to, upstream and its own, filed under
   a construct id or a Not supported row's warning code, and `check`, which gives each its status. The
   site's Conformance page runs the same code.
+- [`examples/`](examples/): every example's file. [`upstream/`](examples/upstream/) holds the
+  vendored suites, one file each, with the sweeps curation keeps off the Conformance page in
+  [`upstream/stress/`](examples/upstream/stress/). [`fences.ts`](fences.ts) reads and writes the
+  one format they, and `dialect/`, are in.
 - [`dialect/`](dialect/): markz's own examples in the CommonMark spec's format, one file per part
   of `syntax.md` (metadata, block, inline, not supported), some labelled with the edge they try.
 - [`grammar.ts`](grammar.ts): the dialect's grammar, one entry per construct with its id, part,
@@ -23,7 +27,7 @@ Tests that span the package rather than one module.
   [`grammar.test.ts`](grammar.test.ts) holds the grammar to itself and to `syntax.md`;
   [`oracle.test.ts`](oracle.test.ts) checks the oracle itself.
 - [`tree.ts`](tree.ts): the tree invariants every document must satisfy.
-- [`stress/`](stress/) and [`stress.test.ts`](stress.test.ts): upstream examples kept off the
+- [`stress.test.ts`](stress.test.ts): the upstream examples kept off the
   Conformance page, held only to finishing, not throwing, a valid tree and a warning for every
   bare URL GFM links.
 

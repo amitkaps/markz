@@ -14,8 +14,8 @@ describe('oracle', () => {
 		examples.filter(
 			(e) =>
 				e.kind === 'oracle' &&
-				e.source !== 'yaml' &&
-				e.source !== 'slugger' &&
+				e.checks !== 'yaml' &&
+				e.checks !== 'slug' &&
 				e.html &&
 				!oracleDiffers[e.id]
 		)
@@ -25,7 +25,7 @@ describe('oracle', () => {
 });
 
 describe('metadata oracle', () => {
-	it.each(examples.filter((e) => e.source === 'yaml' && e.html && !oracleDiffers[e.id]))(
+	it.each(examples.filter((e) => e.checks === 'yaml' && e.html && !oracleDiffers[e.id]))(
 		'$id ($upstream) matches the suite',
 		(e) => {
 			const oracle = metadataOracle(e.markdown.slice(4, -4));
@@ -36,7 +36,7 @@ describe('metadata oracle', () => {
 });
 
 describe('slug oracle', () => {
-	it.each(examples.filter((e) => e.source === 'slugger' && !oracleDiffers[e.id]))(
+	it.each(examples.filter((e) => e.checks === 'slug' && !oracleDiffers[e.id]))(
 		'$id ($upstream) matches the suite',
 		(e) => {
 			expect(slugOracle(headingTexts(e.markdown)).at(-1)).toBe(e.html);
