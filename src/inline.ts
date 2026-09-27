@@ -5,8 +5,9 @@
  * (spec: Parser foundation). The block pass hands it the lines as source ranges with container
  * prefixes and outer whitespace already cut, so it never sees a `> ` or an item's indentation.
  *
- * The lines are joined into one string with `\n` between them, and every position in it maps
- * back to the source, so a node may span lines while its range stays exact. Atomic constructs
+ * The lines are joined into one flat string with `\n` between them (with `join`: a string built
+ * with `+=` is a rope V8 walks on every character read), and every position in it maps back to
+ * the source, so a node may span lines while its range stays exact. Atomic constructs
  * (code, math, expressions, autolinks, escapes, references, directives) are consumed where they
  * start, which is how they bind tighter than emphasis. Emphasis and link brackets are openers
  * that either close or stay text: the pass builds a linked list of items, and a match wraps the
@@ -19,14 +20,23 @@ import { element } from './elements';
 import { memo, scanExpression, type Memo } from './expression';
 import { type WarningCode } from './warnings';
 
-/** Writes the inline nodes and returns their plain text, which a heading's id is made from. */
-export function inline(b: Builder, source: string, lines: readonly Range[], cell = false): string {
+/**
+ * Writes the inline nodes. For a heading it also returns their plain text, which the heading's id
+ * is made from; every other leaf skips building it.
+ */
+export function inline(
+	b: Builder,
+	source: string,
+	lines: readonly Range[],
+	cell = false,
+	heading = false
+): string {
 	if (lines.length === 0) return '';
 	const pass = new InlinePass(b, source, lines, cell);
 	const list = pass.scan(0, pass.text.length);
 	pass.emit(list);
 	for (const [start, end] of pass.urls) b.warn('bare-url', start, end);
-	return plainText(list.first, false);
+	return heading ? plainText(list.first, false) : '';
 }
 
 /** @prose
@@ -96,17 +106,22 @@ class InlinePass {
 	readonly text: string;
 	readonly starts: number[] = [];
 	order = 0;
-	/** Backtick run lengths with no closing run left in the text. */
-	readonly noCode = new Set<number>();
+	/**
+	 * The records below are made on first use, since most leaves never need them: a paragraph of
+	 * plain prose allocates none.
+	 *
+	 * Backtick run lengths with no closing run left in the text.
+	 */
+	noCode: Set<number> | null = null;
 	noMath = false;
 	/** Runs of dollars that found no closing run of the same length. */
-	readonly noDollars = new Set<number>();
+	noDollars: Set<number> | null = null;
 	/** `scanExpression`'s records by text, the joined text (`t`) or the source (`s`), and range end. */
-	readonly memos = new Map<string, Memo>();
+	memos: Map<string, Memo> | null = null;
 	/** `labelEnd`'s records by range end. */
-	readonly labels = new Map<number, Map<number, number>>();
+	labels: Map<number, Map<number, number>> | null = null;
 	/** `next`'s last search per token. */
-	readonly found = new Map<string, { from: number; at: number }>();
+	found: Map<string, { from: number; at: number }> | null = null;
 	/** The last `braceEnd` search: from where, on which line, and what it found. */
 	lastBrace = { from: -1, lineEnd: -1, close: -1 };
 	/** Openers waiting for a closer, by kind, and link brackets. */
@@ -120,18 +135,21 @@ class InlinePass {
 		this.src = src;
 		this.lines = lines;
 		this.cell = cell;
-		let text = '';
-		for (const [i, line] of lines.entries()) {
-			this.starts.push(text.length);
-			text += src.slice(line.start, line.end) + (i < lines.length - 1 ? '\n' : '');
+		const parts: string[] = [];
+		let length = 0;
+		for (const line of lines) {
+			this.starts.push(length);
+			parts.push(src.slice(line.start, line.end));
+			length += line.end - line.start + 1;
 		}
-		this.text = text;
+		this.text = parts.join('\n');
 	}
 
 	memo(text: 't' | 's', end: number): Memo {
 		const key = text + end;
-		let record = this.memos.get(key);
-		if (!record) this.memos.set(key, (record = memo()));
+		const memos = (this.memos ??= new Map());
+		let record = memos.get(key);
+		if (!record) memos.set(key, (record = memo()));
 		return record;
 	}
 
@@ -140,10 +158,11 @@ class InlinePass {
 	 * from before what it found, or after it found nothing, costs nothing.
 	 */
 	next(token: string, t: number): number {
-		const last = this.found.get(token);
+		const found = (this.found ??= new Map());
+		const last = found.get(token);
 		if (last && t >= last.from && (last.at < 0 || t <= last.at)) return last.at;
 		const at = this.text.indexOf(token, t);
-		this.found.set(token, { from: t, at });
+		found.set(token, { from: t, at });
 		return at;
 	}
 
@@ -153,8 +172,9 @@ class InlinePass {
 	 * later label starting at one of them closes where the scan's depth fell back below it.
 	 */
 	labelEnd(j: number, to: number): number {
-		let closes = this.labels.get(to);
-		if (!closes) this.labels.set(to, (closes = new Map()));
+		const labels = (this.labels ??= new Map());
+		let closes = labels.get(to);
+		if (!closes) labels.set(to, (closes = new Map()));
 		const known = closes.get(j);
 		if (known !== undefined) return known;
 		const open: number[] = [];
@@ -246,8 +266,9 @@ class InlinePass {
 			else if (c === '"' || c === "'") t = this.quote(list, t, from);
 			else if (c === '-') t = this.dashes(list, t, to);
 			else {
-				let e = t + 1;
-				while (e < to && !SPECIAL.test(text[e]!)) e++;
+				PLAIN.lastIndex = t + 1;
+				PLAIN.test(text);
+				const e = Math.min(PLAIN.lastIndex, to);
 				this.add(list, this.textItem(this.at(t), this.to(e), text.slice(t, e)));
 				t = e;
 			}
@@ -272,8 +293,23 @@ class InlinePass {
 		return out;
 	}
 
+	/** Every item has every field from the start, so the engine sees one object shape. */
 	textItem(start: number, end: number, value: string): Item {
-		return { prev: null, next: null, start, end, value, order: this.order++ };
+		return {
+			prev: null,
+			next: null,
+			start,
+			end,
+			value,
+			node: undefined,
+			data: undefined,
+			attributes: undefined,
+			first: null,
+			opener: undefined,
+			order: this.order++,
+			inactive: false,
+			at: -1
+		};
 	}
 
 	nodeItem(
@@ -283,7 +319,11 @@ class InlinePass {
 		data?: unknown,
 		first: Item | null = null
 	): Item {
-		return { ...this.textItem(start, end, ''), node, data, first };
+		const item = this.textItem(start, end, '');
+		item.node = node;
+		item.data = data;
+		item.first = first;
+		return item;
 	}
 
 	add(list: List, item: Item): void {
@@ -368,7 +408,7 @@ class InlinePass {
 		let n = 1;
 		while (text[t + n] === '`') n++;
 		let j = t + n;
-		if (!this.noCode.has(n)) {
+		if (!this.noCode?.has(n)) {
 			while (j < to) {
 				const k = text.indexOf('`', j);
 				if (k < 0 || k >= to) break;
@@ -383,7 +423,7 @@ class InlinePass {
 				}
 				j = k + m;
 			}
-			if (to === this.text.length) this.noCode.add(n);
+			if (to === this.text.length) (this.noCode ??= new Set()).add(n);
 		}
 		this.plain(list, t, t + n);
 		return t + n;
@@ -428,7 +468,7 @@ class InlinePass {
 	/** Where a run of `n` dollars closes on a run of the same length, or -1. */
 	dollars(t: number, n: number, to: number): number {
 		const { text } = this;
-		if (this.noDollars.has(n)) return -1;
+		if (this.noDollars?.has(n)) return -1;
 		for (let j = t + n; j < to;) {
 			const k = text.indexOf('$', j);
 			if (k < 0 || k >= to) break;
@@ -437,7 +477,7 @@ class InlinePass {
 			if (m === n) return k + n;
 			j = k + m;
 		}
-		if (to === text.length) this.noDollars.add(n);
+		if (to === text.length) (this.noDollars ??= new Set()).add(n);
 		return -1;
 	}
 
@@ -543,10 +583,8 @@ class InlinePass {
 		let n = 1;
 		while (text[t + n] === ch) n++;
 		const kind = `${ch}${n}`;
-		const item = {
-			...this.textItem(this.at(t), this.to(t + n), text.slice(t, t + n)),
-			opener: kind
-		};
+		const item = this.textItem(this.at(t), this.to(t + n), text.slice(t, t + n));
+		item.opener = kind;
 		this.add(list, item);
 		if (!KINDS[kind] && !REJECTED[kind]) return t + n;
 		const before = t > from ? text[t - 1] : undefined;
@@ -622,11 +660,9 @@ class InlinePass {
 	 */
 	open(list: List, t: number): number {
 		const n = this.text[t] === '!' ? 2 : 1;
-		const item = {
-			...this.textItem(this.at(t), this.to(t + n), this.text.slice(t, t + n)),
-			opener: n === 2 ? '![' : '[',
-			at: t
-		};
+		const item = this.textItem(this.at(t), this.to(t + n), this.text.slice(t, t + n));
+		item.opener = n === 2 ? '![' : '[';
+		item.at = t;
 		this.add(list, item);
 		this.brackets.push(item);
 		return t + n;
@@ -1033,8 +1069,8 @@ class InlinePass {
 	}
 }
 
-/** Characters that start a case in `scan`; everything else is plain text. */
-const SPECIAL = /[\n\\`$<&[\]!_*~:"'\-.@{]/;
+/** A run of characters that start no case in `scan`: plain text, matched in one step. */
+const PLAIN = /[^\n\\`$<&[\]!_*~:"'\-.@{]*/y;
 const ENTITY = /^&(?:#(\d{1,7})|#[xX]([\da-fA-F]{1,6})|([A-Za-z][A-Za-z\d]{1,31}));/;
 const NAME = /[A-Za-z][\w-]*/y;
 /** An email's domain: ASCII segments, a `.` counting only before a letter or digit. */

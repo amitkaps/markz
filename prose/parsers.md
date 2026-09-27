@@ -124,18 +124,17 @@ One pass over lines for blocks, the inline pass on each leaf as it closes, and a
 typed arrays. How it compares is the point of this document, so this section is the longest
 to check against [`src/`](../src/README.md).
 
-- **Input.** The source string, read with `src[i]` and `charCodeAt`. The block pass finds each
-  line's end by scanning for `\n` or `\r` (`block.ts`, `run`).
+- **Input.** The source string. The block pass finds each line's end with one sticky regex
+  step (`LINE`, in `block.ts`), and each block form is tried only on its own first character.
 - **Blocks.** cmark's design: a stack of open containers, each line walking it so each container
   consumes its prefix (`line`), then a fixed order of block starts at the cursor (`start`).
   Rejected forms are recognised in the same place as the forms they imitate and stay text with a
   warning. A paragraph's lines are held as ranges until it closes, since the next line may make
   its last line a table header.
 - **Inlines.** Per leaf as it closes, not after the document, because markz has no reference
-  links: nothing later can change how a leaf reads. The leaf's lines are joined into one string,
-  with a table mapping positions back to the source. The scan loop is a chain of one-character
-  string comparisons; plain text is gathered by testing each character against a regex
-  (`SPECIAL`). Code, math, expressions, autolinks and escapes are consumed where they start.
+  links: nothing later can change how a leaf reads. The leaf's lines are joined into one flat
+  string, with a table mapping positions back to the source. The scan loop dispatches on the
+  character; a run of plain text is taken in one sticky regex step (`PLAIN`). Code, math, expressions, autolinks and escapes are consumed where they start.
   Emphasis runs and brackets are items in a doubly linked list, waiting on a stack by kind; a
   match wraps the items between opener and closer into one node. djot's pairing rule means no
   rule of 3 and no split runs. Failed closer searches are remembered (`noCode`, `noDollars`,
@@ -144,10 +143,11 @@ to check against [`src/`](../src/README.md).
   child, next sibling, last child), sized from the source length, with data for the few node
   types that carry it in a side table. Offsets, not copies, wherever the source can be used.
 - **Rendering.** `html()` folds the tree with `walk`, enter and exit, as cmark's iterator does.
-- **Where the time goes.** From step 19's profile, about 60% inline and 30% blocks, each about
-  twice markdown-exit's cost, with about as many items as it has tokens. So the gap is constant
-  factors, not the algorithm: regex tests and string comparisons per character, items that grow
-  new fields as they go, and per-leaf setup (the joined string, three Maps, two Sets).
+- **Where the time goes.** Before step 19, about 60% inline and 30% blocks, each about twice
+  markdown-exit's cost with about as many items as it has tokens: constant factors, not the
+  algorithm. The largest was the joined text, built with `+=` into a rope that V8 walks on every
+  character read. After step 19, warmed up, markz parses at markdown-exit's speed and renders
+  within about 6% of it (`plan.md`, step 19).
 
 ## Side by side
 
@@ -156,7 +156,7 @@ to check against [`src/`](../src/README.md).
 | Reads       | bytes, by line              | character codes      | precomputed line tables    | regexes on the rest    | string, by line             |
 | Containers  | stack of open blocks        | document tokenizer   | recursive rules            | re-lexes content       | stack of open blocks        |
 | Inlines run | after the document          | by `subtokenize`     | after the document         | after blocks, queued   | per leaf, as it closes      |
-| Plain text  | lookup table                | per code             | `switch` on codes          | text regex             | regex per character         |
+| Plain text  | lookup table                | per code             | `switch` on codes          | text regex             | sticky regex per run        |
 | Emphasis    | delimiter stack, at the end | resolver over events | delimiters, post-processed | regex on a masked copy | stacks by kind, as it scans |
 | Builds      | linked tree (arena)         | event list           | flat token stream          | nested tokens          | flat typed-array tree       |
 | Renders     | enter/exit iterator         | handler per event    | function per token         | method per token       | enter/exit fold             |
@@ -174,18 +174,21 @@ to check against [`src/`](../src/README.md).
   do.
 - A non-recursive enter/exit renderer.
 
-**To try in step 19.**
+**Tried in step 19.**
 
-- **A lookup for plain text.** cmark's table or markdown-exit's `switch` on character codes, in
-  place of `SPECIAL.test` on a one-character string. A first trial gave +15%.
-- **Codes, not strings, in the scan loop and flanking.** markdown-exit compares numbers
-  throughout; markz compares one-character strings and runs Unicode regexes per delimiter.
-- **One pending string for text.** markdown-exit keeps a paragraph's plain text as one string
-  and makes a token only when something else interrupts it; markz makes an item per run and
-  merges them when emitting.
-- **Line facts computed once.** markdown-exit measures every line before parsing; markz finds
-  line ends a character at a time and measures indentation again for each container. Worth
-  measuring on headings and thematic breaks, where the gap is widest.
+- **Skipping plain text in one step.** A lookup table by code, as cmark and markdown-exit do,
+  gave +11% over a regex test per character; one sticky regex per run gave a little more, since
+  V8 runs it as compiled code, and it is one line. It can't backtrack: it is a character class.
+- **A flat string to scan.** The one change that mattered most, and not from any parser here:
+  joining with `+=` made a rope, and every character read walked it.
+- **Block starts by first character.** markdown-exit's rules each check their marker first;
+  markz tried every regex on every line.
+- **Less per leaf and per node.** Memo records made on first use, one object shape for items,
+  a heading's plain text built only for headings, and `html()` skipping escapes and attributes
+  when there are none.
+- **Not taken.** A `switch` on codes in the scan loop measured no faster than the chain of
+  comparisons, so the chain stays. A pending text string, as markdown-exit keeps, and writing
+  into the tree without the item list remain open, now that the gap they were for is closed.
 
 **Left on purpose.**
 
