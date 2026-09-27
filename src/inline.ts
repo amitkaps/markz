@@ -583,9 +583,13 @@ class InlinePass {
 	/** A bracket that made no link: `[x][y]` and `[x][]` are reference links, `[^x]` a footnote. */
 	referenceLink(bracket: Item, t: number, to: number): void {
 		const { text } = this;
-		const at = bracket.at!;
-		if (bracket.opener === '[' && text[at + 1] === '^' && t > at + 2 && text[t + 1] !== ':') {
-			this.report('footnote', at, t + 1, 'footnote reference');
+		// `![^1]` is a `!` before a footnote in GFM, not an image.
+		const at = bracket.at! + bracket.opener!.length - 1;
+		// A `[^1]:` anywhere but the paragraph's start (already reported) is a definition too: GFM
+		// lets one interrupt a paragraph, or sit inside another.
+		const definition = text[t + 1] === ':';
+		if (text[at + 1] === '^' && t > at + 2 && (!definition || at > 0)) {
+			this.report('footnote', at, t + 1, `footnote ${definition ? 'definition' : 'reference'}`);
 		} else if (text[t + 1] === '[') {
 			const e = text.indexOf(']', t + 2);
 			if (e >= 0 && e < to && !text.slice(t + 2, e).includes('[')) {

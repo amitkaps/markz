@@ -29,6 +29,7 @@ import directive from './spec/directive.json' with { type: 'json' };
 import frontmatter from './spec/frontmatter.json' with { type: 'json' };
 import slugger from './spec/slugger.json' with { type: 'json' };
 import yamlSuite from './spec/yaml.json' with { type: 'json' };
+import gfmFootnote from './spec/gfm-footnote.json' with { type: 'json' };
 import gfmAutolinkLiteral from './spec/gfm-autolink-literal.json' with { type: 'json' };
 import gfmStrikethrough from './spec/gfm-strikethrough.json' with { type: 'json' };
 import gfmTable from './spec/gfm-table.json' with { type: 'json' };
@@ -41,6 +42,7 @@ export type Upstream =
 	| 'gfm-table'
 	| 'gfm-strikethrough'
 	| 'gfm-autolink-literal'
+	| 'gfm-footnote'
 	| 'directive'
 	| 'frontmatter'
 	| 'yaml'
@@ -113,6 +115,7 @@ export const sections: Record<string, string> = {
 	'gfm-table': 'table',
 	'gfm-strikethrough': 'emphasis',
 	'gfm-autolink-literal': 'link',
+	'gfm-footnote': 'link',
 	'directive:micromark-extension-directive (syntax, text)': 'text-directive',
 	'directive:micromark-extension-directive (syntax, leaf)': 'directive',
 	'directive:micromark-extension-directive (syntax, container)': 'directive',
@@ -219,6 +222,7 @@ export const cuts: [section: string, test: (t: Token) => boolean][] = [
 	['setext-heading', (t) => t.type === 'setextHeading'],
 	['indented-code', (t) => t.type === 'codeIndented'],
 	['tilde-fence', (t) => t.type === 'codeFencedFenceSequence' && t.text[0] === '~'],
+	['footnote', (t) => t.type === 'gfmFootnoteCall' || t.type === 'gfmFootnoteDefinition'],
 	['reference-link', (t) => t.type === 'definition' || t.type === 'reference'],
 	['bare-url', (t) => t.type === 'literalAutolink'],
 	['named-reference', (t) => t.type === 'characterReference' && !t.text.startsWith('&#')],
@@ -328,6 +332,7 @@ export const examples: Example[] = [
 	...gfmTable.map((e) => upstreamExample('gfm-table', e)),
 	...gfmStrikethrough.map((e) => upstreamExample('gfm-strikethrough', e)),
 	...gfmAutolinkLiteral.map((e) => upstreamExample('gfm-autolink-literal', e)),
+	...gfmFootnote.map((e) => upstreamExample('gfm-footnote', e)),
 	...directive.map((e) => upstreamExample('directive', e)),
 	...frontmatter.map((e) => upstreamExample('frontmatter', e)),
 	...yamlSuite.map((e) => upstreamExample('yaml', e)),
@@ -411,8 +416,7 @@ export function check(e: Example): Result {
 	if (e.kind === 'not supported') {
 		const fired = doc.warnings.some((w) => w.code === code);
 		if (!fired) return result('fail', `no \`${code}\` warning`);
-		const missed =
-			code === 'bare-url' ? unwarnedUrls(e.markdown, doc, !!oracleDiffers[e.id]) : null;
+		const missed = unwarned(code!, e.markdown, doc, !!oracleDiffers[e.id]);
 		return missed ? result('fail', missed) : holds();
 	}
 	if (markz.replace(/\n$/, '') !== e.html) return result('fail', 'HTML differs from the expected');
@@ -427,25 +431,44 @@ export function check(e: Example): Result {
 }
 
 /** @prose
- * ## Bare URLs, one by one
+ * ## One warning for each
  *
- * A document can hold many bare URLs, so one `bare-url` warning isn't enough: each URL GFM links
- * must have its own warning, and each warning a URL GFM links, or a reader loses a link with no
- * signal. They pair by overlap, not by exact text: where GFM trims a URL's tail (a `;`, a `]`,
- * an `&amp;`) is its autolink rule, the one the dialect cuts, and a warning a character longer
- * still points at the right URL. Where GitHub links more than the oracle (`oracleDiffers`), only a
- * missed link fails.
+ * A document can hold many bare URLs or footnotes, so one warning isn't enough: each URL GFM
+ * links, and each footnote call or definition it reads, must have its own warning, or a reader
+ * loses one with no signal. They pair by overlap, not by exact text: where GFM trims a URL's tail
+ * (a `;`, a `]`, an `&amp;`) is its autolink rule, the one the dialect cuts, and a warning a
+ * character longer still points at the right URL.
+ *
+ * A bare-URL warning where GFM links nothing fails too, except where GitHub links more than the
+ * oracle (`oracleDiffers`). A footnote warning never does: GFM makes `[^x]` a footnote only when
+ * the document defines `x`, which markz, reading a paragraph at a time, doesn't look for, so it
+ * reports all footnote syntax.
  */
-export function unwarnedUrls(markdown: string, doc: Document, github: boolean): string | null {
-	const gfm = tokens(markdown).filter((t) => t.type === 'literalAutolink');
+const EACH: Record<string, string[]> = {
+	'bare-url': ['literalAutolink'],
+	footnote: ['gfmFootnoteCall', 'gfmFootnoteDefinitionLabel']
+};
+
+export function unwarned(
+	code: string,
+	markdown: string,
+	doc: Document,
+	github: boolean
+): string | null {
+	const types = EACH[code];
+	if (!types) return null;
+	const gfm = tokens(markdown).filter((t) => types.includes(t.type));
 	if (!gfm.length) return null;
-	const mine = doc.warnings.filter((w) => w.code === 'bare-url');
+	const mine = doc.warnings.filter((w) => w.code === code);
 	const overlaps = (a: Range, b: Range) => a.start < b.end && b.start < a.end;
 	const missed = gfm.filter((t) => !mine.some((w) => overlaps(t, w)));
-	const extra = github ? [] : mine.filter((w) => !gfm.some((t) => overlaps(t, w)));
+	const extra =
+		github || code !== 'bare-url' ? [] : mine.filter((w) => !gfm.some((t) => overlaps(t, w)));
 	if (!missed.length && !extra.length) return null;
 	const text = (r: Range) => markdown.slice(r.start, r.end);
-	return `missed ${JSON.stringify(missed.map(text))}, warned over ${JSON.stringify(extra.map(text))} where GFM links nothing`;
+	return extra.length
+		? `warned over ${JSON.stringify(extra.map(text))} where GFM links nothing`
+		: `no \`${code}\` warning over ${JSON.stringify(missed.map(text))}`;
 }
 
 type Range = { start: number; end: number };

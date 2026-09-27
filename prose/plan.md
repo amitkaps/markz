@@ -224,6 +224,12 @@ shared name, label and attribute rules once per kind of directive, and a directi
 after every block form, cut ones included; a rule is now kept once, and the cut neighbours go. Footnotes and math are vendored the
 same way.
 
+**Footnotes — done.** micromark-extension-gfm-footnote, curated to 20 of 49. Like bare URLs,
+the `footnote` row now needs a warning over each call and definition GFM reads, though not the
+reverse: GFM makes `[^x]` a footnote only when `x` is defined, which markz doesn't look for. The
+suite found two misses, both fixed: `![^1]` is a `!` before a footnote in GFM, not an image, and a
+`[^1]:` can start a definition partway through a paragraph.
+
 ### 13. The site by the dialect — done
 
 The Conformance page becomes Metadata, Block, Inline and Not supported, each opening to its

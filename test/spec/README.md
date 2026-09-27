@@ -48,3 +48,10 @@ against it where it has any.
   inline tests. markz cuts bare URLs, so these test the `bare-url` warning: one for each URL GFM
   links, and none elsewhere. Left out: the three `disable.null` tests, and the fixtures that sweep
   a character class, which are in [`../stress/`](../stress/).
+- `gfm-footnote.json`: the tests of
+  [micromark-extension-gfm-footnote](https://github.com/micromark/micromark-extension-gfm-footnote/tree/0a62fad40470f2447707020c52d38d1494199ee1/test)
+  (commit `0a62fad`), by `vendor.ts`. markz cuts footnotes, so these test the `footnote` warning:
+  one over each call and definition GFM reads. Curation keeps what markz decides (calls,
+  definitions, `[^x]` beside links, images and references, `^[x]` as text), 20 of 49; the
+  fixtures on a footnote's own content are in [`../stress/`](../stress/). Left out: the
+  `disable.null` test and the fixture loop.
