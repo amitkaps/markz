@@ -11,7 +11,8 @@
  * - **scaling**: the agent and public documents repeated to 10 KB, 100 KB and 1 MB, and 10 MB in a
  *   deep run, for the curve.
  * - **construct**: one construct over and over, about 30 KB of the cases `test/harness/cases.ts`
- *   writes from the grammar that markz reads cleanly, each where its reading puts it. It shows
+ *   writes from the grammar that markz reads cleanly, each where its reading puts it, and every
+ *   heading numbered so no two share a title. It shows
  *   which constructs carry markz's time, beside markdown-exit's on the ones CommonMark and GFM
  *   define. Generated text is nothing anyone writes, so it never feeds a headline.
  * - **formatted** (deep): the agent documents after oxfmt, which is how the consumers store them.
@@ -27,7 +28,7 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from 'markz';
 import { PATTERNS } from '../test/harness/adversarial.ts';
-import { documents, format, repeat, common as commonOf } from '../test/harness/corpus.ts';
+import { documents, format, repeat, titled, common as commonOf } from '../test/harness/corpus.ts';
 
 export type Tier =
 	| 'agent'
@@ -193,7 +194,9 @@ async function constructs(count: number): Promise<{ id: string; origin: string; 
 		if (!cases.length) continue;
 		let text = '';
 		for (let i = 0; text.length < CONSTRUCT_BYTES; i++) text += `${cases[i % cases.length]!}\n`;
-		out.push({ id: c.id, origin: c.origin, text });
+		// Generated headings are mostly empty or alike; each gets a title of its own (`titled`).
+		let n = 0;
+		out.push({ id: c.id, origin: c.origin, text: titled(text, () => String(++n)) });
 	}
 	return out;
 }

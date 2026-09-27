@@ -102,10 +102,28 @@ export function format(docs: Map<string, string>): Map<string, string> {
 	}
 }
 
-/** `text` repeated to `bytes` characters, cut at the end of a line. */
+/** @prose
+ * ## Repeating without repeating titles
+ *
+ * A document repeated to a size is a benchmark's workload, and a real document doesn't hold the
+ * same heading hundreds of times. Every copy after the first puts its number at the start of each
+ * heading's text (`## Setup` becomes `## 2 Setup`), so ids don't pile up as `setup-1` to
+ * `setup-300` and time id numbering no author would ask for. The number goes straight after the
+ * `#`s, so each heading keeps its level, its closing `#`s and its reading.
+ */
+const ATX = /^( {0,3}#{1,6})(?=[ \t]|$)/gm;
+
+/** `text` with `label()` put at the start of each ATX heading's text. */
+export function titled(text: string, label: () => string): string {
+	return text.replace(ATX, (marker) => `${marker} ${label()}`);
+}
+
+/** `text` repeated to `bytes` characters, cut at the end of a line, each copy's titles its own. */
 export function repeat(text: string, bytes: number): string {
 	let out = '';
-	while (out.length < bytes) out += text + '\n\n';
+	for (let copy = 1; out.length < bytes; copy++) {
+		out += (copy === 1 ? text : titled(text, () => String(copy))) + '\n\n';
+	}
 	const cut = out.lastIndexOf('\n', bytes);
 	return out.slice(0, cut > 0 ? cut + 1 : bytes);
 }
