@@ -15,7 +15,11 @@
  * It lives in `test/` and never ships. The tests hold it to `syntax.md`, and from step 16 the
  * fuzzer generates documents from it.
  */
+import { BLOCK, INLINE } from '../src/elements';
 import { productions, references, type Production } from './ebnf';
+
+/** An allowlist of element names as alternatives. */
+const names = (list: ReadonlySet<string>) => [...list].map((n) => `'${n}'`).join(' | ');
 
 /** @prose
  * ## Origins
@@ -262,7 +266,9 @@ export const CONSTRUCTS: Construct[] = [
 			container-directive ::= indent? ':::' ':'* directive-name directive-label? attributes? space*
 				line-end block* directive-close?
 			directive-close ::= indent? ':::' ':'* space* line-end
-			directive-name ::= [A-Za-z] [A-Za-z0-9_-]*
+			directive-name ::= block-element | custom-element
+			block-element ::= ${names(BLOCK)}
+			custom-element ::= [a-z] [a-z0-9]* '-' [a-z0-9-]*
 			directive-label ::= '[' label-text ']'
 			label-text ::= ([^#x5B#x5D\\#xA#xD] | '\\' char | '[' label-text ']')*
 		`,
@@ -270,7 +276,9 @@ export const CONSTRUCTS: Construct[] = [
 			'directive-close':
 				'A closing fence has at least as many colons as the opening one, and the outermost open container it can close takes it. Unclosed, it runs to the end of its container.',
 			'directive-label':
-				"A leaf's label is inline content. A container's label is plain text with escapes decoded."
+				"A leaf's label is inline content. A container's label is plain text with escapes decoded, and only `details`, `figure` and custom elements have a place for it: on any other block it is reported and not written.",
+			'element-name':
+				'The name is the element the directive writes. A line with any other name is text, and a warning. The names HTML reserves (`font-face`, `annotation-xml`, …) are not custom elements.'
 		}
 	},
 	{
@@ -368,11 +376,15 @@ export const CONSTRUCTS: Construct[] = [
 		part: 'Inline',
 		origin: 'directive',
 		grammar: `
-			text-directive ::= ':' directive-name (directive-label attributes? | attributes)
+			text-directive ::= ':' inline-name (directive-label attributes? | attributes)
+			inline-name ::= inline-element | custom-element
+			inline-element ::= ${names(INLINE)}
 		`,
 		rules: {
 			'text-directive-start':
-				"A text directive can't start straight after another `:`. Its label is inline content."
+				"A text directive can't start straight after another `:`. Its label is inline content.",
+			'inline-element-name':
+				'Any other name, or a `::name[…]` inside a line, leaves the whole span as text, with nothing in it read as other syntax. Only the one-colon form is reported.'
 		}
 	},
 	{

@@ -9,12 +9,12 @@
  * - `allowDangerousProtocol`: micromark blanks any URL outside its scheme allowlist, and markz
  *   instead drops a short blocklist (spec: Security). markz's own tests cover the blocklist, so
  *   the oracle writes every URL.
- * - A fallback directive handler that writes `syntax.md`'s shape: a `<div>` for leaf and container
- *   directives and a `<span>` for text ones, the name as the first class, then the attributes. A
- *   container's label comes first, in a `directive-label` div. Without the handler micromark drops
- *   every directive.
- * - Text directives named `sup`, `sub`, `ins`, `mark`, `kbd` or `abbr` are written as that element,
- *   with no name class.
+ * - A fallback directive handler that writes `syntax.md`'s shape: the name as the element, then
+ *   the attributes, class first. A container's label goes in `<summary>` for `details`, in
+ *   `<figcaption>` for `figure`, in a `directive-label` div for a custom element, and nowhere for
+ *   any other block. Without the handler micromark drops every directive. It writes any name
+ *   micromark accepts; the examples whose names markz rejects are filed under `directive-name`
+ *   and not compared.
  * - The same handler writes a bare text directive (`:name` with no label or attributes) back out
  *   as the text it was, since markz requires one or the other. micromark reports `:name{}` the same
  *   way, so an empty `{}` is the one input this can't tell apart.
@@ -28,8 +28,9 @@ import { frontmatter, frontmatterHtml } from 'micromark-extension-frontmatter';
 import { math } from 'micromark-extension-math';
 import GithubSlugger from 'github-slugger';
 import YAML from 'yaml';
+import { custom } from '../src/elements';
 
-const ELEMENTS = new Set(['sup', 'sub', 'ins', 'mark', 'kbd', 'abbr']);
+const LABEL: Record<string, string> = { details: 'summary', figure: 'figcaption' };
 
 const shape: Handle = function (d) {
 	const attributes = Object.entries(d.attributes ?? {});
@@ -37,19 +38,19 @@ const shape: Handle = function (d) {
 		this.raw(this.encode(`:${d.name}`));
 		return true;
 	}
-	const element = d.type === 'textDirective' && ELEMENTS.has(d.name);
-	const tag = element ? d.name : d.type === 'textDirective' ? 'span' : 'div';
-	const classes = [element ? '' : d.name, d.attributes?.class].filter(Boolean).join(' ');
-	let open = `<${tag}` + (classes ? ` class="${this.encode(classes)}"` : '');
+	let open =
+		`<${d.name}` + (d.attributes?.class ? ` class="${this.encode(d.attributes.class)}"` : '');
 	for (const [key, value] of attributes) {
 		if (key !== 'class') open += ` ${key}="${this.encode(value)}"`;
 	}
 	this.tag(open + '>');
 	if (d.type === 'containerDirective') {
-		if (d.label) this.tag(`<div class="directive-label">${d.label}</div>`);
+		const inner = LABEL[d.name];
+		if (d.label && inner) this.tag(`<${inner}>${d.label}</${inner}>`);
+		else if (d.label && custom(d.name)) this.tag(`<div class="directive-label">${d.label}</div>`);
 		this.raw(d.content ?? '');
 	} else this.raw(d.label ?? '');
-	this.tag(`</${tag}>`);
+	this.tag(`</${d.name}>`);
 	return true;
 };
 
@@ -70,7 +71,8 @@ export function reference(markdown: string): string {
  * space next to a block-level tag goes, so line layout never fails a test. A space between inline
  * tags (`<em>a</em> <em>b</em>`) is content and stays. Smart punctuation goes back to straight
  * characters, since micromark doesn't do it and markz always does; a double quote goes back to
- * `&quot;`, as micromark escapes it. Heading ids go too, since
+ * `&quot;`, as micromark escapes it. An empty attribute value goes (`open=""` is `open`), since
+ * micromark can't tell a bare key from an empty one. Heading ids go too, since
  * micromark writes none; markz's are tested on their own. `<pre>` content is compared exactly.
  */
 const SMART: Record<string, string> = {
@@ -84,7 +86,7 @@ const SMART: Record<string, string> = {
 };
 
 const BLOCK_TAG =
-	/ ?(<\/?(?:p|li|ul|ol|blockquote|h[1-6]|pre|table|thead|tbody|tr|th|td|hr|div|section)\b[^>]*>) ?/g;
+	/ ?(<\/?(?:p|li|ul|ol|blockquote|h[1-6]|pre|table|thead|tbody|tr|th|td|hr|div|section|article|aside|header|footer|nav|main|address|hgroup|search|details|summary|figure|figcaption|dl|dt|dd)\b[^>]*>) ?/g;
 
 export function normalize(html: string): string {
 	return html
@@ -93,6 +95,7 @@ export function normalize(html: string): string {
 		.join('')
 		.replace(/(<h[1-6])((?: [\w-]+="[^"]*")*?) id="[^"]*"/g, '$1$2')
 		.replace(/[‘’“”–—…]/g, (c) => SMART[c]!)
+		.replace(/<[a-z][^<>]*>/g, (tag) => tag.replace(/ ([\w:-]+)=""/g, ' $1'))
 		.trim();
 }
 

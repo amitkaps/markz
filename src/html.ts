@@ -10,6 +10,7 @@
  * reach a page unwritten.
  */
 import { type Attributes, type Document, type NodeId } from './ast';
+import { custom, element } from './elements';
 import { parse } from './parse';
 
 export function html(input: string | Document): string {
@@ -143,43 +144,49 @@ const alignment = (align: string | null | undefined) => (align ? ` align="${alig
 /** @prose
  * ## Directives
  *
- * A `<div>` for leaf and container directives and a `<span>` for text ones, with the name as the
- * first class. The six element names (`sup`, `sub`, `ins`, `mark`, `kbd`, `abbr`) are written as
- * that element when used as text directives. A container's label comes first, in its own
- * `directive-label` div, unless it is empty (`:::name[]`).
+ * The name is the tag: the parser only makes directives whose name is an element
+ * ([`elements.ts`](elements.ts)). A container's label goes where the element has a place for it:
+ * `<summary>` in `details`, `<figcaption>` in `figure`, and a `directive-label` div first in a
+ * custom element, whose component reads it. Any other block has no place, and the parser reported
+ * it. A document built by hand could hold any name, so one off the allowlists is written as a
+ * `div` or `span`, and a name can never become `script`.
  */
-const ELEMENTS = new Set(['sup', 'sub', 'ins', 'mark', 'kbd', 'abbr']);
+const LABEL: Record<string, string> = { details: 'summary', figure: 'figcaption' };
 
 function directive(doc: Document, node: NodeId, a: Attributes | undefined): string {
 	const { kind, name, label } = doc.data(node, 'directive');
-	const element = kind === 'text' && ELEMENTS.has(name);
-	const tag = element ? name : kind === 'text' ? 'span' : 'div';
-	let out = `<${tag}${attributes(a, element ? [] : [name])}>`;
+	const inline = kind === 'text';
+	const tag = element(name, inline) ? name : inline ? 'span' : 'div';
+	let out = `<${tag}${attributes(a)}>`;
 	if (kind === 'container' && label?.value) {
-		out += `<div class="directive-label">${escape(label.value)}</div>\n`;
+		const inner = LABEL[name];
+		if (inner) out += `<${inner}>${escape(label.value)}</${inner}>\n`;
+		else if (custom(name)) out += `<div class="directive-label">${escape(label.value)}</div>\n`;
 	}
-	return out + children(doc, node) + `</${tag}>` + (kind === 'text' ? '' : '\n');
+	return out + children(doc, node) + `</${tag}>` + (inline ? '' : '\n');
 }
 
 /** @prose
  * ## Attributes
  *
  * Classes accumulate, and for any other key the later value wins, in the order keys first
- * appear. `class` is written first. Event handlers (`on*`) are dropped, and so is any value with
+ * appear. `class` is written first, and a bare key is written bare (`open`, not `open=""`), since
+ * a boolean attribute is on whenever it is present. Event handlers (`on*`) are dropped, and so is any value with
  * an unsafe scheme: `javascript:`, `vbscript:`, and `data:` other than a raster image (spec:
  * Security). A heading's id comes from its data, so an `id` item is skipped there.
  */
 function attributes(a: Attributes | undefined, classes: string[] = [], skipId = false): string {
 	const cls = [...classes];
-	const other = new Map<string, string>();
-	for (const { key, value } of a?.items ?? []) {
+	const other = new Map<string, string | null>();
+	for (const { key, value, start, end } of a?.items ?? []) {
 		if (key === 'class') cls.push(value);
-		else if (!(skipId && key === 'id')) other.set(key, value);
+		else if (!(skipId && key === 'id'))
+			other.set(key, value === '' && end - start === key.length ? null : value);
 	}
 	let out = cls.length > 0 ? ` class="${escape(cls.join(' '))}"` : '';
 	for (const [key, value] of other) {
-		if (/^on/i.test(key) || unsafe(value)) continue;
-		out += ` ${key}="${escape(value)}"`;
+		if (/^on/i.test(key) || unsafe(value ?? '')) continue;
+		out += value === null ? ` ${key}` : ` ${key}="${escape(value)}"`;
 	}
 	return out;
 }

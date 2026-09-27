@@ -2,9 +2,8 @@
 
 A directive's name is the element it writes. Directives carry no meaning of their own: they are
 markz's way to write a plain wrapper, an HTML element Markdown has no syntax for, or a custom
-element, with Markdown parsed inside. This is decided and not yet built; [plan](plan.md) step 14
-changes the parser, `html()` and the tests, and until then [`syntax.md`](syntax.md#directive)
-describes what markz does today (a `<div>` or `<span>` with the name as its first class).
+element, with Markdown parsed inside. It was built in [plan](plan.md) step 14, and
+[`syntax.md`](syntax.md#directive) states the rule; this note keeps the reasoning.
 
 ## The rule
 

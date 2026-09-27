@@ -18,13 +18,17 @@ export const WARNINGS = {
 	'rule-marker': ['`***`, `___` or `* * *` rule', '`---`'],
 	'trailing-heading-attributes': ['trailing heading attributes', '`{#id}` on the line above'],
 	'multiline-attributes': ['multi-line attributes', 'one line'],
+	'directive-name': [
+		'a directive name that is not an element',
+		'`div` or `span` with a class (`::div{.chart}`), or a custom element (`::chart-view`)'
+	],
 	'lazy-line': [
 		'lazy continuation line',
 		"`>` on every line, or indent to the item's content column"
 	],
 	// Not supported: inline.
 	'reference-link': ['reference link', 'inline links'],
-	footnote: ['footnote', 'a text directive, such as `:note[text]`'],
+	footnote: ['footnote', 'a text directive, such as `:span[text]{.note}`'],
 	'bare-url': ['bare URL', '`<https://…>` or `[text](url)`'],
 	'relative-autolink': ['relative autolink', '`[About](/about)`'],
 	'named-reference': [
@@ -43,6 +47,10 @@ export const WARNINGS = {
 	jsx: ['JSX', 'directives, `${…}`'],
 	// A construct's own.
 	'duplicate-id': ['id already used by an earlier heading', 'a different id'],
+	'directive-label': [
+		'a label on a block with no place for one',
+		'a heading inside, or `details` or `figure`'
+	],
 	'attribute-syntax': [
 		'attributes markz does not read',
 		'`#id`, `.class`, `key=value` or `key="a value"`, and a bare `key`, on one line'
