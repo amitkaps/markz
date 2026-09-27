@@ -12,6 +12,7 @@
 import { html, parse, textContent, type Document, type NodeId } from 'markz';
 import readme from '../../../README.md?raw';
 import syntax from '../../../prose/syntax.md?raw';
+import grammar from '../../../prose/grammar.md?raw';
 import spec from '../../../prose/spec.md?raw';
 import plan from '../../../prose/plan.md?raw';
 import { REPO } from './site';
@@ -29,6 +30,7 @@ export interface Page {
 const SOURCES: { slug: string; file: string; source: string; title?: string }[] = [
 	{ slug: '', file: 'README.md', source: readme },
 	{ slug: 'syntax', file: 'prose/syntax.md', source: syntax },
+	{ slug: 'grammar', file: 'prose/grammar.md', source: grammar },
 	{ slug: 'design', file: 'prose/spec.md', source: spec, title: 'Design' },
 	{ slug: 'plan', file: 'prose/plan.md', source: plan }
 ];

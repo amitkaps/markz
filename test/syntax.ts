@@ -9,9 +9,29 @@
  */
 import syntax from '../prose/syntax.md?raw';
 import { type WarningCode } from '../src/index';
-import { construct } from './grammar';
 
 export type Part = 'Metadata' | 'Block' | 'Inline' | 'Not supported';
+
+/** @prose
+ * ## Origins
+ *
+ * Where a construct's rule comes from: the earliest layer that defines it, in the order the layers
+ * build on each other. CommonMark, then GFM, which extends it, then micromark-extension-directive,
+ * then djot. Math sits outside that chain: its delimiters are pandoc's and GitHub's, written in
+ * GitHub's HTML shape. What no layer defines is markz's own. Each construct in `syntax.md` opens
+ * with its origin's lead, in bold, and that lead is where the grammar takes its origin from.
+ */
+export type Origin = 'CommonMark' | 'GFM' | 'directive' | 'djot' | 'GitHub' | 'pandoc' | 'markz';
+
+export const LEADS: Record<Origin, string> = {
+	CommonMark: 'As CommonMark',
+	GFM: 'As GFM',
+	directive: 'From micromark-extension-directive',
+	djot: 'From djot',
+	GitHub: 'As GitHub',
+	pandoc: 'From pandoc',
+	markz: 'markz'
+};
 
 /** A construct as `syntax.md` presents it. */
 export interface Anchor {
@@ -64,6 +84,13 @@ export const anchors: Anchor[] = [];
 
 export const anchor = (id: string): Anchor | undefined => anchors.find((a) => a.id === id);
 
+/** The origin whose lead a construct's section opens with. */
+export function origin(id: string): Origin | undefined {
+	const lead = anchor(id)?.lead;
+	const found = Object.entries(LEADS).find(([, l]) => lead?.startsWith(`**${l}`));
+	return found?.[0] as Origin | undefined;
+}
+
 // Between two known headings, since the samples in syntax.md contain `##` lines of their own.
 const between = (from: string, to: string) =>
 	syntax.split(`\n## ${from}\n`)[1]!.split(`\n## ${to}\n`)[0]!;
@@ -93,7 +120,9 @@ export const named = (code: string): boolean => syntax.includes(`\`${code}\``);
 
 /** Where a section belongs: a construct's part, or Not supported for a row's code. */
 export function part(section: string): Part | undefined {
-	return construct(section)?.part ?? (row(section) ? 'Not supported' : undefined);
+	const a = anchor(section);
+	if (a) return a.part as Part;
+	return row(section) ? 'Not supported' : undefined;
 }
 
 /** What the site shows for a section: the construct's heading, or the row's code. */
