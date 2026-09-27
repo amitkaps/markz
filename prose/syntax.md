@@ -626,7 +626,10 @@ documents from it.
 
 ## Pending decisions
 
-None right now. The amitkaps.github.io audit settled raw blocks, verse and smart punctuation. Its
+- **Directive names as elements.** Parked in [`directive.md`](directive.md): whether a
+  directive's name should be the element `html()` writes, for Web Components.
+
+The amitkaps.github.io audit settled raw blocks, verse and smart punctuation. Its
 Markdown gets migrated to the dialect:
 
 - `<img>` becomes `![](…){…}`.
