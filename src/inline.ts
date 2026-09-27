@@ -338,16 +338,17 @@ class InlinePass {
 		const { text } = this;
 		const next = text[t + 1];
 		if (!this.noMath && !isSpace(next) && next !== '$') {
-			for (let j = t + 2; j < to; j++) {
-				if (text[j] === '\\') j++;
-				else if (text[j] === '$' && !isSpace(text[j - 1]) && !/\d/.test(text[j + 1] ?? '')) {
-					const range = { start: this.at(t + 1), end: this.to(j) };
-					const data: NodeData['math'] = { block: false, value: text.slice(t + 1, j), range };
-					this.add(list, this.nodeItem('math', this.at(t), this.to(j + 1), data));
-					return j + 1;
-				}
+			// The first unescaped `$` closes the math or ends the attempt: TeX here holds no `$`.
+			let j = t + 2;
+			while (j < to && text[j] !== '$') j += text[j] === '\\' ? 2 : 1;
+			if (j < to && !isSpace(text[j - 1]) && !/\d/.test(text[j + 1] ?? '')) {
+				const range = { start: this.at(t + 1), end: this.to(j) };
+				const data: NodeData['math'] = { block: false, value: text.slice(t + 1, j), range };
+				this.add(list, this.nodeItem('math', this.at(t), this.to(j + 1), data));
+				return j + 1;
 			}
-			if (to === this.text.length) this.noMath = true;
+			// With no `$` left at all, no later opener can close either.
+			if (j >= to && to === this.text.length) this.noMath = true;
 		}
 		this.plain(list, t, t + 1);
 		return t + 1;

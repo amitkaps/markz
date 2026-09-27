@@ -14,7 +14,12 @@ import { normalize } from '../../../../test/oracle';
 import { title } from '../../../../test/syntax';
 import type { Row } from '../site';
 
-const ORACLE: Record<string, string> = { markz: 'markz', yaml: 'yaml', slugger: 'github-slugger' };
+const ORACLE: Record<string, string> = {
+	markz: 'markz',
+	yaml: 'yaml',
+	slugger: 'github-slugger',
+	math: 'micromark-extension-math'
+};
 
 export function conformance(): Row[] {
 	return examples.map((e) => {
