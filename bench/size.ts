@@ -31,6 +31,23 @@ export interface Size {
 	brotli: number;
 }
 
+/** `parsers.ts`'s untypeset math handler for micromark, as source. */
+const MATH_HTML = `{
+	enter: {
+		mathFlow() { this.lineEndingIfNeeded(); this.tag('<span class="math display">'); },
+		mathFlowFenceMeta() { this.buffer(); },
+		mathText() { this.tag('<span class="math inline">'); this.buffer(); }
+	},
+	exit: {
+		mathFlow() { this.raw(this.encode(this.resume().replace(/(?:\\r?\\n|\\r)$/, ''))); this.tag('</span>'); this.setData('mathFlowOpen'); this.setData('slurpOneLineEnding'); },
+		mathFlowFence() { if (!this.getData('mathFlowOpen')) { this.setData('mathFlowOpen', true); this.setData('slurpOneLineEnding', true); this.buffer(); } },
+		mathFlowFenceMeta() { this.resume(); },
+		mathFlowValue(token) { this.raw(this.sliceSerialize(token)); },
+		mathText() { this.raw(this.encode(this.resume())); this.tag('</span>'); },
+		mathTextData(token) { this.raw(this.sliceSerialize(token)); }
+	}
+}`;
+
 const DIRECTIVE = `{ '*'(d) { this.tag('<' + d.name + '>'); this.raw(d.label ?? ''); this.raw(d.content ?? ''); this.tag('</' + d.name + '>'); return true; } }`;
 
 /** One entry per parser and mode, the same configuration as `parsers.ts`. */
@@ -49,9 +66,10 @@ import { gfmStrikethrough, gfmStrikethroughHtml } from 'micromark-extension-gfm-
 import { gfmTaskListItem, gfmTaskListItemHtml } from 'micromark-extension-gfm-task-list-item';
 import { directive, directiveHtml } from 'micromark-extension-directive';
 import { frontmatter, frontmatterHtml } from 'micromark-extension-frontmatter';
+import { math } from 'micromark-extension-math';
 export default (s) => micromark(s, {
-	extensions: [gfmTable(), gfmStrikethrough(), gfmTaskListItem(), directive(), frontmatter()],
-	htmlExtensions: [gfmTableHtml(), gfmStrikethroughHtml(), gfmTaskListItemHtml(), directiveHtml(${DIRECTIVE}), frontmatterHtml()]
+	extensions: [gfmTable(), gfmStrikethrough(), gfmTaskListItem(), directive(), frontmatter(), math()],
+	htmlExtensions: [gfmTableHtml(), gfmStrikethroughHtml(), gfmTaskListItemHtml(), directiveHtml(${DIRECTIVE}), frontmatterHtml(), ${MATH_HTML}]
 });`
 	},
 	remark: {
@@ -66,6 +84,7 @@ export default (s) => String(processor.processSync(s));`,
 import remarkParse from 'remark-parse';
 import remarkFrontmatter from 'remark-frontmatter';
 import remarkDirective from 'remark-directive';
+import remarkMath from 'remark-math';
 import remarkRehype from 'remark-rehype';
 import rehypeStringify from 'rehype-stringify';
 import { gfmTable } from 'micromark-extension-gfm-table';
@@ -88,7 +107,7 @@ function elements() {
 		}
 	};
 }
-const processor = unified().use(remarkParse).use(gfmParts).use(remarkFrontmatter).use(remarkDirective).use(elements).use(remarkRehype).use(rehypeStringify);
+const processor = unified().use(remarkParse).use(gfmParts).use(remarkFrontmatter).use(remarkDirective).use(remarkMath).use(elements).use(remarkRehype).use(rehypeStringify);
 export default (s) => String(processor.processSync(s));`
 	},
 	'markdown-it': itEntry(`import MarkdownIt from 'markdown-it';\nconst md = new MarkdownIt();`),
@@ -97,7 +116,7 @@ export default (s) => String(processor.processSync(s));`
 	),
 	marked: {
 		common: `import { Marked } from 'marked';\nconst marked = new Marked({ gfm: true });\nexport default (s) => marked.parse(s);`,
-		dialect: `import { Marked } from 'marked';\nconst marked = new Marked({ gfm: true });\nexport default (s) => marked.parse(s);`
+		dialect: `import { Marked } from 'marked';\nimport { createDirectives } from 'marked-directive';\nconst marked = new Marked({ gfm: true });\nmarked.use(createDirectives());\nexport default (s) => marked.parse(s);`
 	},
 	comark: {
 		common: `import { createHtmlRenderer } from '@comark/html';\nexport default createHtmlRenderer({ registerDefaultPlugins: false });`,
