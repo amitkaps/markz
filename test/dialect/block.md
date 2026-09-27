@@ -146,6 +146,13 @@ b
 </code></pre>
 `````
 
+````example
+```a&#65;b
+```
+.
+<pre><code class="language-aAb"></code></pre>
+````
+
 ## raw-block
 
 ````example
@@ -259,6 +266,24 @@ A row indented four columns ends the table, and under a paragraph it is never a 
 .
 <p>| a |
 | - |</p>
+```
+
+```example
+|
+-|
+.
+<p>|
+-|</p>
+```
+
+```example
+a
+    b
+-|
+.
+<p>a
+b
+-|</p>
 ```
 
 ## thematic-break
@@ -523,4 +548,15 @@ b --> c
 
 .
  c
+```
+
+```example
+{.note}
+<!-- a -->
+b
+.
+<p>{.note}</p>
+<p>b</p>
+.
+{.note}
 ```

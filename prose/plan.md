@@ -298,13 +298,47 @@ site's page titles and summaries use it. `position` (`src/position.ts`) converts
 search over line starts, with CRLF, LF and a lone CR each ending a line; lines are 1-based and
 columns 0-based. The README shows the whole API.
 
-### 16. Robustness and fuzzing
+### 16. Robustness and fuzzing — done
 
-- A generator of documents from `test/grammar.ts`'s productions and side rules, fed to the oracle.
-- Malformed input, CRLF and lone `\r`, BOM, and astral-plane offsets.
-- Adversarial unclosed openers, with a timing check that fails on super-linear growth. Code spans and math already record a failed scan; link destinations, `<!--` and attribute blocks don't yet.
-- Unclosed `${` is quadratic today: 80,000 of them in one paragraph take about 100 s, 16 times the time for 4 times the input. One failed scan doesn't settle later ones (`${a ${b}` has a valid second expression), so the fix is to reuse the failed scan's brace depths for every `${` it passed, rather than a flag.
-- A multi-MB document that guards against quadratic behaviour.
+- **Linear time.** `test/fuzz/adversarial.ts` holds 51 patterns, and `complexity.test.ts` checks
+  each at a size and four times that. The larger must take under eight times as long, as must a
+  multi-MB document. Against the parser before this step, 23 of them failed:
+  - **Unclosed `${`.** Each failed scan now settles the ones after it: every brace it passed, an
+    unclosed `/*` and an unclosed string. So do unclosed labels and inline `<!--`, `<?`, `<!X` and
+    CDATA.
+  - **Repeated `# a` headings.** Id numbering resumes, and the check for a trailing `{` no longer
+    scans back to the start of the file.
+  - **Attribute lines.** They merge in place, and the scan for a multi-line `{` stops at a blank
+    line and is remembered.
+  - **Nesting.** Unclosed `:::` runs close by binary search over a running minimum fence. Blank
+    lines jump to the first blockquote or empty item. Blank-line flags became clock stamps. The
+    thematic-break test runs once per line, and indentation counts only as far as it needs to.
+  - **`html()`** is iterative over `walk`, so 20,000 nested blockquotes render.
+- **Fuzzing.** `fuzz.test.ts` uses fast-check with a fixed seed; `pnpm fuzz` searches longer
+  with a random one. Noise, mutated examples and documents written from the whole grammar must
+  be sound (`fuzz/sound.ts`): no throw, a valid tree, warnings in range, the same page whatever
+  the line endings, and safe HTML. Documents from the CommonMark and GFM productions must match
+  micromark unless markz reported a cut form.
+- **Where they part.** Four cases are left out of the comparison, each with its reason. One is
+  the dialect's own: runs that would need splitting. Three are micromark disagreeing with
+  commonmark.js:
+  - indentation inside a code span that crosses a line;
+  - blank lines at the end of an unclosed fence in a list item;
+  - `!` in an email autolink.
+
+  After an unclosed opening `---`, the frontmatter extension also leaves the next lines a
+  paragraph. `normalize` now reads CR and CRLF as LF, as HTML does, and drops spaces beside
+  `<pre>`.
+- **Bugs found and fixed**, each now a dialect example:
+  - an empty title written as `title=""`;
+  - control characters and noncharacters in numeric references, which now become U+FFFD;
+  - numeric references in an info string, which weren't decoded;
+  - an attribute line above a comment, flushed out of source order;
+  - a fence-like line that silently wasn't a lazy line;
+  - a lone `|` as a table row, and a header indented four columns;
+  - trailing spaces after a tab, which weren't reported.
+- **Open.** `\ ` at the end of a line is a hard break, where it could be a non-breaking space.
+  There's a `@note` in `inline.ts`.
 
 ### 17. Benchmarks and bundle size
 

@@ -21,4 +21,10 @@ Tests that span the package rather than one module.
   Conformance page, held only to finishing, not throwing, a valid tree and a warning for every
   bare URL GFM links.
 
+- [`fuzz/`](fuzz/) and [`fuzz.test.ts`](fuzz.test.ts): noise, mutated examples and documents
+  written from the grammar, each held to being sound, and the CommonMark and GFM ones to the
+  oracle. `pnpm fuzz` searches longer, with a random seed.
+- [`complexity.test.ts`](complexity.test.ts): every adversarial pattern in
+  [`fuzz/adversarial.ts`](fuzz/adversarial.ts), and a multi-megabyte document, held to linear time.
+
 Unit tests of offsets and node data live next to their module in `src/`.

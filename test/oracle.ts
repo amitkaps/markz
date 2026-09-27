@@ -73,7 +73,8 @@ export function reference(markdown: string): string {
  * characters, since micromark doesn't do it and markz always does; a double quote goes back to
  * `&quot;`, as micromark escapes it. An empty attribute value goes (`open=""` is `open`), since
  * micromark can't tell a bare key from an empty one. Heading ids go too, since
- * micromark writes none; markz's are tested on their own. `<pre>` content is compared exactly.
+ * micromark writes none; markz's are tested on their own. `<pre>` content is compared exactly,
+ * except that a CR or CRLF is a LF, as the HTML parser reads it before building the page.
  */
 const SMART: Record<string, string> = {
 	'‘': "'",
@@ -90,8 +91,16 @@ const BLOCK_TAG =
 
 export function normalize(html: string): string {
 	return html
+		.replace(/\r\n?/g, '\n')
 		.split(/(<pre[\s>][\s\S]*?<\/pre>)/)
-		.map((part, i) => (i % 2 === 1 ? part : part.replace(/\s+/g, ' ').replace(BLOCK_TAG, '$1')))
+		.map((part, i, parts) => {
+			if (i % 2 === 1) return part;
+			let out = part.replace(/\s+/g, ' ').replace(BLOCK_TAG, '$1');
+			// `<pre>` is a block tag too, split off above.
+			if (i > 0) out = out.replace(/^ /, '');
+			if (i < parts.length - 1) out = out.replace(/ $/, '');
+			return out;
+		})
 		.join('')
 		.replace(/(<h[1-6])((?: [\w-]+="[^"]*")*?) id="[^"]*"/g, '$1$2')
 		.replace(/[‘’“”–—…]/g, (c) => SMART[c]!)

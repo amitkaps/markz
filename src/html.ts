@@ -9,111 +9,213 @@
  * A node type it has no case for is an error rather than silent output, so a new node type can't
  * reach a page unwritten.
  */
-import { type Attributes, type Document, type NodeId } from './ast';
+import { NONE, type Attributes, type Document, type NodeId } from './ast';
 import { custom, element } from './elements';
 import { parse } from './parse';
+import { walk } from './walk';
 
 export function html(input: string | Document): string {
 	const doc = typeof input === 'string' ? parse(input) : input;
-	return render(doc, doc.root);
+	const state: State = { out: '', column: 0 };
+	walk(doc, {
+		enter: (node) => open(doc, node, state),
+		exit: (node) => close(doc, node, state)
+	});
+	return state.out;
 }
 
-function children(doc: Document, node: NodeId): string {
-	let out = '';
-	for (const child of doc.children(node)) out += render(doc, child);
-	return out;
+/** The output so far, and the column of the next table cell. */
+interface State {
+	out: string;
+	column: number;
 }
 
 /** @prose
  * ## Nodes
  *
- * One case per node type. A paragraph directly in an item of a tight list is written without its
- * `<p>`, as GFM does, and a task item's checkbox goes at the start of its first paragraph.
- * Comments and metadata write nothing, and a raw block writes its content only when its format is
- * `html`.
+ * One case per node type, split in two: `open` writes what comes before a node's children and
+ * `close` what comes after, and `walk` calls them in document order. Rendering never recurses, so
+ * a document nested as deep as the parser accepts renders too.
+ *
+ * A paragraph directly in an item of a tight list is written without its `<p>`, as GFM does, and
+ * a task item's checkbox goes at the start of its first paragraph. Comments and metadata write
+ * nothing, and a raw block writes its content only when its format is `html`. `open` returns
+ * `false` for a node whose children it has written itself or must not write.
  */
-function render(doc: Document, node: NodeId): string {
+function open(doc: Document, node: NodeId, state: State): boolean {
 	const type = doc.type(node);
 	const a = doc.attributes(node);
+	let out = '';
 	switch (type) {
 		case 'document':
-			return children(doc, node);
+			break;
 		case 'metadata':
 		case 'comment':
-			return '';
+			return false;
 		case 'paragraph': {
 			const parent = doc.parent(node);
-			let prefix = '';
 			if (doc.type(parent) === 'listItem') {
 				const { checked } = doc.data(parent, 'listItem');
+				if (!tight(doc, node)) out = `<p${attributes(a)}>`;
 				if (checked !== null && doc.firstChild(parent) === node) {
-					prefix = `<input type="checkbox" disabled=""${checked ? ' checked=""' : ''} /> `;
+					out += `<input type="checkbox" disabled=""${checked ? ' checked=""' : ''} /> `;
 				}
-				if (doc.data(doc.parent(parent), 'list').tight) return prefix + children(doc, node);
-			}
-			return `<p${attributes(a)}>${prefix}${children(doc, node)}</p>\n`;
+			} else out = `<p${attributes(a)}>`;
+			break;
 		}
 		case 'heading': {
 			const { depth, id } = doc.data(node, 'heading');
 			const idAttribute = id ? ` id="${escape(id)}"` : '';
-			return `<h${depth}${idAttribute}${attributes(a, [], true)}>${children(doc, node)}</h${depth}>\n`;
+			out = `<h${depth}${idAttribute}${attributes(a, true)}>`;
+			break;
 		}
 		case 'text':
-			return escape(doc.data(node, 'text').value);
+			out = escape(doc.data(node, 'text').value);
+			break;
 		case 'blockquote':
-			return `<blockquote${attributes(a)}>\n${children(doc, node)}</blockquote>\n`;
+			out = `<blockquote${attributes(a)}>\n`;
+			break;
 		case 'list': {
 			const { ordered, start } = doc.data(node, 'list');
-			const tag = ordered ? 'ol' : 'ul';
 			const startAttribute = ordered && start !== 1 ? ` start="${start}"` : '';
-			return `<${tag}${startAttribute}${attributes(a)}>\n${children(doc, node)}</${tag}>\n`;
+			out = `<${ordered ? 'ol' : 'ul'}${startAttribute}${attributes(a)}>\n`;
+			break;
 		}
 		case 'listItem':
-			return `<li${attributes(a)}>${children(doc, node)}</li>\n`;
+			out = `<li${attributes(a)}>`;
+			break;
 		case 'thematicBreak':
-			return `<hr${attributes(a)} />\n`;
+			out = `<hr${attributes(a)} />\n`;
+			break;
 		case 'code': {
 			const { lang, value } = doc.data(node, 'code');
 			const cls = lang ? ` class="language-${escape(lang)}"` : '';
-			return `<pre${attributes(a)}><code${cls}>${escape(value)}</code></pre>\n`;
+			out = `<pre${attributes(a)}><code${cls}>${escape(value)}</code></pre>\n`;
+			break;
 		}
 		case 'raw': {
 			const { format, value } = doc.data(node, 'raw');
-			return format === 'html' ? value : '';
+			out = format === 'html' ? value : '';
+			break;
 		}
 		case 'math': {
 			const { block, value } = doc.data(node, 'math');
-			return block
+			out = block
 				? `<pre${attributes(a)}><code class="language-math math-display">${escape(value)}</code></pre>\n`
 				: `<code class="language-math math-inline">${escape(value)}</code>`;
+			break;
 		}
 		case 'emphasis':
-			return `<em>${children(doc, node)}</em>`;
+			out = '<em>';
+			break;
 		case 'strong':
-			return `<strong>${children(doc, node)}</strong>`;
+			out = '<strong>';
+			break;
 		case 'delete':
-			return `<del>${children(doc, node)}</del>`;
+			out = '<del>';
+			break;
 		case 'inlineCode':
-			return `<code>${escape(doc.data(node, 'inlineCode').value)}</code>`;
+			out = `<code>${escape(doc.data(node, 'inlineCode').value)}</code>`;
+			break;
 		case 'break':
-			return '<br />\n';
+			out = '<br />\n';
+			break;
 		case 'expression':
-			return escape(doc.source.slice(doc.start(node), doc.end(node)));
+			out = escape(doc.source.slice(doc.start(node), doc.end(node)));
+			break;
 		case 'link': {
 			const { destination, title } = doc.data(node, 'link');
-			return `<a href="${url(destination)}"${titled(title)}${attributes(a)}>${children(doc, node)}</a>`;
+			out = `<a href="${url(destination)}"${titled(title)}${attributes(a)}>`;
+			break;
 		}
 		case 'image': {
 			const { destination, title, alt } = doc.data(node, 'image');
-			return `<img src="${url(destination, true)}" alt="${escape(alt)}"${titled(title)}${attributes(a)} />`;
+			out = `<img src="${url(destination, true)}" alt="${escape(alt)}"${titled(title)}${attributes(a)} />`;
+			break;
 		}
 		case 'table':
-			return table(doc, node, a);
+			out = `<table${attributes(a)}>\n`;
+			break;
+		case 'tableRow':
+			state.column = 0;
+			out = (head(doc, node) ? '<thead>\n' : '') + '<tr>\n';
+			break;
+		case 'tableCell':
+			out = `<${cell(doc, node)}${alignment(doc, node, state.column++)}>`;
+			break;
 		case 'directive':
-			return directive(doc, node, a);
+			out = directive(doc, node, a);
+			break;
 		default:
-			throw new Error(`html: no output for ${type} yet`);
+			throw new Error(`html: no output for ${String(type)} yet`);
 	}
+	state.out += out;
+	return true;
+}
+
+function close(doc: Document, node: NodeId, state: State): void {
+	let out = '';
+	switch (doc.type(node)) {
+		case 'paragraph':
+			if (!tight(doc, node)) out = '</p>\n';
+			break;
+		case 'heading':
+			out = `</h${doc.data(node, 'heading').depth}>\n`;
+			break;
+		case 'blockquote':
+			out = '</blockquote>\n';
+			break;
+		case 'list':
+			out = `</${doc.data(node, 'list').ordered ? 'ol' : 'ul'}>\n`;
+			break;
+		case 'listItem':
+			out = '</li>\n';
+			break;
+		case 'emphasis':
+			out = '</em>';
+			break;
+		case 'strong':
+			out = '</strong>';
+			break;
+		case 'delete':
+			out = '</del>';
+			break;
+		case 'link':
+			out = '</a>';
+			break;
+		case 'table':
+			out = '</table>\n';
+			break;
+		case 'tableRow': {
+			// Pad a short body row to the header's width.
+			const { align } = doc.data(doc.parent(node), 'table');
+			const tag = cell(doc, node);
+			for (; state.column < align.length; state.column++) {
+				out += `<${tag}${alignment(doc, node, state.column)}></${tag}>\n`;
+			}
+			out += '</tr>\n';
+			const last = doc.nextSibling(node) === NONE;
+			if (head(doc, node)) out += '</thead>\n' + (last ? '' : '<tbody>\n');
+			else if (last) out += '</tbody>\n';
+			break;
+		}
+		case 'tableCell':
+			out = `</${cell(doc, node)}>\n`;
+			break;
+		case 'directive': {
+			const { kind, name } = doc.data(node, 'directive');
+			const inline = kind === 'text';
+			out = `</${tag(name, inline)}>` + (inline ? '' : '\n');
+			break;
+		}
+	}
+	state.out += out;
+}
+
+/** A paragraph directly in an item of a tight list, written without its `<p>`. */
+function tight(doc: Document, paragraph: NodeId): boolean {
+	const item = doc.parent(paragraph);
+	return doc.type(item) === 'listItem' && doc.data(doc.parent(item), 'list').tight;
 }
 
 /** @prose
@@ -122,24 +224,20 @@ function render(doc: Document, node: NodeId): string {
  * The first row is the header. Body rows are padded with empty cells to the header's width, and
  * every cell carries its column's alignment.
  */
-function table(doc: Document, node: NodeId, a: Attributes | undefined): string {
-	const { align } = doc.data(node, 'table');
-	const row = (r: NodeId, tag: 'th' | 'td') => {
-		let out = '<tr>\n';
-		let column = 0;
-		for (const cell of doc.children(r)) {
-			out += `<${tag}${alignment(align[column++])}>${children(doc, cell)}</${tag}>\n`;
-		}
-		for (; column < align.length; column++) out += `<${tag}${alignment(align[column])}></${tag}>\n`;
-		return out + '</tr>\n';
-	};
-	const [head, ...body] = doc.children(node);
-	let out = `<table${attributes(a)}>\n<thead>\n${row(head!, 'th')}</thead>\n`;
-	if (body.length > 0) out += `<tbody>\n${body.map((r) => row(r, 'td')).join('')}</tbody>\n`;
-	return out + '</table>\n';
+const head = (doc: Document, row: NodeId) => doc.firstChild(doc.parent(row)) === row;
+
+/** `th` or `td`, for a row or a cell. */
+function cell(doc: Document, node: NodeId): 'th' | 'td' {
+	const row = doc.type(node) === 'tableRow' ? node : doc.parent(node);
+	return head(doc, row) ? 'th' : 'td';
 }
 
-const alignment = (align: string | null | undefined) => (align ? ` align="${align}"` : '');
+function alignment(doc: Document, node: NodeId, column: number): string {
+	let table = doc.parent(node);
+	if (doc.type(table) !== 'table') table = doc.parent(table);
+	const align = doc.data(table, 'table').align[column];
+	return align ? ` align="${align}"` : '';
+}
 
 /** @prose
  * ## Directives
@@ -153,17 +251,18 @@ const alignment = (align: string | null | undefined) => (align ? ` align="${alig
  */
 const LABEL: Record<string, string> = { details: 'summary', figure: 'figcaption' };
 
+const tag = (name: string, inline: boolean) =>
+	element(name, inline) ? name : inline ? 'span' : 'div';
+
 function directive(doc: Document, node: NodeId, a: Attributes | undefined): string {
 	const { kind, name, label } = doc.data(node, 'directive');
-	const inline = kind === 'text';
-	const tag = element(name, inline) ? name : inline ? 'span' : 'div';
-	let out = `<${tag}${attributes(a)}>`;
+	let out = `<${tag(name, kind === 'text')}${attributes(a)}>`;
 	if (kind === 'container' && label?.value) {
 		const inner = LABEL[name];
 		if (inner) out += `<${inner}>${escape(label.value)}</${inner}>\n`;
 		else if (custom(name)) out += `<div class="directive-label">${escape(label.value)}</div>\n`;
 	}
-	return out + children(doc, node) + `</${tag}>` + (inline ? '' : '\n');
+	return out;
 }
 
 /** @prose
@@ -175,8 +274,8 @@ function directive(doc: Document, node: NodeId, a: Attributes | undefined): stri
  * an unsafe scheme: `javascript:`, `vbscript:`, and `data:` other than a raster image (spec:
  * Security). A heading's id comes from its data, so an `id` item is skipped there.
  */
-function attributes(a: Attributes | undefined, classes: string[] = [], skipId = false): string {
-	const cls = [...classes];
+function attributes(a: Attributes | undefined, skipId = false): string {
+	const cls: string[] = [];
 	const other = new Map<string, string | null>();
 	for (const { key, value, start, end } of a?.items ?? []) {
 		if (key === 'class') cls.push(value);
@@ -214,7 +313,8 @@ function url(value: string, image = false): string {
 	return escape(out);
 }
 
-const titled = (title: string | null) => (title === null ? '' : ` title="${escape(title)}"`);
+// An empty title (`[a](b "")`) writes none, as micromark and cmark do.
+const titled = (title: string | null) => (title ? ` title="${escape(title)}"` : '');
 
 function unsafe(value: string, image = true): boolean {
 	// Browsers ignore whitespace and control characters inside a scheme.

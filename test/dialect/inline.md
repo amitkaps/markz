@@ -80,6 +80,12 @@ Not links in GFM: www.a_b.com, react@0.14.1, xhttp://a.com, [see https://a.com
 <p>Not links in GFM: www.a_b.com, react@0.14.1, xhttp://a.com, [see https://a.com</p>
 ```
 
+```example
+[a](b "") ![c](d "")
+.
+<p><a href="b">a</a> <img src="d" alt="c" /></p>
+```
+
 ## text-directive
 
 ```example
@@ -170,6 +176,12 @@ c</p>
 a & b, a@b, x.y
 .
 <p>a &amp; b, a@b, x.y</p>
+```
+
+```example
+&#8; &#x9F; &#xFFFF; &#65;
+.
+<p>� � � A</p>
 ```
 
 ## smart-punctuation

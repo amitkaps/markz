@@ -16,7 +16,7 @@ import { type Attributes, type Builder, type NodeId, type Range, type Align } fr
 import { bareOnly, braceEnd, parseAttributes } from './attributes';
 import { isSpace, NAMED, unescape } from './chars';
 import { element, labelled } from './elements';
-import { inline } from './inline';
+import { decode, inline } from './inline';
 import { parseMetadata } from './metadata';
 import { type WarningCode } from './warnings';
 
@@ -31,14 +31,20 @@ interface Container {
 	end: number;
 	/** Direct children closed so far. */
 	children: number;
-	/** A blank line was seen since the last line with content. */
-	blank: boolean;
+	/** When it opened, on the parser's clock, to tell which blank lines it has seen. */
+	born: number;
 	/** listItem: the content column, relative to the item's container. */
 	indent: number;
 	/** listItem: false while an item that opened on an empty line has nothing in it. */
 	filled: boolean;
 	/** directive: the number of colons in the opening fence. */
 	fence: number;
+	/**
+	 * directive: the smallest fence from the start of its run of directly nested directives to
+	 * it, and where the run ends in the stack. The run shares one object.
+	 */
+	min: number;
+	run: { end: number };
 	/** list */
 	ordered: boolean;
 	marker: string;
@@ -47,7 +53,13 @@ interface Container {
 }
 
 type Leaf =
-	| { kind: 'paragraph'; lines: Range[]; attributes: Attributes | undefined }
+	| {
+			kind: 'paragraph';
+			lines: Range[];
+			attributes: Attributes | undefined;
+			/** The last line was indented four or more columns, so it can't be a table header. */
+			indented: boolean;
+	  }
 	| {
 			kind: 'fence' | 'math';
 			start: number;
@@ -82,8 +94,28 @@ class BlockParser {
 	readonly stack: Container[] = [];
 	leaf: Leaf | null = null;
 	pending: Pending | null = null;
+	/**
+	 * A clock that ticks at each blank line and each line with content. A container has seen a
+	 * blank line since the last content when the last blank line is later than both.
+	 */
+	clock = 0;
+	blankAt = -1;
+	contentAt = -1;
 	/** Every heading id so far, explicit or generated. */
 	readonly ids = new Set<string>();
+	/** The last number given to each generated id's base, so numbering resumes rather than restarts. */
+	readonly numbered = new Map<string, number>();
+	/** The whitespace `blank` last found: on which line, and from where to where. */
+	space = { lineEnd: -1, from: -1, to: -1 };
+	/**
+	 * Where in the stack a blank line stops: each blockquote, which needs its `>`, and each item
+	 * still empty. Ascending, and changed only at the top.
+	 */
+	readonly blockers: number[] = [];
+	/** The current line's trailing run of one rule marker: where it starts, and its third-last. */
+	ruleTail: { lineEnd: number; marker: string; from: number; third: number } | null = null;
+	/** The last `braceAfter` scan: from where, how far it got, and the `}` it found. */
+	braceScan: { from: number; to: number; close: number } | null = null;
 
 	// The line being read, and a cursor into it. `tab` is how many columns of the tab at `pos` are
 	// still unread, when a container prefix ended in the middle of one.
@@ -102,7 +134,7 @@ class BlockParser {
 	}
 
 	run(start: number): void {
-		this.stack.push(container('document', this.b.current, start));
+		this.push(container('document', this.b.current, start));
 		let at = this.metadata(start);
 		const { src } = this;
 		while (at < src.length) {
@@ -194,21 +226,34 @@ class BlockParser {
 				if (isSpace(src.charCodeAt(this.pos))) this.advance(1);
 			} else if (c.kind === 'listItem') {
 				if (this.blank()) {
-					if (!c.filled) break;
+					// Nothing on the rest of the line: every container passes it up to the first that
+					// can't take a blank line.
+					matched = this.blocker(matched);
+					break;
 				} else {
-					if (this.indent().cols < c.indent) break;
+					if (this.indent(c.indent).cols < c.indent) break;
 					this.advance(c.indent);
 				}
 			} else if (c.kind === 'directive') {
 				const fence = this.closingFence(':');
-				if (fence >= c.fence) {
-					this.closeLeaf();
-					while (stack.length > matched + 1) this.closeContainer();
-					c.end = this.trimmedEnd();
-					this.closeContainer();
-					this.settle();
-					return;
+				let last = c.run.end;
+				if (fence < stack[last]!.min) {
+					matched = last;
+					continue;
 				}
+				// The outermost directive in the run that this fence closes.
+				while (matched < last) {
+					const mid = (matched + last) >> 1;
+					if (stack[mid]!.min <= fence) last = mid;
+					else matched = mid + 1;
+				}
+				const closed = stack[matched]!;
+				this.closeLeaf();
+				while (stack.length > matched + 1) this.closeContainer();
+				closed.end = this.trimmedEnd();
+				this.closeContainer();
+				this.settle();
+				return;
 			}
 		}
 
@@ -228,7 +273,7 @@ class BlockParser {
 		if (blank) {
 			if (this.leaf?.kind === 'paragraph' || this.leaf?.kind === 'table') this.closeLeaf();
 			// A `>` line with nothing after it is blank only inside its blockquote.
-			if (this.top.kind !== 'blockquote') for (const c of stack) c.blank = true;
+			if (this.top.kind !== 'blockquote') this.blankAt = ++this.clock;
 			return;
 		}
 		for (let more = true; more;) more = this.start();
@@ -237,7 +282,41 @@ class BlockParser {
 
 	/** A line with content resets every open container's blank-line flag. */
 	settle(): void {
-		for (const c of this.stack) c.blank = false;
+		this.contentAt = ++this.clock;
+	}
+
+	/** Whether a blank line came after the container opened and after the last content. */
+	blankIn(c: Container): boolean {
+		return this.blankAt > this.contentAt && this.blankAt > c.born;
+	}
+
+	/** @prose
+	 * ## Opening containers
+	 *
+	 * Every container is pushed here, stamped with the clock. Directly nested directives form a
+	 * run that consumes no prefix, so a line tests one closing fence against the whole run: each
+	 * directive keeps the smallest fence from the run's start to it, and a binary search finds the
+	 * outermost one the fence closes. Checking them one by one would cost the nesting depth on
+	 * every line.
+	 */
+	push(c: Container): void {
+		const { stack } = this;
+		c.born = this.clock;
+		if (c.kind === 'blockquote' || (c.kind === 'listItem' && !c.filled)) {
+			this.blockers.push(stack.length);
+		}
+		if (c.kind === 'directive') {
+			const top = this.top;
+			if (top.kind === 'directive') {
+				c.min = Math.min(top.min, c.fence);
+				c.run = top.run;
+			} else {
+				c.min = c.fence;
+				c.run = { end: 0 };
+			}
+			c.run.end = stack.length;
+		}
+		stack.push(c);
 	}
 
 	/** @prose
@@ -260,8 +339,10 @@ class BlockParser {
 		if (cols >= 4) {
 			// Never a table row: it ends the table, and it can't be a delimiter row under a paragraph.
 			if (this.leaf?.kind === 'table') this.closeLeaf();
-			if (this.leaf?.kind === 'paragraph') this.leaf.lines.push({ start: next, end });
-			else {
+			if (this.leaf?.kind === 'paragraph') {
+				this.leaf.lines.push({ start: next, end });
+				this.leaf.indented = true;
+			} else {
 				this.report('indented-code', next, end);
 				this.text(next, end);
 			}
@@ -315,13 +396,13 @@ class BlockParser {
 			return false;
 		}
 		if (src.startsWith('<!--', next) && this.comment(next)) return false;
-		const rule = /^([-*_])(?:[ \t]*\1){2,}[ \t]*$/.exec(src.slice(next, this.lineEnd));
+		const rule = this.rule(next);
 		if (rule) {
-			if (rule[1] === '-') {
+			if (rule === '-') {
 				const attributes = this.enter(false);
 				this.leafNode(this.b.leaf('thematicBreak', next, end), end, attributes);
 			} else {
-				this.report('rule-marker', next, end, `\`${rule[1]!.repeat(3)}\` rule`);
+				this.report('rule-marker', next, end, `\`${rule.repeat(3)}\` rule`);
 				this.text(next, end);
 			}
 			return false;
@@ -338,6 +419,31 @@ class BlockParser {
 	}
 
 	/**
+	 * The marker when the rest of the line from `at` is a thematic break (three or more of one of
+	 * `-`, `*` or `_`, with spaces between), or null. Nested list markers can put many starts on
+	 * one line (`- - - - a`), so the line's trailing run of one marker is found once, from the
+	 * end, and each start is checked against it.
+	 */
+	rule(at: number): string | null {
+		const { src, lineEnd } = this;
+		let tail = this.ruleTail;
+		if (tail?.lineEnd !== lineEnd) {
+			let i = lineEnd;
+			while (i > 0 && isSpace(src.charCodeAt(i - 1))) i--;
+			const marker = src[i - 1] ?? '';
+			const third: number[] = [];
+			if (marker && '-*_'.includes(marker)) {
+				while (i > 0 && (src[i - 1] === marker || isSpace(src.charCodeAt(i - 1)))) {
+					if (src[--i] === marker && third.length < 3) third.push(i);
+				}
+			}
+			tail = { lineEnd, marker, from: i, third: third.length === 3 ? third[2]! : -1 };
+			this.ruleTail = tail;
+		}
+		return src[at] === tail.marker && at >= tail.from && at <= tail.third ? tail.marker : null;
+	}
+
+	/**
 	 * Whether the rest of the line would open a block, for the lazy-line check. It follows the
 	 * paragraph-interruption rules, counts rejected block forms, and changes nothing.
 	 */
@@ -346,8 +452,9 @@ class BlockParser {
 		if (cols >= 4) return false;
 		const rest = this.src.slice(next, this.lineEnd);
 		return (
-			/^(?:>|#{1,6}(?:[ \t]|$)|```|~~~|\$\$[ \t]*$|<!--|::)/.test(rest) ||
-			/^([-*_])(?:[ \t]*\1){2,}[ \t]*$/.test(rest) ||
+			// A backtick fence's info string holds no backtick, or the line isn't a fence.
+			/^(?:>|#{1,6}(?:[ \t]|$)|`{3,}[^`]*$|~~~|\$\$[ \t]*$|<!--|::)/.test(rest) ||
+			this.rule(next) !== null ||
 			// Only a non-empty `-` or `1.` item can interrupt a paragraph, but inside a list any
 			// marker, empty or numbered, starts the next item.
 			(this.stack.some((c) => c.kind === 'list')
@@ -364,7 +471,10 @@ class BlockParser {
 		if (!item && this.top.kind === 'list') this.closeContainer();
 		const top = this.top;
 		top.filled = true;
-		if (top.blank && top.children > 0) {
+		if (top.kind === 'listItem' && this.blockers.at(-1) === this.stack.length - 1) {
+			this.blockers.pop();
+		}
+		if (this.blankIn(top) && top.children > 0) {
 			if (top.kind === 'listItem') this.stack[this.stack.length - 2]!.tight = false;
 			else if (top.kind === 'list' && item) top.tight = false;
 		}
@@ -377,7 +487,7 @@ class BlockParser {
 	open(kind: 'blockquote', at: number, attributes: Attributes | undefined): void {
 		const node = this.b.open(kind, at);
 		if (attributes) this.b.setAttributes(node, attributes);
-		this.stack.push(container(kind, node, at));
+		this.push(container(kind, node, at));
 	}
 
 	/** A finished leaf node: its container's end and child count move past it. */
@@ -405,7 +515,8 @@ class BlockParser {
 		const closing = /(?:^|[ \t])#+$/.exec(this.src.slice(from, end));
 		if (closing) to = from + closing.index;
 		while (to > from && isSpace(this.src.charCodeAt(to - 1))) to--;
-		const brace = this.src.lastIndexOf(' {', to) + 1;
+		// Search only the heading's own text, not back to the start of the source.
+		const brace = from + this.src.slice(from, to).lastIndexOf(' {') + 1;
 		if (brace > from && this.src[to - 1] === '}' && trailing(this.src, brace, to)) {
 			this.report('trailing-heading-attributes', brace, to);
 		}
@@ -427,7 +538,9 @@ class BlockParser {
 		} else {
 			const base = slug(text);
 			data.id = base;
-			for (let n = 1; this.ids.has(data.id); n++) data.id = `${base}-${n}`;
+			let n = this.numbered.get(base) ?? 0;
+			while (this.ids.has(data.id)) data.id = `${base}-${++n}`;
+			this.numbered.set(base, n);
 		}
 		this.ids.add(data.id);
 		this.leafNode(node, end, attributes);
@@ -450,8 +563,8 @@ class BlockParser {
 	continueLeaf(leaf: Exclude<Leaf, { kind: 'paragraph' | 'table' }>): void {
 		const { src } = this;
 		if (leaf.kind === 'comment') {
-			const close = src.indexOf('-->', this.pos);
-			if (close >= 0 && close < this.lineEnd) {
+			const close = this.lineIndex('-->', this.pos);
+			if (close >= 0) {
 				this.closeComment(close + 3);
 			} else leaf.end = this.lineEnd;
 			return;
@@ -492,17 +605,26 @@ class BlockParser {
 	 * ## Comments
 	 *
 	 * `<!--` at the start of a line opens a comment, which ends on the line with `-->`. A comment
-	 * that shares its first line with other text isn't a block, and is left to the inline pass.
+	 * that shares its first line with other text isn't a block, and is left to the inline pass. It
+	 * takes no attributes: an attribute line above it is reported as having no block.
 	 */
 	comment(at: number): boolean {
-		const close = this.src.indexOf('-->', at + 2);
-		const oneLine = close >= 0 && close < this.lineEnd;
+		const close = this.lineIndex('-->', at + 2);
+		const oneLine = close >= 0;
 		if (oneLine && this.src.slice(close + 3, this.lineEnd).trim() !== '') return false;
 		this.closeLeaf();
 		if (this.top.kind === 'list') this.closeContainer();
+		// A comment takes no attributes, so attribute lines above it have no block.
+		this.flushPending(this.stack.length);
 		this.leaf = { kind: 'comment', start: at, end: this.lineEnd };
 		if (oneLine) this.closeComment(close + 3);
 		return true;
+	}
+
+	/** Where `token` is on the rest of the line from `from`, or -1: never a search past the line. */
+	lineIndex(token: string, from: number): number {
+		const at = this.src.slice(from, this.lineEnd).indexOf(token);
+		return at < 0 ? -1 : from + at;
 	}
 
 	closeComment(end: number): void {
@@ -557,14 +679,14 @@ class BlockParser {
 			if (attributes) this.b.setAttributes(node, attributes);
 			const list = container('list', node, next);
 			Object.assign(list, { ordered, marker, start });
-			this.stack.push(list);
+			this.push(list);
 		}
 
 		this.skipTo(next);
 		this.pos = markerEnd;
 		this.col += markerEnd - next;
 		const width = markerEnd - next;
-		const after = this.indent().cols;
+		const after = this.indent(5).cols;
 		let indent: number;
 		if (empty || after >= 5) {
 			indent = cols + width + 1;
@@ -578,7 +700,7 @@ class BlockParser {
 		const item = container('listItem', node, markerEnd);
 		item.indent = indent;
 		item.filled = !empty;
-		this.stack.push(item);
+		this.push(item);
 		return empty ? OPENED_EMPTY : OPENED;
 	}
 
@@ -643,7 +765,7 @@ class BlockParser {
 		} else {
 			const c = container('directive', node, end);
 			c.fence = colons;
-			this.stack.push(c);
+			this.push(c);
 		}
 		return true;
 	}
@@ -663,7 +785,9 @@ class BlockParser {
 		if (this.top.kind === 'list') this.closeContainer();
 		const pending = this.pending;
 		if (pending && pending.depth === this.stack.length) {
-			pending.attributes = merge(pending.attributes, attributes)!;
+			// In place: copying the list on every line would be quadratic in the run's length.
+			pending.attributes.items.push(...attributes.items);
+			pending.attributes.end = attributes.end;
 			pending.lines.push({ start: at, end });
 		} else {
 			this.pending = { attributes, lines: [{ start: at, end }], depth: this.stack.length };
@@ -677,16 +801,41 @@ class BlockParser {
 	 */
 	multilineAttributes(at: number, end: number): void {
 		const { src } = this;
-		if (src.lastIndexOf('}', end) >= at) return;
-		const close = src.indexOf('}', end);
+		if (src.slice(at, end).includes('}')) return;
+		const close = this.braceAfter(end);
 		if (close < 0) return;
-		const joined = src.slice(at, close + 1);
-		if (/\n[ \t]*\r?\n/.test(joined)) return;
-		const flat = joined.replace(/[\r\n]/g, ' ');
-		const attributes = parseAttributes(flat, 0, flat.length);
-		if (attributes?.end === flat.length && !bareOnly(flat, attributes)) {
+		const attributes = parseAttributes(src, at, close + 1, true);
+		if (attributes?.end === close + 1 && !bareOnly(src, attributes)) {
 			this.report('multiline-attributes', at, close + 1);
 		}
+	}
+
+	/**
+	 * The first `}` after `from`, or -1 when a blank line or the end comes first. The last scan is
+	 * kept: a later start inside the stretch it crossed has the same answer, so a run of unclosed
+	 * `{` lines is scanned once, not once per line.
+	 */
+	braceAfter(from: number): number {
+		const last = this.braceScan;
+		if (last && from >= last.from && from <= last.to) return last.close;
+		const { src } = this;
+		let i = from;
+		let close = -1;
+		for (; i < src.length; i++) {
+			const c = src.charCodeAt(i);
+			if (c === 125) {
+				close = i;
+				break;
+			}
+			if (c === 10) {
+				let j = i + 1;
+				while (isSpace(src.charCodeAt(j))) j++;
+				const d = src.charCodeAt(j);
+				if (d === 10 || d === 13) break;
+			}
+		}
+		this.braceScan = { from, to: i, close };
+		return close;
 	}
 
 	/** Pending attributes whose container is closing become text. */
@@ -707,7 +856,8 @@ class BlockParser {
 	 *
 	 * Text that opens no block continues the open paragraph or table, or starts a paragraph. A
 	 * delimiter row (`| --- | :-: |`) under a paragraph turns the paragraph's last line into a
-	 * table header when the cell counts agree; the lines before it stay a paragraph. Rows then
+	 * table header when the cell counts agree, and the line isn't indented four or more columns;
+	 * the lines before it stay a paragraph. Rows then
 	 * continue until a blank line or another block.
 	 */
 	text(start: number, end: number): void {
@@ -720,15 +870,20 @@ class BlockParser {
 		if (leaf?.kind === 'paragraph') {
 			const header = leaf.lines.at(-1)!;
 			const align = delimiterRow(this.src, start, end);
-			if (align && cells(this.src, header.start, header.end).length === align.length) {
+			if (
+				align &&
+				!leaf.indented &&
+				cells(this.src, header.start, header.end).length === align.length
+			) {
 				this.table(leaf, align, end);
 				return;
 			}
 			leaf.lines.push({ start, end });
+			leaf.indented = false;
 			return;
 		}
 		const attributes = this.enter(false);
-		this.leaf = { kind: 'paragraph', lines: [{ start, end }], attributes };
+		this.leaf = { kind: 'paragraph', lines: [{ start, end }], attributes, indented: false };
 	}
 
 	table(paragraph: Extract<Leaf, { kind: 'paragraph' }>, align: Align[], end: number): void {
@@ -800,7 +955,7 @@ class BlockParser {
 					const format = leaf.info.slice(1).split(/[ \t]/)[0]!;
 					node = b.leaf('raw', leaf.start, leaf.end, { format, value: leaf.value, range: body });
 				} else {
-					const info = unescape(leaf.info);
+					const info = decode(leaf.info);
 					const space = info.search(/[ \t]/);
 					const lang = space < 0 ? info : info.slice(0, space);
 					const meta = space < 0 ? '' : info.slice(space).trim();
@@ -827,6 +982,8 @@ class BlockParser {
 	closeContainer(): void {
 		this.flushPending(this.stack.length);
 		const c = this.stack.pop()!;
+		if (c.kind === 'directive') c.run.end--;
+		if (this.blockers.at(-1) === this.stack.length) this.blockers.pop();
 		if (c.kind === 'list') {
 			this.b.setData(c.node, 'list', { ordered: c.ordered, start: c.start, tight: c.tight });
 		}
@@ -844,11 +1001,17 @@ class BlockParser {
 		}
 	}
 
-	/** Two or more spaces ending a paragraph line are GFM's invisible hard break. */
+	/**
+	 * Two or more spaces ending a paragraph line are GFM's invisible hard break. They are counted
+	 * back from the line ending, so a tab before them doesn't hide them.
+	 */
 	trailingSpaces(end: number): void {
-		let i = end;
-		while (this.src[i] === ' ') i++;
-		if (i - end >= 2) this.report('trailing-spaces', end, i);
+		const { src } = this;
+		let e = end;
+		while (src[e] === ' ' || src[e] === '\t') e++;
+		let i = e;
+		while (i > end && src[i - 1] === ' ') i--;
+		if (e - i >= 2) this.report('trailing-spaces', i, e);
 	}
 
 	/** @prose
@@ -858,7 +1021,8 @@ class BlockParser {
 	 * cursor then stays on the tab and `tab` counts its unread columns, which content reads as
 	 * spaces.
 	 */
-	indent(): { cols: number; next: number } {
+	/** The columns of whitespace at the cursor, counting no further than `limit`, and where it ends. */
+	indent(limit = Infinity): { cols: number; next: number } {
 		const { src, lineEnd } = this;
 		let i = this.pos;
 		let col = this.col;
@@ -868,7 +1032,7 @@ class BlockParser {
 			col += this.tab;
 			i++;
 		}
-		for (; i < lineEnd; i++) {
+		for (; i < lineEnd && cols < limit; i++) {
 			const c = src[i];
 			if (c === ' ') {
 				cols++;
@@ -916,8 +1080,32 @@ class BlockParser {
 		this.pos = next;
 	}
 
+	/**
+	 * Whether the rest of the line is whitespace. Many nested items can ask on one line, so where
+	 * the whitespace ends is kept: the cursor only moves forward, and from anywhere inside that
+	 * whitespace the answer is the same.
+	 */
 	blank(): boolean {
-		return this.indent().next === this.lineEnd;
+		const { src, pos, lineEnd } = this;
+		const last = this.space;
+		if (last.lineEnd === lineEnd && pos >= last.from && pos <= last.to) return last.to === lineEnd;
+		let i = pos;
+		while (i < lineEnd && isSpace(src.charCodeAt(i))) i++;
+		this.space = { lineEnd, from: pos, to: i };
+		return i === lineEnd;
+	}
+
+	/** The first container from `from` that a blank line closes, or the stack's length. */
+	blocker(from: number): number {
+		const { blockers } = this;
+		let lo = 0;
+		let hi = blockers.length;
+		while (lo < hi) {
+			const mid = (lo + hi) >> 1;
+			if (blockers[mid]! < from) lo = mid + 1;
+			else hi = mid;
+		}
+		return lo < blockers.length ? blockers[lo]! : this.stack.length;
 	}
 
 	trimmedEnd(): number {
@@ -937,10 +1125,12 @@ function container(kind: Container['kind'], node: NodeId, end: number): Containe
 		node,
 		end,
 		children: 0,
-		blank: false,
+		born: 0,
 		indent: 0,
 		filled: true,
 		fence: 0,
+		min: 0,
+		run: { end: 0 },
 		ordered: false,
 		marker: '',
 		start: 1,
@@ -982,13 +1172,15 @@ const KEY = /^[A-Za-z_][\w-]*:(?:[ \t\r\n]|$)/;
  * ## Table rows
  *
  * A row's cells are split on `|`s that aren't escaped, after an optional leading and trailing
- * pipe. Each cell is trimmed. A delimiter row needs a pipe or a colon, as in GFM, so `Title` over
+ * pipe. Each cell is trimmed, and a row of only a pipe has none. A delimiter row needs a pipe or a colon, as in GFM, so `Title` over
  * `---` stays a setext case while `a` over `:-:` is a one-column table.
  */
 function cells(src: string, start: number, end: number): Range[] {
 	let s = start;
 	let e = end;
 	if (src[s] === '|') s++;
+	// A lone pipe, as GFM reads it, is a row with no cells; `||` has one.
+	if (s > start && src.slice(s, e).trim() === '') return [];
 	if (e > s && src[e - 1] === '|' && !escaped(src, e - 1, s)) e--;
 	const out: Range[] = [];
 	let from = s;
@@ -1021,7 +1213,7 @@ function delimiterRow(src: string, start: number, end: number): Align[] | null {
 		if (!m) return null;
 		align.push(m[1] && m[2] ? 'center' : m[1] ? 'left' : m[2] ? 'right' : null);
 	}
-	return align;
+	return align.length ? align : null;
 }
 
 /** @prose
