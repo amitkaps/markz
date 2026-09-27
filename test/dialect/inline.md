@@ -74,6 +74,12 @@ _a ${x * y} b_
 <p><a href="/u/$%7Bid%7D/edit">x</a></p>
 ```
 
+```example
+Not links in GFM: www.a_b.com, react@0.14.1, xhttp://a.com, [see https://a.com
+.
+<p>Not links in GFM: www.a_b.com, react@0.14.1, xhttp://a.com, [see https://a.com</p>
+```
+
 ## text-directive
 
 ```example

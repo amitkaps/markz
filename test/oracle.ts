@@ -98,13 +98,15 @@ export function normalize(html: string): string {
 /** @prose
  * ## Tokens
  *
- * What the oracle recognised in an example: each token it opened, with its source text. The
+ * What the oracle recognised in an example: each token it opened, with its source text and range. The
  * example list reads these to tell which examples use syntax the dialect cuts, and which have no
  * inline syntax at all, rather than keeping those lists by hand.
  */
 export interface Token {
 	type: string;
 	text: string;
+	start: number;
+	end: number;
 }
 
 export function tokens(markdown: string): Token[] {
@@ -112,7 +114,12 @@ export function tokens(markdown: string): Token[] {
 	const events = postprocess(parse({ extensions }).document().write(chunks));
 	return events
 		.filter(([kind]) => kind === 'enter')
-		.map(([, t]) => ({ type: t.type, text: markdown.slice(t.start.offset, t.end.offset) }));
+		.map(([, t]) => ({
+			type: t.type,
+			text: markdown.slice(t.start.offset, t.end.offset),
+			start: t.start.offset,
+			end: t.end.offset
+		}));
 }
 
 /** @prose

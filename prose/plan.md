@@ -202,6 +202,17 @@ decimal digits and keeps alphabetic symbols (`Ⓐ`). github-slugger's 8 KB class
 Unicode properties, which match 77 of the 78 fixtures; the last differs because its class is
 Unicode 13's.
 
+**Autolink literals — done.** micromark-extension-gfm-autolink-literal's 53 tests, most of them
+whole fixture documents of URLs. markz cuts bare URLs, so the row's check got stricter: one
+`bare-url` warning must overlap each URL GFM links, and none may sit where it links nothing, so a
+reader never loses a link silently. Where the warning ends is left approximate, since GFM's tail
+trimming is the rule the dialect cuts. The suite found a hang, `www._` looped forever, and that
+markz both missed links (`WWW.` in capitals, `點看.com`, a URL after `_` or a digit) and warned
+where GFM links nothing (`_` in a domain's last two segments, `react@0.14.1`, after a form feed,
+inside an unclosed `[`). Fixed by taking GFM's rules for the character before a URL and for its
+domain. GitHub links an email after `:` and anything after a tab where micromark doesn't; markz
+warns as GitHub links, and those four fixtures are in `oracleDiffers`.
+
 ### 13. The site by the dialect — done
 
 The Conformance page becomes Metadata, Block, Inline and Not supported, each opening to its
