@@ -300,6 +300,8 @@ function attributes(a: Attributes | undefined, skipId = false): string {
  */
 function url(value: string, image = false): string {
 	if (unsafe(value, image)) return '';
+	// Most destinations need no encoding: one test instead of one per character.
+	if (SAFE_URL.test(value)) return escape(value);
 	let out = '';
 	for (let i = 0; i < value.length; i++) {
 		const c = value[i]!;
@@ -313,6 +315,9 @@ function url(value: string, image = false): string {
 	}
 	return escape(out);
 }
+
+/** A destination made only of characters written as they are, with no `%` to check. */
+const SAFE_URL = /^[!#$&-;=?-Z_a-z~]*$/;
 
 // An empty title (`[a](b "")`) writes none, as micromark and cmark do.
 const titled = (title: string | null) => (title ? ` title="${escape(title)}"` : '');
