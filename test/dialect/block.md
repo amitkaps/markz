@@ -332,6 +332,55 @@ x
 
 ## attributes
 
+A bare key is one of HTML's boolean attributes.
+
+```example
+:::details{open}
+x
+:::
+.
+<div class="details" open=""><p>x</p>
+</div>
+```
+
+```example
+{hidden .x}
+
+para
+.
+<p class="x" hidden="">para</p>
+```
+
+Bare keys alone count only after a directive, link or image. On a line or after a word they are
+prose, with no warning.
+
+```example
+{year}
+
+## Sets {a}
+.
+<p>{year}</p>
+<h2 id="sets-a">Sets {a}</h2>
+```
+
+After a directive, link or image, a `{…}` that doesn't parse stays text and is reported.
+
+```example
+::chart{type='bar'}
+.
+<p>::chart{type=’bar’}</p>
+.
+{type='bar'}
+```
+
+```example
+[docs](/d){target='_blank'}
+.
+<p><a href="/d">docs</a>{target=’_blank’}</p>
+.
+{target='_blank'}
+```
+
 ```example
 {#pricing .center}
 

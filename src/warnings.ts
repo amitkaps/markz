@@ -42,6 +42,10 @@ export const WARNINGS = {
 	jsx: ['JSX', 'directives, `${…}`'],
 	// A construct's own.
 	'duplicate-id': ['id already used by an earlier heading', 'a different id'],
+	'attribute-syntax': [
+		'attributes markz does not read',
+		'`#id`, `.class`, `key=value` or `key="a value"`, and a bare `key`, on one line'
+	],
 	'orphan-attributes': [
 		'block attributes with no block after them',
 		'put the `{…}` line directly above a block'

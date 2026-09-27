@@ -13,7 +13,7 @@
  * items between opener and closer into one node, so nothing is read twice.
  */
 import { type Attributes, type Builder, type NodeData, type NodeType, type Range } from './ast';
-import { parseAttributes } from './attributes';
+import { bareOnly, braceEnd, parseAttributes } from './attributes';
 import { NAMED, unescape } from './chars';
 import { scanExpression } from './expression';
 import { type WarningCode } from './warnings';
@@ -575,7 +575,7 @@ class InlinePass {
 				node.attributes = attributes;
 				end += attributes.end - attributes.start;
 				node.end = attributes.end;
-			}
+			} else this.attributeSyntax(end, lineEnd);
 		}
 		return end;
 	}
@@ -717,8 +717,10 @@ class InlinePass {
 		}
 		let attributes: Attributes | null = null;
 		if (text[j] === '{') {
-			attributes = parseAttributes(this.src, this.at(j), this.lines[this.line(j)]!.end);
+			const lineEnd = this.lines[this.line(j)]!.end;
+			attributes = parseAttributes(this.src, this.at(j), lineEnd);
 			if (attributes) j += attributes.end - attributes.start;
+			else this.attributeSyntax(j, lineEnd);
 		}
 		if (!label && !attributes) return false;
 		const data: NodeData['directive'] = {
@@ -802,7 +804,7 @@ class InlinePass {
 			before !== undefined && !/\s/.test(before)
 				? parseAttributes(this.src, this.at(t), this.lines[this.line(t)]!.end)
 				: null;
-		if (!attributes) {
+		if (!attributes || bareOnly(this.src, attributes)) {
 			this.plain(list, t, t + 1);
 			return t + 1;
 		}
@@ -845,6 +847,12 @@ class InlinePass {
 		}
 		this.plain(list, t, t + n, value);
 		return t + n;
+	}
+
+	/** A `{…}` where attributes attach that doesn't parse as them stays text, and is reported. */
+	attributeSyntax(t: number, lineEnd: number): void {
+		const close = braceEnd(this.src, this.at(t), lineEnd);
+		if (close >= 0) this.b.warn('attribute-syntax', this.at(t), close);
 	}
 
 	report(code: WarningCode, t: number, e: number, message?: string): void {
