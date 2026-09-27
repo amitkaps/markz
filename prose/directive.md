@@ -7,69 +7,94 @@ stays until this is settled.
 
 ## The proposal
 
-Keep the three forms: text `:name[label]{attrs}`, leaf `::name[label]{attrs}` and container
-`:::name[label]{attrs}` … `:::`. Change what the name means:
+> **Directive names are element names.** A name is either a valid markz custom-element name or
+> one of a few permitted HTML element names. Attributes stay structured in the AST and `html()`
+> writes them safely. Labels and children stay AST data, so a framework's fold reads them its own
+> way. ` ```=html ` stays the escape hatch for arbitrary literal HTML.
 
-> A directive's name is the element it writes. It is a custom-element name (lowercase ASCII
-> letters, digits and `-`, starting with a letter, with at least one `-`) or one of a short list of
-> HTML elements. Any other name is text with a warning.
+The three forms don't change: text `:name[label]{attrs}`, leaf `::name[label]{attrs}` and
+container `:::name[label]{attrs}` … `:::`. Only what the name means does:
 
 - `:call-out[Warning]` → `<call-out>Warning</call-out>`
 - `::chart-widget{type=bar}` → `<chart-widget type="bar"></chart-widget>`
 - `:::warning-box{type=error}` … `:::` → `<warning-box type="error">…</warning-box>`
 
-Attributes are the element's attributes, as they already are: any key, with `on*` keys and unsafe
-values dropped by `html()`. The AST already keeps the name, attributes, label and children apart
-from any renderer, so a consumer's fold can still map a name to its own component.
+A custom-element name is lowercase ASCII letters, digits and `-`, starts with a letter and has at
+least one `-`, less the names HTML reserves (`font-face`, `annotation-xml` and the rest). Any
+other name is text with a warning, as for any unsupported syntax.
 
-Directives would be the structured way to write an element, with Markdown parsed inside, and
-` ```=html ` stays the opaque escape hatch for literal HTML.
+## Parser and renderer
 
-## Why the name rule matters
+The two decide different things.
 
-If the name is the tag, the name rule is the safety rule. It is what keeps `:script{…}`,
-`::iframe{src=…}` and `:::style` from writing real elements. So the hyphen is not style. The names
-HTML reserves (`font-face`, `annotation-xml` and the rest) would be excluded as well.
+- **The parser** decides whether a name is a directive name. A name that fails is text with a
+  warning, and only the parser can warn, so the grammar is where `:script` is stopped: it is
+  neither a custom-element name nor a permitted one.
+- **`html()`** decides whether a name may become an element. It keeps its own refusal of
+  `script`, `iframe`, `style` and the like as a second line, because a document can be built
+  without the parser.
+
+## Attributes
+
+The AST keeps every attribute the author wrote, `onclick` included, so a Svelte or Web Component
+fold has all of them to decide on. `html()` alone drops `on*` keys and unsafe values, as it does
+today.
+
+A boolean attribute is written as the bare key: `{dismissible}` becomes `dismissible`, not
+`dismissible=""`. In HTML a boolean attribute is on whenever it is present, so
+`dismissible="false"` is on, and the docs should show the bare key.
+
+## Container labels
+
+The label stays AST data, separate from the children. `html()` keeps writing it as it does today,
+`<div class="directive-label">`, and invents no slot, since slots are one Web Component
+implementation detail. A framework's fold maps the label to whatever its component takes.
 
 ## The HTML names
 
-The hyphen rule alone rejects the names the dialect already has (`:sup`, `:sub`, `:ins`, `:mark`,
-`:kbd`, `:abbr`, `:span`), so it needs a list of HTML elements beside it. The test for a place on
-the list is that the element does something a class can't: carries meaning for assistive
-technology or search, or changes what the browser does. The author can always fall back to `div`
-or `span` with a class. Left out: elements Markdown already writes (`em`, `a`, `del`, `pre`,
-`table`, …), anything that runs code or embeds other documents (`script`, `style`, `iframe`,
-`object`, `embed`, `template`, `svg`, form controls), and bidirectional or ruby text while markz is
-Latin-first.
+Two directions, and the choice between them is the open part of this note.
 
-A candidate list, fifteen names:
+**A. A short list, from the corpus.** The amitkaps.github.io Markdown uses `sup`, `sub`, `ins` and
+`abbr` as prose elements, and `span` and `div` are the plain wrappers. So six names, and more
+only on evidence. `mark` and `kbd`, which the dialect writes as elements today, are unused there.
 
-| Kind   | Names                                                                               |
-| ------ | ----------------------------------------------------------------------------------- |
-| Inline | `span`, `sup`, `sub`, `ins`, `mark`, `kbd`, `abbr`; new: `q`, `cite`, `dfn`, `time` |
-| Block  | `div`, `details`, `figure`, `aside`                                                 |
+**B. Semantic text gets syntax; directives carry no semantics.** Words that mean something get
+djot-style marks, and directives become only the escape hatch for non-semantic markup: `div`,
+`span`, a custom element or a framework component. Then the HTML list is just `div` and `span`,
+and the "name is the element" rule has almost nothing to special-case. djot's marks:
 
-Maybe later: `small`, `section`, and `video` and `audio` if the site migration needs them.
+| Element  | djot       | In markz today                                                                         |
+| -------- | ---------- | -------------------------------------------------------------------------------------- |
+| `<sup>`  | `^text^`   | `^` is plain text, so it's free                                                        |
+| `<sub>`  | `~text~`   | `~text~` is the `single-tilde` warning, because GFM reads it as strikethrough          |
+| `<ins>`  | `{+text+}` | a `{` is only special after a `)`, so this adds a brace rule                           |
+| `<mark>` | `{=text=}` | as `{+…+}`                                                                             |
+| `<abbr>` | none       | djot writes `[HTML]{title="…"}`, a span with attributes, which markz reads as `:span…` |
+
+B costs:
+
+- **`~text~`** would mean something on GitHub (strikethrough) and something else in markz
+  (subscript). That's the kind of silent reinterpretation the dialect forbids, so subscript needs
+  another mark or stays a directive.
+- **`abbr`** has no mark in djot, so either it stays a directive under a name or it becomes an
+  attribute on a span.
+- **More inline syntax** means more parser and more bytes, where A is a list lookup.
+
+## Notes for `html()` and the site
+
+A custom element is inline until CSS says `display: block`, so leaf and container elements need
+that in the site's styles. That's styling, not dialect.
 
 ## Open problems
 
-- **Names without a hyphen.** Under a strict rule `:::callout` and `::chart` become text with a
-  warning ("write `:::call-out`, or `:::div{.callout}`"). A lenient rule would fall back to
-  `<div class="callout">`, which is two mappings for one construct. Strict fits the dialect;
-  lenient keeps the directive names other dialects use.
+- **A or B**, above.
+- **Names without a hyphen.** Under the rule `:::callout` and `::chart` become text with a warning
+  ("write `:::call-out`, or `:::div{.callout}`"). The lenient alternative, falling back to
+  `<div class="callout">`, is two mappings for one construct. Strict fits the dialect, and lenient
+  keeps the names other directive dialects use.
 - **Frameworks don't agree on names.** Custom elements must be kebab-case with a hyphen. Svelte
   and React components are PascalCase, and a lowercase tag is an HTML element to both. Vue
   accepts either. MDX uses JSX's PascalCase, and micromark-extension-directive and djot put no
-  rule on names. So a Svelte fold would map `call-out` to `CallOut`, which is mechanical, but a
-  single-word component such as `Chart.svelte` has no valid directive name: it would need a
-  hyphenated name (`chart-view`) or a class on a `div`. There is no one spec here yet.
-- **The container label.** Today it is `<div class="directive-label">`. A custom element would
-  take it as a slot (`<span slot="label">Warning</span>`), which means nothing inside a plain
-  HTML element. `details` and `figure` have a natural home for it, `<summary>` and
-  `<figcaption>`, but `div` and `aside` have none. Either they keep `directive-label`, or only
-  custom elements, `details` and `figure` accept a container label and the rest warn.
-- **Boolean attributes.** An HTML boolean attribute is on whenever it is present, so
-  `dismissible="false"` is on. The docs should show the bare key, `{dismissible}`, and `html()`
-  should write it as `dismissible`, not `dismissible=""`.
-- **Display.** A custom element is inline until CSS says `display: block`, so a leaf or container
-  needs that in the site's styles, where a `div` doesn't.
+  rule on names. A Svelte fold maps `call-out` to `CallOut` mechanically, but a single-word
+  component such as `Chart.svelte` has no valid name: it needs a hyphenated one (`chart-view`) or
+  a class on a `div`. There is no one spec here yet.
