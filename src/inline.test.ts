@@ -36,7 +36,17 @@ describe('expressions', () => {
 		const doc = parsed('_a ${x * y * z} b_');
 		const node = first(doc, 'expression');
 		expect(doc.data(node, 'expression').code).toBe('x * y * z');
-		expect(html(doc)).toBe('<p><em>a ${x * y * z} b</em></p>\n');
+		expect(html(doc)).toBe(
+			'<p><em>a <code class="language-js expression">x * y * z</code> b</em></p>\n'
+		);
+	});
+
+	it('keep their lines as a paragraph does, without the container prefix', () => {
+		const doc = parsed('> a ${f(\n>     x\n> )} b');
+		expect(doc.data(first(doc, 'expression'), 'expression').code).toBe('f(\nx\n)');
+		expect(html(doc)).toBe(
+			'<blockquote>\n<p>a <code class="language-js expression">f(\nx\n)</code> b</p>\n</blockquote>\n'
+		);
 	});
 
 	it('skip braces in strings, templates and comments', () => {

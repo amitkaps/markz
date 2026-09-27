@@ -499,7 +499,11 @@ that holds the code and its range. markz never evaluates it.
 - Regex literals aren't recognised, because telling `/` as division from `/` opening a regex
   needs a JavaScript parser. A `}` inside a regex (`${s.replace(/}/g, '')}`) closes the
   expression early. Write it as `}`, or move the regex out of the document.
-- `html()` writes the literal source text, escaped.
+- The node's code is what is between the braces, its lines joined by line endings and each
+  trimmed, as inline math keeps its TeX, so a container's prefix (`> `) never reaches it.
+- `html()` writes `<code class="language-js expression">` holding the code, escaped, the way it
+  writes math it doesn't typeset: the host evaluates expressions from the tree, never from the HTML. In a link
+  destination or an attribute value, `${…}` stays part of that string.
 
 {#line-break}
 

@@ -95,7 +95,10 @@ export interface NodeData {
 	math: { block: boolean; value: string; range: Range };
 	/** A ` ```=format ` fence; `value` is its content. */
 	raw: { format: string; value: string; range: Range };
-	/** `${…}`; `code` is what is between the braces. */
+	/**
+	 * `${…}`; `code` is what is between the braces, read as the paragraph reads its lines: joined
+	 * by `\n`, each trimmed, as inline math keeps its TeX. `range` is the code in the source.
+	 */
 	expression: { code: string; range: Range };
 }
 
