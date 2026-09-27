@@ -4,7 +4,8 @@
 	 *
 	 * The layout every route renders inside: a header with the page nav, the content, and a
 	 * footer. The nav comes from the page list (`+layout.server.ts`), so a page added there appears
-	 * here, followed by the one page that isn't Markdown, Conformance.
+	 * here, followed by the two pages built from data rather than Markdown: Conformance and
+	 * Performance.
 	 */
 	import '../app.css';
 	import favicon from '#lib/assets/favicon.svg';
@@ -25,6 +26,7 @@
 				<a href="/{page.slug}">{page.title}</a>
 			{/each}
 			<a href="/conformance">Conformance</a>
+			<a href="/performance">Performance</a>
 		</nav>
 	</header>
 

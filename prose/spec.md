@@ -401,8 +401,24 @@ about 6 KB, judging by micromark's HTML compiler. The dialect also drops named e
 build carries the roughly 12 KB entity table, and one budget covers Node, Workers and the
 browser.
 
-Also measure parse throughput, AST memory and allocations against micromark, markdown-it, marked,
-markdown-exit and Comark. The unified/remark ecosystem stays out.
+**Benchmarks** (`bench/`, a private workspace package) compare markz with micromark, remark,
+markdown-it, markdown-exit, marked and Comark on throughput, cold start, retained memory,
+pathological input and bundle size. remark is there because it is how micromark is usually
+used, and how its tree is built. The unified/remark ecosystem stays out of markz itself.
+
+- The published numbers come from Hyperfine, which times whole processes, one parser each. Each
+  command runs at `k` and `2k` passes, so startup cancels out and the per-pass time is warm.
+- A quick look (`pnpm bench`) runs every parser in Vitest's benchmark runner, and compares markz
+  with its own last run. Its parsers share a process, so it is never published.
+- There are two modes. _Common_ is every parser at its defaults on the blocks they all share.
+  _Dialect_ is each configured as close to markz as it gets, reading whole documents.
+- The corpus is agent-written docs (markz's and its consumers') beside human-written public
+  docs, plus the CommonMark spec, sizes from 10 KB up, and adversarial patterns, which are
+  labelled as not a workload.
+- Results carry their environment and a corpus hash. They are gitignored, except for a snapshot
+  the site shows, which changes only when a commit updates it.
+- Throughput is never a CI gate, only a smoke run. [`bench/README.md`](../bench/README.md) says
+  how to read the numbers.
 
 ## Testing
 

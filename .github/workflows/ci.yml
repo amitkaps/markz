@@ -38,6 +38,10 @@ jobs:
       - name: Bundle size (20 KB gzip budget)
         run: pnpm size
 
+      # Every benchmark adapter once, timing nothing, so the benchmark can't rot unseen.
+      - name: Benchmark smoke
+        run: pnpm --filter markz-bench smoke
+
       # The site renders the repo's Markdown with this commit's markz, so a parser change that
       # breaks a page fails here.
       - name: Site check (format, lint, typecheck, svelte)

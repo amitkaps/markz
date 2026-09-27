@@ -3,6 +3,7 @@
 # The root is the markz package; `docs/` is the site, a private consumer of it.
 packages:
   - docs
+  - bench
 
 # Dependencies allowed to run install scripts (native binaries, for the site).
 allowBuilds:

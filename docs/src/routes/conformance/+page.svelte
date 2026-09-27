@@ -8,8 +8,9 @@
 	 * status with what backs it (`match oracle`, `warn setext-heading`), and opens to its Markdown,
 	 * what markz is held to, markz's output, where they first differ, and the warnings.
 	 *
-	 * Correctness is the one card for now. Performance, size, robustness, a real-world corpus,
-	 * formatter agreement and HTML safety join it as plan steps 16 and 17 produce them.
+	 * Correctness comes first, then performance and size from the published benchmark, which link to
+	 * the Performance page for the rest. Robustness, a real-world corpus, formatter agreement and
+	 * HTML safety are still to join them.
 	 */
 	import { onMount } from 'svelte';
 	import { PARTS, STATUSES, type Status } from '#lib/site.ts';
@@ -247,7 +248,53 @@
 			{/each}
 		</div>
 	</div>
+	{#if data.bench}
+		{@const own = data.bench.size.find((s) => s.parser === 'markz')?.gzip}
+		<div class="card-row">
+			<a class="card link" href="/performance">
+				<h2>Performance</h2>
+				{#each data.bench.performance as tier (tier.label)}
+					{@const markz = tier.parsers.find((p) => p.parser === 'markz')?.mbPerSecond}
+					<p class="line">
+						<span class="n">{markz?.toFixed(1) ?? '—'}</span> MB/s on {tier.label}
+					</p>
+					{@render bars(tier.parsers.map((p) => ({ label: p.parser, value: p.mbPerSecond })))}
+				{/each}
+				<p class="what">
+					Parse + HTML, each parser at its defaults · {data.bench.measured.cpu} ·
+					{new Date(data.bench.measured.date).toDateString()}
+				</p>
+			</a>
+			<a class="card link" href="/performance#bundle-size">
+				<h2>Size</h2>
+				<p class="line">
+					<span class="n">{own ? (own / 1024).toFixed(1) : '—'}</span> KB gzip, parse + HTML
+				</p>
+				{@render bars(
+					data.bench.size.map((s) => ({ label: s.parser, value: s.gzip && s.gzip / 1024 }))
+				)}
+				<p class="what">Each parser's HTML entry, configured as close to markz as it gets</p>
+			</a>
+		</div>
+	{/if}
 </section>
+
+{#snippet bars(items: { label: string; value: number | null }[])}
+	{@const top = Math.max(...items.map((i) => i.value ?? 0))}
+	<div class="bars">
+		{#each items as item (item.label)}
+			<span class="bar-label" class:own={item.label === 'markz'}>{item.label}</span>
+			<span class="bar-track"
+				><span
+					class="bar-fill"
+					class:own={item.label === 'markz'}
+					style:width="{top ? ((item.value ?? 0) / top) * 100 : 0}%"
+				></span></span
+			>
+			<span class="bar-value">{item.value?.toFixed(1) ?? '—'}</span>
+		{/each}
+	</div>
+{/snippet}
 
 <div class="filters">
 	<input
@@ -363,6 +410,62 @@
 		background: var(--surface);
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
+	}
+	.card-row {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+		gap: 0.75rem;
+	}
+	.card.link {
+		display: block;
+		color: inherit;
+		text-decoration: none;
+	}
+	.card.link:hover {
+		background: var(--surface-hover);
+	}
+	.line {
+		margin: 0.5rem 0 0.3rem;
+	}
+	.line .n {
+		font-size: 1.3rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+	}
+	.bars {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		gap: 0.15rem 0.5rem;
+		align-items: center;
+		font-size: 0.75rem;
+		color: var(--text-muted);
+		font-variant-numeric: tabular-nums;
+	}
+	.bar-label.own {
+		color: var(--accent);
+		font-weight: 600;
+	}
+	.bar-track {
+		height: 0.4rem;
+		background: var(--border);
+		border-radius: 0.2rem;
+		overflow: hidden;
+	}
+	.bar-fill {
+		display: block;
+		height: 100%;
+		background: var(--text-muted);
+	}
+	.bar-fill.own {
+		background: var(--accent);
+	}
+	.bar-value {
+		text-align: right;
+	}
+	.card .what {
+		margin: 0.6rem 0 0;
+		font-size: 0.75rem;
+		color: var(--text-muted);
 	}
 	.card h2 {
 		margin: 0;

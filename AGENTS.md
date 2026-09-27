@@ -20,6 +20,10 @@ Read **`prose/spec.md`** first — it is the design for markz.
   the test harness. It is a consumer, never part of the package: its dependencies (Svelte,
   wrangler) must not reach the library. `pnpm docs` runs it; CI checks, tests and builds it, and
   deploys it from `main`.
+- `bench/` is the benchmark: a private workspace package whose dependencies are the parsers markz
+  is compared with. Like `docs/`, it never reaches the library. `pnpm bench` is a quick look;
+  published numbers come only from `pnpm bench:full` on a quiet machine, copied to the site by
+  `pnpm bench:update-results` in a commit of their own.
 - The invariant: unsupported syntax stays literal text and produces a warning. It is never
   silently reinterpreted as a different supported construct.
 

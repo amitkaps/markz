@@ -25,6 +25,9 @@
 		"prepublishOnly": "vp pack",
 		"size": "node scripts/size.ts",
 		"fuzz": "FUZZ_RUNS=20000 FUZZ_SEED=$RANDOM vp test --run test/fuzz.test.ts",
+		"bench": "pnpm --filter markz-bench bench",
+		"bench:full": "pnpm --filter markz-bench bench:full",
+		"bench:update-results": "pnpm --filter markz-bench update-results",
 		"docs": "pnpm --filter markz-docs dev",
 		"docs:build": "pnpm --filter markz-docs build"
 	},
