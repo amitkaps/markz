@@ -447,6 +447,70 @@ per-construct benchmark shows the widest gap there:
   into the tree (about 7% of the time). Writing into the tree directly is the larger change, and
   is weighed against its bytes, since the budget is 20 KB and markz is at 17.4.
 
+### 20. Tests and benchmarks by what they are
+
+The test suite grew one source at a time, so its files are sorted by where an input came from,
+not by what it is. The dialect's statement sits in `test/`, inputs come in three formats (and
+`html` in the JSON means HTML, nothing, `error`, a slug or math spans by suite), documents live
+in `bench/`, and only the Conformance page shows one construct whole. From scratch, each file is
+one of four things, and every check reports by construct id:
+
+- **The statement.** `prose/grammar.md` beside `syntax.md`: a `{#id}` heading per construct,
+  its productions in an `ebnf` fence and its side rules as a list. The harness reads it with
+  `parse()` each run, so there is no copy to drift; `dialect.test.ts` holds its ids and origins
+  to `syntax.md`'s, both ways. It is a page on the site.
+- **Inputs** (`test/examples/`, `test/documents/`). Every example is in the spec.txt fence format.
+  Upstream suites are written by `scripts/vendor.ts`, one file per suite with its sections as
+  headings and a metadata block naming the source, commit and what it is checked by (HTML, YAML,
+  slug, math); they keep their own numbers (`commonmark:42`), and the curated-out sweeps are in
+  `upstream/stress/`. markz's own examples are one file per construct, each numbered in its fence
+  (`example 17 ambiguous closing-hashes`) from one sequence (`markz:17`) that never reuses a
+  number, so moving an example never renames it. Documents move from `bench/fixtures/`.
+- **The harness** (`test/harness/`): ebnf, generation, examples (load, file, check), oracle,
+  cases, corpus, tree, soundness and the adversarial patterns. No tests.
+- **Checks.** `constructs.test.ts` holds each construct, in its own `describe`, to its upstream
+  examples, its own examples by category and its generated edges; the Conformance page groups
+  the same way and shows the categories. `dialect.test.ts` holds the statement and the filing,
+  `documents.test.ts` every document, `robustness.test.ts` fuzz and stress, and
+  `complexity.test.ts` linear time, last.
+
+Documents come in variants the corpus builds and hashes, not committed. `documents.test.ts`
+holds each, raw and oxfmt-formatted, to soundness; the *common* variant to the oracle; the
+formatted one to reading as the raw one does, positions aside, so formatting never changes
+meaning; and the *dialect* one to a warnings snapshot. The complexity test takes its large
+document from the corpus's scaling tier.
+
+**Benchmarks split by audience.** `test/speed.ts` is markz alone, a plain Node script that runs
+in well under a second: MB/s per tier and per construct against the machine's baseline, with a
+noise band. `bench/` is only the published comparison, and gets fast enough to run often: one
+fresh process per parser, in turn, with a time budget per cell in place of Hyperfine's `k` and
+`2k` runs, scaling to 1 MB checked for a straight line, and sizes cached by package version, in
+under 30 s. `--deep` adds 10 MB, the pathological inputs and Hyperfine's cold start. markdown-exit
+stays beside markz per construct. From the external review:
+
+- adapters declare their configuration and capabilities, and the runner reports them, so the
+  README's table is generated, not written;
+- *common* means the same input workload, with each parser's configuration listed, not the same
+  defaults;
+- memory is named "retained memory after parse" and says what it measures; size is its own
+  table (entry, features, minified, gzip, brotli);
+- warm and cold are worded plainly, scaling as approximately linear, and *agent* is defined as
+  written by coding agents in real repos.
+
+Scripts: `pnpm test`, `pnpm test:long` (one `RUNS` and `SEED` for fuzz and cases, in place of
+`pnpm fuzz`), `pnpm bench` (markz alone), `pnpm bench:compare` and `bench:publish`, and `pnpm
+vendor`.
+
+One PR each, the moves first:
+
+1. Upstream suites vendored as Markdown fences, with metadata naming what each is checked by.
+2. markz's own examples one file per construct, numbered once in today's order.
+3. The grammar in `prose/grammar.md`, with its page.
+4. The harness in `test/harness/`, the checks by construct, the categories on the Conformance
+   page.
+5. Documents and the corpus in `test/`, and `documents.test.ts`.
+6. `test/speed.ts`, `bench/` as the comparison alone, and the review's changes.
+
 ## Definition of done for v1
 
 - `import { parse, html } from 'markz'` works with no options and no runtime dependencies.
