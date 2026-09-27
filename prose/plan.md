@@ -447,7 +447,7 @@ per-construct benchmark shows the widest gap there:
   into the tree (about 7% of the time). Writing into the tree directly is the larger change, and
   is weighed against its bytes, since the budget is 20 KB and markz is at 17.4.
 
-### 20. Tests and benchmarks by what they are
+### 20. Tests and benchmarks by what they are — done
 
 The test suite grew one source at a time, so its files are sorted by where an input came from,
 not by what it is. The dialect's statement sits in `test/`, inputs come in three formats (and
