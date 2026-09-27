@@ -334,7 +334,7 @@ class InlinePass {
 		list.last = item;
 	}
 
-	/** Text straight from the source, extending the last text item when they touch. */
+	/** Text straight from the source, as an item of its own; `emit` merges items that touch. */
 	plain(list: List, t: number, e: number, value = this.text.slice(t, e)): void {
 		this.add(list, this.textItem(this.at(t), this.to(e), value));
 	}
