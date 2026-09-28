@@ -1,7 +1,7 @@
 /** @prose
  * # HTML
  *
- * `html()` is a fold over the document into a string, the output prose and base consume (spec:
+ * `html()` is a fold over the document into a string, the output prose and base consume (design:
  * HTML output). It never touches the DOM, so it runs the same in Node, Workers and the browser.
  * The markup is micromark's for everything markz shares with GFM, so the oracle can compare them,
  * and syntax.md's shapes for the rest.
@@ -258,7 +258,7 @@ const tag = (name: string, inline: boolean) =>
  * Classes accumulate, and for any other key the later value wins, in the order keys first
  * appear. `class` is written first, and a bare key is written bare (`open`, not `open=""`), since
  * a boolean attribute is on whenever it is present. Event handlers (`on*`) are dropped, and so is any value with
- * an unsafe scheme: `javascript:`, `vbscript:`, and `data:` other than a raster image (spec:
+ * an unsafe scheme: `javascript:`, `vbscript:`, and `data:` other than a raster image (design:
  * Security). A heading's id comes from its data, so an `id` item is skipped there.
  */
 function attributes(a: Attributes | undefined, skipId = false): string {

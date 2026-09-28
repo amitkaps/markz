@@ -1,6 +1,6 @@
 <script lang="ts">
 	/** @prose
-	 * The home page: the repo's README, rendered by markz.
+	 * The home page: `prose/markz.md`, rendered by markz.
 	 */
 	import Article from '#lib/Article.svelte';
 

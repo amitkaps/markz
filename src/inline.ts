@@ -2,7 +2,7 @@
  * # Inline pass
  *
  * Turns a leaf's content lines into inline nodes under the builder's current node, in one pass
- * (spec: Parser foundation). The block pass hands it the lines as source ranges with container
+ * (design: Parser foundation). The block pass hands it the lines as source ranges with container
  * prefixes and outer whitespace already cut, so it never sees a `> ` or an item's indentation.
  *
  * The lines are joined into one flat string with `\n` between them (with `join`: a string built
