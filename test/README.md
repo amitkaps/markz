@@ -5,13 +5,13 @@ dialect is [`prose/grammar.md`](../prose/grammar.md); here are the inputs, the h
 and judges them, and the checks, each reporting by construct id or document.
 
 - [`examples/`](examples/): examples, each a small input with what it must give. [`upstream/`](examples/upstream/) holds the vendored
-  suites, one file each, with the sweeps curation keeps off the Conformance page in
+  suites, one file each, with the sweeps curation keeps off the Quality page in
   [`upstream/stress/`](examples/upstream/stress/). [`markz/`](examples/markz/) holds markz's own,
   one file per construct and one for the Not supported rows, numbered as `markz:17`, some labelled
   with the edge they try.
 - [`documents/`](documents/): real documents, written by agents and by people, vendored and
   pinned. The variants built from them are never committed.
-- [`harness/`](harness/): the machinery the checks and the site's Conformance page share, with no
+- [`harness/`](harness/): the machinery the checks and the site's Quality page share, with no
   tests of its own: the grammar, the examples and their filing, the oracles, the cases at each
   construct's edges, generation and soundness.
 
@@ -33,10 +33,10 @@ The checks:
 - [`complexity.test.ts`](complexity.test.ts): every adversarial pattern, and a multi-megabyte
   document, held to linear time. It runs last, on its own.
 
-[`speed.ts`](speed.ts) is `pnpm bench`: markz alone, on the working tree, in about two seconds,
-in MB/s per document tier and per construct, against this machine's baseline with a noise band.
-It is a plain Node script, which [`harness/node.ts`](harness/node.ts) lets load `src/` and the
-harness. The comparison with other parsers is `pnpm compare`, in [`../bench/`](../bench/).
+[`speed.ts`](speed.ts) is `pnpm bench`: markz alone, on the working tree, in a few seconds, in
+MB/s per document tier and per construct, against this machine's baseline with a noise band.
+`--compare` times it beside other parsers, for our own insight. It is a plain Node script, which
+[`harness/node.ts`](harness/node.ts) lets load `src/` and the harness.
 
 `pnpm test` searches from a fixed seed. `pnpm fuzz` runs the construct and robustness checks
 fifty times as far from a random one; `SEARCH` and `SEED` set both by hand.

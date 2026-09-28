@@ -2,7 +2,7 @@
  * # Corpus
  *
  * Real documents, and the variants built from them, which `documents.test.ts` holds markz to and
- * the benchmark times. The documents are vendored in `test/documents/`, never edited; the variants
+ * `pnpm bench` times. The documents are vendored in `test/documents/`, never edited; the variants
  * are built on each run and never committed. Each tier of documents answers its own question:
  *
  * - **agent**: markz's docs and those of the repos that consume it (base, prose, visdown). All of
@@ -19,7 +19,7 @@
  * how the consumers store it. The scaling tier repeats the agent and public documents to a size.
  *
  * Nothing here parses at run time: a variant that needs markz's reading is given the parsed
- * document, so the tests pass `src/` and the benchmark its built package.
+ * document, so the tests pass `src/` and the site its built package.
  */
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -33,9 +33,12 @@ export const TIERS: Tier[] = ['agent', 'public', 'spec'];
 const root = join(import.meta.dirname, '../..');
 const DOCUMENTS = join(root, 'test/documents');
 
-/** A tier's documents, named `<source>-<file>`, in a stable order. */
-export function documents(tier: Tier): Map<string, string> {
-	const dir = join(DOCUMENTS, tier);
+/**
+ * A tier's documents, named `<source>-<file>`, in a stable order. A caller bundled away from this
+ * file (the site) passes the documents' folder.
+ */
+export function documents(tier: Tier, from = DOCUMENTS): Map<string, string> {
+	const dir = join(from, tier);
 	const out = new Map<string, string>();
 	for (const entry of readdirSync(dir, { withFileTypes: true })) {
 		if (entry.isFile() && entry.name.endsWith('.md')) {

@@ -47,5 +47,5 @@ pnpm install
 ```
 
 `dev` (watch build), `build`, `check` (format, lint, typecheck) and `test` are the whole interface.
-The site is in [`docs/`](docs/): `pnpm docs` runs it, and its Conformance page shows every spec
-example against the oracle.
+The site is in [`docs/`](docs/): `pnpm docs` runs it, and its Quality page shows every spec
+example against the oracle, with markz's size and speed.
