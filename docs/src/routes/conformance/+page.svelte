@@ -135,7 +135,7 @@
 	<title>Conformance · markz</title>
 	<meta
 		name="description"
-		content="Every example markz is held to, filed by the dialect: CommonMark, GFM, directives, YAML and heading ids against their oracles, and markz's own."
+		content="Every example markz is held to, filed by the dialect: CommonMark, GFM, YAML and heading ids against their oracles, and markz's own."
 	/>
 </svelte:head>
 
@@ -241,8 +241,7 @@
 	<p>
 		Every example markz is held to, filed as <code>syntax.md</code> is. Upstream suites are checked
 		against an oracle: <a href="https://github.com/micromark/micromark">micromark</a> for
-		CommonMark, GFM, directives and frontmatter, after whitespace and smart punctuation are
-		normalized;
+		CommonMark, GFM and frontmatter, after whitespace and smart punctuation are normalized;
 		<a href="https://eemeli.org/yaml/">yaml</a> for metadata values; and
 		<a href="https://github.com/Flet/github-slugger">github-slugger</a> for heading ids. markz's own
 		examples carry their expected output. This page runs the same code as <code>pnpm test</code>, at

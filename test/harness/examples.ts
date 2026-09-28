@@ -43,7 +43,6 @@ import gfmTable from '../examples/upstream/gfm-table.md?raw';
 import gfm from '../examples/upstream/gfm.md?raw';
 import { readFences, type Fence } from './fences';
 import { part, row, type Part } from './syntax';
-import { element } from '../../src/elements';
 
 export type Upstream =
 	| 'commonmark'
@@ -98,11 +97,12 @@ export interface Example {
  *
  * Where each upstream section's examples are filed, by `source:section`, by the group an
  * extension suite's section starts with (its fixture file or `test()` group), or by the source
- * alone for a suite that tests one construct. `DIRECTIVE` files a group that mixes directive kinds
- * by what the oracle found. An example that uses a cut form goes to that form's row instead,
- * whatever its section.
+ * alone for a suite that tests one construct. micromark-extension-directive's suite tests a form
+ * markz cuts: an example markz reports under `directive` is filed there, and one it doesn't, whose
+ * colons are no directive to either parser, is paragraph text compared with the oracle. An
+ * example that uses a cut form goes to that form's row instead, whatever its section.
  */
-const DIRECTIVE = 'by directive kind';
+const DIRECTIVE = 'by directive warning';
 const MATH = 'by math kind';
 
 export const sections: Record<string, string> = {
@@ -141,24 +141,12 @@ export const sections: Record<string, string> = {
 	'gfm-strikethrough': 'emphasis',
 	'gfm-autolink-literal': 'link',
 	'gfm-footnote': 'link',
-	'directive:micromark-extension-directive (syntax, text)': 'text-directive',
-	'directive:micromark-extension-directive (syntax, leaf)': 'directive',
-	'directive:micromark-extension-directive (syntax, container)': 'directive',
-	'directive:micromark-extension-directive (compile)': DIRECTIVE,
-	'directive:content': DIRECTIVE,
+	directive: DIRECTIVE,
 	frontmatter: 'metadata',
 	yaml: 'metadata',
 	slugger: 'heading',
 	math: MATH
 };
-
-/** A leaf or container directive files the example under `directive`, else `text-directive`. */
-function directiveKind(markdown: string): string {
-	const block = tokens(markdown).some(
-		(t) => t.type === 'directiveLeaf' || t.type === 'directiveContainer'
-	);
-	return block ? 'directive' : 'text-directive';
-}
 
 /** @prose
  * ## Listed by hand
@@ -191,32 +179,13 @@ export const listed: Record<string, string> = {
 	'slugger:73': 'heading',
 	// Content after the block: a `***` rule and indented code, both cut.
 	'frontmatter:4': 'rule-marker',
-	// micromark's attribute syntax is wider than markz's one line of `#id .class key=value key`:
-	// single quotes, spaces around `=`, `.a.b` with no space, braces across lines, and keys outside
-	// ASCII or starting with `_`. markz's is looser in one place: any character but a space, brace,
-	// quote or `=` may be in a name or value.
-	...Object.fromEntries(
-		[36, 38, 41, 43, 44, 49, 52, 53, 57, 61].map((n) => [`directive:${n}`, 'attributes'])
-	),
-	// `:a{}` is a directive in markz; the oracle's handler can't tell it from a bare `:a`.
-	'directive:34': 'text-directive',
-	'directive:35': 'text-directive',
-	// micromark stops balancing a label's brackets at 32 levels; markz has no limit.
-	'directive:143': 'text-directive',
-	// A leaf or container name starts with a letter in markz, as a text directive's does.
-	...Object.fromEntries([66, 67, 93, 94].map((n) => [`directive:${n}`, 'directive'])),
 	// micromark-extension-math pairs dollar runs as code spans pair backticks. markz's inline math
 	// is pandoc's single `$`, whose TeX holds no `$` and has no space inside either end, and a run
 	// of dollars around math in a line, or a `$$$` fence, is text that warns.
 	...Object.fromEntries([1, 5, 6, 7, 8, 10, 11, 15].map((n) => [`math:${n}`, 'math-delimiter'])),
 	...Object.fromEntries([3, 13].map((n) => [`math:${n}`, 'inline-math'])),
 	// A math block's fence is exactly `$$` on a line of its own, with no meta string.
-	...Object.fromEntries([19, 20].map((n) => [`math:${n}`, 'math-block'])),
-	// micromark's tight list drops the `<p>` inside a container directive in the item, too.
-	'directive:103': 'directive',
-	// `&apos;` in an attribute value, which the oracle shows as no reference token.
-	'directive:144': 'named-reference',
-	'directive:145': 'named-reference'
+	...Object.fromEntries([19, 20].map((n) => [`math:${n}`, 'math-block']))
 };
 
 /** @prose
@@ -253,7 +222,6 @@ export const cuts: [section: string, test: (t: Token) => boolean][] = [
 	['comment', (t) => t.type === 'htmlFlow' && t.text.trimStart().startsWith('<!--')],
 	['jsx', (t) => /^html(?:Flow|Text)$/.test(t.type) && /^<\/?[A-Z][a-z]/.test(t.text.trimStart())],
 	['raw-html', (t) => t.type === 'htmlFlow' || t.type === 'htmlText'],
-	['directive-name', (t) => t.type in NAMES && !element(t.text, NAMES[t.type]!)],
 	['setext-heading', (t) => t.type === 'setextHeading'],
 	['indented-code', (t) => t.type === 'codeIndented'],
 	['tilde-fence', (t) => t.type === 'codeFencedFenceSequence' && t.text[0] === '~'],
@@ -279,48 +247,17 @@ function filed(
 	return { section, part: p, kind };
 }
 
-/** @prose
- * ## Directive names
- *
- * The directive suite names its directives `a`, `b` and `youtube`, words markz rejects since a
- * name is the element it writes. What most of its tests check is everything else (fences, labels,
- * attributes), so a plain lowercase word that isn't an element of its kind becomes a custom
- * element, `a` to `x-a`, and the example is compared with the oracle as before. The names the
- * suite tests as names (`a_b`, `a-`, capitals) keep theirs, and those that markz rejects are
- * filed under `directive-name`.
- */
-const NAMES: Record<string, boolean> = {
-	directiveTextName: true,
-	directiveLeafName: false,
-	directiveContainerName: false
-};
-
-export function markzNames(markdown: string): string {
-	let out = '';
-	let at = 0;
-	for (const t of tokens(markdown)) {
-		const inline = NAMES[t.type];
-		if (inline === undefined || !/^[a-z][a-z\d]*$/.test(t.text) || element(t.text, inline))
-			continue;
-		out += `${markdown.slice(at, t.start)}x-${t.text}`;
-		at = t.end;
-	}
-	return out + markdown.slice(at);
-}
-
 function upstreamExample(
 	source: Upstream,
 	checks: Checks,
 	vendored: { example: number; section: string; markdown: string; html: string }
 ): Example {
-	const e =
-		source === 'directive' ? { ...vendored, markdown: markzNames(vendored.markdown) } : vendored;
+	const e = vendored;
 	const id = `${source}:${e.example}`;
 	let home =
 		sections[`${source}:${e.section}`] ??
 		sections[`${source}:${e.section.split(' › ')[0]}`] ??
 		sections[source];
-	if (home === DIRECTIVE) home = directiveKind(e.markdown);
 	if (home === MATH) {
 		home = mathOracle(e.markdown).some((m) => m.block) ? 'math-block' : 'inline-math';
 	}
@@ -328,6 +265,7 @@ function upstreamExample(
 	// micromark's tokens say nothing about a YAML block or a heading's id.
 	const oracleTokens = checks === 'oracle' ? tokens(e.markdown) : [];
 	const codes = new Set(parse(e.markdown).warnings.map((w) => w.code));
+	if (home === DIRECTIVE) home = codes.has('directive') ? 'directive' : 'paragraph';
 	// Where markz accepts what the token looked like (`*` touching a word), it isn't a cut.
 	const token = cuts.find(([section, test]) => {
 		const cut = row(section);

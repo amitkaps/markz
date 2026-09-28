@@ -11,16 +11,17 @@ export const WARNINGS = {
 	// Not supported: metadata.
 	'toml-metadata': ['TOML metadata', 'a `---` metadata block'],
 	// Not supported: blocks.
-	'raw-html': ['raw HTML', 'a ` ```=html ` raw block, or directives and attributes'],
+	'raw-html': ['raw HTML', 'a ` ```=html ` raw block, or elements and attributes'],
 	'setext-heading': ['setext heading underline', '`# Title`'],
 	'indented-code': ['indented code block', 'fenced code'],
 	'tilde-fence': ['`~~~` fence', 'a longer backtick fence'],
 	'rule-marker': ['`***`, `___` or `* * *` rule', '`---`'],
 	'trailing-heading-attributes': ['trailing heading attributes', '`{#id}` on the line above'],
 	'multiline-attributes': ['multi-line attributes', 'one line'],
-	'directive-name': [
-		'a directive name that is not an element',
-		'`div` or `span` with a class (`::div{.chart}`), or a custom element (`::chart-view`)'
+	directive: ['a colon directive', '`{=name}` … `{/name}`, `[label]{=name /}` or `[text]{=name}`'],
+	'element-name': [
+		'a name that is not an element',
+		'a `div` or span with a class (`{=div .chart /}`, `[x]{.note}`), or a custom element (`{=chart-view /}`)'
 	],
 	'lazy-line': [
 		'lazy continuation line',
@@ -28,7 +29,7 @@ export const WARNINGS = {
 	],
 	// Not supported: inline.
 	'reference-link': ['reference link', 'inline links'],
-	footnote: ['footnote', 'a text directive, such as `:span[text]{.note}`'],
+	footnote: ['footnote', 'a span, such as `[text]{.note}`'],
 	'bare-url': ['bare URL', '`<https://…>` or `[text](url)`'],
 	'relative-autolink': ['relative autolink', '`[About](/about)`'],
 	'named-reference': [
@@ -43,14 +44,15 @@ export const WARNINGS = {
 	'star-emphasis': ['`*emphasis*`', '`_emphasis_`'],
 	'single-tilde': ['`~single~` strikethrough', '`~~text~~`'],
 	'math-delimiter': ['math delimiters other than `$…$` in a line', '`$x$`, or a `$$` block'],
-	'inline-attributes': ['attributes after inline text', '`:span[text]{.x}`'],
-	jsx: ['JSX', 'directives, `${…}`'],
+	'inline-attributes': ['attributes after inline text', '`[text]{.x}`'],
+	jsx: ['JSX', '`{=name}` elements, `${…}`'],
 	// A construct's own.
 	'duplicate-id': ['id already used by an earlier heading', 'a different id'],
-	'directive-label': [
-		'a label on a block with no place for one',
-		'a heading inside, or `details` or `figure`'
+	'element-close': [
+		'a closing line with no open element of that name in its container',
+		'close the innermost open element, at its own level'
 	],
+	'unclosed-element': ['an element with no closing line', 'a `{/name}` line, or `/}` for a leaf'],
 	'attribute-syntax': [
 		'attributes markz does not read',
 		'`#id`, `.class`, `key=value` or `key="a value"`, and a bare `key`, on one line'

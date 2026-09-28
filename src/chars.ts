@@ -2,8 +2,7 @@
  * # Characters
  *
  * The character classes both passes share, and backslash-escape decoding for the plain-text
- * values the block pass stores itself (a fence's info string, a container directive's label, an
- * attribute value). Text inside paragraphs is the inline pass's job.
+ * values the block pass stores itself (a fence's info string, an attribute value). Text inside paragraphs is the inline pass's job.
  */
 
 export const isSpace = (c: number): boolean => c === 32 || c === 9;

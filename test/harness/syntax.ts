@@ -16,17 +16,15 @@ export type Part = 'Metadata' | 'Block' | 'Inline' | 'Not supported';
  * ## Origins
  *
  * Where a construct's rule comes from: the earliest layer that defines it, in the order the layers
- * build on each other. CommonMark, then GFM, which extends it, then micromark-extension-directive,
- * then djot. Math sits outside that chain: its delimiters are pandoc's and GitHub's, written in
+ * build on each other. CommonMark, then GFM, which extends it, then djot. Math sits outside that chain: its delimiters are pandoc's and GitHub's, written in
  * GitHub's HTML shape. What no layer defines is markz's own. Each construct in `syntax.md` opens
  * with its origin's lead, in bold, and that lead is where the grammar takes its origin from.
  */
-export type Origin = 'CommonMark' | 'GFM' | 'directive' | 'djot' | 'GitHub' | 'pandoc' | 'markz';
+export type Origin = 'CommonMark' | 'GFM' | 'djot' | 'GitHub' | 'pandoc' | 'markz';
 
 export const LEADS: Record<Origin, string> = {
 	CommonMark: 'As CommonMark',
 	GFM: 'As GFM',
-	directive: 'From micromark-extension-directive',
 	djot: 'From djot',
 	GitHub: 'As GitHub',
 	pandoc: 'From pandoc',

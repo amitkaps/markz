@@ -2,20 +2,20 @@
  * # Block pass
  *
  * Source lines to containers and leaves, in one pass over the lines (spec: Parser foundation). It
- * keeps a stack of open containers (blockquotes, lists, list items, container directives) and at
+ * keeps a stack of open containers (blockquotes, lists, list items, container elements) and at
  * most one open leaf. Each line first walks the stack, letting each container consume its prefix;
  * whatever is left either continues the open leaf or starts new blocks. Every block construct in
  * `syntax.md` is a case here, and so is every rejected one: a setext underline, indented code, a
  * `~~~` fence or a lazy line is recognised where it is met, stays text, and adds a warning.
  *
- * Leaves with inline content (paragraphs, headings, table cells, leaf-directive labels) hand
+ * Leaves with inline content (paragraphs, headings, table cells, leaf-element labels) hand
  * their lines to the inline pass as source ranges. A paragraph's lines are held until it closes,
  * because the next line can still turn its last line into a table header; nothing is read twice.
  */
 import { type Attributes, type Builder, type NodeId, type Range, type Align } from './ast';
-import { bareOnly, braceEnd, parseAttributes } from './attributes';
-import { isSpace, NAMED, unescape } from './chars';
-import { element, labelled } from './elements';
+import { bareOnly, braceEnd, parseAttributes, parseElement } from './attributes';
+import { isSpace, NAMED } from './chars';
+import { element } from './elements';
 import { decode, inline } from './inline';
 import { parseMetadata } from './metadata';
 import { type WarningCode } from './warnings';
@@ -28,7 +28,7 @@ export function blocks(b: Builder, source: string, start: number): void {
 }
 
 interface Container {
-	kind: 'document' | 'blockquote' | 'list' | 'listItem' | 'directive';
+	kind: 'document' | 'blockquote' | 'list' | 'listItem' | 'element';
 	node: NodeId;
 	/** Where the node ends so far: its last marker or its last child. */
 	end: number;
@@ -40,14 +40,13 @@ interface Container {
 	indent: number;
 	/** listItem: false while an item that opened on an empty line has nothing in it. */
 	filled: boolean;
-	/** directive: the number of colons in the opening fence. */
-	fence: number;
-	/**
-	 * directive: the smallest fence from the start of its run of directly nested directives to
-	 * it, and where the run ends in the stack. The run shares one object.
-	 */
-	min: number;
+	/** element: its name, and its opening line, where an unclosed one is reported. */
+	name: string;
+	head: Range;
+	/** element: where its run of directly nested elements ends in the stack. The run shares one object. */
 	run: { end: number };
+	/** element: a closing line closed it. */
+	closed: boolean;
 	/** list */
 	ordered: boolean;
 	marker: string;
@@ -204,9 +203,9 @@ class BlockParser {
 	 *
 	 * Containers match first, each consuming its prefix: `>` for a blockquote, the content
 	 * indentation for a list item. A list always matches, and ends when a line inside it isn't an
-	 * item. A container directive matches every line but its closing fence, and the outermost one
-	 * that fence can close takes it, which is micromark's rule too: an inner directive nests with a
-	 * shorter fence.
+	 * item. A container element matches every line but a closing line, which is read at its own
+	 * level before the containers inside it take their prefixes: `{/name}` closes the innermost
+	 * element of the run it meets when the names match, and is otherwise left to be reported.
 	 *
 	 * A fence, math block or comment that is still open takes the rest of the line. Otherwise,
 	 * when a container didn't match, it closes. In CommonMark a paragraph line there would
@@ -240,20 +239,11 @@ class BlockParser {
 					if (this.indent(c.indent).cols < c.indent) break;
 					this.advance(c.indent);
 				}
-			} else if (c.kind === 'directive') {
-				const fence = this.closingFence(':');
-				let last = c.run.end;
-				if (fence < stack[last]!.min) {
-					matched = last;
-					continue;
-				}
-				// The outermost directive in the run that this fence closes.
-				while (matched < last) {
-					const mid = (matched + last) >> 1;
-					if (stack[mid]!.min <= fence) last = mid;
-					else matched = mid + 1;
-				}
+			} else if (c.kind === 'element') {
+				matched = c.run.end;
+				if (this.closingLine() !== stack[matched]!.name) continue;
 				const closed = stack[matched]!;
+				closed.closed = true;
 				this.closeLeaf();
 				while (stack.length > matched + 1) this.closeContainer();
 				closed.end = this.trimmedEnd();
@@ -299,10 +289,9 @@ class BlockParser {
 	/** @prose
 	 * ## Opening containers
 	 *
-	 * Every container is pushed here, stamped with the clock. Directly nested directives form a
-	 * run that consumes no prefix, so a line tests one closing fence against the whole run: each
-	 * directive keeps the smallest fence from the run's start to it, and a binary search finds the
-	 * outermost one the fence closes. Checking them one by one would cost the nesting depth on
+	 * Every container is pushed here, stamped with the clock. Directly nested elements form a run
+	 * that consumes no prefix, and only the innermost can take a closing line, so a line tests the
+	 * run once, not once per element: checking them one by one would cost the nesting depth on
 	 * every line.
 	 */
 	push(c: Container): void {
@@ -311,15 +300,8 @@ class BlockParser {
 		if (c.kind === 'blockquote' || (c.kind === 'listItem' && !c.filled)) {
 			this.blockers.push(stack.length);
 		}
-		if (c.kind === 'directive') {
-			const top = this.top;
-			if (top.kind === 'directive') {
-				c.min = Math.min(top.min, c.fence);
-				c.run = top.run;
-			} else {
-				c.min = c.fence;
-				c.run = { end: 0 };
-			}
+		if (c.kind === 'element') {
+			c.run = this.top.kind === 'element' ? this.top.run : { end: 0 };
 			c.run.end = stack.length;
 		}
 		stack.push(c);
@@ -428,7 +410,12 @@ class BlockParser {
 		}
 		const item = this.listItem(cols, next);
 		if (item !== NONE_OPENED) return item === OPENED;
-		if (c === ':' && this.directive(next, end)) return false;
+		if (c === ':' && COLON_LINE.test(src.slice(next, end))) this.report('directive', next, end);
+		if (c === '{' && (src[next + 1] === '=' || src[next + 1] === '/')) {
+			if (this.element(next, end, paragraph || this.leaf?.kind === 'table')) return false;
+		} else if (c === '[' && src[end - 1] === '}' && src[end - 2] === '/') {
+			if (this.leafElement(next, end)) return false;
+		}
 		if (c === '{' && !paragraph && this.leaf?.kind !== 'table') {
 			if (this.attributeLine(next, end)) return false;
 			this.multilineAttributes(next, end);
@@ -472,7 +459,9 @@ class BlockParser {
 		const rest = this.src.slice(next, this.lineEnd);
 		return (
 			// A backtick fence's info string holds no backtick, or the line isn't a fence.
-			/^(?:>|#{1,6}(?:[ \t]|$)|`{3,}[^`]*$|~~~|\$\$[ \t]*$|<!--|::)/.test(rest) ||
+			/^(?:>|#{1,6}(?:[ \t]|$)|`{3,}[^`]*$|~~~|\$\$[ \t]*$|<!--|\{\/|(?:\[.*\])?\{=.*\/\}[ \t]*$)/.test(
+				rest
+			) ||
 			this.rule(next) !== null ||
 			// Only a non-empty `-` or `1.` item can interrupt a paragraph, but inside a list any
 			// marker, empty or numbered, starts the next item.
@@ -730,69 +719,86 @@ class BlockParser {
 	}
 
 	/** @prose
-	 * ## Directives
+	 * ## Elements
 	 *
-	 * `::name[label]{…}` is a leaf and `:::name[label]{…}` opens a container, each on a line of its
-	 * own. The name is the element it writes, a block element or a custom element; any other name
-	 * leaves the line as paragraph text and is reported. A leaf's label is inline content; a
-	 * container's is plain text with escapes decoded, reported on a block with no place for it. A
-	 * line that doesn't fit the shape is paragraph text, with no warning, since `::` in prose isn't
-	 * a construct.
+	 * A `{=name …}` line opens a container, and `{=name … /}` or `[label]{=name … /}` is a leaf, whose
+	 * label is inline content. The name is the element it writes, a block element or a custom
+	 * element; any other name leaves the line as paragraph text and is reported. An opening line
+	 * can't interrupt a paragraph or a table, where it is text, as an attribute line is; a leaf
+	 * can, since a line ending in `/}` can't be prose. Attribute lines above an element merge into
+	 * its own.
+	 *
+	 * A `{/name}` line that reaches here closed nothing at an element's own level (`line`), so it
+	 * stays text and is reported. A container left open when its own container closes, or at the
+	 * end, is reported at its opening line: a leaf that lost its `/` is the usual cause.
 	 */
-	directive(at: number, end: number): boolean {
+	element(at: number, end: number, interrupting: boolean): boolean {
 		const { src } = this;
-		let i = at;
-		while (src[i] === ':') i++;
-		const colons = i - at;
-		if (colons < 2) return false;
-		const name = /^[A-Za-z][\w-]*/.exec(src.slice(i, end))?.[0];
-		if (!name) return false;
-		i += name.length;
-		let label: Range | null = null;
-		if (src[i] === '[') {
-			const close = labelEnd(src, i, end);
-			if (close < 0) return false;
-			label = { start: i + 1, end: close };
-			i = close + 1;
-		}
-		let own: Attributes | null = null;
-		if (src[i] === '{') {
-			own = parseAttributes(src, i, end);
-			if (!own) {
-				const close = braceEnd(src, i, end);
-				if (close >= 0) this.report('attribute-syntax', i, close);
-				return false;
+		if (src[at + 1] === '/') {
+			const name = CLOSE.exec(src.slice(at, end))?.[1];
+			if (name) {
+				if (!element(name, false))
+					this.report('element-name', at, end, `\`${name}\` is not an element name`);
+				else this.report('element-close', at, end, `no open \`${name}\` element to close here`);
+			} else {
+				const close = braceEnd(src, at, end);
+				if (close >= 0) this.report('attribute-syntax', at, close);
 			}
-			i = own.end;
-		}
-		if (i !== end) return false;
-		if (!element(name, false)) {
-			this.report('directive-name', at, end, `\`${name}\` is not an element name`);
 			return false;
 		}
-		if (colons > 2 && label && label.end > label.start && !labelled(name)) {
-			this.report('directive-label', label.start - 1, label.end + 1, `\`${name}\` takes no label`);
+		const head = parseElement(src, at, end);
+		if (!head) {
+			const close = braceEnd(src, at, end);
+			if (close >= 0) this.report('attribute-syntax', at, close);
+			return false;
 		}
-
-		const pending = this.enter(false);
-		const attributes = merge(pending, own);
-		const data = {
-			kind: colons === 2 ? ('leaf' as const) : ('container' as const),
-			name,
-			label: label && { ...label, value: unescape(src.slice(label.start, label.end)) }
-		};
-		const node = this.b.open('directive', at, data);
+		if (head.attributes.end !== end) return false;
+		if (!element(head.name, false)) {
+			this.report('element-name', at, end, `\`${head.name}\` is not an element name`);
+			return false;
+		}
+		if (!head.slash && interrupting) return false;
+		const attributes = merge(this.enter(false), own(head.attributes));
+		const kind = head.slash ? ('leaf' as const) : ('container' as const);
+		const node = this.b.open('element', at, { kind, name: head.name });
 		if (attributes) this.b.setAttributes(node, attributes);
-		if (colons === 2) {
-			if (label) inline(this.b, src, [label]);
+		if (head.slash) {
 			this.b.close(end);
 			this.leafNode(node, end, undefined);
 		} else {
-			const c = container('directive', node, end);
-			c.fence = colons;
+			const c = container('element', node, end);
+			c.name = head.name;
+			c.head = { start: at, end };
 			this.push(c);
 		}
 		return true;
+	}
+
+	/** `[label]{=name … /}`: a leaf with inline content. Any other `[…]{…}` line is a paragraph. */
+	leafElement(at: number, end: number): boolean {
+		const { src } = this;
+		const close = labelEnd(src, at, end);
+		if (close < 0 || src[close + 1] !== '{' || src[close + 2] !== '=') return false;
+		const head = parseElement(src, close + 1, end);
+		if (!head?.slash || head.attributes.end !== end) return false;
+		if (!element(head.name, false)) {
+			this.report('element-name', at, end, `\`${head.name}\` is not an element name`);
+			return false;
+		}
+		const attributes = merge(this.enter(false), own(head.attributes));
+		const node = this.b.open('element', at, { kind: 'leaf', name: head.name });
+		if (attributes) this.b.setAttributes(node, attributes);
+		inline(this.b, src, [{ start: at + 1, end: close }]);
+		this.b.close(end);
+		this.leafNode(node, end, undefined);
+		return true;
+	}
+
+	/** The name in a `{/name}` line at the cursor, indented at most three columns, or null. */
+	closingLine(): string | null {
+		const { cols, next } = this.indent();
+		if (cols > 3 || this.src[next] !== '{' || this.src[next + 1] !== '/') return null;
+		return CLOSE.exec(this.src.slice(next, this.lineEnd))?.[1] ?? null;
 	}
 
 	/** @prose
@@ -1007,7 +1013,12 @@ class BlockParser {
 	closeContainer(): void {
 		this.flushPending(this.stack.length);
 		const c = this.stack.pop()!;
-		if (c.kind === 'directive') c.run.end--;
+		if (c.kind === 'element') {
+			c.run.end--;
+			if (!c.closed) {
+				this.report('unclosed-element', c.head.start, c.head.end, `\`${c.name}\` is never closed`);
+			}
+		}
 		if (this.blockers.at(-1) === this.stack.length) this.blockers.pop();
 		if (c.kind === 'list') {
 			this.b.setData(c.node, 'list', { ordered: c.ordered, start: c.start, tight: c.tight });
@@ -1153,9 +1164,10 @@ function container(kind: Container['kind'], node: NodeId, end: number): Containe
 		born: 0,
 		indent: 0,
 		filled: true,
-		fence: 0,
-		min: 0,
+		name: '',
+		head: { start: 0, end: 0 },
 		run: { end: 0 },
+		closed: false,
 		ordered: false,
 		marker: '',
 		start: 1,
@@ -1171,6 +1183,18 @@ function merge(
 	if (!b) return a;
 	return { start: a.start, end: b.end, items: [...a.items, ...b.items] };
 }
+
+/** An element's attributes, if it has any beyond its name. */
+const own = (a: Attributes) => (a.items.length > 0 ? a : undefined);
+
+/** A `{/name}` line, trailing whitespace allowed. */
+const CLOSE = /^\{\/([A-Za-z][\w-]*)\}[ \t]*$/;
+
+/**
+ * A colon container's own line (`:::name`, VitePress's `::: tip Title`, a closing `:::`) or a
+ * bare leaf (`::name`). One with a label or attributes is the inline pass's to report.
+ */
+const COLON_LINE = /^(?::{3,}(?:[ \t]*[A-Za-z][^[{]*)?|:{2,}[A-Za-z][\w-]*)[ \t]*$/;
 
 /** The `]` closing a label that opens at `at`, with nested brackets balanced; -1 if none. */
 function labelEnd(src: string, at: number, end: number): number {

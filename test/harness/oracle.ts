@@ -1,7 +1,7 @@
 /** @prose
  * # Oracle
  *
- * The reference markz's `html()` is held to: micromark with GFM, directives and YAML frontmatter,
+ * The reference markz's `html()` is held to: micromark with GFM and YAML frontmatter,
  * which are well-tested and dev-only (spec: Testing). Frontmatter writes nothing, as metadata
  * doesn't in `html()`, so every example checks that markz finds the same block. Two settings make it render what markz should, not
  * what micromark's own policy would:
@@ -9,57 +9,23 @@
  * - `allowDangerousProtocol`: micromark blanks any URL outside its scheme allowlist, and markz
  *   instead drops a short blocklist (spec: Security). markz's own tests cover the blocklist, so
  *   the oracle writes every URL.
- * - A fallback directive handler that writes `syntax.md`'s shape: the name as the element, then
- *   the attributes, class first. A container's label goes in `<summary>` for `details`, in
- *   `<figcaption>` for `figure`, in a `directive-label` div for a custom element, and nowhere for
- *   any other block. Without the handler micromark drops every directive. It writes any name
- *   micromark accepts; the examples whose names markz rejects are filed under `directive-name`
- *   and not compared.
- * - The same handler writes a bare text directive (`:name` with no label or attributes) back out
- *   as the text it was, since markz requires one or the other. micromark reports `:name{}` the same
- *   way, so an empty `{}` is the one input this can't tell apart.
  *
- * Raw HTML stays disallowed, as it is in markz. Examples that use it are excluded anyway.
+ * There is no directive extension: colon directives are a form markz cuts, so micromark leaves
+ * them as the literal text markz keeps. Raw HTML stays disallowed, as it is in markz. Examples that use it are excluded anyway.
  */
 import { micromark, parse, postprocess, preprocess } from 'micromark';
 import { gfm, gfmHtml } from 'micromark-extension-gfm';
-import { directive, directiveHtml, type Handle } from 'micromark-extension-directive';
 import { frontmatter, frontmatterHtml } from 'micromark-extension-frontmatter';
 import { math } from 'micromark-extension-math';
 import GithubSlugger from 'github-slugger';
 import YAML from 'yaml';
-import { custom } from '../../src/elements';
 
-const LABEL: Record<string, string> = { details: 'summary', figure: 'figcaption' };
-
-const shape: Handle = function (d) {
-	const attributes = Object.entries(d.attributes ?? {});
-	if (d.type === 'textDirective' && d.label === undefined && attributes.length === 0) {
-		this.raw(this.encode(`:${d.name}`));
-		return true;
-	}
-	let open =
-		`<${d.name}` + (d.attributes?.class ? ` class="${this.encode(d.attributes.class)}"` : '');
-	for (const [key, value] of attributes) {
-		if (key !== 'class') open += ` ${key}="${this.encode(value)}"`;
-	}
-	this.tag(open + '>');
-	if (d.type === 'containerDirective') {
-		const inner = LABEL[d.name];
-		if (d.label && inner) this.tag(`<${inner}>${d.label}</${inner}>`);
-		else if (d.label && custom(d.name)) this.tag(`<div class="directive-label">${d.label}</div>`);
-		this.raw(d.content ?? '');
-	} else this.raw(d.label ?? '');
-	this.tag(`</${d.name}>`);
-	return true;
-};
-
-const extensions = [gfm(), directive(), frontmatter()];
+const extensions = [gfm(), frontmatter()];
 
 export function reference(markdown: string): string {
 	return micromark(markdown, {
 		extensions,
-		htmlExtensions: [gfmHtml(), directiveHtml({ '*': shape }), frontmatterHtml()],
+		htmlExtensions: [gfmHtml(), frontmatterHtml()],
 		allowDangerousProtocol: true
 	});
 }

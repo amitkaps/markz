@@ -1,11 +1,12 @@
 /** @prose
  * # Attributes
  *
- * The `{…}` block, wherever syntax.md allows one: `#id`, `.class`, `key=value`, with
- * `key="a quoted value"` for spaces, and a bare `key` for a boolean attribute, on one line. Items are kept verbatim and in source order, each
- * with its range; merging (classes accumulate, a later value wins) is the renderer's job. Anything
- * that doesn't parse returns `null`, and the caller keeps the braces as text (syntax.md:
- * Attributes).
+ * The `{…}` block, markz's one extension syntax, wherever syntax.md allows one: `#id`, `.class`,
+ * `key=value`, with `key="a quoted value"` for spaces, and a bare `key` for a boolean attribute,
+ * on one line. An element's block starts with `=name`, and a block element's may end in `/`.
+ * Items are kept verbatim and in source order, each with its range; merging (classes accumulate,
+ * a later value wins) is the renderer's job. Anything that doesn't parse returns `null`, and the
+ * caller keeps the braces as text (syntax.md: Attributes).
  */
 import { type Attribute, type Attributes } from './ast';
 import { isSpace, unescape } from './chars';
@@ -24,16 +25,59 @@ export function parseAttributes(
 	memo?: Memo
 ): Attributes | null {
 	const space = multiline ? (c: number) => isSpace(c) || c === 10 || c === 13 : isSpace;
+	return scan(source, at, at + 1, end, space, memo, false)?.attributes ?? null;
+}
+
+/** An element's `{=name …}`, whose `attributes` are the items after the name. */
+export interface ElementHead {
+	name: string;
+	attributes: Attributes;
+	/** It ends in `/}`: a block element closed on its line. */
+	slash: boolean;
+}
+
+/** `source[at]` is a `{` followed by `=`. Returns the element's head, or `null`. */
+export function parseElement(
+	source: string,
+	at: number,
+	end: number,
+	memo?: Memo
+): ElementHead | null {
+	NAME.lastIndex = at + 2;
+	const m = NAME.exec(source);
+	if (!m || at + 2 + m[0].length > end) return null;
+	const i = at + 2 + m[0].length;
+	const c = source.charCodeAt(i);
+	if (i < end && !isSpace(c) && c !== 125 && c !== 47) return null;
+	const out = scan(source, at, i, end, isSpace, memo, true);
+	return out && { name: m[0], attributes: out.attributes, slash: out.slash };
+}
+
+/** A name as written: `element()` decides whether it is one. */
+const NAME = /[A-Za-z][\w-]*/y;
+
+/** The items from `i` to the `}`, and whether a `/` came just before it, where `slash` allows one. */
+function scan(
+	source: string,
+	at: number,
+	i: number,
+	end: number,
+	space: (c: number) => boolean,
+	memo: Memo | undefined,
+	slash: boolean
+): { attributes: Attributes; slash: boolean } | null {
 	const items: Attribute[] = [];
-	let i = at + 1;
 	for (;;) {
 		while (i < end && space(source.charCodeAt(i))) i++;
 		if (i >= end) return null;
 		const c = source[i];
-		if (c === '}') return { start: at, end: i + 1, items };
+		if (c === '}') return { attributes: { start: at, end: i + 1, items }, slash: false };
+		if (slash && c === '/' && source[i + 1] === '}') {
+			return { attributes: { start: at, end: i + 2, items }, slash: true };
+		}
 		const start = i;
 		if (c === '#' || c === '.') {
-			i = name(source, i + 1, end, space);
+			i = name(source, i + 1, end, space, slash);
 			if (i === start + 1) return null;
 			items.push({
 				key: c === '#' ? 'id' : 'class',
@@ -55,21 +99,23 @@ export function parseAttributes(
 				if (i < 0) return null;
 				value = unescape(source.slice(valueStart + 1, i - 1));
 			} else {
-				i = bare(source, valueStart, end, space, memo);
+				i = bare(source, valueStart, end, space, memo, slash);
 				if (i < 0 || i === valueStart) return null;
 				value = source.slice(valueStart, i);
 			}
 			items.push({ key: source.slice(start, keyEnd), value, start, end: i });
 		}
 		// Items are separated by whitespace, or end at the `}`.
-		if (i < end && !space(source.charCodeAt(i)) && source[i] !== '}') return null;
+		if (i < end && !space(source.charCodeAt(i)) && source[i] !== '}') {
+			if (!(slash && source[i] === '/')) return null;
+		}
 	}
 }
 
 /**
- * Whether every item is a bare key. Such a block counts only where attributes attach to a
- * directive, link or image: on a line of its own or after a word, `{year}` is an MDX expression
- * or a placeholder, and stays text.
+ * Whether every item is a bare key. Such a block counts only where attributes attach to a link,
+ * image, span or element: on a line of its own or after a word, `{year}` is an MDX expression or
+ * a placeholder, and stays text.
  */
 export function bareOnly(source: string, a: Attributes): boolean {
 	return a.items.length > 0 && a.items.every((i) => source.slice(i.start, i.end) === i.key);
@@ -81,12 +127,24 @@ export function braceEnd(source: string, at: number, end: number): number {
 	return -1;
 }
 
-/** An id or class name: anything up to whitespace or one of the characters that delimit items. */
-function name(source: string, at: number, end: number, space = isSpace): number {
+/**
+ * An id or class name: anything up to whitespace or one of the characters that delimit items.
+ * Where `slash` allows a closing `/}`, a `/` just before the `}` is the leaf's, not the name's.
+ */
+function name(source: string, at: number, end: number, space = isSpace, slash = false): number {
 	let i = at;
-	while (i < end && !space(source.charCodeAt(i)) && !'{}#."\'='.includes(source[i]!)) i++;
+	while (
+		i < end &&
+		!space(source.charCodeAt(i)) &&
+		!'{}#."\'='.includes(source[i]!) &&
+		!(slash && closes(source, i))
+	)
+		i++;
 	return i;
 }
+
+/** A `/` just before the `}`. */
+const closes = (source: string, i: number) => source[i] === '/' && source[i + 1] === '}';
 
 function key(source: string, at: number, end: number): number {
 	let i = at;
@@ -108,13 +166,14 @@ function quoted(source: string, at: number, end: number, memo?: Memo): number {
 	return -1;
 }
 
-/** An unquoted value runs to whitespace or `}`, with `${…}` skipped whole. */
+/** An unquoted value runs to whitespace or `}`, or a closing `/}`, with `${…}` skipped whole. */
 function bare(
 	source: string,
 	at: number,
 	end: number,
 	space: (c: number) => boolean,
-	memo?: Memo
+	memo?: Memo,
+	slash = false
 ): number {
 	let i = at;
 	while (i < end) {
@@ -122,7 +181,8 @@ function bare(
 		if (c === '$' && source[i + 1] === '{') {
 			i = scanExpression(source, i, end, memo);
 			if (i < 0) return -1;
-		} else if (space(c.charCodeAt(0)) || '{}"\'='.includes(c)) break;
+		} else if (space(c.charCodeAt(0)) || '{}"\'='.includes(c) || (slash && closes(source, i)))
+			break;
 		else i++;
 	}
 	return i;

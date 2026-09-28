@@ -1,9 +1,10 @@
 /** @prose
  * # Element names
  *
- * A directive's name is the element it writes ([`directive.md`](../prose/directive.md)): an HTML
+ * An element's `=name` is the element it writes ([`element.md`](../prose/element.md)): an HTML
  * element on the allowlist for its kind, or a custom element. The lists leave out what Markdown
- * already writes (`em`, `a`, `pre`, …), so each element has one way in, and anything active
+ * already writes (`em`, `a`, `pre`, …) and `span`, which `[text]{.x}` writes, so each element has
+ * one way in, and anything active
  * (`script`, `iframe`, form controls, media), so a name can never run code. Inline and block are
  * separate, so a block element never lands inside a paragraph.
  *
@@ -11,12 +12,12 @@
  * `-`, less the few names HTML reserves. It fits either kind.
  */
 export const INLINE: ReadonlySet<string> = new Set(
-	'span abbr b i u s small cite q dfn time data var samp kbd mark sub sup ins bdi bdo ruby rt rp'.split(
+	'abbr b i u s small cite q dfn time data var samp kbd mark sub sup ins bdi bdo ruby rt rp'.split(
 		' '
 	)
 );
 export const BLOCK: ReadonlySet<string> = new Set(
-	'div section article aside header footer nav main address hgroup search details figure figcaption dl dt dd'.split(
+	'div section article aside header footer nav main address hgroup search details summary figure figcaption dl dt dd'.split(
 		' '
 	)
 );
@@ -30,12 +31,7 @@ export function custom(name: string): boolean {
 	return /^[a-z][a-z\d]*-[a-z\d-]*$/.test(name) && !RESERVED.has(name);
 }
 
-/** Whether `name` is an element a directive of this kind may write. */
+/** Whether `name` is an element of this kind: inline for a span, block for a leaf or container. */
 export function element(name: string, inline: boolean): boolean {
 	return (inline ? INLINE : BLOCK).has(name) || custom(name);
-}
-
-/** Whether a container of this name has a place for its label. */
-export function labelled(name: string): boolean {
-	return name === 'details' || name === 'figure' || custom(name);
 }

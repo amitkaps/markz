@@ -41,7 +41,7 @@ interface Reading {
  * ### What a case makes
  *
  * Each construct's node, and the data its own delimiters decide: a heading's depth is its count
- * of `#`s, `**` makes strong and `~~` delete, `!` an image, two colons a leaf directive. These
+ * of `#`s, `**` makes strong and `~~` delete, `!` an image, a closing `/` a leaf element. These
  * come from the case's text by the construct's literals alone, never from markz's reading.
  */
 type Expect = (doc: Document, n: NodeId, s: string) => boolean;
@@ -68,11 +68,11 @@ const BLOCKS: Record<string, Expect> = {
 	'math-block': (d, n) => d.type(n) === 'math' && d.data(n, 'math').block,
 	table: (d, n) => d.type(n) === 'table',
 	'thematic-break': (d, n) => d.type(n) === 'thematicBreak',
-	directive: (d, n, s) => {
-		if (d.type(n) !== 'directive') return false;
-		const [, colons = '', name] = /^ {0,3}(:+)([a-z][a-z\d-]*)/.exec(first(s)) ?? [];
-		const { kind, name: made } = d.data(n, 'directive');
-		return kind === (colons.length === 2 ? 'leaf' : 'container') && made === name;
+	element: (d, n, s) => {
+		if (d.type(n) !== 'element') return false;
+		const line = first(s);
+		const { kind, name } = d.data(n, 'element');
+		return kind === (/\/\}[ \t]*$/.test(line) ? 'leaf' : 'container') && line.includes(`{=${name}`);
 	},
 	comment: (d, n) => d.type(n) === 'comment'
 };
@@ -91,10 +91,10 @@ const INLINES: Record<string, Expect> = {
 	link: (d, n, s) =>
 		d.type(n) === (s.startsWith('!') ? 'image' : 'link') &&
 		(d.type(n) === 'image' || d.data(n, 'link').autolink === s.startsWith('<')),
-	'text-directive': (d, n, s) =>
-		d.type(n) === 'directive' &&
-		d.data(n, 'directive').kind === 'text' &&
-		d.data(n, 'directive').name === /^:([a-z][a-z\d-]*)/.exec(s)?.[1],
+	span: (d, n, s) =>
+		d.type(n) === 'element' &&
+		d.data(n, 'element').kind === 'inline' &&
+		d.data(n, 'element').name === (/\]\{=([a-z][a-z\d-]*)[^\]]*$/.exec(s)?.[1] ?? 'span'),
 	'inline-math': (d, n) => d.type(n) === 'math' && !d.data(n, 'math').block,
 	// The code is read as the paragraph reads its lines: joined by `\n`, each trimmed.
 	expression: (d, n, s) =>
@@ -270,7 +270,7 @@ const OPENERS = [
 	'raw-block',
 	'math-block',
 	'thematic-break',
-	'directive',
+	'element',
 	'comment'
 ];
 
@@ -330,7 +330,8 @@ export const EVERYWHERE: Record<string, Test> = {
  * and each is named after, or by, the side rule it enforces.
  */
 export const WARNED: Record<string, string> = {
-	'directive-label': 'directive-label',
+	'element-close': 'element-close',
+	'unclosed-element': 'unclosed-element',
 	'attribute-syntax': 'attribute-syntax',
 	'orphan-attributes': 'attribute-line',
 	'comment-trailing-text': 'comment-close',
@@ -368,7 +369,20 @@ export const SETTLED: Record<string, Record<string, Test>> = {
 			return !!closed && body(s.slice(closed[0].length)).length > 0;
 		}
 	},
-	directive: { 'directive-close': closesEarly(':') },
+	element: {
+		brackets: (s) => /^\s*\[/.test(s) && unbalanced(label(first(s))),
+		'leaf-label': (s) => /^\s*\[/.test(s) && /[\r\n]/.test(label(s)),
+		'element-close': (s) => {
+			const name = /\{=([A-Za-z][\w-]*)/.exec(first(s))?.[1];
+			const close = new RegExp(`^ {0,3}\\{/${name}\\}[ \\t]*$`);
+			return (
+				!!name &&
+				body(s)
+					.slice(1, -1)
+					.some((l) => close.test(l))
+			);
+		}
+	},
 	attributes: {
 		'attribute-boolean': (s) => /^\s*\{\s*(?:[A-Za-z][\w:-]*\s*)*\}\s*$/.test(s)
 	},
@@ -403,7 +417,7 @@ export const SETTLED: Record<string, Record<string, Test>> = {
 		}
 	},
 	link: { brackets: (s) => unbalanced(label(s)) },
-	'text-directive': { brackets: (s) => unbalanced(label(s)) }
+	span: { brackets: (s) => unbalanced(label(s)) }
 };
 
 /** @prose

@@ -2,7 +2,7 @@
 
 markz is a small, opinionated Markdown package for TypeScript/JavaScript, used the way marked is:
 one install, `parse` for the AST and `html` for output. It has one fixed dialect (GFM's everyday syntax without
-the parts that need backtracking, plus directives with `{…}` attributes, math, `${…}`
+the parts that need backtracking, plus `{…}` attributes and elements, math, `${…}`
 expressions and a metadata block), one compact AST that can't be changed
 after parsing and maps back to the source, and no parser options. Projects stop choosing and
 configuring a Markdown stack. They render with markz, or fold its AST into whatever they need.
@@ -51,14 +51,15 @@ requirements. markz must not import anything from them.
 ## Markdown dialect
 
 markz's dialect keeps GFM's everyday symbols and cuts the constructs that need backtracking. It uses
-directives as its one extension syntax, with `{…}` attributes in a few fixed places, and adds
-a metadata block, math and `${…}` expressions. There is
+`{…}` as its one extension syntax: attributes decorate what Markdown makes, and `=name` in them
+makes an element Markdown has no syntax for ([`element.md`](element.md)). It adds a metadata
+block, math and `${…}` expressions. There is
 one way to write each thing. Every construct, what it's limited to, and what's left out is listed
 in [`syntax.md`](syntax.md). This section gives the reasons.
 
 **The rendered site comes first.** markz documents are written for sites that render them with
 markz: base, visdown's output, `/__prose/`. On GitHub they stay readable, but they don't have to
-render identically. That is what makes directives and `{…}` attributes possible, and with them
+render identically. That is what makes `{…}` attributes and elements possible, and with them
 components, ids, classes and limited styling that plain Markdown can't express.
 
 **The cuts follow [djot](https://github.com/jgm/djot#rationale),** because each one is a place
@@ -114,8 +115,8 @@ firstChild: NodeId;
 nextSibling: NodeId;
 ```
 
-Data specific to one node type (heading depth and id, link destination, code lang, directive
-attributes, …) lives in a side table indexed by node. The exact layout is an implementation detail
+Data specific to one node type (heading depth and id, link destination, code lang, element
+name, …) lives in a side table indexed by node. The exact layout is an implementation detail
 that benchmarks decide.
 
 This is the same flat-array idea as Comark's compact AST (`[tag, attrs, ...children]`), taken
@@ -181,13 +182,13 @@ break
 table                column alignments
 tableRow
 tableCell
-directive            kind: text | leaf | container; name, label, attributes
+element              kind: inline | leaf | container; name (`span` for a span with none)
 math                 inline | block; raw TeX, value range
 raw                  format (`html`, …), value, content range; from a ` ```=format ` fence
 expression           code, code range
 ````
 
-Directives, blocks, images and links can carry attributes: an id, classes and key-value pairs,
+Elements, blocks, images and links can carry attributes: an id, classes and key-value pairs,
 each with its source range. They're kept in a side table, so the common case (no attributes)
 costs nothing.
 
@@ -207,7 +208,7 @@ Rules:
 - **A node's range covers its markers.** A heading includes `##`, a fence includes both fences, and a
   link includes `[`, `](…)`. The trailing line ending is excluded.
 - **Content ranges** are exposed as extra fields where consumers need them: a code block's body,
-  a link's destination, the metadata block, a directive's label, and every attribute block.
+  a link's destination, the metadata block, and every attribute block.
 - **Text nodes map to source, not just to their value.** `value` is the rendered text: decoded
   (`&#169;` → `©`, `\*` → `*`) and with smart punctuation (`"` → `“`). `start`/`end` cover the raw
   characters. A soft line break is a `\n` in the text before it, whose range covers the line
@@ -235,7 +236,7 @@ backtracking, and emits straight into the flat AST:
 source → block pass (lines → containers, leaves; the inline pass per leaf, as it closes) → flat AST + warnings → html()
 ```
 
-**Everything is built in.** Directives, expressions, math, attributes, raw blocks, metadata,
+**Everything is built in.** Elements, expressions, math, attributes, raw blocks, metadata,
 smart punctuation and heading ids are cases in the same two scanners. They aren't plug-ins
 layered on a CommonMark core, because a fixed dialect needs no extension points. That also keeps
 precedence in one place: `${…}` binding tighter than emphasis is just the order of the inline
@@ -244,7 +245,7 @@ heading closes, against the ids used so far.
 
 **No backtracking, as in djot.** The cuts in the [dialect](#markdown-dialect) remove every
 construct whose meaning depends on text after it. What remains is openers (`[`, `_`, `**`, `` ` ``,
-`$`, `${`, and `{` after a `)`) that either close or turn out to be text:
+`$`, `${`, and `{` after a `)` or `]`) that either close or turn out to be text:
 
 - **Openers go on a stack.** The inline pass keeps what it has read as a linked list of items. A
   closer wraps the items since its opener into one node; an opener still unmatched at the end of
@@ -254,8 +255,8 @@ construct whose meaning depends on text after it. What remains is openers (`[`, 
   learned, such as where each brace it passed closed, or that no closer is left, so a later opener
   reads the answer instead of scanning again. A paragraph full of unclosed openers stays linear.
 - **Nesting costs nothing per line.** A line is checked against the containers that consume a
-  prefix from it (`>`, an item's indent). Directives and blank lines, which consume none, are
-  settled for a whole run of containers at once, so a thousand unclosed `:::` don't make every
+  prefix from it (`>`, an item's indent). Elements and blank lines, which consume none, are
+  settled for a whole run of containers at once, so a thousand unclosed `{=div}` don't make every
   line cost a thousand.
 - **Block attributes are one line**, so the block pass never looks ahead.
 
@@ -280,8 +281,8 @@ keeps one invariant:
 **micromark is the test oracle, not a runtime dependency.** It is thoroughly tested, and nothing
 we write would beat it at full CommonMark compliance. The dialect doesn't need full compliance. It
 needs to be _identical to GFM on the constructs they share_, and micromark with
-`micromark-extension-gfm` checks exactly that. The same goes for `micromark-extension-directive`
-on directives. All three are dev dependencies (see [Testing](#testing)).
+`micromark-extension-gfm` checks exactly that. Both are dev dependencies (see
+[Testing](#testing)).
 
 The trade is deliberate. Shipping micromark keeps its compliance, but it is already 17.7 KB gzip
 before markz adds anything (see [Performance and size](#performance-and-size)), and it carries
@@ -299,7 +300,7 @@ The design is kept ready for it, following Comark's model rather than incrementa
 
 - **One place to heal.** Openers wait on a stack until the end of their block (see
   [Parser foundation](#parser-foundation)). `parse` turns unmatched ones into text there. A
-  future `parsePartial(source)` would close them instead, along with an open directive fence,
+  future `parsePartial(source)` would close them instead, along with an open element,
   and flag those nodes `partial`. Offsets would stay within the source, with no synthetic text
   inserted.
 - **Parse the whole prefix again, once per chunk,** as Comark does. The dialect has no reference
@@ -345,12 +346,12 @@ string and never touches the DOM.
   else, `<` and `&` in text are escaped, and comments are dropped.
 - **Smart punctuation** is already in the text values, so `html()` writes curly quotes and dashes
   without a pass of its own.
-- **Math, expressions and directives** are written in the shapes [`syntax.md`](syntax.md)
+- **Math, expressions and elements** are written in the shapes [`syntax.md`](syntax.md)
   gives for each.
 
-Framework output is not part of markz. A directive's name is the element `html()` writes, custom
+Framework output is not part of markz. An element's name is the element `html()` writes, custom
 elements included, but Svelte and React rendering are each a consumer's own fold over the AST.
-visdown's Svelte codegen is the first of those, and it maps directive names to its components
+visdown's Svelte codegen is the first of those, and it maps element names to its components
 (`chart-view` to `ChartView`).
 
 ## Security
@@ -451,7 +452,8 @@ were measured and left out, each with its reason in `bench/README.md`.
   so the cuts are tested rather than skipped. markz's own examples (`test/examples/markz/`, one file per
   construct, in the CommonMark spec's format) also give their exact HTML and the text each warning covers.
 - **Constructs beyond GFM:**
-  - directives, against `micromark-extension-directive`
+  - elements and spans, by markz's own examples, and remark-directive's colon forms, from
+    `micromark-extension-directive`'s suite, each reported
   - metadata: every row of the value table in `syntax.md`, each checked against the `yaml`
     package, and every YAML look-alike (`~`, `True`, `1e3`, …) giving a warning, not a string
   - math, including `$` used as currency

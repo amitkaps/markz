@@ -8,13 +8,13 @@
  * The lines are joined into one flat string with `\n` between them (with `join`: a string built
  * with `+=` is a rope V8 walks on every character read), and every position in it maps back to
  * the source, so a node may span lines while its range stays exact. Atomic constructs
- * (code, math, expressions, autolinks, escapes, references, directives) are consumed where they
- * start, which is how they bind tighter than emphasis. Emphasis and link brackets are openers
+ * (code, math, expressions, autolinks, escapes, references) are consumed where they start, which
+ * is how they bind tighter than emphasis. Emphasis and brackets, for links and spans, are openers
  * that either close or stay text: the pass builds a linked list of items, and a match wraps the
  * items between opener and closer into one node, so nothing is read twice.
  */
 import { type Attributes, type Builder, type NodeData, type NodeType, type Range } from './ast';
-import { bareOnly, braceEnd, parseAttributes } from './attributes';
+import { bareOnly, braceEnd, parseAttributes, parseElement } from './attributes';
 import { NAMED, unescape } from './chars';
 import { element } from './elements';
 import { memo, scanExpression, type Memo } from './expression';
@@ -234,8 +234,7 @@ class InlinePass {
 	 * ## Scanning
 	 *
 	 * One loop over a range of the joined text, with a case per character that can open a
-	 * construct. Everything else is gathered into text. A text directive's label is scanned
-	 * again as its own range, with its own openers, so emphasis can't cross its brackets.
+	 * construct. Everything else is gathered into text.
 	 */
 	scan(from: number, to: number): List {
 		const saved = { stacks: this.stacks, brackets: this.brackets };
@@ -260,7 +259,7 @@ class InlinePass {
 			else if (c === '[' || (c === '!' && text[t + 1] === '[')) t = this.open(list, t);
 			else if (c === ']') t = this.close(list, t, to);
 			else if (c === '_' || c === '*' || c === '~') t = this.delimiter(list, t, from, to);
-			else if (c === ':' && this.directive(list, t, to)) t = this.directiveEnd;
+			else if (c === ':' && this.colonDirective(list, t, to)) t = this.directiveEnd;
 			else if (c === ':' || c === '.' || c === '@') t = this.url(list, t, from, to);
 			else if (c === '{') t = this.brace(list, t);
 			else if (c === '"' || c === "'") t = this.quote(list, t, from);
@@ -649,14 +648,16 @@ class InlinePass {
 	}
 
 	/** @prose
-	 * ## Links and images
+	 * ## Links, images and spans
 	 *
-	 * `[` and `![` wait on the bracket stack. At `]`, only the inline form `(destination "title")`
-	 * makes a link or image, optionally with `{…}` directly after the `)`. Emphasis openers inside
-	 * the brackets can't close outside them, and once a link closes, the brackets around it can't
-	 * make links. `[x][y]` and `[x][]` are reference links and `[^x]` is a footnote, which the
-	 * dialect cuts: they stay text and are reported. `[x]` alone is just text, since `[sic]` is
-	 * prose; its definition, if it has one, is what gets reported.
+	 * `[` and `![` wait on the bracket stack. At `]`, the inline form `(destination "title")`
+	 * makes a link or image, optionally with `{…}` directly after the `)`, and a `{…}` directly
+	 * after the `]` makes a span of the text, with `{=name …}` naming its element. Emphasis
+	 * openers inside the brackets can't close outside them. Once a link closes, the brackets around
+	 * it can't make links, but they can still make a span, which may hold one. `[x][y]` and `[x][]`
+	 * are reference links and `[^x]` is a footnote, which the dialect cuts: they stay text and are
+	 * reported. `[x]` alone is just text, since `[sic]` is prose; its definition, if it has one, is
+	 * what gets reported.
 	 */
 	open(list: List, t: number): number {
 		const n = this.text[t] === '!' ? 2 : 1;
@@ -669,6 +670,10 @@ class InlinePass {
 	}
 
 	close(list: List, t: number, to: number): number {
+		if (this.text[t + 1] === '{' && this.brackets.length) {
+			const e = this.span(list, t);
+			if (e >= 0) return e;
+		}
 		const bracket = this.brackets.pop();
 		const tail = this.text[t + 1] === '(' ? this.destination(t + 1, to) : null;
 		if (!bracket || bracket.inactive || !tail) {
@@ -831,18 +836,103 @@ class InlinePass {
 	}
 
 	/** @prose
-	 * ## Text directives
+	 * ## Spans
 	 *
-	 * `:name[label]`, `:name{…}` or both, as in micromark-extension-directive: not straight after
-	 * another `:`, and with a label or attributes, so a colon in prose is never a directive. The
-	 * label's brackets balance, and it is scanned as inline content of its own. The name is the
-	 * element it writes, an inline element or a custom element. Any other name is reported and the
-	 * whole `:name[…]{…}` stays text, nothing in it read as other syntax, as does a `::name[…]` in
-	 * a line: the block pass reported it if it was a line of its own.
+	 * `[text]{…}` wraps the text in a `span`, and `[text]{=name …}` in the inline element it names.
+	 * `![text]{…}` is a `!` and a span. A name that isn't an inline element is reported, and the
+	 * whole `[…]{…}` stays text, nothing in it read as other syntax: what the scan made inside
+	 * goes back to the text it was. A `{…}` there that doesn't parse, or that ends in `/` as only
+	 * a block element may, is text and reported. Returns where the span ends, or -1 when the `{`
+	 * is left to be text.
+	 */
+	span(list: List, t: number): number {
+		const { src } = this;
+		const brace = t + 1;
+		const lineEnd = this.lines[this.line(brace)]!.end;
+		const at = this.at(brace);
+		const memo = this.memo('s', lineEnd);
+		let name: string | null = null;
+		let parsed: Attributes | null;
+		if (src[at + 1] === '=') {
+			const head = parseElement(src, at, lineEnd, memo);
+			if (
+				head?.slash &&
+				this.ownLine(this.brackets.at(-1)!.at!, brace + head.attributes.end - at)
+			) {
+				// A leaf's line of its own: the block pass made it, or reported its name.
+				return -1;
+			}
+			parsed = head && !head.slash ? head.attributes : null;
+			if (head) name = head.name;
+		} else parsed = parseAttributes(src, at, lineEnd, false, memo);
+		if (!parsed) {
+			this.attributeSyntax(brace, lineEnd);
+			return -1;
+		}
+		const attributes = parsed.items.length > 0 ? parsed : undefined;
+		const e = brace + (parsed.end - at);
+		let bracket = this.brackets.pop()!;
+		if (bracket.opener === '![') bracket = this.bang(list, bracket);
+		for (const stack of Object.values(this.stacks)) {
+			while (stack.length && stack.at(-1)!.order > bracket.order) stack.pop();
+		}
+		const closer = this.textItem(this.at(t), this.to(t + 1), ']');
+		this.add(list, closer);
+		if (name !== null && !element(name, true)) {
+			this.report('element-name', bracket.at!, e, `\`${name}\` is not an element name`);
+			this.literal(list, bracket, e);
+			return e;
+		}
+		const data: NodeData['element'] = { kind: 'inline', name: name ?? 'span' };
+		const node = this.nodeItem('element', bracket.start, this.to(e), data);
+		this.wrap(list, bracket, closer, node);
+		if (attributes) node.attributes = attributes;
+		return e;
+	}
+
+	/** Whether `t` to `e` is a whole line of the joined text. */
+	ownLine(t: number, e: number): boolean {
+		return (
+			(t === 0 || this.text[t - 1] === '\n') && (e === this.text.length || this.text[e] === '\n')
+		);
+	}
+
+	/** Splits an `![` bracket into a `!` of text and a `[` bracket after it. */
+	bang(list: List, bracket: Item): Item {
+		const mark = this.textItem(bracket.start, bracket.start + 1, '!');
+		mark.order = bracket.order;
+		mark.prev = bracket.prev;
+		mark.next = bracket;
+		if (mark.prev) mark.prev.next = mark;
+		else list.first = mark;
+		bracket.prev = mark;
+		bracket.start++;
+		bracket.at!++;
+		bracket.opener = '[';
+		bracket.value = '[';
+		return bracket;
+	}
+
+	/** Everything from `bracket` to the end of the list becomes one text item, as typed. */
+	literal(list: List, bracket: Item, e: number): void {
+		const item = this.textItem(bracket.start, this.to(e), this.text.slice(bracket.at!, e));
+		item.prev = bracket.prev;
+		if (item.prev) item.prev.next = item;
+		else list.first = item;
+		list.last = item;
+	}
+
+	/** @prose
+	 * ## Colon directives
+	 *
+	 * `:name[label]`, `:name{…}` and their two- and three-colon forms are remark-directive's, which
+	 * markz cuts: the whole `:name[…]{…}` stays text, nothing in it read as other syntax (so its
+	 * `[…]{…}` never becomes a span), and it is reported once. It needs a label or attributes and
+	 * can't start straight after another `:`, so a colon in prose is never one.
 	 */
 	directiveEnd = 0;
 
-	directive(list: List, t: number, to: number): boolean {
+	colonDirective(list: List, t: number, to: number): boolean {
 		const { text } = this;
 		if (text[t - 1] === ':') return false;
 		let n = t;
@@ -851,41 +941,25 @@ class InlinePass {
 		const m = NAME.exec(text);
 		if (!m) return false;
 		let j = n + m[0].length;
-		let label: [number, number] | null = null;
+		let found = false;
 		if (text[j] === '[') {
 			const k = this.labelEnd(j, to);
 			if (k < 0) return false;
-			label = [j + 1, k];
 			j = k + 1;
+			found = true;
 		}
-		let attributes: Attributes | null = null;
 		if (text[j] === '{') {
 			const lineEnd = this.lines[this.line(j)]!.end;
-			attributes = parseAttributes(this.src, this.at(j), lineEnd, false, this.memo('s', lineEnd));
-			if (attributes) j += attributes.end - attributes.start;
-			else if (n === t + 1) this.attributeSyntax(j, lineEnd);
-		}
-		if (!label && !attributes) return false;
-		// A leaf or container shape in a line, or a name that isn't an inline element, is text.
-		if (n > t + 1 || !element(m[0], true)) {
-			if (n === t + 1) this.report('directive-name', t, j, `\`${m[0]}\` is not an element name`);
-			this.plain(list, t, j);
-			this.directiveEnd = j;
-			return true;
-		}
-		const data: NodeData['directive'] = {
-			kind: 'text',
-			name: m[0],
-			label: label && {
-				start: this.at(label[0]),
-				end: this.to(label[1]),
-				value: unescape(text.slice(label[0], label[1]))
+			const a = this.at(j);
+			const parsed = parseAttributes(this.src, a, lineEnd, false, this.memo('s', lineEnd));
+			if (parsed) {
+				j += parsed.end - a;
+				found = true;
 			}
-		};
-		const kids = label ? this.scan(label[0], label[1]).first : null;
-		const node = this.nodeItem('directive', this.at(t), this.to(j), data, kids);
-		if (attributes) node.attributes = attributes;
-		this.add(list, node);
+		}
+		if (!found) return false;
+		this.report('directive', t, j, `colon directive \`${text.slice(t, n)}${m[0]}\``);
+		this.plain(list, t, j);
 		this.directiveEnd = j;
 		return true;
 	}
@@ -904,8 +978,8 @@ class InlinePass {
 	 * of its rule the dialect cuts. The reports wait until the leaf is done, and a link that closes
 	 * drops the ones inside it.
 	 *
-	 * A `{…}` that parses as attributes but sits where none are allowed (after a word, code,
-	 * emphasis or `[text]`) stays text and is reported. Any other brace is prose.
+	 * A `{…}` that parses as attributes but sits where none are allowed (after a word, code or
+	 * emphasis) stays text and is reported. Any other brace is prose.
 	 */
 	url(list: List, t: number, from: number, to: number): number {
 		const { text } = this;

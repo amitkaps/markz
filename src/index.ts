@@ -2,7 +2,7 @@
  * # markz
  *
  * Small, opinionated Markdown: one fixed dialect (GFM's everyday syntax without the parts that
- * need backtracking, plus directives with `{…}` attributes, math, `${…}` expressions and YAML
+ * need backtracking, plus `{…}` attributes and elements, math, `${…}` expressions and YAML
  * metadata), one compact source-mapped AST, and `html()` output,
  * with no options. This is the package entry point: the public API lives here and nothing else is
  * importable.

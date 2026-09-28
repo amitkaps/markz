@@ -71,11 +71,9 @@ describe('textContent', () => {
 		expect(textContent(doc, paragraph)).toBe('a\nb ${n}');
 	});
 
-	it('includes a label html() writes, and not one it leaves out', () => {
-		const details = parse(':::details[More]\nx\n:::\n');
+	it("includes an element's content, a leaf's label among it", () => {
+		const details = parse('{=details}\n[More]{=summary /}\n\nx\n{/details}\n');
 		expect(textContent(details)).toBe('Morex');
-		const section = parse(':::section[More]\nx\n:::\n');
-		expect(textContent(section)).toBe('x');
 	});
 
 	it('matches the text of the HTML', () => {

@@ -12,7 +12,7 @@ live here, so one change to how an example is filed or judged reaches both at on
 - [`fences.ts`](fences.ts): the one format every example file is in, read and written.
 - [`examples.ts`](examples.ts): every example markz is held to, upstream and its own, filed under
   a construct id or a Not supported row's warning code, and `check`, which gives each its status.
-- [`oracle.ts`](oracle.ts): micromark with GFM and directives, the normalization, `yaml` for
+- [`oracle.ts`](oracle.ts): micromark with GFM and frontmatter, the normalization, `yaml` for
   metadata, github-slugger for heading ids and the math extension's spans.
 - [`cases.ts`](cases.ts): every construct at its edges. Cases written from its productions, and
   their one-character neighbours, must be read as the grammar reads them, or be settled by a named

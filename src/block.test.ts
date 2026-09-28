@@ -1,6 +1,6 @@
 /** @prose
  * The block pass on what an example's HTML can't show: exact source ranges, node data (heading
- * ids, code bodies, directive labels, list tightness, table cells) and the order of warnings.
+ * ids, code bodies, element nesting, list tightness, table cells) and the order of warnings.
  * What the block constructs write is in `test/examples/markz/`. Every parsed document is also
  * held to the tree invariants.
  */
@@ -81,18 +81,11 @@ describe('attributes', () => {
 	});
 });
 
-describe('directives', () => {
-	it('keep the container label as plain text', () => {
-		const doc = parsed(':::info-box[a *b*]\n:::\n');
-		const d = doc.data(first(doc, 'directive'), 'directive');
-		expect(d).toMatchObject({ kind: 'container', name: 'info-box', label: { value: 'a *b*' } });
-		expect(doc.firstChild(first(doc, 'directive'))).toBe(-1);
-	});
-
-	it('nest with a longer outer fence', () => {
-		expect(outline(parsed('::::div\n:::aside\nx\n:::\ny\n::::\n')).slice(1)).toEqual([
-			'  directive "::::div\\n:::aside\\nx\\n:::\\ny\\n::::"',
-			'    directive ":::aside\\nx\\n:::"',
+describe('elements', () => {
+	it('nest by name, the closing line taking the innermost open one', () => {
+		expect(outline(parsed('{=div}\n{=div .a}\nx\n{/div}\ny\n{/div}\n')).slice(1)).toEqual([
+			'  element "{=div}\\n{=div .a}\\nx\\n{/div}\\ny\\n{/div}"',
+			'    element "{=div .a}\\nx\\n{/div}"',
 			'      paragraph "x"',
 			'        text "x"',
 			'    paragraph "y"',
@@ -100,11 +93,36 @@ describe('directives', () => {
 		]);
 	});
 
-	it('keep the label in the AST where html() has no place for it', () => {
-		const doc = parsed(':::section[Intro]\nx\n:::\n');
-		expect(doc.data(first(doc, 'directive'), 'directive').label?.value).toBe('Intro');
-		expect(doc.warnings.map((w) => w.code)).toEqual(['directive-label']);
-		expect(html(doc)).toBe('<section><p>x</p>\n</section>\n');
+	it('close a list at their own level, before its items take the line', () => {
+		expect(outline(parsed('{=aside}\n- a\n  {/aside}\nb\n')).slice(1)).toEqual([
+			'  element "{=aside}\\n- a\\n  {/aside}"',
+			'    list "- a"',
+			'      listItem "- a"',
+			'        paragraph "a"',
+			'          text "a"',
+			'  paragraph "b"',
+			'    text "b"'
+		]);
+	});
+
+	it('make a leaf of a labelled line, whose label is its children', () => {
+		const doc = parsed('{=dl}\n[Term _x_]{=dt /}\n[Def]{=dd .d /}\n{/dl}\n');
+		expect(doc.data(first(doc, 'element'), 'element')).toEqual({ kind: 'container', name: 'dl' });
+		expect(html(doc)).toBe('<dl><dt>Term <em>x</em></dt>\n<dd class="d">Def</dd>\n</dl>\n');
+	});
+
+	it('report a closing line with nothing to close, and an element left open', () => {
+		const doc = parsed('> {=aside}\n> x\n{/aside}\n');
+		expect(doc.warnings.map((w) => [w.code, doc.source.slice(w.start, w.end)])).toEqual([
+			['unclosed-element', '{=aside}'],
+			['element-close', '{/aside}']
+		]);
+	});
+
+	it('merge an attribute line above into their own attributes', () => {
+		expect(html(parsed('{#top}\n{=section .intro}\nx\n{/section}\n'))).toBe(
+			'<section class="intro" id="top"><p>x</p>\n</section>\n'
+		);
 	});
 });
 
