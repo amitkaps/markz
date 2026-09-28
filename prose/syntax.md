@@ -1,7 +1,7 @@
 # Syntax
 
 This is markz's dialect. It keeps GFM's everyday symbols, uses `{…}` as its one extension syntax
-(attributes decorate what Markdown makes, and `=name` in them makes an element), and adds a
+(attributes decorate what Markdown makes, and `@name` in them makes an element), and adds a
 metadata block, math and `${…}` expressions. It cuts everything that makes Markdown need backtracking. There is one way to write
 each thing. The rendered site is the primary target. A markz document stays readable on GitHub,
 but it doesn't have to render identically there. Anything markz rejects stays literal text and
@@ -220,8 +220,8 @@ backtracking:
   executes (visdown's `js` cells) is the consumer's own decision.
 - Raw blocks are trusted content: see [the spec's security section](spec.md#security).
 - On GitHub a raw block shows as a code block.
-- `=` names an output format only here, in a fence's info string. Inside `{…}`, `=name` names an
-  [element](#element). `html` is never an element name, so djot's `{=html}` is never raw in markz.
+- `=` names an output format only here, in a fence's info string. Inside `{…}`, `=` has no meaning,
+  so djot's `{=html}` is not raw in markz.
 
 {#math-block}
 
@@ -251,7 +251,7 @@ The outer pipes are optional, and a delimiter row with no pipe needs a colon, so
 ### Attributes
 
 **From djot**, in fewer places. `{…}` is markz's one extension syntax. Attributes decorate an
-element Markdown already makes, and `=name` in them makes an element Markdown has no syntax for:
+element Markdown already makes, and `@name` in them makes an element Markdown has no syntax for:
 a block [element](#element) or an inline one in a [span](#span).
 
 ```md
@@ -272,19 +272,19 @@ a block [element](#element) or an inline one in a [span](#span).
 | A line holding only `{…}`                                        | the next block     | heading ids, and classes on tables, lists, code and paragraphs |
 | Directly after an image or link, with no space                   | that image or link | `width`, `class`, `target`, `rel`                              |
 | Directly after `[text]`, with no space                           | a span of the text | classes on words and phrases, and inline elements              |
-| Lines holding `{=name …}` and `{/name}`, or `[label]{=name … /}` | an element         | wrappers and components                                        |
+| Lines holding `{@name …}` and `{/name}`, or `[label]{@name … /}` | an element         | wrappers and components                                        |
 
 This section defines the syntax for all four; the other places are also described under
 [Elements](#element), [Links and images](#link) and [Spans](#span).
 
 - **Syntax:** `#id`, `.class` and `key=value`, with `key="a quoted value"` for spaces, and a bare
-  `key` for HTML's boolean attributes (`{=details open}`, `{=video-player src=cat.mp4 controls /}`),
+  `key` for HTML's boolean attributes (`{@details open}`, `{@video-player src=cat.mp4 controls /}`),
   which `html()` writes as `key=""`. Classes accumulate. For other keys, a later value wins. Values
   may contain `${…}`. That is all of it: no single quotes, no spaces around `=`, no `.a.b`
   shorthand, and no character references, since each of those is a second way to write the same
   attribute.
-- **`=name` comes first**, once: `{=call-out type=warning}`. So the parser knows it has an element
-  at `{=`. A `/` just before the `}` closes a block element on its own line, and is allowed only
+- **`@name` comes first**, once: `{@call-out type=warning}`. So the parser knows it has an element
+  at `{@`. A `/` just before the `}` closes a block element on its own line, and is allowed only
   there.
 - **Boolean keys need company off an element, span, link or image.** A `{…}` of only bare keys on a
   line of its own, or after a word, stays text, because `{year}` there is an MDX expression or a
@@ -301,37 +301,37 @@ This section defines the syntax for all four; the other places are also describe
 - **Anywhere else a `{` is text.** Inline, only a `)` or `]` directly before it can make it
   attributes, so `{a, b}`, `{"json": 1}` and prose braces never need escaping. A `{…}` in one of
   the four places that doesn't parse as attributes is text too. Where it can only have been meant
-  as attributes, after a link, image or `[text]`, or on a line starting `{=` or `{/`, it also gets
-  the warning `attribute-syntax` when its `}` is on the same line (`[x]{=kbd type='bar'}`). A line
+  as attributes, after a link, image or `[text]`, or on a line starting `{@` or `{/`, it also gets
+  the warning `attribute-syntax` when its `}` is on the same line (`[x]{@kbd type='bar'}`). A line
   holding any other `{…}` doesn't, since it may be prose.
 
 {#element}
 
 ### Elements
 
-**markz.** An element is a `{…}` whose first item is `=name`, and the name is the element it
+**markz.** An element is a `{…}` whose first item is `@name`, and the name is the element it
 writes. There is no HTML, so this is how wrappers and components with data are written. Inline
 elements are [spans](#span).
 
 ```md
-{=chart-view data="sales" type="bar" /}
+{@chart-view data="sales" type="bar" /}
 
-{=call-out type="warning"}
+{@call-out type="warning"}
 Markdown **inside**, parsed and source-mapped.
 {/call-out}
 ```
 
-- **container**: `{=name attrs}` on a line of its own opens it, and `{/name}` on a line of its own
+- **container**: `{@name attrs}` on a line of its own opens it, and `{/name}` on a line of its own
   closes it. The body between is Markdown.
-- **leaf**: `[label]{=name attrs /}` on a line of its own, or `{=name attrs /}` with no label. The
+- **leaf**: `[label]{@name attrs /}` on a line of its own, or `{@name attrs /}` with no label. The
   `/` means closed on this line, not empty: the label is parsed as inline Markdown, and its nodes
   are the element's children. The `/` is what makes the line a block. Without it,
-  `[label]{=name}` is a span in a paragraph.
+  `[label]{@name}` is a span in a paragraph.
 - **The name is an element**: a block element from the list below, or a custom element
   (lowercase letters, digits and `-`, starting with a letter and with a `-` in it, as
-  `call-out`). Any other name, such as `{=chart /}` or `{=note}`, leaves the line as text and is
+  `call-out`). Any other name, such as `{@chart /}` or `{@note}`, leaves the line as text and is
   reported (`element-name`). The name is never a class: classes come only from `.class`, so
-  `{=div .note}` is a note and `{=note}` is not an element. See [`element.md`](element.md)
+  `{@div .note}` is a note and `{@note}` is not an element. See [`element.md`](element.md)
   for why.
 
 The block elements are those Markdown has no syntax for and that can't run code: `div`,
@@ -347,7 +347,7 @@ Where a container opens and closes:
   line is read at its element's own level, before the containers inside the element take their
   prefixes, so it ends a list or item it follows, as a closing code fence would.
 - **A `/` just before the `}` is the leaf's,** never part of an id, class or value:
-  `{=div #a/}` is a leaf with the id `a`.
+  `{@div #a/}` is a leaf with the id `a`.
 - **An unclosed element runs to the end of its container or the document**, as an unclosed code
   fence does in CommonMark, and gets the warning `unclosed-element` at its opener. A leaf that
   lost its `/` is this case.
@@ -356,8 +356,8 @@ Where a container opens and closes:
 element has no label of its own: what HTML puts in a child element is written as one.
 
 ```md
-{=details .proof}
-[Show the proof]{=summary /}
+{@details .proof}
+[Show the proof]{@summary /}
 
 Body **here**.
 {/details}
@@ -373,9 +373,9 @@ Body **here**.
 Definition lists are elements too:
 
 ```md
-{=dl}
-[Term]{=dt /}
-[Definition]{=dd /}
+{@dl}
+[Term]{@dt /}
+[Definition]{@dd /}
 {/dl}
 ```
 
@@ -446,38 +446,38 @@ A `{…}` directly after the `)` of a link or image, with no space, is its
 
 ### Spans
 
-**From djot, except** that `=name` makes an inline element.
+**From djot, except** that `@name` makes an inline element.
 
 `[text]{attrs}`, with no space between `]` and `{`. The text is inline Markdown, and its nodes are
 the span's children. `html()` writes a `<span>` with the attributes, or, when they start with
-`=name`, that element.
+`@name`, that element.
 
 - The brackets balance, unless a `\` escapes one. A lone `[x]` is text, and a `[text]{…}` whose
   braces don't parse is text with the warning `attribute-syntax`.
-- A span may start inside a word (`H[2]{=sub}O`), since the `]{` already makes it deliberate.
+- A span may start inside a word (`H[2]{@sub}O`), since the `]{` already makes it deliberate.
 - The name is an inline element from the list below, or a custom element. Any other name, such as
-  `[text]{=note}` or `[text]{=em}`, is reported (`element-name`), and the whole `[…]{…}` stays
+  `[text]{@note}` or `[text]{@em}`, is reported (`element-name`), and the whole `[…]{…}` stays
   text, with nothing in it read as other syntax. `span` is not a name either, since
   `[text]{.x}` already writes one.
-- A span never closes with `/`. `[x]{=kbd /}` in the middle of a line is text with the warning
+- A span never closes with `/`. `[x]{@kbd /}` in the middle of a line is text with the warning
   `attribute-syntax`, and on a line of its own it is a block [element](#element), where `kbd` is
   not a name.
 
 | Source                    | HTML                                |
 | ------------------------- | ----------------------------------- |
 | `[hi]{.highlight}`        | `<span class="highlight">hi</span>` |
-| `x[2]{=sup}`              | `x<sup>2</sup>`                     |
-| `H[2]{=sub}O`             | `H<sub>2</sub>O`                    |
-| `[new]{=ins}`             | `<ins>new</ins>`                    |
-| `[text]{=mark}`           | `<mark>text</mark>`                 |
-| `[Ctrl]{=kbd}`            | `<kbd>Ctrl</kbd>`                   |
-| `[HTML]{=abbr title="…"}` | `<abbr title="…">HTML</abbr>`       |
+| `x[2]{@sup}`              | `x<sup>2</sup>`                     |
+| `H[2]{@sub}O`             | `H<sub>2</sub>O`                    |
+| `[new]{@ins}`             | `<ins>new</ins>`                    |
+| `[text]{@mark}`           | `<mark>text</mark>`                 |
+| `[Ctrl]{@kbd}`            | `<kbd>Ctrl</kbd>`                   |
+| `[HTML]{@abbr title="…"}` | `<abbr title="…">HTML</abbr>`       |
 
 The inline elements are those Markdown has no syntax for and that can't run code: `abbr`, `b`,
 `i`, `u`, `s`, `small`, `cite`, `q`, `dfn`, `time`, `data`, `var`, `samp`, `kbd`, `mark`, `sub`,
 `sup`, `ins`, `bdi`, `bdo`, `ruby`, `rt` and `rp`. There is no `=em`, `=strong`, `=code` or
 `=del`, because `_x_`, `**x**`, `` `x` `` and `~~x~~` already write them: an edit is
-`~~old~~ [new]{=ins}`.
+`~~old~~ [new]{@ins}`.
 
 {#inline-math}
 
@@ -598,8 +598,8 @@ and a bare `{…}`.
 | `rule-marker`                 | `***`, `___`, `* * *` rules                                                                  | `---`                                                                                                   | One marker.                                                                                                                               |
 | `trailing-heading-attributes` | Trailing heading attributes (`## Title {#id}`)                                               | `{#id}` on the line above                                                                               | Under djot's rule this `{…}` belongs to the word "Title".                                                                                 |
 | `multiline-attributes`        | Multi-line attributes                                                                        | one line                                                                                                | Keeps the block pass free of lookahead.                                                                                                   |
-| `directive`                   | Colon directives (`:::name` … `:::`, `::name[label]`, `:name[text]`)                         | `{=name}` … `{/name}`, `[label]{=name /}` or `[text]{=name}`                                            | One extension syntax. `{…}` already holds the attributes, and `=name` in it makes the element, so colons were a second way.               |
-| `element-name`                | Element names that aren't elements (`{=chart /}`, `{=note}`, `[x]{=note}`)                   | a `div` or span with a class (`{=div .chart /}`, `[x]{.note}`), or a custom element (`{=chart-view /}`) | The name is the element it writes, so there is one way to add a class and a name can never be `script`.                                   |
+| `directive`                   | Colon directives (`:::name` … `:::`, `::name[label]`, `:name[text]`)                         | `{@name}` … `{/name}`, `[label]{@name /}` or `[text]{@name}`                                            | One extension syntax. `{…}` already holds the attributes, and `@name` in it makes the element, so colons were a second way.               |
+| `element-name`                | Element names that aren't elements (`{@chart /}`, `{@note}`, `[x]{@note}`)                   | a `div` or span with a class (`{@div .chart /}`, `[x]{.note}`), or a custom element (`{@chart-view /}`) | The name is the element it writes, so there is one way to add a class and a name can never be `script`.                                   |
 | `lazy-line`                   | Lazy continuation lines (a quoted or listed paragraph continuing without `>` or indentation) | `>` on every line, or indent to the item's content column                                               | Lazy lines are the main reason CommonMark's block structure depends on context. Formatters already write them out in full.                |
 
 ### Inline forms
@@ -619,7 +619,7 @@ and a bare `{…}`.
 | `single-tilde`      | `~single~` strikethrough                                                       | `~~text~~`                                                        | One marker. oxfmt rewrites it.                                                                                                                                              |
 | `math-delimiter`    | Other math delimiters: `$$x$$` inside a line of text, ``$`x`$``                | `$x$`, or a `$$` block                                            | One way each: `$x$` in a line, and `$$` for a block, fenced or alone on its line. Read by the `$x$` rule, `$$x$$` would lose a dollar at each end with no report.           |
 | `inline-attributes` | Attributes after words, inline code or emphasis (`word{.x}`, `_x_{.x}`)        | `[text]{.x}`                                                      | The brackets mark where a span starts, so one way. Keeping `{` special only after a `)` or `]` means braces in prose are plain text.                                        |
-| `jsx`               | MDX: JSX (a capitalised tag, `<Chart />`) and bare `{…}` expressions           | `{=name}` elements, `${…}`                                        | A `{` is only attributes where the rules above say so. Any other brace is prose, so a bare `{…}` stays text without a report.                                               |
+| `jsx`               | MDX: JSX (a capitalised tag, `<Chart />`) and bare `{…}` expressions           | `{@name}` elements, `${…}`                                        | A `{` is only attributes where the rules above say so. Any other brace is prose, so a bare `{…}` stays text without a report.                                               |
 
 ## Canonical form
 
@@ -680,9 +680,9 @@ The amitkaps.github.io audit settled raw blocks, verse and smart punctuation. It
 migrated to the dialect:
 
 - `<img>` becomes `![](…){…}`.
-- The `<div class="video-container">` wrappers become `{=div .video-container}` … `{/div}`.
+- The `<div class="video-container">` wrappers become `{@div .video-container}` … `{/div}`.
 - `<br>` becomes a trailing `\`.
 - Embeds, SVG and the Stripe script go into ` ```=html ` blocks.
 - Poems get `{.verse}`.
-- `<sup>`, `<sub>`, `<ins>` and `<abbr>` become `[…]{=sup}`, `[…]{=sub}`, `[…]{=ins}` and `[…]{=abbr title=…}`.
+- `<sup>`, `<sub>`, `<ins>` and `<abbr>` become `[…]{@sup}`, `[…]{@sub}`, `[…]{@ins}` and `[…]{@abbr title=…}`.
 - Named references become `&`, `\ ` and `—`.

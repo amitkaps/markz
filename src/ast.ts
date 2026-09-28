@@ -84,7 +84,7 @@ export interface NodeData {
 	listItem: { checked: boolean | null };
 	table: { align: Align[] };
 	/**
-	 * An element Markdown has no syntax for, named by `=name`: inline (a span, which is `span` when
+	 * An element Markdown has no syntax for, named by `@name`: inline (a span, which is `span` when
 	 * it has no name), a leaf, whose `[label]` is its children, or a container holding blocks.
 	 */
 	element: { kind: 'inline' | 'leaf' | 'container'; name: string };

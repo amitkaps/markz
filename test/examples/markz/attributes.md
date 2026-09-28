@@ -3,7 +3,7 @@
 A bare key is one of HTML's boolean attributes.
 
 ```example 49
-{=details open}
+{@details open}
 x
 {/details}
 .
@@ -34,11 +34,11 @@ word they are prose, with no warning.
 After a link, image or `[text]`, a `{…}` that doesn't parse stays text and is reported.
 
 ```example 52
-[x]{=kbd type='bar'}
+[x]{@kbd type='bar'}
 .
-<p>[x]{=kbd type=’bar’}</p>
+<p>[x]{@kbd type=’bar’}</p>
 .
-{=kbd type='bar'}
+{@kbd type='bar'}
 ```
 
 ```example 53

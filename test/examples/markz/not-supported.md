@@ -173,61 +173,61 @@ A name that isn't an element leaves the whole element as text, nothing in it rea
 syntax.
 
 ```example 114
-[Sales]{=chart type=bar /}
+[Sales]{@chart type=bar /}
 .
-<p>[Sales]{=chart type=bar /}</p>
+<p>[Sales]{@chart type=bar /}</p>
 .
-[Sales]{=chart type=bar /}
+[Sales]{@chart type=bar /}
 ```
 
 For a container, only the opening and closing lines are text; the body is still Markdown.
 
 ```example 115
-{=note}
+{@note}
 - a _b_
 {/note}
 .
-<p>{=note}</p>
+<p>{@note}</p>
 <ul>
 <li>a <em>b</em></li>
 </ul>
 <p>{/note}</p>
 .
-{=note}
+{@note}
 {/note}
 ```
 
 ```example 116
-A [**x**]{=note .y} here
+A [**x**]{@note .y} here
 .
-<p>A [**x**]{=note .y} here</p>
+<p>A [**x**]{@note .y} here</p>
 .
-[**x**]{=note .y}
+[**x**]{@note .y}
 ```
 
 Elements Markdown already writes, and anything that could run code, aren't names.
 
 ```example 117
-[x]{=em} and [x]{=script}
+[x]{@em} and [x]{@script}
 .
-<p>[x]{=em} and [x]{=script}</p>
+<p>[x]{@em} and [x]{@script}</p>
 .
-[x]{=em}
-[x]{=script}
+[x]{@em}
+[x]{@script}
 ```
 
 Inline and block elements don't mix.
 
 ```example 118
-[x]{=div} and
+[x]{@div} and
 
-[y]{=span /}
+[y]{@span /}
 .
-<p>[x]{=div} and</p>
-<p>[y]{=span /}</p>
+<p>[x]{@div} and</p>
+<p>[y]{@span /}</p>
 .
-[x]{=div}
-[y]{=span /}
+[x]{@div}
+[y]{@span /}
 ```
 
 ## multiline-attributes
@@ -407,7 +407,7 @@ go </docs/intro>
 In an attribute value too, the reference stays as written.
 
 ```example 136
-[x]{=abbr title="a&apos;b"}
+[x]{@abbr title="a&apos;b"}
 .
 <p><abbr title="a&amp;apos;b">x</abbr></p>
 .

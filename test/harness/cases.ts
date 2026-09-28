@@ -72,7 +72,7 @@ const BLOCKS: Record<string, Expect> = {
 		if (d.type(n) !== 'element') return false;
 		const line = first(s);
 		const { kind, name } = d.data(n, 'element');
-		return kind === (/\/\}[ \t]*$/.test(line) ? 'leaf' : 'container') && line.includes(`{=${name}`);
+		return kind === (/\/\}[ \t]*$/.test(line) ? 'leaf' : 'container') && line.includes(`{@${name}`);
 	},
 	comment: (d, n) => d.type(n) === 'comment'
 };
@@ -94,7 +94,7 @@ const INLINES: Record<string, Expect> = {
 	span: (d, n, s) =>
 		d.type(n) === 'element' &&
 		d.data(n, 'element').kind === 'inline' &&
-		d.data(n, 'element').name === (/\]\{=([a-z][a-z\d-]*)[^\]]*$/.exec(s)?.[1] ?? 'span'),
+		d.data(n, 'element').name === (/\]\{@([a-z][a-z\d-]*)[^\]]*$/.exec(s)?.[1] ?? 'span'),
 	'inline-math': (d, n) => d.type(n) === 'math' && !d.data(n, 'math').block,
 	// The code is read as the paragraph reads its lines: joined by `\n`, each trimmed.
 	expression: (d, n, s) =>
@@ -373,7 +373,7 @@ export const SETTLED: Record<string, Record<string, Test>> = {
 		brackets: (s) => /^\s*\[/.test(s) && unbalanced(label(first(s))),
 		'leaf-label': (s) => /^\s*\[/.test(s) && /[\r\n]/.test(label(s)),
 		'element-close': (s) => {
-			const name = /\{=([A-Za-z][\w-]*)/.exec(first(s))?.[1];
+			const name = /\{@([A-Za-z][\w-]*)/.exec(first(s))?.[1];
 			const close = new RegExp(`^ {0,3}\\{/${name}\\}[ \\t]*$`);
 			return (
 				!!name &&

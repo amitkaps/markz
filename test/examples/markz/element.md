@@ -1,19 +1,19 @@
 # Elements
 
 ```example 38
-{=div .chart data=sales type="bar" /}
+{@div .chart data=sales type="bar" /}
 .
 <div class="chart" data="sales" type="bar"></div>
 ```
 
 ```example 39
-[Sales]{=chart-view type=bar /}
+[Sales]{@chart-view type=bar /}
 .
 <chart-view type="bar">Sales</chart-view>
 ```
 
 ```example 40
-{=call-out .important}
+{@call-out .important}
 Body
 {/call-out}
 .
@@ -24,8 +24,8 @@ Body
 What HTML puts in a child element is written as one.
 
 ```example 41
-{=details}
-[Show the proof]{=summary /}
+{@details}
+[Show the proof]{@summary /}
 Body
 {/details}
 .
@@ -37,9 +37,9 @@ Body
 A leaf can interrupt a paragraph, since a line ending in `/}` can't be prose.
 
 ```example 42
-{=figure}
+{@figure}
 ![chart](c.png)
-[Sales by month]{=figcaption /}
+[Sales by month]{@figcaption /}
 {/figure}
 .
 <figure><p><img src="c.png" alt="chart" /></p>
@@ -51,12 +51,12 @@ An opening line can't: there it is text, and so its closing line has nothing to 
 
 ```example 149 ambiguous element-interrupts
 para
-{=div}
+{@div}
 x
 {/div}
 .
 <p>para
-{=div}
+{@div}
 x
 {/div}</p>
 .
@@ -64,8 +64,8 @@ x
 ```
 
 ```example 45 ambiguous element-close
-{=div}
-{=div}
+{@div}
+{@div}
 x
 {/div}
 y
@@ -80,7 +80,7 @@ y
 A closing line with another name closes nothing.
 
 ```example 150 ambiguous element-close
-{=div}
+{@div}
 x
 {/aside}
 {/div}
@@ -95,7 +95,7 @@ x
 A closing line is read at its element's own level, before a list inside takes the line.
 
 ```example 151 ambiguous element-close
-{=aside}
+{@aside}
 - a
   {/aside}
 b
@@ -108,8 +108,8 @@ b
 ```
 
 ```example 46 unclosed
-{=div}
-{=div}
+{@div}
+{@div}
 x
 {/div}
 y
@@ -119,13 +119,13 @@ y
 <p>y</p>
 </div>
 .
-{=div}
+{@div}
 ```
 
 ```example 47
-{=dl}
-[Term]{=dt /}
-[What it means]{=dd /}
+{@dl}
+[Term]{@dt /}
+[What it means]{@dd /}
 {/dl}
 .
 <dl><dt>Term</dt>
@@ -136,9 +136,9 @@ y
 A leaf's shape in the middle of a line is text, and reported.
 
 ```example 48
-x [y]{=div /} z
+x [y]{@div /} z
 .
-<p>x [y]{=div /} z</p>
+<p>x [y]{@div /} z</p>
 .
-{=div /}
+{@div /}
 ```

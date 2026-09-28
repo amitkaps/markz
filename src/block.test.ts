@@ -83,9 +83,9 @@ describe('attributes', () => {
 
 describe('elements', () => {
 	it('nest by name, the closing line taking the innermost open one', () => {
-		expect(outline(parsed('{=div}\n{=div .a}\nx\n{/div}\ny\n{/div}\n')).slice(1)).toEqual([
-			'  element "{=div}\\n{=div .a}\\nx\\n{/div}\\ny\\n{/div}"',
-			'    element "{=div .a}\\nx\\n{/div}"',
+		expect(outline(parsed('{@div}\n{@div .a}\nx\n{/div}\ny\n{/div}\n')).slice(1)).toEqual([
+			'  element "{@div}\\n{@div .a}\\nx\\n{/div}\\ny\\n{/div}"',
+			'    element "{@div .a}\\nx\\n{/div}"',
 			'      paragraph "x"',
 			'        text "x"',
 			'    paragraph "y"',
@@ -94,8 +94,8 @@ describe('elements', () => {
 	});
 
 	it('close a list at their own level, before its items take the line', () => {
-		expect(outline(parsed('{=aside}\n- a\n  {/aside}\nb\n')).slice(1)).toEqual([
-			'  element "{=aside}\\n- a\\n  {/aside}"',
+		expect(outline(parsed('{@aside}\n- a\n  {/aside}\nb\n')).slice(1)).toEqual([
+			'  element "{@aside}\\n- a\\n  {/aside}"',
 			'    list "- a"',
 			'      listItem "- a"',
 			'        paragraph "a"',
@@ -106,21 +106,21 @@ describe('elements', () => {
 	});
 
 	it('make a leaf of a labelled line, whose label is its children', () => {
-		const doc = parsed('{=dl}\n[Term _x_]{=dt /}\n[Def]{=dd .d /}\n{/dl}\n');
+		const doc = parsed('{@dl}\n[Term _x_]{@dt /}\n[Def]{@dd .d /}\n{/dl}\n');
 		expect(doc.data(first(doc, 'element'), 'element')).toEqual({ kind: 'container', name: 'dl' });
 		expect(html(doc)).toBe('<dl><dt>Term <em>x</em></dt>\n<dd class="d">Def</dd>\n</dl>\n');
 	});
 
 	it('report a closing line with nothing to close, and an element left open', () => {
-		const doc = parsed('> {=aside}\n> x\n{/aside}\n');
+		const doc = parsed('> {@aside}\n> x\n{/aside}\n');
 		expect(doc.warnings.map((w) => [w.code, doc.source.slice(w.start, w.end)])).toEqual([
-			['unclosed-element', '{=aside}'],
+			['unclosed-element', '{@aside}'],
 			['element-close', '{/aside}']
 		]);
 	});
 
 	it('merge an attribute line above into their own attributes', () => {
-		expect(html(parsed('{#top}\n{=section .intro}\nx\n{/section}\n'))).toBe(
+		expect(html(parsed('{#top}\n{@section .intro}\nx\n{/section}\n'))).toBe(
 			'<section class="intro" id="top"><p>x</p>\n</section>\n'
 		);
 	});

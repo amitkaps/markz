@@ -18,10 +18,10 @@ export const WARNINGS = {
 	'rule-marker': ['`***`, `___` or `* * *` rule', '`---`'],
 	'trailing-heading-attributes': ['trailing heading attributes', '`{#id}` on the line above'],
 	'multiline-attributes': ['multi-line attributes', 'one line'],
-	directive: ['a colon directive', '`{=name}` … `{/name}`, `[label]{=name /}` or `[text]{=name}`'],
+	directive: ['a colon directive', '`{@name}` … `{/name}`, `[label]{@name /}` or `[text]{@name}`'],
 	'element-name': [
 		'a name that is not an element',
-		'a `div` or span with a class (`{=div .chart /}`, `[x]{.note}`), or a custom element (`{=chart-view /}`)'
+		'a `div` or span with a class (`{@div .chart /}`, `[x]{.note}`), or a custom element (`{@chart-view /}`)'
 	],
 	'lazy-line': [
 		'lazy continuation line',
@@ -45,7 +45,7 @@ export const WARNINGS = {
 	'single-tilde': ['`~single~` strikethrough', '`~~text~~`'],
 	'math-delimiter': ['math delimiters other than `$…$` in a line', '`$x$`, or a `$$` block'],
 	'inline-attributes': ['attributes after inline text', '`[text]{.x}`'],
-	jsx: ['JSX', '`{=name}` elements, `${…}`'],
+	jsx: ['JSX', '`{@name}` elements, `${…}`'],
 	// A construct's own.
 	'duplicate-id': ['id already used by an earlier heading', 'a different id'],
 	'element-close': [

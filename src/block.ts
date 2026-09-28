@@ -411,7 +411,7 @@ class BlockParser {
 		const item = this.listItem(cols, next);
 		if (item !== NONE_OPENED) return item === OPENED;
 		if (c === ':' && COLON_LINE.test(src.slice(next, end))) this.report('directive', next, end);
-		if (c === '{' && (src[next + 1] === '=' || src[next + 1] === '/')) {
+		if (c === '{' && (src[next + 1] === '@' || src[next + 1] === '/')) {
 			if (this.element(next, end, paragraph || this.leaf?.kind === 'table')) return false;
 		} else if (c === '[' && src[end - 1] === '}' && src[end - 2] === '/') {
 			if (this.leafElement(next, end)) return false;
@@ -459,7 +459,7 @@ class BlockParser {
 		const rest = this.src.slice(next, this.lineEnd);
 		return (
 			// A backtick fence's info string holds no backtick, or the line isn't a fence.
-			/^(?:>|#{1,6}(?:[ \t]|$)|`{3,}[^`]*$|~~~|\$\$[ \t]*$|<!--|\{\/|(?:\[.*\])?\{=.*\/\}[ \t]*$)/.test(
+			/^(?:>|#{1,6}(?:[ \t]|$)|`{3,}[^`]*$|~~~|\$\$[ \t]*$|<!--|\{\/|(?:\[.*\])?\{@.*\/\}[ \t]*$)/.test(
 				rest
 			) ||
 			this.rule(next) !== null ||
@@ -721,7 +721,7 @@ class BlockParser {
 	/** @prose
 	 * ## Elements
 	 *
-	 * A `{=name …}` line opens a container, and `{=name … /}` or `[label]{=name … /}` is a leaf, whose
+	 * A `{@name …}` line opens a container, and `{@name … /}` or `[label]{@name … /}` is a leaf, whose
 	 * label is inline content. The name is the element it writes, a block element or a custom
 	 * element; any other name leaves the line as paragraph text and is reported. An opening line
 	 * can't interrupt a paragraph or a table, where it is text, as an attribute line is; a leaf
@@ -774,11 +774,11 @@ class BlockParser {
 		return true;
 	}
 
-	/** `[label]{=name … /}`: a leaf with inline content. Any other `[…]{…}` line is a paragraph. */
+	/** `[label]{@name … /}`: a leaf with inline content. Any other `[…]{…}` line is a paragraph. */
 	leafElement(at: number, end: number): boolean {
 		const { src } = this;
 		const close = labelEnd(src, at, end);
-		if (close < 0 || src[close + 1] !== '{' || src[close + 2] !== '=') return false;
+		if (close < 0 || src[close + 1] !== '{' || src[close + 2] !== '@') return false;
 		const head = parseElement(src, close + 1, end);
 		if (!head?.slash || head.attributes.end !== end) return false;
 		if (!element(head.name, false)) {

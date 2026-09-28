@@ -72,7 +72,7 @@ describe('textContent', () => {
 	});
 
 	it("includes an element's content, a leaf's label among it", () => {
-		const details = parse('{=details}\n[More]{=summary /}\n\nx\n{/details}\n');
+		const details = parse('{@details}\n[More]{@summary /}\n\nx\n{/details}\n');
 		expect(textContent(details)).toBe('Morex');
 	});
 

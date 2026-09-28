@@ -218,7 +218,7 @@ block-attributes ::= indent? attributes space* line-end
 - `attribute-line`: A block-attribute line decorates the next block in its container, across blank lines. Consecutive lines merge, and a line above an element merges into the element's own. It cannot interrupt a paragraph or a table.
 - `attribute-merge`: Classes accumulate. For any other key, the later value wins.
 - `attribute-boolean`: A block of only boolean keys counts only after a link, image or span's `]`, or an element's name. On a line of its own or after a word, `{year}` is text.
-- `attribute-syntax`: A `{…}` after a link, image or span's `]`, or on a line starting `{=` or `{/`, that does not parse is text, and a warning when it closes on the same line.
+- `attribute-syntax`: A `{…}` after a link, image or span's `]`, or on a line starting `{@` or `{/`, that does not parse is text, and a warning when it closes on the same line.
 
 {#element}
 
@@ -229,7 +229,7 @@ element ::= leaf-element | container-element
 leaf-element ::= indent? ('[' phrase? ']')? element-open '/' '}' space* line-end
 container-element ::= indent? element-open '}' space* line-end (block | blank-line)*
   element-close?
-element-open ::= '{=' element-name (space+ attribute)* space*
+element-open ::= '{@' element-name (space+ attribute)* space*
 element-close ::= indent? '{/' element-name '}' space* line-end
 element-name ::= block-element | custom-element
 block-element ::= 'div' | 'section' | 'article' | 'aside' | 'header' | 'footer' | 'nav' | 'main' | 'address' | 'hgroup' | 'search' | 'details' | 'summary' | 'figure' | 'figcaption' | 'dl' | 'dt' | 'dd'
@@ -238,7 +238,7 @@ custom-element ::= [a-z] [a-z0-9]* '-' [a-z0-9-]*
 
 - `element-name`: The name is the element it writes. A line with any other name is text, and a warning. The names HTML reserves (`font-face`, `annotation-xml`, …) are not custom elements.
 - `leaf-label`: A leaf is one line, and its label is inline content, and its children.
-- `leaf-slash`: A `/` just before the `}` closes a leaf, and is never part of an id, class or value, so `{=div #a/}` is a leaf with the id `a`.
+- `leaf-slash`: A `/` just before the `}` closes a leaf, and is never part of an id, class or value, so `{@div #a/}` is a leaf with the id `a`.
 - `element-interrupts`: An opening line can't interrupt a paragraph or a table. A leaf or a closing line can.
 - `element-close`: A closing line closes the innermost element open in its container when the names match. Otherwise it is text, and a warning.
 - `unclosed-element`: Unclosed, an element runs to the end of its container, with a warning at its opening line.
@@ -311,7 +311,7 @@ domain-label ::= [A-Za-z0-9] ([A-Za-z0-9-]* [A-Za-z0-9])?
 ### Spans
 
 ```ebnf
-span ::= '[' phrase? ']' (attributes | '{=' inline-name (space+ attribute)* space* '}')
+span ::= '[' phrase? ']' (attributes | '{@' inline-name (space+ attribute)* space* '}')
 inline-name ::= inline-element | custom-element
 inline-element ::= 'abbr' | 'b' | 'i' | 'u' | 's' | 'small' | 'cite' | 'q' | 'dfn' | 'time' | 'data' | 'var' | 'samp' | 'kbd' | 'mark' | 'sub' | 'sup' | 'ins' | 'bdi' | 'bdo' | 'ruby' | 'rt' | 'rp'
 ```

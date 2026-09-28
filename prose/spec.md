@@ -51,7 +51,7 @@ requirements. markz must not import anything from them.
 ## Markdown dialect
 
 markz's dialect keeps GFM's everyday symbols and cuts the constructs that need backtracking. It uses
-`{…}` as its one extension syntax: attributes decorate what Markdown makes, and `=name` in them
+`{…}` as its one extension syntax: attributes decorate what Markdown makes, and `@name` in them
 makes an element Markdown has no syntax for ([`element.md`](element.md)). It adds a metadata
 block, math and `${…}` expressions. There is
 one way to write each thing. Every construct, what it's limited to, and what's left out is listed
@@ -256,7 +256,7 @@ construct whose meaning depends on text after it. What remains is openers (`[`, 
   reads the answer instead of scanning again. A paragraph full of unclosed openers stays linear.
 - **Nesting costs nothing per line.** A line is checked against the containers that consume a
   prefix from it (`>`, an item's indent). Elements and blank lines, which consume none, are
-  settled for a whole run of containers at once, so a thousand unclosed `{=div}` don't make every
+  settled for a whole run of containers at once, so a thousand unclosed `{@div}` don't make every
   line cost a thousand.
 - **Block attributes are one line**, so the block pass never looks ahead.
 

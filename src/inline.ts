@@ -652,7 +652,7 @@ class InlinePass {
 	 *
 	 * `[` and `![` wait on the bracket stack. At `]`, the inline form `(destination "title")`
 	 * makes a link or image, optionally with `{…}` directly after the `)`, and a `{…}` directly
-	 * after the `]` makes a span of the text, with `{=name …}` naming its element. Emphasis
+	 * after the `]` makes a span of the text, with `{@name …}` naming its element. Emphasis
 	 * openers inside the brackets can't close outside them. Once a link closes, the brackets around
 	 * it can't make links, but they can still make a span, which may hold one. `[x][y]` and `[x][]`
 	 * are reference links and `[^x]` is a footnote, which the dialect cuts: they stay text and are
@@ -838,7 +838,7 @@ class InlinePass {
 	/** @prose
 	 * ## Spans
 	 *
-	 * `[text]{…}` wraps the text in a `span`, and `[text]{=name …}` in the inline element it names.
+	 * `[text]{…}` wraps the text in a `span`, and `[text]{@name …}` in the inline element it names.
 	 * `![text]{…}` is a `!` and a span. A name that isn't an inline element is reported, and the
 	 * whole `[…]{…}` stays text, nothing in it read as other syntax: what the scan made inside
 	 * goes back to the text it was. A `{…}` there that doesn't parse, or that ends in `/` as only
@@ -853,7 +853,7 @@ class InlinePass {
 		const memo = this.memo('s', lineEnd);
 		let name: string | null = null;
 		let parsed: Attributes | null;
-		if (src[at + 1] === '=') {
+		if (src[at + 1] === '@') {
 			const head = parseElement(src, at, lineEnd, memo);
 			if (
 				head?.slash &&
