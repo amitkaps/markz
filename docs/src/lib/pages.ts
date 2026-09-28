@@ -14,8 +14,7 @@ import readme from '../../../README.md?raw';
 import syntax from '../../../prose/syntax.md?raw';
 import grammar from '../../../prose/grammar.md?raw';
 import spec from '../../../prose/spec.md?raw';
-import plan from '../../../prose/plan.md?raw';
-import parsers from '../../../prose/parsers.md?raw';
+import lessons from '../../../prose/lessons.md?raw';
 import { REPO } from './site';
 
 export interface Page {
@@ -33,8 +32,7 @@ const SOURCES: { slug: string; file: string; source: string; title?: string }[] 
 	{ slug: 'syntax', file: 'prose/syntax.md', source: syntax },
 	{ slug: 'grammar', file: 'prose/grammar.md', source: grammar },
 	{ slug: 'design', file: 'prose/spec.md', source: spec, title: 'Design' },
-	{ slug: 'parsers', file: 'prose/parsers.md', source: parsers },
-	{ slug: 'plan', file: 'prose/plan.md', source: plan }
+	{ slug: 'lessons', file: 'prose/lessons.md', source: lessons }
 ];
 
 function first(doc: Document, type: 'heading' | 'paragraph'): NodeId | undefined {

@@ -669,20 +669,3 @@ as the one reading of both: a single pass, deterministic, with lookahead that is
 remembers where it failed ([spec](spec.md#parser-foundation)). The tests hold the grammar to this
 page, with the same constructs and parts, and take each construct's origin from its lead here.
 The fuzzer generates documents from it, and every construct is held to it at its edges.
-
-## Pending decisions
-
-- **Unclosed fences.** An unclosed element gets `unclosed-element`. An unclosed code fence, raw
-  block, `$$` block or comment also runs to the end of its container, silently in every parser. They
-  should get the same warning, decided together.
-
-The amitkaps.github.io audit settled raw blocks, verse and smart punctuation. Its Markdown gets
-migrated to the dialect:
-
-- `<img>` becomes `![](…){…}`.
-- The `<div class="video-container">` wrappers become `{@div .video-container}` … `{/div}`.
-- `<br>` becomes a trailing `\`.
-- Embeds, SVG and the Stripe script go into ` ```=html ` blocks.
-- Poems get `{.verse}`.
-- `<sup>`, `<sub>`, `<ins>` and `<abbr>` become `[…]{@sup}`, `[…]{@sub}`, `[…]{@ins}` and `[…]{@abbr title=…}`.
-- Named references become `&`, `\ ` and `—`.

@@ -275,8 +275,7 @@ keeps one invariant:
   supported form, and every construct is a case.
 - **Bounded local lookahead:** a scan ahead either stays within the line (a fence, an attribute
   line, a table's delimiter row) or records where it failed, so no character is scanned more than
-  a constant number of times. Unclosed `${` breaks this today, and [plan](plan.md) step 16 fixes
-  it.
+  a constant number of times.
 
 **micromark is the test oracle, not a runtime dependency.** It is thoroughly tested, and nothing
 we write would beat it at full CommonMark compliance. The dialect doesn't need full compliance. It
@@ -376,8 +375,11 @@ visdown's Svelte codegen is the first of those, and it maps element names to its
 ## Package
 
 The package is named `markz`, unscoped, and belongs to no application. The name is free on npm.
-There is one package, no `markz-*` companions. It is ESM only and has one entry point. Packaging
-details are in [`plan.md`](plan.md#packaging).
+There is one package, no `markz-*` companions. It is ESM only, built by `vp pack`
+into `dist/index.js` and its types, with one entry, `src/index.ts`: anything it doesn't
+re-export is private. It has no runtime dependencies and `sideEffects: false`, so a consumer
+tree-shakes what it doesn't call, and `prepublishOnly` builds, so a publish never ships a stale
+`dist/`.
 
 ## Performance and size
 
@@ -454,8 +456,6 @@ document, and is the only timing CI gates on.
   written and after oxfmt, its common blocks read as micromark reads them, formatting never
   changes what it means, and its warnings are a snapshot.
 
-The build order is in [`plan.md`](plan.md).
-
 ## Open questions
 
-None right now. New dialect questions go in [`syntax.md`](syntax.md#pending-decisions).
+They are kept with the ideas to improve, in [`lessons.md`](lessons.md#ideas-to-improve).
