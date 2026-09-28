@@ -3,8 +3,7 @@
 How five Markdown parsers turn text into output, side by side, so markz's speed work starts
 from how the others are built rather than from their numbers alone. Each is described by the
 same six questions, then the ideas are sorted into what markz has taken, what it could take, and
-what it leaves on purpose. The benchmark's figures are in [`bench/README.md`](../bench/README.md);
-the plan that acts on this is step 19 in [`plan.md`](plan.md).
+what it leaves on purpose. The plan that acts on this is step 19 in [`plan.md`](plan.md).
 
 The five are cmark-gfm (with comrak, its Rust port), the reference design and what GitHub
 renders with; micromark, the spec-exact state machine and markz's oracle; markdown-exit, the

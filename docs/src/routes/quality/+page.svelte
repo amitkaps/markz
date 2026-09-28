@@ -1,25 +1,31 @@
 <script lang="ts">
 	/** @prose
-	 * # Conformance
+	 * # Quality
 	 *
-	 * The test suite, laid out as `syntax.md` is: Metadata, Block, Inline and Not supported, each
-	 * listing its constructs (or rows), and each construct opening to its edges and its examples.
-	 * A summary card comes first, then a search that narrows every construct at once. A construct's
-	 * edges are how many cases generated from the grammar reached valid, boundary and near miss, and
-	 * its hand-written ambiguous and unclosed examples, or why it can't have one. An example shows
-	 * its status with what backs it (`match oracle`, `warn setext-heading`), its source, and for
-	 * markz's own the edge it tries, and opens to its Markdown, what markz is held to, markz's
-	 * output, where they first differ, and the warnings.
+	 * markz's quality in three parts: conformance, size and speed. Conformance is the test suite,
+	 * laid out as `syntax.md` is: Metadata, Block, Inline and Not supported, each listing its
+	 * constructs (or rows), and each construct opening to its edges and its examples. Its card comes
+	 * first, then a search that narrows every construct at once. A construct's edges are how many
+	 * cases generated from the grammar reached valid, boundary and near miss, and its hand-written
+	 * ambiguous and unclosed examples, or why it can't have one. An example shows its status with
+	 * what backs it (`match oracle`, `warn setext-heading`), its source, and for markz's own the edge
+	 * it tries, and opens to its Markdown, what markz is held to, markz's output, where they first
+	 * differ, and the warnings.
 	 *
-	 * Correctness comes first, then performance and size from the published benchmark, which link to
-	 * the Performance page for the rest. Robustness, a real-world corpus, formatter agreement and
-	 * HTML safety are still to join them.
+	 * Size and speed say what markz costs, in terms a reader can picture: kilobytes to ship and to
+	 * hold a document, and milliseconds for documents of known sizes, each measured on this
+	 * commit's build when the site was built. They describe markz alone, never a ranking.
 	 */
 	import { onMount } from 'svelte';
 	import { PARTS, STATUSES, type Status } from '#lib/site.ts';
 
 	let { data } = $props();
 	const rows = $derived(data.rows);
+	const q = $derived(data.quality);
+	const kb = (bytes: number, digits = 1) => (bytes / 1024).toFixed(digits);
+	const ms = (n: number) => (n < 10 ? n.toFixed(1) : n.toFixed(0));
+	const range = (low: number, high: number) =>
+		ms(low) === ms(high) ? ms(low) : `${ms(low)}–${ms(high)}`;
 	type Row = (typeof data.rows)[number];
 
 	const WHAT: Record<Status, string> = {
@@ -237,11 +243,16 @@
 {/snippet}
 
 <header class="intro">
-	<h1>Conformance</h1>
+	<h1>Quality</h1>
 	<p>
-		Every example markz is held to, filed as <code>syntax.md</code> is. Upstream suites are checked
-		against an oracle: <a href="https://github.com/micromark/micromark">micromark</a> for
-		CommonMark, GFM and frontmatter, after whitespace and smart punctuation are normalized;
+		What markz is held to, what it costs to ship and hold, and how long it takes. Everything here is
+		measured on this commit when the site is built.
+	</p>
+	<p>
+		<strong>Conformance.</strong> The grammar is tested as a language: every example markz is held
+		to, filed as <code>syntax.md</code> is. Upstream suites are checked against an oracle:
+		<a href="https://github.com/micromark/micromark">micromark</a>
+		for CommonMark, GFM and frontmatter, after whitespace and smart punctuation are normalized;
 		<a href="https://eemeli.org/yaml/">yaml</a> for metadata values; and
 		<a href="https://github.com/Flet/github-slugger">github-slugger</a> for heading ids. markz's own
 		examples carry their expected output. This page runs the same code as <code>pnpm test</code>, at
@@ -252,7 +263,7 @@
 
 <section class="cards" aria-label="Summary">
 	<div class="card">
-		<h2>Correctness</h2>
+		<h2>Conformance</h2>
 		<p class="headline">
 			<span class="n">{held}</span> of {rows.length} examples hold{#if totals.fail}, <span
 					class="fail-n">{totals.fail} fail</span
@@ -274,53 +285,50 @@
 			{/each}
 		</div>
 	</div>
-	{#if data.bench}
-		{@const own = data.bench.size.find((s) => s.parser === 'markz')?.gzip}
-		<div class="card-row">
-			<a class="card link" href="/performance">
-				<h2>Performance</h2>
-				{#each data.bench.performance as tier (tier.label)}
-					{@const markz = tier.parsers.find((p) => p.parser === 'markz')?.mbPerSecond}
-					<p class="line">
-						<span class="n">{markz?.toFixed(1) ?? '—'}</span> MB/s on {tier.label}
-					</p>
-					{@render bars(tier.parsers.map((p) => ({ label: p.parser, value: p.mbPerSecond })))}
-				{/each}
-				<p class="what">
-					Parse + HTML warm, the common workload · {data.bench.measured.cpu} ·
-					{new Date(data.bench.measured.date).toDateString()}
-				</p>
-			</a>
-			<a class="card link" href="/performance#bundle-size">
-				<h2>Size</h2>
-				<p class="line">
-					<span class="n">{own ? (own / 1024).toFixed(1) : '—'}</span> KB gzip, parse + HTML
-				</p>
-				{@render bars(
-					data.bench.size.map((s) => ({ label: s.parser, value: s.gzip && s.gzip / 1024 }))
-				)}
-				<p class="what">Each parser's HTML entry, configured as close to markz as it gets</p>
-			</a>
+	<div class="card-row">
+		<div class="card">
+			<h2>Size</h2>
+			<p class="line">
+				<span class="n">{kb(q.size.gzip)}</span> KB gzip to ship, of a {kb(q.size.budget, 0)} KB budget
+			</p>
+			<div class="bars">
+				<span class="bar-label own">used</span>
+				<span class="bar-track"
+					><span class="bar-fill own" style:width="{(q.size.gzip / q.size.budget) * 100}%"
+					></span></span
+				>
+				<span class="bar-value">{kb(q.size.budget - q.size.gzip)} KB to spare</span>
+			</div>
+			<p class="line">
+				<span class="n">{kb(q.size.held, 0)}</span> KB to hold the CommonMark spec's tree, a {kb(
+					q.size.source,
+					0
+				)} KB document
+			</p>
+			<p class="what">
+				One package with no dependencies: parser, tree and HTML, bundled and minified. The tree is
+				flat typed arrays with offsets into the source, which it shares rather than copies.
+			</p>
 		</div>
-	{/if}
-</section>
-
-{#snippet bars(items: { label: string; value: number | null }[])}
-	{@const top = Math.max(...items.map((i) => i.value ?? 0))}
-	<div class="bars">
-		{#each items as item (item.label)}
-			<span class="bar-label" class:own={item.label === 'markz'}>{item.label}</span>
-			<span class="bar-track"
-				><span
-					class="bar-fill"
-					class:own={item.label === 'markz'}
-					style:width="{top ? ((item.value ?? 0) / top) * 100 : 0}%"
-				></span></span
-			>
-			<span class="bar-value">{item.value?.toFixed(1) ?? '—'}</span>
-		{/each}
+		<div class="card">
+			<h2>Speed</h2>
+			<table class="runs">
+				<tbody>
+					{#each q.speed as r (r.label)}
+						<tr>
+							<th scope="row">{r.label} <span class="what">{kb(r.bytes, 0)} KB</span></th>
+							<td>{range(r.low, r.high)} ms</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+			<p class="what">
+				Parse + HTML, once the parser is warm. One pass, no backtracking, so time grows in step with
+				the text: twice the text takes about twice as long. Measured on {q.machine}.
+			</p>
+		</div>
 	</div>
-{/snippet}
+</section>
 
 <div class="filters">
 	<input
@@ -443,13 +451,26 @@
 		grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
 		gap: 0.75rem;
 	}
-	.card.link {
-		display: block;
-		color: inherit;
-		text-decoration: none;
+	.runs {
+		width: 100%;
+		margin: 0.5rem 0 0;
+		border-collapse: collapse;
+		font-variant-numeric: tabular-nums;
 	}
-	.card.link:hover {
-		background: var(--surface-hover);
+	.runs th,
+	.runs td {
+		padding: 0.3rem 0;
+		border-bottom: 1px solid var(--border);
+		text-align: left;
+		font-weight: normal;
+	}
+	.runs td {
+		text-align: right;
+		font-weight: 600;
+		white-space: nowrap;
+	}
+	.runs .what {
+		font-size: 0.75rem;
 	}
 	.line {
 		margin: 0.5rem 0 0.3rem;

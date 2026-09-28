@@ -16,8 +16,3 @@ Thumbs.db
 
 # Vite
 vite.config.ts.timestamp-*
-
-# Benchmarks: the generated corpus and the latest, machine-specific results
-/bench/corpus
-/bench/results
-/bench/.size

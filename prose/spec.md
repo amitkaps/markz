@@ -382,51 +382,26 @@ details are in [`plan.md`](plan.md#packaging).
 ## Performance and size
 
 **The budget is 20 KB gzip** for everything `import { parse, html } from 'markz'` pulls in, with
-its dependencies bundled and minified. CI measures it. For comparison, prose ships `markdown-exit`
-today, at about 46 KB gzip.
+its dependencies bundled and minified. `pnpm size` measures it and CI fails above it. The budget
+is why markz parses for itself (see [Parser foundation](#parser-foundation)): a general parser
+with GFM and extensions leaves little room for anything else, and a renderer alone is several
+KB. The dialect also drops named entities, so no build carries the roughly 12 KB entity table,
+and one budget covers Node, Workers and the browser.
 
-Baselines measured on 2026-09-26 (minified, gzip -9, browser build, parse only with no HTML
-compile):
+**Speed is a property of the design** before it is a number: one pass over the source, linear
+time, no backtracking, and a flat tree of typed arrays with offsets into the source.
+`test/complexity.test.ts` holds linear time on adversarial patterns and a multi-megabyte
+document, and is the only timing CI gates on.
 
-| Bundle                                 | gzip    |
-| -------------------------------------- | ------- |
-| micromark core (CommonMark)            | 12.3 KB |
-| + GFM + directives                     | 17.7 KB |
-| same, non-browser build (entity table) | 29.9 KB |
-| micromark + GFM + directives to HTML   | 24.0 KB |
-| markdown-exit (today, in prose)        | 45.8 KB |
-
-These baselines are why markz parses for itself (see [Parser foundation](#parser-foundation)):
-micromark with GFM and directives leaves about 2 KB for everything else. A renderer alone is
-about 6 KB, judging by micromark's HTML compiler. The dialect also drops named entities, so no
-build carries the roughly 12 KB entity table, and one budget covers Node, Workers and the
-browser.
-
-**Benchmarks** (`bench/`, a private workspace package) compare markz with three parsers it learns
-from, on throughput, cold start, retained memory, pathological input and bundle size:
-markdown-exit, the fastest; marked, the smallest; and micromark, the spec-exact one, which is also
-the tests' oracle. markz isn't a general-purpose replacement for them, so the comparison is for
-learning where its time and bytes go, not for winning a table. markdown-it, remark and Comark
-were measured and left out, each with its reason in `bench/README.md`.
-
-- `pnpm compare` runs each parser in a fresh process of its own, one after another, each cell on
-  a time budget after a second's warm-up, in under a minute: the document tiers, scaling to 1 MB checked for a
-  straight line, one construct at a time, retained memory after parse and bundle size.
-  `--deep` adds 10 MB, pathological input and cold start timed by Hyperfine, and is what gets
-  published.
-- `pnpm bench` is markz alone (`test/speed.ts`), on the working tree, in seconds, against this
-  machine's baseline with a noise band. It is never published.
-- There are two modes. _Common_ is the same input workload for every parser, the blocks they all
-  share, with each parser's configuration listed. _Dialect_ is each configured as close to markz
-  as it gets, reading whole documents. Each adapter declares its configuration and what it
-  reads, so the tables are generated from what ran.
-- The corpus is agent-written docs (markz's and its consumers') beside human-written public
-  docs, plus the CommonMark spec, sizes from 10 KB up, and adversarial patterns, which are
-  labelled as not a workload.
-- Results carry their environment and a corpus hash. They are gitignored, except for a snapshot
-  the site shows, which changes only when a commit updates it.
-- Throughput is never a CI gate, only a smoke run. [`bench/README.md`](../bench/README.md) says
-  how to read the numbers.
+- `pnpm bench` is markz alone (`test/speed.ts`), on the working tree, in seconds: MB/s per
+  document tier and per construct against this machine's baseline with a noise band, and what
+  holding the CommonMark spec's tree costs.
+- `pnpm bench --compare` times markz beside markdown-exit, marked and micromark on the blocks
+  they all read alike, each in a fresh process. It is for our own insight. The parsers make
+  different trade-offs, so nothing from it is published.
+- The site's Quality page measures this commit's build when the site is built: the gzip size
+  against the budget, the memory held by one document's tree, and parse + HTML time on documents
+  a reader can picture, each a range, with the machine named.
 
 ## Testing
 

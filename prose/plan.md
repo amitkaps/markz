@@ -365,17 +365,11 @@ micromark, remark, markdown-it, markdown-exit, marked and Comark (`bench/README.
 
 What the first runs found:
 
-- **Throughput.** markz reads about 9 to 13 MB/s to HTML, level with markdown-it and marked, and
-  twenty to thirty times micromark and remark. markdown-exit is about twice as fast as markz
-  (step 19 says why). It is also twice markdown-it, which it rewrites with the same output: a
-  third of markdown-it 15's time goes to the helper its build uses for class fields.
-- **Memory.** A markz tree keeps about 7 bytes per source byte, against 10 to 18 for the others.
-- **Size.** Parse + HTML, gzip: markz 17 KB, marked 13, micromark 20 to 23, markdown-it 40 to
-  42, markdown-exit and remark about 45, Comark 105.
-- **marked is quadratic where markz is linear.** On emphasis and strikethrough openers it
-  takes seconds at 20 KB and times out at 80 KB, and deep nesting overflows its stack.
-- **Comark throws on the CommonMark spec** with its default plugins: its frontmatter hands the
-  spec's YAML header, which ends in `...`, to js-yaml, which rejects it.
+- **Throughput.** markz read about 9 to 13 MB/s to HTML, with room to go (step 19).
+- **Memory.** A markz tree kept about 7 bytes per source byte.
+- **Size.** Parse + HTML, 17 KB gzip.
+- **Linear time held** on the adversarial patterns, where a parser built on backtracking
+  regexes goes quadratic.
 - **oxfmt makes documents more common.** Formatting rewrites forms markz cuts (visdown's plan
   keeps a quarter of its blocks as written, all of them once formatted).
 - **A busy laptop can't publish.** Background load swamped the `k`/`2k` difference into negative
@@ -417,9 +411,8 @@ What it found:
   their lines fall.
 - **One parser bug.** Inline, `<!-->` and `<!--->` were plain text with their dashes curled,
   with no warning; they are raw HTML now, reported and kept literal.
-- **Where the time goes.** On one construct at a time, markz is slowest against markdown-exit
-  on headings (2.4 against 5.7 MB/s), then thematic breaks and code blocks. It is faster on
-  blockquotes, tables and lists.
+- **Where the time goes.** On one construct at a time, markz was slowest on headings, then
+  thematic breaks and code blocks.
 
 Unclosed forms became hand-written examples with their HTML, rather than the adversarial
 patterns at a small size; the patterns stay timed in `complexity.test.ts`, and the site's
@@ -427,11 +420,11 @@ Pathological section keeps only the complexity families.
 
 ### 19. Inline scanner speed — done
 
-markz read at half markdown-exit's speed, and step 18's cases were the safety net for closing
-the gap. How each parser is built, and which of their ideas markz has taken or leaves, is in
-[`parsers.md`](parsers.md). Both parsers made about one token or item per 18 bytes, and both
-spent about 60% of their time inline and 30% on blocks, markz about twice as slow in each: a
-constant-factor gap, not the algorithm.
+markz had a constant-factor gap to close, and step 18's cases were the safety net for closing
+it. How each parser is built, and which of their ideas markz has taken or leaves, is in
+[`parsers.md`](parsers.md). markz made about one item per 18 bytes and
+spent about 60% of its time inline and 30% on blocks: a constant-factor cost, not the
+algorithm.
 
 Each change was measured on its own, warmed up, over every corpus tier (1.2 MB), parse + HTML
 from 10.2 MB/s and parse alone from 12.7:
@@ -450,8 +443,7 @@ from 10.2 MB/s and parse alone from 12.7:
   comparisons. Skipping the bare-URL slice when the character before rules a URL out measured
   nothing. Writing into the tree without the item list wasn't needed.
 
-The result is 17.0 MB/s parse + HTML (+67%) and 23.0 parse (+81%). Against markdown-exit, both
-run until warm on the same documents, markz is at 17.6 and 23.7 MB/s to its 18.7 and 23.4. The
+The result is 17.0 MB/s parse + HTML (+67%) and 23.0 parse (+81%). The
 bundle went from 17.4 to 17.5 KB gzip.
 
 `pnpm compare` first showed less of this: a cell's 40 ms budget was one warm pass and a few
@@ -460,10 +452,9 @@ reach that later. Each parser's process now warms up on its documents for a seco
 cell is timed, and a cell runs at least five passes in 200 ms, with its spread taken from the
 middle half. Runs agree within about 3%, and take about 42 s.
 
-On the common documents, markz still trailed markdown-exit by about a third, and half of that is
-work only markz does (heading ids, smart punctuation, warnings). `html()` alone was 1.2 times
-markdown-exit's renderer; a destination with nothing to encode now skips the per-character
-loop, which brings it level (8.7 against 8.8 ms per MB). What is left is in parsing. A copy of
+Part of what remained is work only markz does (heading ids, smart punctuation, warnings). In
+`html()`, a destination with nothing to encode now skips the per-character loop. What is left
+is in parsing. A copy of
 `walk`'s loop inside `html()` (+3%) and a hand-written `escape` loop (slower) weren't taken.
 
 Headings looked slow for a reason that wasn't theirs: the construct documents repeated the same
@@ -473,8 +464,8 @@ comparison's construct documents number every heading (`titled` in `test/harness
 On headings that are all different, the cost was the id table: one Map in place of a Set and a
 Map stores each id once, and the closing-`#` and trailing-`{` checks look at the last character
 before copying the line. Parse on the common documents went from 21.1 to 22.0 MB/s (public) and
-18.3 to 19.1 (agent), and on headings from 6.3 to 6.8, to markdown-exit's 12.0: what is left is
-the inline pass run on each short title.
+18.3 to 19.1 (agent), and on headings from 6.3 to 6.8: what is left is the inline pass run on each
+short title.
 
 Writing nodes during the scan, rather than building an item list and copying it, was weighed and
 left. As a test of what it could save, text items that touch were merged as the scan made them,
@@ -520,8 +511,7 @@ in well under a second: MB/s per tier and per construct against the machine's ba
 noise band. `bench/` is only the published comparison, and gets fast enough to run often: one
 fresh process per parser, in turn, with a time budget per cell in place of Hyperfine's `k` and
 `2k` runs, scaling to 1 MB checked for a straight line, and sizes cached by package version, in
-under 30 s. `--deep` adds 10 MB, the pathological inputs and Hyperfine's cold start. markdown-exit
-stays beside markz per construct. From the external review:
+under 30 s. `--deep` adds 10 MB, the pathological inputs and Hyperfine's cold start. From the external review:
 
 - adapters declare their configuration and capabilities, and the runner reports them, so the
   README's table is generated, not written;
@@ -584,6 +574,29 @@ where the braces stand says which kind: `[text]{…}` a span, a line ending in `
   examples are gone. The document snapshots gained the `directive` warnings on VitePress
   containers.
 - **Size.** 18.13 KB gzip, up from 17.50.
+
+### 22. Quality, not a comparison — done
+
+The benchmark was built to publish markz beside other parsers, and they make different
+trade-offs: markz reads one dialect and drops most of the spec to do it, so a table of speeds or
+sizes says little about any of them. The comparison stays, for our own insight, and nothing
+from it is published.
+
+- **`bench/` is gone.** `pnpm bench --compare` times markz beside markdown-exit, marked and
+  micromark with GFM, on each tier's common variant, each parser in a fresh process
+  (`test/harness/parsers.ts`), and prints a table in about ten seconds. Dialect mode, the
+  structured-parse measure, the 10 MB and pathological tiers, cold start, Hyperfine, cross-parser
+  sizes, `pnpm snapshot` and CI's smoke run went with it. Linear time stays held by
+  `complexity.test.ts`, and the budget by `pnpm size`.
+- **Timing is shared.** `test/harness/speed.ts` warms up, times passes and measures retained
+  memory, for `pnpm bench` (which now also shows what holding the CommonMark spec's tree costs)
+  and for the site.
+- **One Quality page** replaces Conformance and Performance: Conformance as it was; Size, to
+  ship (gzip against the budget, from `scripts/size.ts`) and to hold (the spec's tree in KB);
+  and Speed, as milliseconds for documents a reader can picture, each a range from the middle
+  half of the passes, measured on the build machine, which the page names.
+- **The published prose** keeps markz's own figures and drops other parsers', here and in
+  `spec.md`. `parsers.md` compares how parsers are built, not their numbers, and stays.
 
 ## Definition of done for v1
 

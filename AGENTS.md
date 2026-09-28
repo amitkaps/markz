@@ -19,15 +19,14 @@ Read **`prose/spec.md`** first — it is the design for markz.
   markz read a case differently, fix whichever is wrong, or name the side rule that decides it
   and give that rule a test as narrow as its text. Never widen a settle test to quiet a failure.
 - `docs/` is the site (markz.amitkaps.com): a private workspace package, trimmed from base, that
-  renders the README and `prose/` with this commit's markz and builds the Conformance page from
+  renders the README and `prose/` with this commit's markz and builds the Quality page from
   the test harness. It is a consumer, never part of the package: its dependencies (Svelte,
   wrangler) must not reach the library. `pnpm docs` runs it; CI checks, tests and builds it, and
   deploys it from `main`.
-- `bench/` is the benchmark: a private workspace package whose dependencies are the parsers markz
-  is compared with. Like `docs/`, it never reaches the library. `pnpm bench` is markz alone
-  (`test/speed.ts`), in seconds; `pnpm compare` is the comparison, in under a minute.
-  Published numbers come only from `pnpm compare --deep` on a quiet machine, copied to the site by
-  `pnpm snapshot` in a commit of their own. Scripts are one word; a variant is a flag.
+- `pnpm bench` is markz alone (`test/speed.ts`), in seconds; `pnpm bench --compare` times it
+  beside markdown-exit, marked and micromark, for our own insight. No comparison with other
+  parsers is published, on the site or in `prose/`: the site's Quality page shows markz's own
+  conformance, size and speed. Scripts are one word; a variant is a flag.
 - The invariant: unsupported syntax stays literal text and produces a warning. It is never
   silently reinterpreted as a different supported construct.
 
