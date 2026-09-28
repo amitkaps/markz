@@ -57,7 +57,7 @@ A link's text holds no link, so the inner one wins.
 ```
 
 ```example 82 unclosed
-[a](b and :span[c
+[a](b and [c
 .
-<p>[a](b and :span[c</p>
+<p>[a](b and [c</p>
 ```

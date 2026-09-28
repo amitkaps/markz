@@ -132,66 +132,102 @@ ___
 {#id}
 ```
 
-## directive-name
+## directive
 
-A name that isn't an element leaves the whole directive as text, nothing in it read as other
+remark-directive's colon forms stay text, all of each, so the `[…]{…}` in one is never a span.
+
+```example 154
+:::note
+Body
+:::
+.
+<p>:::note
+Body
+:::</p>
+.
+:::note
+:::
+```
+
+```example 155
+::chart-view{type=bar} and :kbd[Ctrl] and H:sub[2]O
+.
+<p>::chart-view{type=bar} and :kbd[Ctrl] and H:sub[2]O</p>
+.
+::chart-view{type=bar}
+:kbd[Ctrl]
+:sub[2]
+```
+
+```example 156
+:span[x]{.y}
+.
+<p>:span[x]{.y}</p>
+.
+:span[x]{.y}
+```
+
+## element-name
+
+A name that isn't an element leaves the whole element as text, nothing in it read as other
 syntax.
 
 ```example 114
-::chart[Sales]{type=bar}
+[Sales]{@chart type=bar /}
 .
-<p>::chart[Sales]{type=bar}</p>
+<p>[Sales]{@chart type=bar /}</p>
 .
-::chart[Sales]{type=bar}
+[Sales]{@chart type=bar /}
 ```
 
-For a container, only the fence lines are text; the body is still Markdown.
+For a container, only the opening and closing lines are text; the body is still Markdown.
 
 ```example 115
-:::note
+{@note}
 - a _b_
-:::
+{/note}
 .
-<p>:::note</p>
+<p>{@note}</p>
 <ul>
 <li>a <em>b</em></li>
 </ul>
-<p>:::</p>
+<p>{/note}</p>
 .
-:::note
+{@note}
+{/note}
 ```
 
 ```example 116
-A :note[**x**]{.y} here
+A [**x**]{@note .y} here
 .
-<p>A :note[**x**]{.y} here</p>
+<p>A [**x**]{@note .y} here</p>
 .
-:note[**x**]{.y}
+[**x**]{@note .y}
 ```
 
 Elements Markdown already writes, and anything that could run code, aren't names.
 
 ```example 117
-:em[x] and :script[x]
+[x]{@em} and [x]{@script}
 .
-<p>:em[x] and :script[x]</p>
+<p>[x]{@em} and [x]{@script}</p>
 .
-:em[x]
-:script[x]
+[x]{@em}
+[x]{@script}
 ```
 
 Inline and block elements don't mix.
 
 ```example 118
-:div[x] and
+[x]{@div} and
 
-::span[y]
+[y]{@span /}
 .
-<p>:div[x] and</p>
-<p>::span[y]</p>
+<p>[x]{@div} and</p>
+<p>[y]{@span /}</p>
 .
-:div[x]
-::span[y]
+[x]{@div}
+[y]{@span /}
 ```
 
 ## multiline-attributes
@@ -371,7 +407,7 @@ go </docs/intro>
 In an attribute value too, the reference stays as written.
 
 ```example 136
-:abbr[x]{title="a&apos;b"}
+[x]{@abbr title="a&apos;b"}
 .
 <p><abbr title="a&amp;apos;b">x</abbr></p>
 .
@@ -451,11 +487,11 @@ word{.x}
 ```
 
 ```example 144
-[text]{.x}
+x[1]{.a}{.b}
 .
-<p>[text]{.x}</p>
+<p>x<span class="a">1</span>{.b}</p>
 .
-{.x}
+{.b}
 ```
 
 ## math-delimiter

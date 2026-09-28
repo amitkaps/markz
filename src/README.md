@@ -9,8 +9,8 @@ internal to the parser.
 - [`inline.ts`](inline.ts): the inline pass, run on each leaf as it closes.
 - [`attributes.ts`](attributes.ts), [`expression.ts`](expression.ts) and
   [`chars.ts`](chars.ts): scanners both passes share.
-- [`elements.ts`](elements.ts): the element names a directive may have, which both passes and
-  `html()` check.
+- [`elements.ts`](elements.ts): the names an element may have, which both passes and `html()`
+  check.
 - [`html.ts`](html.ts): the HTML fold.
 - [`walk.ts`](walk.ts) and [`position.ts`](position.ts): the utilities consumers fold and report
   with, `walk`, `textContent` and `position`.

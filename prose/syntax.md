@@ -1,8 +1,8 @@
 # Syntax
 
-This is markz's dialect. It keeps GFM's everyday symbols, uses directives as its one extension
-syntax (with `{…}` attributes in a few fixed places), and adds a metadata block, math and `${…}`
-expressions. It cuts everything that makes Markdown need backtracking. There is one way to write
+This is markz's dialect. It keeps GFM's everyday symbols, uses `{…}` as its one extension syntax
+(attributes decorate what Markdown makes, and `@name` in them makes an element), and adds a
+metadata block, math and `${…}` expressions. It cuts everything that makes Markdown need backtracking. There is one way to write
 each thing. The rendered site is the primary target. A markz document stays readable on GitHub,
 but it doesn't have to render identically there. Anything markz rejects stays literal text and
 adds an entry to `doc.warnings` saying what to write instead. It is never silently reinterpreted.
@@ -13,14 +13,14 @@ reasons are in the [spec](spec.md#markdown-dialect).
 A document is made of three parts, in this order: [Metadata](#metadata), then [Block](#block)
 constructs, which hold [Inline](#inline) content. Every construct below opens with its origin: the
 earliest layer that defines it. The layers build on each other in this order: CommonMark, then
-GFM, which extends it, then micromark-extension-directive, then djot. Math is outside the chain,
+GFM, which extends it, then djot. Math is outside the chain,
 with pandoc's and GitHub's delimiters in GitHub's HTML shape.
 
 - **As CommonMark** or **As GFM:** the same syntax and result. micromark with GFM is the oracle,
   and these constructs are the only place "the same as GFM" applies.
 - **As CommonMark, except** or **As GFM, except:** that construct with the listed cuts. Each cut
   is a row of [Not supported](#not-supported).
-- **From micromark-extension-directive, djot or pandoc,** or **As GitHub:** that source's rule,
+- **From djot or pandoc,** or **As GitHub:** that source's rule,
   with any difference named.
 - **markz:** markz's own rule, given in full.
 
@@ -220,6 +220,8 @@ backtracking:
   executes (visdown's `js` cells) is the consumer's own decision.
 - Raw blocks are trusted content: see [the spec's security section](spec.md#security).
 - On GitHub a raw block shows as a code block.
+- `=` names an output format only here, in a fence's info string. Inside `{…}`, `=` has no meaning,
+  so djot's `{=html}` is not raw in markz.
 
 {#math-block}
 
@@ -244,77 +246,13 @@ The outer pipes are optional, and a delimiter row with no pipe needs a colon, so
 
 **As CommonMark, except** that the marker is `---` only.
 
-{#directive}
-
-### Directives
-
-**From micromark-extension-directive, except** that the name is the element it writes. Leaf and
-container directives are blocks; text directives are in [Inline](#text-directive). The trailing
-`{…}` follows the [attribute syntax](#attributes).
-
-- **leaf**: `::name[label]{attrs}`, on a line of its own. A bare `::name` is allowed, since the
-  line can't be prose.
-- **container**: `:::name[label]{attrs}` … `:::`. The closing fence needs at least as many colons
-  as the opening one, and the outermost open directive it can close takes it, as in micromark. So
-  nest with a longer outer fence (`::::outer` around `:::inner`), as with code fences. An unclosed
-  container runs to the end of its own container or the document.
-- **The name is an element**: a block element from the list below, or a custom element
-  (lowercase letters, digits and `-`, starting with a letter and with a `-` in it, as
-  `call-out`). Any other name, such as `::chart` or `:::note`, leaves the line as text and is
-  reported (`directive-name`). The name is never a class: classes come only from `{…}`, so
-  `:::div{.note}` is a note and `:::note` is not a directive. See
-  [`directive.md`](directive.md) for why.
-
-The block elements are those Markdown has no syntax for and that can't run code: `div`,
-`section`, `article`, `aside`, `header`, `footer`, `nav`, `main`, `address`, `hgroup`, `search`,
-`details`, `figure`, `figcaption`, `dl`, `dt` and `dd`.
-
-Directives are how components with data are written, since there is no HTML:
-
-```md
-::chart-view{data="sales" type="bar"}
-
-:::call-out{type="warning"}
-Markdown **inside**, parsed and source-mapped.
-:::
-```
-
-`html()` writes the name as the element, with the attributes as they are for any element. The
-label means different things by kind:
-
-- **leaf:** the label is the content. It is parsed as inline Markdown, and its nodes are the
-  directive's children.
-- **container:** the body is the content, and the label is metadata. It is plain text, with
-  backslash escapes decoded and no inline parsing, and it goes where the element has a place for
-  it: a `details` label is its `<summary>`, a `figure` label its `<figcaption>`, and a custom
-  element's comes first in a `directive-label` div, for its component to read. Any other block
-  has no place for a label, so one there is reported (`directive-label`) and not written; the AST
-  still holds it.
-
-```md
-:::details[Show the proof]{.proof}
-Body **here**.
-:::
-```
-
-```html
-<details class="proof">
-	<summary>Show the proof</summary>
-	<p>Body <strong>here</strong>.</p>
-</details>
-```
-
-A consumer's own fold, such as visdown's Svelte codegen, maps names to components (`call-out` to
-`CallOut`) and labels to their props.
-
 {#attributes}
 
 ### Attributes
 
-**From djot**, in fewer places. Directives are the universal extension syntax: components,
-wrappers around blocks, and inline spans. `{…}` is their attribute part. It may also appear in two
-other places, where it decorates an element Markdown itself made and a directive would have to
-wrap or reinvent that element:
+**From djot**, in fewer places. `{…}` is markz's one extension syntax. Attributes decorate an
+element Markdown already makes, and `@name` in them makes an element Markdown has no syntax for:
+a block [element](#element) or an inline one in a [span](#span).
 
 ```md
 {#pricing .center}
@@ -329,39 +267,120 @@ wrap or reinvent that element:
 | ---- | ----- |
 ```
 
-| Placement                                      | Applies to         | For                                                            |
-| ---------------------------------------------- | ------------------ | -------------------------------------------------------------- |
-| After a directive's name or label              | the directive      | components and wrappers                                        |
-| A line holding only `{…}`                      | the next block     | heading ids, and classes on tables, lists, code and paragraphs |
-| Directly after an image or link, with no space | that image or link | `width`, `class`, `target`, `rel`                              |
+| Placement                                                        | Applies to         | For                                                            |
+| ---------------------------------------------------------------- | ------------------ | -------------------------------------------------------------- |
+| A line holding only `{…}`                                        | the next block     | heading ids, and classes on tables, lists, code and paragraphs |
+| Directly after an image or link, with no space                   | that image or link | `width`, `class`, `target`, `rel`                              |
+| Directly after `[text]`, with no space                           | a span of the text | classes on words and phrases, and inline elements              |
+| Lines holding `{@name …}` and `{/name}`, or `[label]{@name … /}` | an element         | wrappers and components                                        |
 
-This section defines the syntax for all three; the inline placements are also listed under
-[Links and images](#link) and [Text directives](#text-directive).
+This section defines the syntax for all four; the other places are also described under
+[Elements](#element), [Links and images](#link) and [Spans](#span).
 
 - **Syntax:** `#id`, `.class` and `key=value`, with `key="a quoted value"` for spaces, and a bare
-  `key` for HTML's boolean attributes (`:::details{open}`, `::video{src=cat.mp4 controls muted}`),
+  `key` for HTML's boolean attributes (`{@details open}`, `{@video-player src=cat.mp4 controls /}`),
   which `html()` writes as `key=""`. Classes accumulate. For other keys, a later value wins. Values
   may contain `${…}`. That is all of it: no single quotes, no spaces around `=`, no `.a.b`
   shorthand, and no character references, since each of those is a second way to write the same
   attribute.
-- **Boolean keys need company off a directive, link or image.** A `{…}` of only bare keys on a
+- **`@name` comes first**, once: `{@call-out type=warning}`. So the parser knows it has an element
+  at `{@`. A `/` just before the `}` closes a block element on its own line, and is allowed only
+  there.
+- **Boolean keys need company off an element, span, link or image.** A `{…}` of only bare keys on a
   line of its own, or after a word, stays text, because `{year}` there is an MDX expression or a
   placeholder, not attributes.
 - **Block attributes:** blank lines may come between the `{…}` line and its block, because oxfmt
-  inserts one before a heading. Consecutive `{…}` lines merge. A `{…}` line can't interrupt a
-  paragraph or a table, where it is text. One with no block after it in its container stays text
-  and gets the warning `orphan-attributes`.
+  inserts one before a heading. Consecutive `{…}` lines merge, and a `{…}` line above an element
+  merges into the element's own. A `{…}` line can't interrupt a paragraph or a table, where it is
+  text. One with no block after it in its container stays text and gets the warning
+  `orphan-attributes`.
 - **On the element:** `html()` writes block attributes onto the block's own element: the `<p>`,
   `<h2>`, `<table>`, `<ul>`, `<blockquote>`, and `<pre>` for code and math.
 - **One line only.** djot lets attributes span lines, and markz doesn't. That keeps the block pass
   free of lookahead.
-- **Anywhere else a `{` is text.** Inline, only a `)` directly before it can make it attributes,
-  so `{a, b}`, `{"json": 1}` and prose braces never need escaping. A `{…}` in one of the three
-  places that doesn't parse as attributes is text too. After a directive, link or image, where it
-  can only have been meant as attributes, it also gets the warning `attribute-syntax` when its `}`
-  is on the same line (`::div{type='bar'}`). A line holding one doesn't, since it may be prose.
-- **Words and phrases** use a text directive: `:span[word]{.highlight}`. There is no djot-style
-  `word{.x}` or `[span]{.x}`.
+- **Anywhere else a `{` is text.** Inline, only a `)` or `]` directly before it can make it
+  attributes, so `{a, b}`, `{"json": 1}` and prose braces never need escaping. A `{…}` in one of
+  the four places that doesn't parse as attributes is text too. Where it can only have been meant
+  as attributes, after a link, image or `[text]`, or on a line starting `{@` or `{/`, it also gets
+  the warning `attribute-syntax` when its `}` is on the same line (`[x]{@kbd type='bar'}`). A line
+  holding any other `{…}` doesn't, since it may be prose.
+
+{#element}
+
+### Elements
+
+**markz.** An element is a `{…}` whose first item is `@name`, and the name is the element it
+writes. There is no HTML, so this is how wrappers and components with data are written. Inline
+elements are [spans](#span).
+
+```md
+{@chart-view data="sales" type="bar" /}
+
+{@call-out type="warning"}
+Markdown **inside**, parsed and source-mapped.
+{/call-out}
+```
+
+- **container**: `{@name attrs}` on a line of its own opens it, and `{/name}` on a line of its own
+  closes it. The body between is Markdown.
+- **leaf**: `[label]{@name attrs /}` on a line of its own, or `{@name attrs /}` with no label. The
+  `/` means closed on this line, not empty: the label is parsed as inline Markdown, and its nodes
+  are the element's children. The `/` is what makes the line a block. Without it,
+  `[label]{@name}` is a span in a paragraph.
+- **The name is an element**: a block element from the list below, or a custom element
+  (lowercase letters, digits and `-`, starting with a letter and with a `-` in it, as
+  `call-out`). Any other name, such as `{@chart /}` or `{@note}`, leaves the line as text and is
+  reported (`element-name`). The name is never a class: classes come only from `.class`, so
+  `{@div .note}` is a note and `{@note}` is not an element. See [`element.md`](element.md)
+  for why.
+
+The block elements are those Markdown has no syntax for and that can't run code: `div`,
+`section`, `article`, `aside`, `header`, `footer`, `nav`, `main`, `address`, `hgroup`, `search`,
+`details`, `summary`, `figure`, `figcaption`, `dl`, `dt` and `dd`.
+
+Where a container opens and closes:
+
+- **An opener can't interrupt a paragraph or a table**, as a `{…}` line can't. A leaf and a
+  closer can, since `{/` and a line ending in `/}` can't be prose.
+- **`{/name}` closes the innermost element open in its container** when the names match.
+  Otherwise it stays text and is reported (`element-close`), and nothing is closed. A closing
+  line is read at its element's own level, before the containers inside the element take their
+  prefixes, so it ends a list or item it follows, as a closing code fence would.
+- **A `/` just before the `}` is the leaf's,** never part of an id, class or value:
+  `{@div #a/}` is a leaf with the id `a`.
+- **An unclosed element runs to the end of its container or the document**, as an unclosed code
+  fence does in CommonMark, and gets the warning `unclosed-element` at its opener. A leaf that
+  lost its `/` is this case.
+
+`html()` writes the name as the element, with the attributes as they are for any element. An
+element has no label of its own: what HTML puts in a child element is written as one.
+
+```md
+{@details .proof}
+[Show the proof]{@summary /}
+
+Body **here**.
+{/details}
+```
+
+```html
+<details class="proof">
+	<summary>Show the proof</summary>
+	<p>Body <strong>here</strong>.</p>
+</details>
+```
+
+Definition lists are elements too:
+
+```md
+{@dl}
+[Term]{@dt /}
+[Definition]{@dd /}
+{/dl}
+```
+
+A consumer's own fold, such as visdown's Svelte codegen, maps names to components (`call-out` to
+`CallOut`) and attributes to their props.
 
 {#comment}
 
@@ -423,48 +442,42 @@ run split, such as `****foo****`, differ by design.
 A `{…}` directly after the `)` of a link or image, with no space, is its
 [attributes](#attributes): `![hero](hero.png){.wide width=600}`.
 
-{#text-directive}
+{#span}
 
-### Text directives
+### Spans
 
-**From micromark-extension-directive, except** that a label or attributes is required and the
-name is the element it writes.
+**From djot, except** that `@name` makes an inline element.
 
-`:name[label]`, `:name{attrs}` or `:name[label]{attrs}`. The trailing `{…}` follows the
-[attribute syntax](#attributes).
+`[text]{attrs}`, with no space between `]` and `{`. The text is inline Markdown, and its nodes are
+the span's children. `html()` writes a `<span>` with the attributes, or, when they start with
+`@name`, that element.
 
-- A label or attributes is required, so `hello :world` and `10:30` stay plain text: a colon in
-  prose is never special, and the parser knows it has a directive as soon as it reaches the `[` or
-  `{`. A bare `:name` is not a construct in markz, so it gets no warning. This is the fix for
-  micromark's long-standing complaint
-  ([directive#33](https://github.com/micromark/micromark-extension-directive/issues/33)), where
-  bare `:name` swallows prose.
-- A name starts with a letter, so `localhost:8000` is never a directive. A text directive may
-  start inside a word (`H:sub[2]O`), as in micromark, since the label or attributes already make
-  it deliberate; it can't start straight after another `:`.
+- The brackets balance, unless a `\` escapes one. A lone `[x]` is text, and a `[text]{…}` whose
+  braces don't parse is text with the warning `attribute-syntax`.
+- A span may start inside a word (`H[2]{@sub}O`), since the `]{` already makes it deliberate.
 - The name is an inline element from the list below, or a custom element. Any other name, such as
-  `:note[text]` or `:em[text]`, is reported (`directive-name`), and the whole `:name[…]{…}` stays
-  text, with nothing in it read as other syntax. A `::name[…]` in the middle of a line is text
-  too, without a report, since `::` in prose isn't a construct.
-- The label is the content. It is parsed as inline Markdown, and its nodes are the directive's
-  children.
+  `[text]{@note}` or `[text]{@em}`, is reported (`element-name`), and the whole `[…]{…}` stays
+  text, with nothing in it read as other syntax. `span` is not a name either, since
+  `[text]{.x}` already writes one.
+- A span never closes with `/`. `[x]{@kbd /}` in the middle of a line is text with the warning
+  `attribute-syntax`, and on a line of its own it is a block [element](#element), where `kbd` is
+  not a name.
 
-`html()` writes the name as the element, with the attributes. `:span[text]{.x}` is the plain
-inline wrapper. The inline elements are those Markdown has no syntax for and that can't run code:
+| Source                    | HTML                                |
+| ------------------------- | ----------------------------------- |
+| `[hi]{.highlight}`        | `<span class="highlight">hi</span>` |
+| `x[2]{@sup}`              | `x<sup>2</sup>`                     |
+| `H[2]{@sub}O`             | `H<sub>2</sub>O`                    |
+| `[new]{@ins}`             | `<ins>new</ins>`                    |
+| `[text]{@mark}`           | `<mark>text</mark>`                 |
+| `[Ctrl]{@kbd}`            | `<kbd>Ctrl</kbd>`                   |
+| `[HTML]{@abbr title="…"}` | `<abbr title="…">HTML</abbr>`       |
 
-| Source                   | HTML                                |
-| ------------------------ | ----------------------------------- |
-| `:span[hi]{.highlight}`  | `<span class="highlight">hi</span>` |
-| `x:sup[2]`               | `x<sup>2</sup>`                     |
-| `H:sub[2]O`              | `H<sub>2</sub>O`                    |
-| `:ins[new]`              | `<ins>new</ins>`                    |
-| `:mark[text]`            | `<mark>text</mark>`                 |
-| `:kbd[Ctrl]`             | `<kbd>Ctrl</kbd>`                   |
-| `:abbr[HTML]{title="…"}` | `<abbr title="…">HTML</abbr>`       |
-
-and `b`, `i`, `u`, `s`, `small`, `cite`, `q`, `dfn`, `time`, `data`, `var`, `samp`, `bdi`, `bdo`,
-`ruby`, `rt` and `rp`. There is no `:em`, `:strong`, `:code` or `:del`, because `_x_`, `**x**`,
-`` `x` `` and `~~x~~` already write them: an edit is `~~old~~ :ins[new]`.
+The inline elements are those Markdown has no syntax for and that can't run code: `abbr`, `b`,
+`i`, `u`, `s`, `small`, `cite`, `q`, `dfn`, `time`, `data`, `var`, `samp`, `kbd`, `mark`, `sub`,
+`sup`, `ins`, `bdi`, `bdo`, `ruby`, `rt` and `rp`. There is no `=em`, `=strong`, `=code` or
+`=del`, because `_x_`, `**x**`, `` `x` `` and `~~x~~` already write them: an edit is
+`~~old~~ [new]{@ins}`.
 
 {#inline-math}
 
@@ -576,36 +589,37 @@ and a bare `{…}`.
 
 {.cuts}
 
-| Code                          | Syntax                                                                                       | Write instead                                                                        | Why                                                                                                                                       |
-| ----------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `raw-html`                    | Raw HTML blocks and inline tags                                                              | a ` ```=html ` raw block, or directives and attributes                               | Seven HTML-block kinds and a tag grammar. HTML stays possible, but only where it's marked.                                                |
-| `setext-heading`              | Setext headings (`Title` over `===` or `---`)                                                | `# Title`                                                                            | A paragraph would turn into a heading when the next line is read.                                                                         |
-| `indented-code`               | Indented code blocks                                                                         | fenced code                                                                          | Indentation meaning code is what makes list indentation hard. The indented line is paragraph text, and never a heading or list inside it. |
-| `tilde-fence`                 | `~~~` fences                                                                                 | a longer backtick fence                                                              | One fence character.                                                                                                                      |
-| `rule-marker`                 | `***`, `___`, `* * *` rules                                                                  | `---`                                                                                | One marker.                                                                                                                               |
-| `trailing-heading-attributes` | Trailing heading attributes (`## Title {#id}`)                                               | `{#id}` on the line above                                                            | Under djot's rule this `{…}` belongs to the word "Title".                                                                                 |
-| `multiline-attributes`        | Multi-line attributes                                                                        | one line                                                                             | Keeps the block pass free of lookahead.                                                                                                   |
-| `directive-name`              | Directive names that aren't elements (`::chart`, `:::note`, `:note[x]`)                      | `div` or `span` with a class (`::div{.chart}`), or a custom element (`::chart-view`) | The name is the element a directive writes, so there is one way to add a class and a name can never be `script`.                          |
-| `lazy-line`                   | Lazy continuation lines (a quoted or listed paragraph continuing without `>` or indentation) | `>` on every line, or indent to the item's content column                            | Lazy lines are the main reason CommonMark's block structure depends on context. Formatters already write them out in full.                |
+| Code                          | Syntax                                                                                       | Write instead                                                                                           | Why                                                                                                                                       |
+| ----------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `raw-html`                    | Raw HTML blocks and inline tags                                                              | a ` ```=html ` raw block, or elements and attributes                                                    | Seven HTML-block kinds and a tag grammar. HTML stays possible, but only where it's marked.                                                |
+| `setext-heading`              | Setext headings (`Title` over `===` or `---`)                                                | `# Title`                                                                                               | A paragraph would turn into a heading when the next line is read.                                                                         |
+| `indented-code`               | Indented code blocks                                                                         | fenced code                                                                                             | Indentation meaning code is what makes list indentation hard. The indented line is paragraph text, and never a heading or list inside it. |
+| `tilde-fence`                 | `~~~` fences                                                                                 | a longer backtick fence                                                                                 | One fence character.                                                                                                                      |
+| `rule-marker`                 | `***`, `___`, `* * *` rules                                                                  | `---`                                                                                                   | One marker.                                                                                                                               |
+| `trailing-heading-attributes` | Trailing heading attributes (`## Title {#id}`)                                               | `{#id}` on the line above                                                                               | Under djot's rule this `{…}` belongs to the word "Title".                                                                                 |
+| `multiline-attributes`        | Multi-line attributes                                                                        | one line                                                                                                | Keeps the block pass free of lookahead.                                                                                                   |
+| `directive`                   | Colon directives (`:::name` … `:::`, `::name[label]`, `:name[text]`)                         | `{@name}` … `{/name}`, `[label]{@name /}` or `[text]{@name}`                                            | One extension syntax. `{…}` already holds the attributes, and `@name` in it makes the element, so colons were a second way.               |
+| `element-name`                | Element names that aren't elements (`{@chart /}`, `{@note}`, `[x]{@note}`)                   | a `div` or span with a class (`{@div .chart /}`, `[x]{.note}`), or a custom element (`{@chart-view /}`) | The name is the element it writes, so there is one way to add a class and a name can never be `script`.                                   |
+| `lazy-line`                   | Lazy continuation lines (a quoted or listed paragraph continuing without `>` or indentation) | `>` on every line, or indent to the item's content column                                               | Lazy lines are the main reason CommonMark's block structure depends on context. Formatters already write them out in full.                |
 
 ### Inline forms
 
 {.cuts}
 
-| Code                | Syntax                                                                                      | Write instead                                                     | Why                                                                                                                                                                         |
-| ------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `reference-link`    | Reference links: `[x][y]`, `[x][]`, `[y]: url`                                              | inline links                                                      | A link can't be resolved until the whole document is read, which breaks local parsing and streaming.                                                                        |
-| `footnote`          | Footnotes (`[^label]`, `[^label]: text`)                                                    | a text directive, such as `:span[text]{.note}`                    | A reference can't be resolved until the whole document is read, as with reference links. Nothing we write uses them.                                                        |
-| `bare-url`          | Bare URLs (`https://…`, `www.…`, `me@example.com`)                                          | `<https://…>` or `[text](url)`                                    | GFM's largest construct, and the only one that has to look back at text already emitted: an email is known only at its `@`, and trailing punctuation is trimmed afterwards. |
-| `relative-autolink` | Relative autolinks (`</docs/intro>`)                                                        | `[About](/about)`                                                 | An autolink needs a scheme, and `</about>` is a closing HTML tag, reported as raw HTML. A link should have real text.                                                       |
-| `named-reference`   | Named character references (`&copy;`, `&amp;`, `&nbsp;`)                                    | the character itself (`©`, `&`), or `\ ` for a non-breaking space | Files are UTF-8, `html()` escapes `&` and `<` itself, and the table of 2,125 names is about 12 KB gzip.                                                                     |
-| `trailing-spaces`   | Two trailing spaces as a line break                                                         | `\` at end of line, or `{.verse}` on a poem                       | Invisible syntax.                                                                                                                                                           |
-| `underscore-strong` | `__strong__`                                                                                | `**strong**`                                                      | One marker. oxfmt rewrites it.                                                                                                                                              |
-| `star-emphasis`     | `*emphasis*`, except inside `_…_` or touching a letter ([Emphasis](#emphasis))              | `_emphasis_`                                                      | One marker, and the source of most emphasis edge cases. oxfmt rewrites it.                                                                                                  |
-| `single-tilde`      | `~single~` strikethrough                                                                    | `~~text~~`                                                        | One marker. oxfmt rewrites it.                                                                                                                                              |
-| `math-delimiter`    | Other math delimiters: `$$x$$` inside a line of text, ``$`x`$``                             | `$x$`, or a `$$` block                                            | One way each: `$x$` in a line, and `$$` for a block, fenced or alone on its line. Read by the `$x$` rule, `$$x$$` would lose a dollar at each end with no report.           |
-| `inline-attributes` | Attributes after words, inline code or emphasis (`word{.x}`), and djot spans (`[text]{.x}`) | `:span[text]{.x}`                                                 | Directives already wrap inline text, so one way. Keeping `{` special only after a `)` means braces in prose are plain text.                                                 |
-| `jsx`               | MDX: JSX (a capitalised tag, `<Chart />`) and bare `{…}` expressions                        | directives, `${…}`                                                | A `{` is only attributes where the rules above say so. Any other brace is prose, so a bare `{…}` stays text without a report.                                               |
+| Code                | Syntax                                                                         | Write instead                                                     | Why                                                                                                                                                                         |
+| ------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `reference-link`    | Reference links: `[x][y]`, `[x][]`, `[y]: url`                                 | inline links                                                      | A link can't be resolved until the whole document is read, which breaks local parsing and streaming.                                                                        |
+| `footnote`          | Footnotes (`[^label]`, `[^label]: text`)                                       | a span, such as `[text]{.note}`                                   | A reference can't be resolved until the whole document is read, as with reference links. Nothing we write uses them.                                                        |
+| `bare-url`          | Bare URLs (`https://…`, `www.…`, `me@example.com`)                             | `<https://…>` or `[text](url)`                                    | GFM's largest construct, and the only one that has to look back at text already emitted: an email is known only at its `@`, and trailing punctuation is trimmed afterwards. |
+| `relative-autolink` | Relative autolinks (`</docs/intro>`)                                           | `[About](/about)`                                                 | An autolink needs a scheme, and `</about>` is a closing HTML tag, reported as raw HTML. A link should have real text.                                                       |
+| `named-reference`   | Named character references (`&copy;`, `&amp;`, `&nbsp;`)                       | the character itself (`©`, `&`), or `\ ` for a non-breaking space | Files are UTF-8, `html()` escapes `&` and `<` itself, and the table of 2,125 names is about 12 KB gzip.                                                                     |
+| `trailing-spaces`   | Two trailing spaces as a line break                                            | `\` at end of line, or `{.verse}` on a poem                       | Invisible syntax.                                                                                                                                                           |
+| `underscore-strong` | `__strong__`                                                                   | `**strong**`                                                      | One marker. oxfmt rewrites it.                                                                                                                                              |
+| `star-emphasis`     | `*emphasis*`, except inside `_…_` or touching a letter ([Emphasis](#emphasis)) | `_emphasis_`                                                      | One marker, and the source of most emphasis edge cases. oxfmt rewrites it.                                                                                                  |
+| `single-tilde`      | `~single~` strikethrough                                                       | `~~text~~`                                                        | One marker. oxfmt rewrites it.                                                                                                                                              |
+| `math-delimiter`    | Other math delimiters: `$$x$$` inside a line of text, ``$`x`$``                | `$x$`, or a `$$` block                                            | One way each: `$x$` in a line, and `$$` for a block, fenced or alone on its line. Read by the `$x$` rule, `$$x$$` would lose a dollar at each end with no report.           |
+| `inline-attributes` | Attributes after words, inline code or emphasis (`word{.x}`, `_x_{.x}`)        | `[text]{.x}`                                                      | The brackets mark where a span starts, so one way. Keeping `{` special only after a `)` or `]` means braces in prose are plain text.                                        |
+| `jsx`               | MDX: JSX (a capitalised tag, `<Chart />`) and bare `{…}` expressions           | `{@name}` elements, `${…}`                                        | A `{` is only attributes where the rules above say so. Any other brace is prose, so a bare `{…}` stays text without a report.                                               |
 
 ## Canonical form
 
@@ -630,6 +644,14 @@ oxfmt keeps the attribute syntax, with two quirks the rules above absorb:
 - It inserts a blank line between a block-attribute line and a heading that follows it.
 - It keeps `{.x}` directly after an image or link.
 
+It knows nothing of elements, so it reads a `{/name}` or leaf line as paragraph text. Straight
+after a list, a blockquote or a table, that text is a lazy continuation line to oxfmt, which
+indents it into the item, prefixes it with `>` or makes it a table row. So write a blank line
+before an element line that follows one of those. An indented closing line still closes its
+element, since markz reads it at the element's own level, but a leaf moves into the item, and a
+closer behind `>` or in a row closes nothing and is reported (`element-close`). oxfmt did the
+same to `:::` fences.
+
 One case needs care. For two adjacent lists, oxfmt keeps them apart by switching the marker
 (`-` then `*`, `1.` then `1)`). That is why markz accepts all of GFM's list markers. Rejecting
 `*` or `)` would reject oxfmt's own output.
@@ -650,13 +672,17 @@ The fuzzer generates documents from it, and every construct is held to it at its
 
 ## Pending decisions
 
-None right now. The amitkaps.github.io audit settled raw blocks, verse and smart punctuation. Its
-Markdown gets migrated to the dialect:
+- **Unclosed fences.** An unclosed element gets `unclosed-element`. An unclosed code fence, raw
+  block, `$$` block or comment also runs to the end of its container, silently in every parser. They
+  should get the same warning, decided together.
+
+The amitkaps.github.io audit settled raw blocks, verse and smart punctuation. Its Markdown gets
+migrated to the dialect:
 
 - `<img>` becomes `![](…){…}`.
-- The `<div class="video-container">` wrappers become `:::div{.video-container}`.
+- The `<div class="video-container">` wrappers become `{@div .video-container}` … `{/div}`.
 - `<br>` becomes a trailing `\`.
 - Embeds, SVG and the Stripe script go into ` ```=html ` blocks.
 - Poems get `{.verse}`.
-- `<sup>`, `<sub>`, `<ins>` and `<abbr>` become `:sup[…]`, `:sub[…]`, `:ins[…]` and `:abbr[…]{title=…}`.
+- `<sup>`, `<sub>`, `<ins>` and `<abbr>` become `[…]{@sup}`, `[…]{@sub}`, `[…]{@ins}` and `[…]{@abbr title=…}`.
 - Named references become `&`, `\ ` and `—`.

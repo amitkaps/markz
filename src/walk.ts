@@ -8,7 +8,6 @@
  * allocates nothing. `enter` returning `false` skips that node's children; its `exit` still runs.
  */
 import { NONE, type Document, type NodeId } from './ast';
-import { labelled } from './elements';
 
 export interface Visitor {
 	enter?(node: NodeId): boolean | void;
@@ -41,7 +40,7 @@ export function walk(doc: Document, visitor: Visitor, from: NodeId = doc.root): 
  *
  * The text `html()` writes for a node, as a browser's `textContent` would read it back: escapes
  * decoded, punctuation curled, code, math and expressions as written, a hard break as a line
- * ending, and a container's label where `html()` writes one. Images, comments, metadata and raw
+ * ending. Images, comments, metadata and raw
  * blocks add nothing. Blocks are joined with nothing between them, as in the DOM.
  */
 export function textContent(doc: Document, node: NodeId = doc.root): string {
@@ -69,11 +68,6 @@ export function textContent(doc: Document, node: NodeId = doc.root): string {
 					case 'break':
 						out += '\n';
 						break;
-					case 'directive': {
-						const { kind, name, label } = doc.data(n, 'directive');
-						if (kind === 'container' && label && labelled(name)) out += label.value;
-						break;
-					}
 					case 'image':
 						return false;
 				}

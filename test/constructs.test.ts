@@ -23,7 +23,7 @@ import { rows } from './harness/syntax';
 import { expectTree } from './harness/tree';
 
 const { runs, seed } = search(8);
-// A longer search needs longer than a minute: link and directive cases are the slowest to judge.
+// A longer search needs longer than a minute: link and element cases are the slowest to judge.
 const timeout = Math.max(60_000, runs * 1000);
 
 const label = (e: Example) =>

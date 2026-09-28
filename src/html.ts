@@ -10,7 +10,7 @@
  * reach a page unwritten.
  */
 import { NONE, type Attributes, type Document, type NodeId } from './ast';
-import { custom, element } from './elements';
+import { element } from './elements';
 import { parse } from './parse';
 import { walk } from './walk';
 
@@ -143,9 +143,11 @@ function open(doc: Document, node: NodeId, state: State): boolean {
 		case 'tableCell':
 			out = `<${cell(doc, node)}${alignment(doc, node, state.column++)}>`;
 			break;
-		case 'directive':
-			out = directive(doc, node, a);
+		case 'element': {
+			const { kind, name } = doc.data(node, 'element');
+			out = `<${tag(name, kind === 'inline')}${attributes(a)}>`;
 			break;
+		}
 		default:
 			throw new Error(`html: no output for ${String(type)} yet`);
 	}
@@ -202,9 +204,9 @@ function close(doc: Document, node: NodeId, state: State): void {
 		case 'tableCell':
 			out = `</${cell(doc, node)}>\n`;
 			break;
-		case 'directive': {
-			const { kind, name } = doc.data(node, 'directive');
-			const inline = kind === 'text';
+		case 'element': {
+			const { kind, name } = doc.data(node, 'element');
+			const inline = kind === 'inline';
 			out = `</${tag(name, inline)}>` + (inline ? '' : '\n');
 			break;
 		}
@@ -240,30 +242,15 @@ function alignment(doc: Document, node: NodeId, column: number): string {
 }
 
 /** @prose
- * ## Directives
+ * ## Elements
  *
- * The name is the tag: the parser only makes directives whose name is an element
- * ([`elements.ts`](elements.ts)). A container's label goes where the element has a place for it:
- * `<summary>` in `details`, `<figcaption>` in `figure`, and a `directive-label` div first in a
- * custom element, whose component reads it. Any other block has no place, and the parser reported
- * it. A document built by hand could hold any name, so one off the allowlists is written as a
- * `div` or `span`, and a name can never become `script`.
+ * The name is the tag: the parser only makes elements whose name is on an allowlist or a custom
+ * element ([`elements.ts`](elements.ts)). A document built by hand could hold any name, so one off
+ * the allowlists is written as a `div` or `span`, and a name can never become `script`. A plain
+ * span is named `span`, which is on no list, so it is written by the same rule.
  */
-const LABEL: Record<string, string> = { details: 'summary', figure: 'figcaption' };
-
 const tag = (name: string, inline: boolean) =>
 	element(name, inline) ? name : inline ? 'span' : 'div';
-
-function directive(doc: Document, node: NodeId, a: Attributes | undefined): string {
-	const { kind, name, label } = doc.data(node, 'directive');
-	let out = `<${tag(name, kind === 'text')}${attributes(a)}>`;
-	if (kind === 'container' && label?.value) {
-		const inner = LABEL[name];
-		if (inner) out += `<${inner}>${escape(label.value)}</${inner}>\n`;
-		else if (custom(name)) out += `<div class="directive-label">${escape(label.value)}</div>\n`;
-	}
-	return out;
-}
 
 /** @prose
  * ## Attributes

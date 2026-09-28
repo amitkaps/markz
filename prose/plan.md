@@ -265,7 +265,7 @@ An example with metadata shows what markz read. Correctness is the only card unt
 
 ### 14. Directive names are element names — done
 
-The decision in [`directive.md`](directive.md), built. A directive's name is the element it
+The decision in [`element.md`](element.md), built. A directive's name is the element it
 writes: an HTML element on its kind's allowlist ([`src/elements.ts`](../src/elements.ts)) or a
 custom-element name. The name is no longer a class, and classes come only from `{…}`.
 
@@ -560,6 +560,30 @@ One PR each, the moves first:
    (markdown-exit, marked, micromark); markdown-it, remark and Comark are recorded in
    `bench/README.md` and left out, since markz isn't a general-purpose replacement for them. Sizes are cached by package version,
    and `pnpm snapshot` regenerates the README's adapters table.
+
+### 21. Attributes and elements — done
+
+The decision in [`element.md`](element.md), built: `{…}` is the one extension syntax, and
+micromark-extension-directive's colon forms are cut. `=name` in the braces makes an element, and
+where the braces stand says which kind: `[text]{…}` a span, a line ending in `/}` a leaf, and
+`{=name}` … `{/name}` lines a container.
+
+- **Parser.** The block pass reads element lines after list items and before attribute lines. A
+  closing line is matched by name against the innermost of a run of directly nested elements, at
+  the element's own level, so one check per run replaces the fence-length binary search. An
+  element left open is `unclosed-element`, a closing line with nothing to close `element-close`.
+  The inline pass makes spans at `]` with the bracket stack links use, and a bad name puts
+  everything inside back as text. Colon forms stay text and are `directive`, VitePress's
+  `::: tip` included. The node is `element`, `{ kind: 'inline' | 'leaf' | 'container', name }`,
+  with no label; `summary` joins the block list and `span` leaves the inline one.
+- **Tests.** The grammar's `element` and `span` constructs replace `directive` and
+  `text-directive`, and `leaf-slash` settles `{=div #a/}` as a leaf. The oracle drops the
+  directive extension and its handler, so it leaves colon syntax as the literal text markz does:
+  the vendored suite is filed under `directive` where markz reports it, and is paragraph text
+  compared with micromark where it doesn't. The name-mapping shim and the hand-filed directive
+  examples are gone. The document snapshots gained the `directive` warnings on VitePress
+  containers.
+- **Size.** 18.13 KB gzip, up from 17.50.
 
 ## Definition of done for v1
 

@@ -38,7 +38,7 @@ export const T = {
 	table: 18,
 	tableRow: 19,
 	tableCell: 20,
-	directive: 21,
+	element: 21,
 	math: 22,
 	raw: 23,
 	expression: 24
@@ -84,14 +84,10 @@ export interface NodeData {
 	listItem: { checked: boolean | null };
 	table: { align: Align[] };
 	/**
-	 * A leaf or text directive's label is also its children (inline content). A container's is
-	 * only this: plain text, escapes decoded, never parsed inline.
+	 * An element Markdown has no syntax for, named by `@name`: inline (a span, which is `span` when
+	 * it has no name), a leaf, whose `[label]` is its children, or a container holding blocks.
 	 */
-	directive: {
-		kind: 'text' | 'leaf' | 'container';
-		name: string;
-		label: (Range & { value: string }) | null;
-	};
+	element: { kind: 'inline' | 'leaf' | 'container'; name: string };
 	math: { block: boolean; value: string; range: Range };
 	/** A ` ```=format ` fence; `value` is its content. */
 	raw: { format: string; value: string; range: Range };

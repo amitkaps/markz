@@ -54,12 +54,12 @@ export function documents(tier: Tier): Map<string, string> {
 /** @prose
  * ## The common variant
  *
- * A top-level block is kept when nothing in it is markz's alone (metadata, comments, directives,
+ * A top-level block is kept when nothing in it is markz's alone (metadata, comments, elements,
  * math, raw blocks, expressions, attributes, an explicit heading id, a task item) and no warning
  * touches it, since a warning marks a form markz cuts and the others read. The kept blocks are
  * joined by blank lines, so each is still read as the block it was.
  */
-const OWN = new Set(['metadata', 'comment', 'directive', 'math', 'raw', 'expression']);
+const OWN = new Set(['metadata', 'comment', 'element', 'math', 'raw', 'expression']);
 
 export function common(doc: Document): string {
 	return commonBlocks(doc).join('\n\n') + '\n';

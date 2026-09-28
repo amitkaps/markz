@@ -3,9 +3,9 @@
 A bare key is one of HTML's boolean attributes.
 
 ```example 49
-:::details{open}
+{@details open}
 x
-:::
+{/details}
 .
 <details open><p>x</p>
 </details>
@@ -19,8 +19,8 @@ para
 <p class="x" hidden>para</p>
 ```
 
-Bare keys alone count only after a directive, link or image. On a line or after a word they are
-prose, with no warning.
+Bare keys alone count only after a link, image, span or element's name. On a line or after a
+word they are prose, with no warning.
 
 ```example 51 ambiguous attribute-boolean
 {year}
@@ -31,14 +31,14 @@ prose, with no warning.
 <h2 id="sets-a">Sets {a}</h2>
 ```
 
-After a directive, link or image, a `{…}` that doesn't parse stays text and is reported.
+After a link, image or `[text]`, a `{…}` that doesn't parse stays text and is reported.
 
 ```example 52
-::div{type='bar'}
+[x]{@kbd type='bar'}
 .
-<p>::div{type=’bar’}</p>
+<p>[x]{@kbd type=’bar’}</p>
 .
-{type='bar'}
+{@kbd type='bar'}
 ```
 
 ```example 53
