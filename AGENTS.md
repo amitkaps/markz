@@ -1,12 +1,12 @@
 # Working on this repo
 
-Read **`prose/spec.md`** first — it is the design for markz.
+Read **`prose/markz.md`** and **`prose/design.md`** first: what markz is, and how it is built.
 
 - Before committing: `pnpm check` (format, lint, typecheck) and `pnpm test` must pass. After a
   dependency bump, `pnpm build` too.
 - `vp` is a dev dependency — run it through the `pnpm run …` scripts, not a global install.
 - markz is one package: parser, AST utilities and `html()`. The dialect is `prose/syntax.md`. No framework renderers, no parser options, no
-  unified/remark dependencies, and a 20 KB gzip budget (`prose/spec.md#performance-and-size`).
+  unified/remark dependencies, and a 20 KB gzip budget (`prose/design.md#performance-and-size`).
 - `syntax.md` explains the dialect and `prose/grammar.md` states it, with a stable id per
   construct (`{#id}` above its heading); `test/harness/grammar.ts` reads it with markz. Each construct names its origin: CommonMark, GFM, djot,
   pandoc, GitHub, or markz's own. micromark is only the oracle for the constructs marked "As CommonMark" or

@@ -8,7 +8,7 @@ generate documents from it.
 The productions describe what markz accepts, not how it reads it. On their own they are
 ambiguous, as every Markdown grammar is, and the side rules settle each choice: which block a line
 opens, what closes a run, how far a container's prefix reaches. The parser is written by hand as
-the one reading of both ([spec](spec.md#parser-foundation)). A form the dialect cuts has no
+the one reading of both ([Design](design.md#parser-foundation)). A form the dialect cuts has no
 production here: it is a Not supported row in `syntax.md`, keyed by its warning code.
 
 ## Reading it

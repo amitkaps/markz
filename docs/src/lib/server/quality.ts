@@ -43,12 +43,9 @@ export async function quality(): Promise<Quality> {
 		...documents('public', DOCUMENTS).values()
 	].sort((a, b) => a.length - b.length);
 	const typical = docs[docs.length >> 1]!;
-	const site = [
-		readFileSync(join(root, 'README.md'), 'utf8'),
-		...readdirSync(join(root, 'prose'))
-			.filter((f) => f.endsWith('.md'))
-			.map((f) => readFileSync(join(root, 'prose', f), 'utf8'))
-	];
+	const site = readdirSync(join(root, 'prose'))
+		.filter((f) => f.endsWith('.md'))
+		.map((f) => readFileSync(join(root, 'prose', f), 'utf8'));
 	const spec = [...documents('spec', DOCUMENTS).values()][0]!;
 	const runs: [string, string[]][] = [
 		['A typical docs page', [typical]],

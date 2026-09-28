@@ -1,19 +1,19 @@
 /** @prose
  * # Pages
  *
- * The site's Markdown pages, rendered by markz at build time. They aren't copies: the home page
- * is the repo's `README.md` and the rest are the `prose/` docs, read in place, so the site can't
- * drift from the documents the repo is designed by. Adding a page is adding a row to `SOURCES`.
+ * The site's Markdown pages, rendered by markz at build time. They aren't copies: every page is
+ * a `prose/` doc read in place, the home page `prose/markz.md`, so the site can't drift from the
+ * documents the repo is designed by. The repo's `README.md` is for GitHub only. Adding a page is adding a row to `SOURCES`.
  *
  * A page's title is its first heading, unless its row names a shorter one for the nav, and its
  * summary is its first paragraph, both read from the markz AST, so the files need no metadata
  * block of their own.
  */
 import { html, parse, textContent, type Document, type NodeId } from 'markz';
-import readme from '../../../README.md?raw';
+import home from '../../../prose/markz.md?raw';
 import syntax from '../../../prose/syntax.md?raw';
 import grammar from '../../../prose/grammar.md?raw';
-import spec from '../../../prose/spec.md?raw';
+import design from '../../../prose/design.md?raw';
 import lessons from '../../../prose/lessons.md?raw';
 import { REPO } from './site';
 
@@ -28,10 +28,10 @@ export interface Page {
 }
 
 const SOURCES: { slug: string; file: string; source: string; title?: string }[] = [
-	{ slug: '', file: 'README.md', source: readme },
+	{ slug: '', file: 'prose/markz.md', source: home },
 	{ slug: 'syntax', file: 'prose/syntax.md', source: syntax },
 	{ slug: 'grammar', file: 'prose/grammar.md', source: grammar },
-	{ slug: 'design', file: 'prose/spec.md', source: spec, title: 'Design' },
+	{ slug: 'design', file: 'prose/design.md', source: design },
 	{ slug: 'lessons', file: 'prose/lessons.md', source: lessons }
 ];
 
@@ -43,7 +43,7 @@ function first(doc: Document, type: 'heading' | 'paragraph'): NodeId | undefined
 /** @prose
  * ## Links between pages
  *
- * The documents link to each other by repo path (`prose/syntax.md`, `spec.md#heading-ids`), which
+ * The documents link to each other by repo path (`prose/syntax.md`, `design.md#security`), which
  * is right on GitHub. On the site, a link to another page's file goes to that page's route, and
  * any other relative link goes to the file on GitHub, so no link breaks in either place.
  */

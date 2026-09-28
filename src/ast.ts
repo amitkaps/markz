@@ -4,7 +4,7 @@
  * The flat, read-only document markz parses into. A node is an index; its type, range and tree
  * links live in parallel typed arrays, and the few node types that carry data keep it in a side
  * table. The parser fills a `Builder`, which hands over a `Document` once and is done: there is no
- * mutation API, so offsets can never drift from the source they point into (spec: AST).
+ * mutation API, so offsets can never drift from the source they point into (design: AST).
  */
 import { NAMED } from './chars';
 import { WARNINGS, type WarningCode } from './warnings';

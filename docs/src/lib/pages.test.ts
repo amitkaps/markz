@@ -27,11 +27,11 @@ describe('pages', () => {
 
 describe('links', () => {
 	it.each([
-		['prose/syntax.md', 'README.md', '/syntax'],
-		['spec.md#heading-ids', 'prose/syntax.md', '/design#heading-ids'],
+		['syntax.md', 'prose/markz.md', '/syntax'],
+		['design.md#security', 'prose/syntax.md', '/design#security'],
 		['../vite.config.ts', 'prose/lessons.md', `${REPO}/blob/main/vite.config.ts`],
 		['#metadata', 'prose/syntax.md', '#metadata'],
-		['https://example.com', 'README.md', 'https://example.com']
+		['https://example.com', 'prose/markz.md', 'https://example.com']
 	])('%s from %s goes to %s', (href, file, target) => {
 		expect(rewriteLinks(`<a href="${href}">x</a>`, file)).toBe(`<a href="${target}">x</a>`);
 	});

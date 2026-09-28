@@ -1,7 +1,7 @@
 /** @prose
  * # Block pass
  *
- * Source lines to containers and leaves, in one pass over the lines (spec: Parser foundation). It
+ * Source lines to containers and leaves, in one pass over the lines (design: Parser foundation). It
  * keeps a stack of open containers (blockquotes, lists, list items, container elements) and at
  * most one open leaf. Each line first walks the stack, letting each container consume its prefix;
  * whatever is left either continues the open leaf or starts new blocks. Every block construct in

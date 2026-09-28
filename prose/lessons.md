@@ -79,7 +79,7 @@ This keeps what should shape the next change.
 - **Items.** A pending text string, or writing nodes during the scan, remain open, though
   merging items showed no gain.
 - **Streaming.** Healing an unfinished document at one point, without changing `parse`
-  ([`spec.md`](spec.md#streaming)).
+  ([Design](design.md#streaming)).
 - **The Quality page.** Robustness, the real-document corpus, formatter agreement and HTML
   safety could join conformance, size and speed.
 - **amitkaps.github.io migrates to the dialect:** `<img>` to `![](…){…}`; video wrappers to

@@ -28,7 +28,7 @@ That is the whole API: `parse`, `html`, `walk` (with `enter` and `exit`, where `
 `false` skips a node's children), `textContent` (the text a node renders as) and `position`. None
 of them takes options.
 
-The dialect is in [`prose/syntax.md`](prose/syntax.md) and the design in [`prose/spec.md`](prose/spec.md).
+The site, [markz.amitkaps.com](https://markz.amitkaps.com), starts from [`prose/markz.md`](prose/markz.md). The language is in [`prose/syntax.md`](prose/syntax.md) and the design in [`prose/design.md`](prose/design.md).
 
 ## Not a drop-in Markdown parser
 

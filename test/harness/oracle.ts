@@ -2,12 +2,12 @@
  * # Oracle
  *
  * The reference markz's `html()` is held to: micromark with GFM and YAML frontmatter,
- * which are well-tested and dev-only (spec: Testing). Frontmatter writes nothing, as metadata
+ * which are well-tested and dev-only (design: Testing). Frontmatter writes nothing, as metadata
  * doesn't in `html()`, so every example checks that markz finds the same block. Two settings make it render what markz should, not
  * what micromark's own policy would:
  *
  * - `allowDangerousProtocol`: micromark blanks any URL outside its scheme allowlist, and markz
- *   instead drops a short blocklist (spec: Security). markz's own tests cover the blocklist, so
+ *   instead drops a short blocklist (design: Security). markz's own tests cover the blocklist, so
  *   the oracle writes every URL.
  *
  * There is no directive extension: colon directives are a form markz cuts, so micromark leaves

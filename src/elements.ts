@@ -1,7 +1,7 @@
 /** @prose
  * # Element names
  *
- * An element's `@name` is the element it writes ([`element.md`](../prose/element.md)): an HTML
+ * An element's `@name` is the element it writes ([Design](../prose/design.md#element-names)): an HTML
  * element on the allowlist for its kind, or a custom element. The lists leave out what Markdown
  * already writes (`em`, `a`, `pre`, …) and `span`, which `[text]{.x}` writes, so each element has
  * one way in, and anything active

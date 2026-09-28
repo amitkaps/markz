@@ -2,7 +2,7 @@
  * # Size gate
  *
  * The 20 KB budget, measured the way a consumer pays for it: everything `src/index.ts` pulls in,
- * bundled and minified, then gzipped (spec: Performance and size). Run as a script, it fails the
+ * bundled and minified, then gzipped (design: Performance and size). Run as a script, it fails the
  * build above the budget, so growth shows up in the PR that causes it rather than at the end.
  * Brotli is printed for reference only. The site's Quality page measures with the same `size()`.
  */

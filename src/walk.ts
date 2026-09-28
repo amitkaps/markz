@@ -2,7 +2,7 @@
  * # Walking
  *
  * The one traversal consumers need, since every transformation of a markz document is a fold
- * (spec: Read-only, and transformations are folds). `walk` visits a subtree depth-first, calling
+ * (design: Read-only, and transformations are folds). `walk` visits a subtree depth-first, calling
  * `enter` before a node's children and `exit` after them. It follows the parent and sibling
  * columns rather than recursing, so a deeply nested document can't overflow the stack, and it
  * allocates nothing. `enter` returning `false` skips that node's children; its `exit` still runs.

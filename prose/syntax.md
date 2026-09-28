@@ -8,7 +8,7 @@ but it doesn't have to render identically there. Anything markz rejects stays li
 adds an entry to `doc.warnings` saying what to write instead. It is never silently reinterpreted.
 
 The cuts and the attribute rules follow [djot](https://github.com/jgm/djot#rationale). The
-reasons are in the [spec](spec.md#markdown-dialect).
+reasons are in [Design](design.md#parser-foundation).
 
 A document is made of three parts, in this order: [Metadata](#metadata), then [Block](#block)
 constructs, which hold [Inline](#inline) content. Every construct below opens with its origin: the
@@ -218,7 +218,7 @@ backtracking:
 - A raw block for any other format (`=latex`) is kept in the AST, and `html()` skips it.
 - An ordinary ` ```css ` or ` ```js ` fence is code to show, never to run. What a consumer
   executes (visdown's `js` cells) is the consumer's own decision.
-- Raw blocks are trusted content: see [the spec's security section](spec.md#security).
+- Raw blocks are trusted content: see [Security](design.md#security).
 - On GitHub a raw block shows as a code block.
 - `=` names an output format only here, in a fence's info string. Inside `{…}`, `=` has no meaning,
   so djot's `{=html}` is not raw in markz.
@@ -331,7 +331,7 @@ Markdown **inside**, parsed and source-mapped.
   (lowercase letters, digits and `-`, starting with a letter and with a `-` in it, as
   `call-out`). Any other name, such as `{@chart /}` or `{@note}`, leaves the line as text and is
   reported (`element-name`). The name is never a class: classes come only from `.class`, so
-  `{@div .note}` is a note and `{@note}` is not an element. See [`element.md`](element.md)
+  `{@div .note}` is a note and `{@note}` is not an element. See [Element names](design.md#element-names)
   for why.
 
 The block elements are those Markdown has no syntax for and that can't run code: `div`,
@@ -666,6 +666,6 @@ above has no production. It is a Not supported row, keyed by its warning code.
 The productions say what markz accepts, not how it reads it. On their own they are ambiguous, as
 every Markdown grammar is, and the side rules settle each choice. The parser is written by hand
 as the one reading of both: a single pass, deterministic, with lookahead that is bounded or
-remembers where it failed ([spec](spec.md#parser-foundation)). The tests hold the grammar to this
+remembers where it failed ([Design](design.md#parser-foundation)). The tests hold the grammar to this
 page, with the same constructs and parts, and take each construct's origin from its lead here.
 The fuzzer generates documents from it, and every construct is held to it at its edges.
