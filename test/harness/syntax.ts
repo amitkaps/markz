@@ -4,32 +4,13 @@
  * `syntax.md` read as data: each construct by the id on the `{#id}` line above its heading, and
  * the Not supported rows by warning code. The grammar says which constructs exist and where they
  * belong; this reads what the page says about them, so the tests can hold the two together. Nothing
- * here depends on wording: headings, leads and cells can be reworded as long as the ids, the codes
- * and the origin leads stay.
+ * here depends on wording: headings and cells can be reworded as long as the ids and the codes
+ * stay.
  */
 import syntax from '../../prose/syntax.md?raw';
 import { type WarningCode } from '../../src/index';
 
 export type Part = 'Metadata' | 'Block' | 'Inline' | 'Not supported';
-
-/** @prose
- * ## Origins
- *
- * Where a construct's rule comes from: the earliest layer that defines it, in the order the layers
- * build on each other. CommonMark, then GFM, which extends it, then djot. Math sits outside that chain: its delimiters are pandoc's and GitHub's, written in
- * GitHub's HTML shape. What no layer defines is markz's own. Each construct in `syntax.md` opens
- * with its origin's lead, in bold, and that lead is where the grammar takes its origin from.
- */
-export type Origin = 'CommonMark' | 'GFM' | 'djot' | 'GitHub' | 'pandoc' | 'markz';
-
-export const LEADS: Record<Origin, string> = {
-	CommonMark: 'As CommonMark',
-	GFM: 'As GFM',
-	djot: 'From djot',
-	GitHub: 'As GitHub',
-	pandoc: 'From pandoc',
-	markz: 'markz'
-};
 
 /** A construct as `syntax.md` presents it. */
 export interface Anchor {
@@ -37,8 +18,6 @@ export interface Anchor {
 	title: string;
 	/** The `##` section it sits under. */
 	part: string;
-	/** The paragraph under the heading, which opens with the origin's lead. */
-	lead: string;
 }
 
 export interface Row {
@@ -68,26 +47,13 @@ export const anchors: Anchor[] = [];
 		else if (/^#{2,3} /.test(line)) {
 			const title = line.replace(/^#+ /, '');
 			if (line.startsWith('## ')) part = title;
-			if (id) {
-				let j = i + 1;
-				while (lines[j] === '') j++;
-				const lead: string[] = [];
-				for (; lines[j]; j++) lead.push(lines[j]!);
-				anchors.push({ id, title, part, lead: lead.join(' ') });
-			}
+			if (id) anchors.push({ id, title, part });
 			id = null;
 		}
 	}
 }
 
 export const anchor = (id: string): Anchor | undefined => anchors.find((a) => a.id === id);
-
-/** The origin whose lead a construct's section opens with. */
-export function origin(id: string): Origin | undefined {
-	const lead = anchor(id)?.lead;
-	const found = Object.entries(LEADS).find(([, l]) => lead?.startsWith(`**${l}`));
-	return found?.[0] as Origin | undefined;
-}
 
 // Between two known headings, since the samples in syntax.md contain `##` lines of their own.
 const between = (from: string, to: string) =>

@@ -18,8 +18,11 @@ production here: it is a Not supported row in `syntax.md`, keyed by its warning 
   `"literal"`, `#xA` for a character by code point, and `[a-z]` or `[^…]` for a character
   class, which may hold `#x…` too.
 - **Constructs.** Each has the id `syntax.md` gives it (`{#id}` above its heading), under the
-  same part, in the same order. Its first production is named by its id, and its origin is the
-  lead of its section in `syntax.md`.
+  same part, in the same order. Its first production is named by its id.
+- **Origins.** The line under each heading names the earliest layer that defines the construct:
+  CommonMark, GFM (which extends it), djot, pandoc, GitHub, or markz's own. A construct from
+  CommonMark or GFM reads as micromark with GFM does, except where a side rule or a Not supported
+  row says otherwise, and only those are compared with it.
 - **Side rules.** Listed by name under the productions. An example that tries an ambiguous edge
   names the rule that settles it (`example 17 ambiguous closing-hashes`), and so does
   [`test/harness/cases.ts`](../test/harness/cases.ts) where markz and the productions part.
@@ -65,6 +68,8 @@ hex ::= [0-9A-Fa-f]
 
 ### Metadata
 
+Origin: markz.
+
 ```ebnf
 metadata ::= '---' space* line-end metadata-line* '---' space* line-end
 metadata-line ::= (metadata-entry | '#' char*)? space* line-end
@@ -90,6 +95,8 @@ plain ::= ([^ #x9#xA#xD"'{}#x5B#x5D&*!|>%@`,#?:-] | [?:-] [^ #x9#xA#xD]) char*
 
 ### Paragraphs
 
+Origin: CommonMark.
+
 ```ebnf
 paragraph ::= indent? inline line-end
 ```
@@ -99,6 +106,8 @@ paragraph ::= indent? inline line-end
 {#heading}
 
 ### Headings
+
+Origin: CommonMark.
 
 ```ebnf
 heading ::= indent? heading-marker (space+ inline)? (space+ '#'+)? space* line-end
@@ -113,6 +122,8 @@ heading-marker ::= '#' '#'? '#'? '#'? '#'? '#'?
 
 ### Blockquotes
 
+Origin: CommonMark.
+
 ```ebnf
 blockquote ::= indent? '>' (space? block+ | blank-line)
 ```
@@ -122,6 +133,8 @@ blockquote ::= indent? '>' (space? block+ | blank-line)
 {#list}
 
 ### Lists
+
+Origin: CommonMark.
 
 ```ebnf
 list ::= bullet-item+ | ordered-item+
@@ -140,6 +153,8 @@ task ::= '[' [ xX] ']' space+
 
 ### Code blocks
 
+Origin: CommonMark.
+
 ````ebnf
 code-block ::= indent? fence info? space* line-end code-line* closing-fence?
 fence ::= '```' '`'*
@@ -156,6 +171,8 @@ closing-fence ::= indent? fence space* line-end
 
 ### Raw blocks
 
+Origin: djot.
+
 ```ebnf
 raw-block ::= indent? fence space* '=' format [^#xA#xD`]* line-end code-line* closing-fence?
 format ::= [^ #x9#xA#xD`]+
@@ -164,6 +181,8 @@ format ::= [^ #x9#xA#xD`]+
 {#math-block}
 
 ### Math blocks
+
+Origin: GitHub.
 
 ```ebnf
 math-block ::= indent? '$$' space* line-end code-line* (indent? '$$' space* line-end)?
@@ -177,6 +196,8 @@ tex ::= ([^$#xA#xD] | '$' [^$#xA#xD])+
 {#table}
 
 ### Tables
+
+Origin: GFM.
 
 ```ebnf
 table ::= table-row delimiter-row table-row*
@@ -194,6 +215,8 @@ delimiter-cell ::= space* ':'? '-'+ ':'? space*
 
 ### Thematic breaks
 
+Origin: CommonMark.
+
 ```ebnf
 thematic-break ::= indent? '-' space* '-' space* '-' (space* '-')* space* line-end
 ```
@@ -201,6 +224,8 @@ thematic-break ::= indent? '-' space* '-' space* '-' (space* '-')* space* line-e
 {#attributes}
 
 ### Attributes
+
+Origin: djot.
 
 ```ebnf
 attributes ::= '{' space* (attribute (space+ attribute)* space*)? '}'
@@ -223,6 +248,8 @@ block-attributes ::= indent? attributes space* line-end
 {#element}
 
 ### Elements
+
+Origin: markz.
 
 ```ebnf
 element ::= leaf-element | container-element
@@ -247,6 +274,8 @@ custom-element ::= [a-z] [a-z0-9]* '-' [a-z0-9-]*
 
 ### Comments
 
+Origin: markz.
+
 ```ebnf
 comment ::= indent? '<!--' (('>' | '->' | (char | line-end)* '-->') space* line-end
   | (char | line-end)*)
@@ -259,6 +288,8 @@ comment ::= indent? '<!--' (('>' | '->' | (char | line-end)* '-->') space* line-
 {#emphasis}
 
 ### Emphasis
+
+Origin: CommonMark.
 
 ```ebnf
 emphasis ::= italic | strong | strikethrough
@@ -276,6 +307,8 @@ strikethrough ::= '~~' inline '~~'
 
 ### Inline code
 
+Origin: CommonMark.
+
 ```ebnf
 inline-code ::= backtick-run (char | line-end)+ backtick-run
 backtick-run ::= '`'+
@@ -286,6 +319,8 @@ backtick-run ::= '`'+
 {#link}
 
 ### Links and images
+
+Origin: CommonMark.
 
 ```ebnf
 link ::= '[' phrase? ']' link-target | '!' '[' phrase? ']' link-target | autolink
@@ -310,6 +345,8 @@ domain-label ::= [A-Za-z0-9] ([A-Za-z0-9-]* [A-Za-z0-9])?
 
 ### Spans
 
+Origin: djot.
+
 ```ebnf
 span ::= '[' phrase? ']' (attributes | '{@' inline-name (space+ attribute)* space* '}')
 inline-name ::= inline-element | custom-element
@@ -323,6 +360,8 @@ inline-element ::= 'abbr' | 'b' | 'i' | 'u' | 's' | 'small' | 'cite' | 'q' | 'df
 
 ### Inline math
 
+Origin: pandoc.
+
 ```ebnf
 inline-math ::= '$' [^ #x9#xA#xD${] ([^$]* [^ #x9#xA#xD$])? '$'
 ```
@@ -333,6 +372,8 @@ inline-math ::= '$' [^ #x9#xA#xD${] ([^$]* [^ #x9#xA#xD$])? '$'
 {#expression}
 
 ### Expressions
+
+Origin: markz.
 
 ```ebnf
 expression ::= '${' (char | line-end)* '}'
@@ -345,6 +386,8 @@ expression ::= '${' (char | line-end)* '}'
 
 ### Line breaks
 
+Origin: CommonMark.
+
 ```ebnf
 line-break ::= '\' space* line-end | line-end
 ```
@@ -354,6 +397,8 @@ line-break ::= '\' space* line-end | line-end
 {#escape}
 
 ### Escapes and references
+
+Origin: CommonMark.
 
 ```ebnf
 escape ::= '\' [!-/:-@#x5B-`{-~] | '\' ' ' | numeric-reference
@@ -366,6 +411,8 @@ numeric-reference ::= '&#' digit+ ';' | '&#' [xX] hex+ ';'
 {#smart-punctuation}
 
 ### Smart punctuation
+
+Origin: djot.
 
 ```ebnf
 smart-punctuation ::= '"' | "'" | '--' | '---' | '...'

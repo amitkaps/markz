@@ -7,10 +7,12 @@ Read **`prose/markz.md`** and **`prose/design.md`** first: what markz is, and ho
 - `vp` is a dev dependency — run it through the `pnpm run …` scripts, not a global install.
 - markz is one package: parser, AST utilities and `html()`. The dialect is `prose/syntax.md`. No framework renderers, no parser options, no
   unified/remark dependencies, and a 20 KB gzip budget (`prose/design.md#performance-and-size`).
-- `syntax.md` explains the dialect and `prose/grammar.md` states it, with a stable id per
-  construct (`{#id}` above its heading); `test/harness/grammar.ts` reads it with markz. Each construct names its origin: CommonMark, GFM, djot,
-  pandoc, GitHub, or markz's own. micromark is only the oracle for the constructs marked "As CommonMark" or
-  "As GFM"; don't let "same as GFM" leak past them. Every example is filed under a construct id
+- `syntax.md` explains the language and `prose/grammar.md` states it, with a stable id per
+  construct (`{#id}` above its heading); `test/harness/grammar.ts` reads it with markz. The docs
+  describe markz as it is, in neutral terms; inspirations are named once, on the home page
+  (`prose/markz.md`). Each construct's origin (CommonMark, GFM, djot, pandoc, GitHub, or markz's
+  own) is the `Origin:` line under its heading in `grammar.md`. micromark is only the oracle for
+  constructs from CommonMark or GFM; don't let "same as GFM" leak past them. Every example is filed under a construct id
   or a Not supported row's warning code (`test/harness/examples.ts`). When
   the oracle disagrees with `syntax.md`, file the example as `differ` under the construct whose
   rule explains it, rather than bending the parser. markz's own examples go in

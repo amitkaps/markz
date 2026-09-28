@@ -1,44 +1,27 @@
 # Syntax
 
-This is markz's dialect. It keeps GFM's everyday symbols, uses `{…}` as its one extension syntax
-(attributes decorate what Markdown makes, and `@name` in them makes an element), and adds a
-metadata block, math and `${…}` expressions. It cuts everything that makes Markdown need backtracking. There is one way to write
-each thing. The rendered site is the primary target. A markz document stays readable on GitHub,
-but it doesn't have to render identically there. Anything markz rejects stays literal text and
-adds an entry to `doc.warnings` saying what to write instead. It is never silently reinterpreted.
-
-The cuts and the attribute rules follow [djot](https://github.com/jgm/djot#rationale). The
-reasons are in [Design](design.md#parser-foundation).
+The markz language. It uses the symbols Markdown writers already know, `{…}` as its one
+extension syntax (attributes decorate what Markdown makes, and `@name` makes an element), a
+metadata block, math and `${…}` expressions. There is one way to write each thing, and nothing
+needs the parser to read ahead and change its mind. A markz document stays readable on GitHub,
+but is written for a site that renders it with markz. Anything markz rejects stays literal text
+and adds an entry to `doc.warnings` saying what to write instead.
 
 A document is made of three parts, in this order: [Metadata](#metadata), then [Block](#block)
-constructs, which hold [Inline](#inline) content. Every construct below opens with its origin: the
-earliest layer that defines it. The layers build on each other in this order: CommonMark, then
-GFM, which extends it, then djot. Math is outside the chain,
-with pandoc's and GitHub's delimiters in GitHub's HTML shape.
-
-- **As CommonMark** or **As GFM:** the same syntax and result. micromark with GFM is the oracle,
-  and these constructs are the only place "the same as GFM" applies.
-- **As CommonMark, except** or **As GFM, except:** that construct with the listed cuts. Each cut
-  is a row of [Not supported](#not-supported).
-- **From djot or pandoc,** or **As GitHub:** that source's rule,
-  with any difference named.
-- **markz:** markz's own rule, given in full.
-
-This page explains the dialect, and the [grammar](#grammar) states it. Each construct has a stable
-id, set by the `{#id}` line above its heading. The grammar and the test suite refer to constructs
-by that id: every construct has examples, and every example belongs to one construct or to a row
-of Not supported, keyed by its warning code.
+constructs, which hold [Inline](#inline) content. Each construct has a stable id, set by the
+`{#id}` line above its heading, which the [grammar](grammar.md) and the tests refer to it by.
+Every example belongs to one construct, or to a row of [Not supported](#not-supported) keyed by
+its warning code.
 
 {#metadata}
 
 ## Metadata
 
-**markz.** Kept to what YAML 1.2, GitHub and formatters read the same way.
+Kept to what YAML 1.2, GitHub and formatters read the same way.
 
 A document can open with a metadata block: key/value pairs between `---` lines, starting at
 offset 0 (what other tools call frontmatter). Opening a document with `---` asks for metadata:
-when a closing `---` line follows, everything between is the block, as micromark-extension-frontmatter
-and GitHub read it, and a line the rule below can't read is a warning rather than a reason to read
+when a closing `---` line follows, everything between is the block, and a line the rule below can't read is a warning rather than a reason to read
 the block as Markdown. So a document can't open with a thematic break. Without a closing line, the
 first `---` is a thematic break, and if the next line is a `key:` line it gets the warning
 `metadata-unclosed`. markz parses the block into `doc.metadata`, a flat object, and keeps its
@@ -90,8 +73,7 @@ tags: [svelte, vite]
   and so are the lines inside brackets a rejected line leaves open. Of two
   duplicate keys, the first wins and the second gets the warning `metadata-duplicate-key`.
 
-markz is not a YAML parser. The `yaml` package is its dev-only test oracle, as micromark is for
-the Markdown: every accepted block must give the same object from both.
+markz is not a YAML parser, but every block it accepts gives the object YAML would.
 
 ## Block
 
@@ -99,8 +81,7 @@ the Markdown: every accepted block must give the same object from both.
 
 ### Paragraphs
 
-**As CommonMark, except** that a paragraph never continues lazily into a blockquote or list item (see
-Blockquotes and Lists).
+A paragraph never continues lazily into a blockquote or list item (see Blockquotes and Lists).
 
 - Text separated by a blank line.
 - **A poem or a quote with its own line breaks** gets `{.verse}` on the line above. `html()`
@@ -118,10 +99,10 @@ Main to tere paas mein
 
 ### Headings
 
-**As CommonMark, except** that only the `#` form exists, and **markz** gives every heading an id.
+Only the `#` form exists, and every heading gets an id.
 
 `#` to `######`, then a space, and one line of content. The optional closing `#`s
-(`## Title ##`) are accepted and stripped, as GFM does.
+(`## Title ##`) are accepted and stripped.
 
 Every heading gets an id, settled as the heading is parsed. No id depends on a later heading, so
 none changes once it is written, which keeps streaming simple:
@@ -170,28 +151,28 @@ In a document of its own, a heading whose text looks like a suffix keeps it, and
 
 ### Blockquotes
 
-**As CommonMark, except** that `>` starts every line. A line without it ends the blockquote.
+`>` starts every line. A line without it ends the blockquote.
 
 {#list}
 
 ### Lists
 
-**As CommonMark, except** that there are no lazy continuation lines, and **from GFM**, task items.
+There are no lazy continuation lines, and an item can be a task.
 
-| Construct    | Syntax                              | Notes                                                                                                    |
-| ------------ | ----------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Bullet list  | `- item`; `*` and `+` also accepted | Changing the marker starts a new list, as in GFM. oxfmt writes `*` for the second of two adjacent lists. |
-| Ordered list | `1. item`; `1)` also accepted       | The first number sets `start`. Changing the delimiter starts a new list, as with bullets.                |
-| Task item    | `- [ ] todo`, `- [x] done`          | `listItem.checked`                                                                                       |
+| Construct    | Syntax                              | Notes                                                                                         |
+| ------------ | ----------------------------------- | --------------------------------------------------------------------------------------------- |
+| Bullet list  | `- item`; `*` and `+` also accepted | Changing the marker starts a new list. oxfmt writes `*` for the second of two adjacent lists. |
+| Ordered list | `1. item`; `1)` also accepted       | The first number sets `start`. Changing the delimiter starts a new list, as with bullets.     |
+| Task item    | `- [ ] todo`, `- [x] done`          | `listItem.checked`                                                                            |
 
 - Content that continues a list item is indented to that item's content column.
-- Tight and loose lists follow GFM: a blank line between items makes the list loose.
+- A blank line between items makes the list loose.
 
 {#code-block}
 
 ### Code blocks
 
-**As CommonMark, except** that the fence is backticks only.
+The fence is backticks only.
 
 ` ``` ` or longer, then an info string. The first word is `lang` and the rest is `meta`. Nest by
 using a longer fence.
@@ -199,8 +180,6 @@ using a longer fence.
 {#raw-block}
 
 ### Raw blocks
-
-**From djot.**
 
 A fenced block whose info string is `=html` is raw output. `html()` writes its content out
 verbatim. It is the only way to put HTML in a document, and it's explicit, so it needs no
@@ -213,21 +192,21 @@ backtracking:
 ````
 
 - It's for embeds, inline SVG, and `<style>` or `<script>` a page needs. There's no `=css` or
-  `=js`: in djot, `=format` names an output format (`=html`, `=latex`), not a language. CSS and
+  `=js`: `=format` names an output format (`=html`, `=latex`), not a language. CSS and
   JavaScript go inside `=html` as `<style>` and `<script>`.
 - A raw block for any other format (`=latex`) is kept in the AST, and `html()` skips it.
 - An ordinary ` ```css ` or ` ```js ` fence is code to show, never to run. What a consumer
-  executes (visdown's `js` cells) is the consumer's own decision.
+  executes is its own decision.
 - Raw blocks are trusted content: see [Security](design.md#security).
 - On GitHub a raw block shows as a code block.
 - `=` names an output format only here, in a fence's info string. Inside `{…}`, `=` has no meaning,
-  so djot's `{=html}` is not raw in markz.
+  so `{=html}` is not raw.
 
 {#math-block}
 
 ### Math blocks
 
-**As GitHub.** `$$` fences on lines of their own, or `$$E=mc^2$$` alone on a line. The node holds
+`$$` fences on lines of their own, or `$$E=mc^2$$` alone on a line. The node holds
 the raw TeX, and markz doesn't typeset it. `html()` writes `<pre><code class="language-math math-display">`, and the host adds
 KaTeX or Temml. A ` ```math ` fence stays an ordinary code block with `lang: "math"`, and its HTML
 is already the `language-math` shape.
@@ -236,7 +215,7 @@ is already the `language-math` shape.
 
 ### Tables
 
-**As GFM.** A pipe table with a `---` delimiter row. `:---`, `:---:` and `---:` set alignment.
+A pipe table with a `---` delimiter row. `:---`, `:---:` and `---:` set alignment.
 The outer pipes are optional, and a delimiter row with no pipe needs a colon, so `Title` over
 `---` is still a rejected setext heading (`setext-heading`).
 
@@ -244,13 +223,13 @@ The outer pipes are optional, and a delimiter row with no pipe needs a colon, so
 
 ### Thematic breaks
 
-**As CommonMark, except** that the marker is `---` only.
+The marker is `---` only.
 
 {#attributes}
 
 ### Attributes
 
-**From djot**, in fewer places. `{…}` is markz's one extension syntax. Attributes decorate an
+`{…}` is markz's one extension syntax. Attributes decorate an
 element Markdown already makes, and `@name` in them makes an element Markdown has no syntax for:
 a block [element](#element) or an inline one in a [span](#span).
 
@@ -296,8 +275,7 @@ This section defines the syntax for all four; the other places are also describe
   `orphan-attributes`.
 - **On the element:** `html()` writes block attributes onto the block's own element: the `<p>`,
   `<h2>`, `<table>`, `<ul>`, `<blockquote>`, and `<pre>` for code and math.
-- **One line only.** djot lets attributes span lines, and markz doesn't. That keeps the block pass
-  free of lookahead.
+- **One line only,** which keeps the block pass free of lookahead.
 - **Anywhere else a `{` is text.** Inline, only a `)` or `]` directly before it can make it
   attributes, so `{a, b}`, `{"json": 1}` and prose braces never need escaping. A `{…}` in one of
   the four places that doesn't parse as attributes is text too. Where it can only have been meant
@@ -309,7 +287,7 @@ This section defines the syntax for all four; the other places are also describe
 
 ### Elements
 
-**markz.** An element is a `{…}` whose first item is `@name`, and the name is the element it
+An element is a `{…}` whose first item is `@name`, and the name is the element it
 writes. There is no HTML, so this is how wrappers and components with data are written. Inline
 elements are [spans](#span).
 
@@ -349,7 +327,7 @@ Where a container opens and closes:
 - **A `/` just before the `}` is the leaf's,** never part of an id, class or value:
   `{@div #a/}` is a leaf with the id `a`.
 - **An unclosed element runs to the end of its container or the document**, as an unclosed code
-  fence does in CommonMark, and gets the warning `unclosed-element` at its opener. A leaf that
+  fence does, and gets the warning `unclosed-element` at its opener. A leaf that
   lost its `/` is this case.
 
 `html()` writes the name as the element, with the attributes as they are for any element. An
@@ -386,9 +364,9 @@ A consumer's own fold, such as visdown's Svelte codegen, maps names to component
 
 ### Comments
 
-**markz.** `<!-- … -->` on lines of its own becomes a `comment` node, which `html()` never
-renders. It is the only thing kept from HTML. prose's Markdown notes need it (`<!-- @note … -->`),
-and GitHub hides comments too.
+`<!-- … -->` on lines of its own becomes a `comment` node, which `html()` never
+renders. It is the only thing kept from HTML, for notes that stay in the
+source (`<!-- @note … -->`).
 
 - It may span lines, and ends on the line with `-->`. Text after `-->` on that line is part of the
   comment and gets the warning `comment-trailing-text`. An unclosed comment runs to the end of its container.
@@ -400,8 +378,7 @@ and GitHub hides comments too.
 
 ### Emphasis
 
-**As CommonMark, except** for the markers and the rules below, and **from GFM**,
-`~~strikethrough~~`. The markers are `_emphasis_`, `**strong**` and `~~strikethrough~~`. Where a run may open or close follows CommonMark's flanking
+The markers are `_emphasis_`, `**strong**` and `~~strikethrough~~`. Where a run may open or close follows CommonMark's flanking
 rules, without the rest of its 17:
 
 - A run can't open before whitespace, or before punctuation that follows a letter, and the mirror
@@ -417,21 +394,17 @@ rules, without the rest of its 17:
   rejects formatted output. Anywhere else a `*…*` pair stays text and is reported, like `__…__`
   and `~…~`.
 
-On ordinary text this matches GFM. Where it disagrees, the spec examples and differential fuzzing
-against micromark find the case, and it is either fixed or listed here: the examples that need a
-run split, such as `****foo****`, differ by design.
-
 {#inline-code}
 
 ### Inline code
 
-**As CommonMark.** `` `code` ``, ` `` a ` b `` `: any number of backticks.
+`` `code` ``, ` `` a ` b `` `: any number of backticks.
 
 {#link}
 
 ### Links and images
 
-**As CommonMark, except** that only the inline form exists.
+Only the inline form exists.
 
 | Construct | Syntax                                          | Notes                                                                  |
 | --------- | ----------------------------------------------- | ---------------------------------------------------------------------- |
@@ -445,8 +418,6 @@ A `{…}` directly after the `)` of a link or image, with no space, is its
 {#span}
 
 ### Spans
-
-**From djot, except** that `@name` makes an inline element.
 
 `[text]{attrs}`, with no space between `]` and `{`. The text is inline Markdown, and its nodes are
 the span's children. `html()` writes a `<span>` with the attributes, or, when they start with
@@ -483,20 +454,19 @@ The inline elements are those Markdown has no syntax for and that can't run code
 
 ### Inline math
 
-**From pandoc**, in GitHub's HTML shape. `$…$`: the opening `$` is followed by a non-space
+`$…$`: the opening `$` is followed by a non-space
 character, and the closing `$` follows a non-space character and isn't followed by a digit, so
 `costs $5 and $10` stays text. The TeX holds no unescaped `$`, and a run of two or more dollars
-never opens it: `$$x$$` inside a line of text and GitHub's ``$`x`$`` stay text with a
-[`math-delimiter`](#not-supported) warning. GitHub added the backtick form because its `$…$`
-went through Markdown first; markz reads math before emphasis and escapes, so `$a_1 * b_2$` is
-already safe. `${` always starts an expression and never math. The
+never opens it: `$$x$$` inside a line of text and ``$`x`$`` stay text with a
+[`math-delimiter`](#not-supported) warning. Math is read before emphasis and escapes, so
+`$a_1 * b_2$` needs no backticks. `${` always starts an expression and never math. The
 node holds the raw TeX, and `html()` writes `<code class="language-math math-inline">`.
 
 {#expression}
 
 ### Expressions
 
-**markz.** `${…}` is a JavaScript template-literal interpolation, parsed as an `expression` node
+`${…}` is a JavaScript template-literal interpolation, parsed as an `expression` node
 that holds the code and its range. markz never evaluates it.
 
 - It is recognised in any inline position, in link destinations and in attribute values.
@@ -522,32 +492,30 @@ that holds the code and its range. markz never evaluates it.
 
 ### Line breaks
 
-**As CommonMark, except** that `\` at the end of a line is the only hard break. It is visible and
-explicit, and GitHub renders it too. Any other line ending inside a paragraph is a soft break. For
+`\` at the end of a line is the only hard break. It is visible and
+explicit. Any other line ending inside a paragraph is a soft break. For
 a poem, see `{.verse}` under [Paragraphs](#paragraph).
 
 Spaces or tabs after the `\` don't change that: `\ ` at the end of a line is a hard break, not a
 [non-breaking space](#escape). The space can't be seen, and formatters strip it, which leaves the
-same hard break. CommonMark reads it as a literal `\` and a soft break.
+same hard break.
 
 {#escape}
 
 ### Escapes and references
 
-**As CommonMark, except** that there are no named character references, and **from djot**, `\ ` is a
-non-breaking space.
+There are no named character references, and `\ ` is a non-breaking space.
 
 - A backslash before any ASCII punctuation character is that character: `\*`, `\_`, `\$`, `\{`, …
 - Numeric references decode: `&#169;`, `&#x2014;`. They are the only character references.
 - `&` is ordinary text: write it literally, and `html()` escapes it.
-- `\` followed by a space is a non-breaking space (U+00A0): `10\ km`, `Dr.\ Smith`. GFM keeps both
-  characters as text. In a heading id it counts as a space.
+- `\` followed by a space is a non-breaking space (U+00A0): `10\ km`, `Dr.\ Smith`. In a heading id it counts as a space.
 
 {#smart-punctuation}
 
 ### Smart punctuation
 
-**From djot.** Built in, and applied to text only, never to code, math, expressions, URLs or
+Built in, and applied to text only, never to code, math, expressions, URLs or
 attribute values.
 
 | Source              | Text value                                                           |
@@ -667,5 +635,4 @@ The productions say what markz accepts, not how it reads it. On their own they a
 every Markdown grammar is, and the side rules settle each choice. The parser is written by hand
 as the one reading of both: a single pass, deterministic, with lookahead that is bounded or
 remembers where it failed ([Design](design.md#parser-foundation)). The tests hold the grammar to this
-page, with the same constructs and parts, and take each construct's origin from its lead here.
-The fuzzer generates documents from it, and every construct is held to it at its edges.
+page, with the same constructs and parts. The fuzzer generates documents from it, and every construct is held to it at its edges.

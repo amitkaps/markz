@@ -6,8 +6,8 @@
  * state. The page is the only copy, so there is nothing to drift: it is read with markz itself, a
  * `###` heading's explicit id naming the construct, the `##` above it the part, an `ebnf` code
  * block its productions and the list after it its side rules, `` `name`: text `` each. What comes
- * before the first part, under Document, is the document's own. A construct's origin is
- * `syntax.md`'s, from the lead of its section.
+ * before the first part, under Document, is the document's own. The line under a construct's
+ * heading, `Origin: X.`, is its origin.
  *
  * The tests hold it to `syntax.md`, the fuzzer generates documents from it (step 16), and
  * `cases.ts` holds markz to it at every construct's edges: where the two read a case differently,
@@ -17,9 +17,16 @@
 import grammar from '../../prose/grammar.md?raw';
 import { parse, textContent } from '../../src/index';
 import { productions, references, type Production } from './ebnf';
-import { origin, type Origin } from './syntax';
 
-export type { Origin } from './syntax';
+/** @prose
+ * ## Origins
+ *
+ * Where a construct's rule comes from: the earliest layer that defines it. CommonMark, then GFM,
+ * which extends it, then djot; math's delimiters are pandoc's and GitHub's; what no layer defines
+ * is markz's own. The fuzzer writes only CommonMark and GFM constructs where micromark judges.
+ */
+export type Origin = 'CommonMark' | 'GFM' | 'djot' | 'GitHub' | 'pandoc' | 'markz';
+const ORIGINS: readonly string[] = ['CommonMark', 'GFM', 'djot', 'GitHub', 'pandoc', 'markz'];
 export type ConstructPart = 'Metadata' | 'Block' | 'Inline';
 
 export interface Construct {
@@ -41,6 +48,7 @@ export const CONSTRUCTS: Construct[] = [];
 	const doc = parse(grammar);
 	let part = '';
 	let current: Omit<Construct, 'id' | 'part' | 'origin'> | null = null;
+	let pending: Construct | null = null;
 	for (const node of doc.children(doc.root)) {
 		const type = doc.type(node);
 		if (type === 'heading') {
@@ -50,12 +58,15 @@ export const CONSTRUCTS: Construct[] = [];
 				current = part === 'Document' ? DOCUMENT : null;
 			} else if (depth === 3 && idExplicit) {
 				if (!PARTS.includes(part)) throw new Error(`grammar.md: ${id} is under ${part}`);
-				const o = origin(id);
-				if (!o) throw new Error(`grammar.md: ${id} has no origin in syntax.md`);
-				const c: Construct = { id, part: part as ConstructPart, origin: o, grammar: '', rules: {} };
+				const c = { id, part: part as ConstructPart, grammar: '', rules: {} } as Construct;
 				CONSTRUCTS.push(c);
-				current = c;
+				current = pending = c;
 			}
+		} else if (type === 'paragraph' && pending) {
+			const o = /^Origin: (\w+)\.$/.exec(textContent(doc, node))?.[1];
+			if (!o || !ORIGINS.includes(o)) throw new Error(`grammar.md: ${pending.id} has no origin`);
+			pending.origin = o as Origin;
+			pending = null;
 		} else if (type === 'code' && doc.data(node, 'code').lang === 'ebnf' && current) {
 			current.grammar = doc.data(node, 'code').value;
 		} else if (type === 'list' && current?.grammar) {
