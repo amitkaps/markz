@@ -4,7 +4,7 @@
  * The site is base's SvelteKit setup, trimmed: prerendered pages served by a Cloudflare Worker.
  * One [`vite-plus`](https://vite-plus.dev) config drives dev, build, format, lint and test, as it
  * does for the library, except format and lint: `vp` reads those from the workspace root's config,
- * which covers the site too. `markz` resolves to the library's source in `../src`, so the site
+ * which covers the site too. `@amitkaps/markz` resolves to the library's source in `../src`, so the site
  * always renders with the parser in this commit and needs no library build first.
  */
 import { defineConfig } from 'vite-plus';
@@ -14,14 +14,14 @@ import { sveltekit } from '@sveltejs/kit/vite';
 
 /** @prose
  * SvelteKit's plugin installs a dev-server hook that Vitest can't run under, and the unit tests
- * cover plain modules that don't need it, so plugins are skipped under Vitest. The `markz` alias
+ * cover plain modules that don't need it, so plugins are skipped under Vitest. The `@amitkaps/markz` alias
  * is Vite's, so it holds for both; `tsconfig.json` maps the same path for type checking.
  */
 const inTest = !!process.env.VITEST;
 const markz = new URL('../src/index.ts', import.meta.url).pathname;
 
 export default defineConfig({
-	resolve: { alias: { markz } },
+	resolve: { alias: { '@amitkaps/markz': markz } },
 	plugins: inTest
 		? []
 		: [

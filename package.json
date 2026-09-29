@@ -1,6 +1,6 @@
 {
-	"name": "markz",
-	"version": "0.1.0",
+	"name": "@amitkaps/markz",
+	"version": "0.1.1",
 	"description": "markz — small, opinionated Markdown.",
 	"homepage": "https://markz.amitkaps.com",
 	"license": "MIT",
@@ -21,6 +21,9 @@
 			"default": "./dist/index.js"
 		},
 		"./package.json": "./package.json"
+	},
+	"publishConfig": {
+		"access": "public"
 	},
 	"scripts": {
 		"prepack": "vp pack",
