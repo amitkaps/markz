@@ -304,9 +304,11 @@ re-export is private. It has no runtime dependencies and `sideEffects: false`, s
 tree-shakes what it doesn't call, and `prepack` builds, so a tarball never ships a stale `dist/`.
 
 A release is a `vX.Y.Z` tag matching `package.json`'s version. `.github/workflows/release.yml`
-checks, tests and packs it, publishes that tarball to npm with provenance, and attaches it to a
-GitHub release. npm trusts the workflow as the publisher, so no npm token is stored anywhere. A
-pre-release (`vX.Y.Z-rc.N`) goes to the `next` dist-tag and never becomes `latest`.
+checks, tests and packs it, stages that tarball on npm with provenance, and attaches it to a
+GitHub release. npm trusts the workflow to stage, so no npm token is stored anywhere, and nothing
+reaches users until a maintainer approves the staged version with 2FA (`npm stage approve`): a
+tag push alone can't publish. A pre-release (`vX.Y.Z-rc.N`) goes to the `next` dist-tag and
+never becomes `latest`.
 
 ## Performance and size
 

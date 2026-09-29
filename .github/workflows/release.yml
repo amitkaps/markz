@@ -1,8 +1,8 @@
 name: release
 
-# Push a `vX.Y.Z` tag → build, verify, publish the tarball to npm and attach it to a GitHub
-# Release. npm trusts this workflow as the package's publisher (OIDC), so there is no npm token;
-# the same exchange signs the provenance statement.
+# Push a `vX.Y.Z` tag → build, verify, stage the tarball on npm and attach it to a GitHub
+# Release. npm trusts this workflow to stage (OIDC), so there is no npm token; a maintainer
+# approves the staged version with 2FA to publish it. The same exchange signs the provenance.
 on:
   push:
     tags: ['v*']
@@ -37,12 +37,16 @@ jobs:
       # `pnpm pack` runs `prepack` (the build) first, so the tarball never ships a stale dist/.
       - run: pnpm pack
 
-      # The tarball just packed and checked, not a second build. A version with a pre-release part
-      # (`-rc.0`) goes to the `next` dist-tag so it never becomes `latest`.
-      - name: Publish to npm
+      # Staged, not published: the version waits on npm until a maintainer approves it with 2FA
+      # (`npm stage approve`), so a tag push alone can't put a version in front of users. The
+      # tarball is the one just packed and checked, not a second build. A version with a
+      # pre-release part (`-rc.0`) goes to the `next` dist-tag so it never becomes `latest`.
+      # `npm stage` is newer than the npm some Node releases bundle, hence the update.
+      - name: Stage on npm
         run: |
+          npm install -g npm@11
           tag=latest; case "$GITHUB_REF_NAME" in *-*) tag=next;; esac
-          npm publish ./amitkaps-markz-*.tgz --provenance --access public --tag "$tag"
+          npm stage publish ./amitkaps-markz-*.tgz --provenance --access public --tag "$tag"
 
       - name: Publish release
         env:
