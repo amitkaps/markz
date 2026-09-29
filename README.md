@@ -30,6 +30,15 @@ of them takes options.
 
 The site, [markz.amitkaps.com](https://markz.amitkaps.com), starts from [`prose/markz.md`](prose/markz.md). The language is in [`prose/syntax.md`](prose/syntax.md) and the design in [`prose/design.md`](prose/design.md).
 
+## Install
+
+markz isn't on npm yet. Each release attaches its package to a
+[GitHub release](https://github.com/amitkaps/markz/releases):
+
+```sh
+pnpm add https://github.com/amitkaps/markz/releases/download/v0.1.0/markz-0.1.0.tgz
+```
+
 ## Not a drop-in Markdown parser
 
 markz parses the Markdown we write, not every Markdown in the wild. Pasted or generated Markdown
