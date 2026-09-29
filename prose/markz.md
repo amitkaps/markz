@@ -5,7 +5,7 @@ dialect, a compact tree that maps every node back to the source, HTML output, an
 A project makes its Markdown decision once, and uses markz everywhere.
 
 ```ts
-import { html, parse, position, textContent, walk } from 'markz';
+import { html, parse, position, textContent, walk } from '@amitkaps/markz';
 
 const doc = parse(markdown); // a read-only, source-mapped tree, and doc.warnings
 const page = html(doc); // or html(markdown)

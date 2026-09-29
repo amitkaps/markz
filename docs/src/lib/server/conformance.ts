@@ -12,7 +12,7 @@
  *
  * Server-only: it pulls in micromark and the vendored spec suites, which never reach the client.
  */
-import { parse } from 'markz';
+import { parse } from '@amitkaps/markz';
 import { EDGES, edges } from '../../../../test/harness/cases';
 import { check, examples } from '../../../../test/harness/examples';
 import { search } from '../../../../test/harness/generate';

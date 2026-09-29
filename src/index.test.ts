@@ -1,5 +1,5 @@
 /** @prose
- * The public entry point: what `import … from 'markz'` exposes, and the BOM rule for the root.
+ * The public entry point: what `import … from '@amitkaps/markz'` exposes, and the BOM rule for the root.
  */
 import { describe, expect, it } from 'vite-plus/test';
 import { html, parse } from './index';

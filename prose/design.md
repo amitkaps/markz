@@ -218,7 +218,7 @@ Deciding whether a half-typed opener (`hello *`) shows or vanishes, and avoiding
 ## Public API
 
 ```ts
-import { parse, html } from 'markz';
+import { parse, html } from '@amitkaps/markz';
 
 const doc = parse(markdown); // AST
 const out = html(markdown); // or html(doc)
@@ -296,19 +296,20 @@ nesting.
 
 ## Package
 
-The package is named `markz`, unscoped, and belongs to no application. The name is free on npm.
+The package is `@amitkaps/markz` (npm refuses the bare `markz` as too close to `marked`), and it
+belongs to no application.
 There is one package, no `markz-*` companions. It is ESM only, built by `vp pack`
 into `dist/index.js` and its types, with one entry, `src/index.ts`: anything it doesn't
 re-export is private. It has no runtime dependencies and `sideEffects: false`, so a consumer
 tree-shakes what it doesn't call, and `prepack` builds, so a tarball never ships a stale `dist/`.
 
 A release is a `vX.Y.Z` tag matching `package.json`'s version. `.github/workflows/release.yml`
-checks, tests and packs it, and attaches `markz-X.Y.Z.tgz` to a GitHub release, which is how
+checks, tests and packs it, and attaches `amitkaps-markz-X.Y.Z.tgz` to a GitHub release, which is how
 consumers install markz until it is published to npm.
 
 ## Performance and size
 
-**The budget is 20 KB gzip** for everything `import { parse, html } from 'markz'` pulls in,
+**The budget is 20 KB gzip** for everything `import { parse, html } from '@amitkaps/markz'` pulls in,
 bundled and minified. `pnpm size` measures it and CI fails above it. The budget is why markz
 parses for itself: a general parser with GFM and extensions leaves little room for anything
 else. The language drops named entities, so no build carries a 12 KB entity table, and one

@@ -12,7 +12,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import os from 'node:os';
 import { join } from 'node:path';
-import { html, parse } from 'markz';
+import { html, parse } from '@amitkaps/markz';
 import { BUDGET, size } from '../../../../scripts/size';
 import { documents } from '../../../../test/harness/corpus';
 import { retained, time, warm } from '../../../../test/harness/speed';

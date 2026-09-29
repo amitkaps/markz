@@ -9,7 +9,7 @@
  * summary is its first paragraph, both read from the markz AST, so the files need no metadata
  * block of their own.
  */
-import { html, parse, textContent, type Document, type NodeId } from 'markz';
+import { html, parse, textContent, type Document, type NodeId } from '@amitkaps/markz';
 import home from '../../../prose/markz.md?raw';
 import syntax from '../../../prose/syntax.md?raw';
 import grammar from '../../../prose/grammar.md?raw';
