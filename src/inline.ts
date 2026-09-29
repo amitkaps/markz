@@ -76,7 +76,7 @@ interface List {
  * ## Emphasis kinds
  *
  * A delimiter run's kind is its character and length. `_`, `**` and `~~` are the dialect's;
- * `*` is accepted where formatters write it (syntax.md: Emphasis); `__` and `~` are rejected
+ * `*` is accepted where formatters write it (grammar: `star-places`); `__` and `~` are rejected
  * forms that are matched only to be reported. Runs of any other length are plain text.
  */
 const KINDS: Record<string, NodeType> = {
@@ -341,12 +341,11 @@ class InlinePass {
 	/** @prose
 	 * ## Escapes, breaks and references
 	 *
-	 * `\` before ASCII punctuation is that character, before a line ending it is a hard break,
-	 * and before a space it is a non-breaking space. At the end of a line, spaces after the `\`
-	 * are the line's trailing whitespace, gone before it is read, so `\ ⏎` is a hard break too:
-	 * what the author sees, and what it becomes once a formatter strips the space. Anywhere else a
-	 * `\` is itself. Numeric references decode, with U+FFFD for any code point HTML can't hold
-	 * (`character`). A named one stays text and is reported, since markz has no entity table.
+	 * A `\` escapes, breaks the line or makes a non-breaking space (grammar: escape, line-break).
+	 * `\ ⏎` is a hard break because it is what the author sees, and what it becomes once a
+	 * formatter strips the space (`trailing-backslash`). Anywhere else a `\` is itself. Numeric
+	 * references decode, with U+FFFD for any code point HTML can't hold (`character`). A named one
+	 * stays text and is reported, since markz has no entity table.
 	 */
 	backslash(list: List, t: number, to: number): number {
 		const next = this.text[t + 1];
@@ -396,11 +395,10 @@ class InlinePass {
 	/** @prose
 	 * ## Code, math and expressions
 	 *
-	 * These bind tightest. A code span closes on the next backtick run of the same length; its
-	 * line endings become spaces, and one space is stripped from each end when both are there. In
-	 * a table cell, `\|` is a `|` even here. Math is pandoc's `$…$`, and `${…}` is an expression
-	 * found by brace matching. A scan that finds no closer records it, so the next opener of the
-	 * same kind doesn't scan again.
+	 * These bind tightest (grammar: `inline-order`), each read to its closer: inline-code
+	 * (`code-run`), inline-math (`math-end`, `math-dollars`) and expression (`brace-depth`). A code
+	 * span's line endings become spaces, and in a table cell `\|` is a `|` even here. A scan that
+	 * finds no closer records it, so the next opener of the same kind doesn't scan again.
 	 */
 	code(list: List, t: number, to: number): number {
 		const { text } = this;
@@ -497,11 +495,11 @@ class InlinePass {
 	/** @prose
 	 * ## Angle brackets
 	 *
-	 * `<scheme:…>` and `<address@host>` are autolinks. Anything shaped like an HTML tag, comment
-	 * or declaration is raw HTML, which the dialect cuts: the whole tag stays text, so nothing
-	 * inside it is read as Markdown, and it is reported. A capitalised tag is reported as MDX's
-	 * JSX, and a relative autolink (`</docs/a>`), which has no scheme, as itself. Any other `<` is
-	 * text.
+	 * `<scheme:…>` and `<address@host>` are autolinks (grammar: link, `scheme-length`). Anything
+	 * shaped like an HTML tag, comment or declaration is raw HTML, which the dialect cuts: the
+	 * whole tag stays text, so nothing inside it is read as Markdown, and it is reported. A
+	 * capitalised tag is reported as JSX, and a relative autolink (`</docs/a>`), which has no
+	 * scheme, as itself. Any other `<` is text.
 	 */
 	angle(list: List, t: number, to: number): number {
 		const { text } = this;
@@ -569,12 +567,10 @@ class InlinePass {
 	/** @prose
 	 * ## Emphasis
 	 *
-	 * djot's rules, not CommonMark's: a run opens unless whitespace follows it and closes unless
-	 * whitespace precedes it, and `_` never opens or closes inside a word. A closer takes the
-	 * nearest open run of its own kind, with no rule of 3 and no splitting of runs; openers of
-	 * other kinds between them are left as text. `*` is kept only inside `_…_` or touching a
-	 * letter or digit, the two places formatters write it. Anywhere else a `*` pair, like a `__`
-	 * or `~` pair, stays text and is reported.
+	 * Whether a run can open or close is `flanking`, and which opener a closer takes is
+	 * `nearest-opener` (grammar: emphasis): openers of other kinds between them are left as text,
+	 * so nothing is read twice. `*` is kept only in `star-places`, where formatters write it.
+	 * Anywhere else a `*` pair, like a `__` or `~` pair, stays text and is reported.
 	 */
 	delimiter(list: List, t: number, from: number, to: number): number {
 		const { text } = this;
@@ -650,11 +646,10 @@ class InlinePass {
 	/** @prose
 	 * ## Links, images and spans
 	 *
-	 * `[` and `![` wait on the bracket stack. At `]`, the inline form `(destination "title")`
-	 * makes a link or image, optionally with `{…}` directly after the `)`, and a `{…}` directly
-	 * after the `]` makes a span of the text, with `{@name …}` naming its element. Emphasis
-	 * openers inside the brackets can't close outside them. Once a link closes, the brackets around
-	 * it can't make links, but they can still make a span, which may hold one. `[x][y]` and `[x][]`
+	 * `[` and `![` wait on the bracket stack, and at `]` become a link, an image or a span
+	 * (grammar: link, span; `brackets`, `emphasis-brackets`). Once a link closes, the brackets
+	 * around it can't make links (`link-text`), but they can still make a span, which may hold
+	 * one. `[x][y]` and `[x][]`
 	 * are reference links and `[^x]` is a footnote, which the dialect cuts: they stay text and are
 	 * reported. `[x]` alone is just text, since `[sic]` is prose; its definition, if it has one, is
 	 * what gets reported.
@@ -838,10 +833,10 @@ class InlinePass {
 	/** @prose
 	 * ## Spans
 	 *
-	 * `[text]{…}` wraps the text in a `span`, and `[text]{@name …}` in the inline element it names.
-	 * `![text]{…}` is a `!` and a span. A name that isn't an inline element is reported, and the
-	 * whole `[…]{…}` stays text, nothing in it read as other syntax: what the scan made inside
-	 * goes back to the text it was. A `{…}` there that doesn't parse, or that ends in `/` as only
+	 * `[text]{…}` wraps the text in a `span`, and `[text]{@name …}` in the inline element it names
+	 * (grammar: span). `![text]{…}` is a `!` and a span. A name that isn't an inline element leaves
+	 * the whole `[…]{…}` as text (`inline-element-name`), so what the scan made inside goes back to
+	 * the text it was. A `{…}` there that doesn't parse, or that ends in `/` as only
 	 * a block element may, is text and reported. Returns where the span ends, or -1 when the `{`
 	 * is left to be text.
 	 */
@@ -925,7 +920,7 @@ class InlinePass {
 	/** @prose
 	 * ## Colon directives
 	 *
-	 * `:name[label]`, `:name{…}` and their two- and three-colon forms are remark-directive's, which
+	 * `:name[label]`, `:name{…}` and their two- and three-colon forms are colon directives, which
 	 * markz cuts: the whole `:name[…]{…}` stays text, nothing in it read as other syntax (so its
 	 * `[…]{…}` never becomes a span), and it is reported once. It needs a label or attributes and
 	 * can't start straight after another `:`, so a colon in prose is never one.
@@ -978,7 +973,7 @@ class InlinePass {
 	 * of its rule the dialect cuts. The reports wait until the leaf is done, and a link that closes
 	 * drops the ones inside it.
 	 *
-	 * A `{…}` that parses as attributes but sits where none are allowed (after a word, code or
+	 * A `{…}` that parses as attributes but sits outside `attribute-places` (after a word, code or
 	 * emphasis) stays text and is reported. Any other brace is prose.
 	 */
 	url(list: List, t: number, from: number, to: number): number {
@@ -1050,10 +1045,8 @@ class InlinePass {
 	/** @prose
 	 * ## Smart punctuation
 	 *
-	 * Straight quotes curl by the character before them: at the start, after whitespace, an
-	 * opening bracket, a dash, another quote or an emphasis marker they open, and anywhere else
-	 * they close. `--` is an en dash and `---` an em dash; a longer run is split into em and en
-	 * dashes with the same count of hyphens. `...` is an ellipsis. The text value holds the
+	 * Straight quotes curl by the character before them, and hyphen runs become dashes (grammar:
+	 * smart-punctuation; `quote-side`, `dash-runs`). The text value holds the
 	 * typographic character, and the range still covers what was typed.
 	 */
 	quote(list: List, t: number, from: number): number {
