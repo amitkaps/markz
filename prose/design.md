@@ -300,8 +300,11 @@ The package is named `markz`, unscoped, and belongs to no application. The name 
 There is one package, no `markz-*` companions. It is ESM only, built by `vp pack`
 into `dist/index.js` and its types, with one entry, `src/index.ts`: anything it doesn't
 re-export is private. It has no runtime dependencies and `sideEffects: false`, so a consumer
-tree-shakes what it doesn't call, and `prepublishOnly` builds, so a publish never ships a stale
-`dist/`.
+tree-shakes what it doesn't call, and `prepack` builds, so a tarball never ships a stale `dist/`.
+
+A release is a `vX.Y.Z` tag matching `package.json`'s version. `.github/workflows/release.yml`
+checks, tests and packs it, and attaches `markz-X.Y.Z.tgz` to a GitHub release, which is how
+consumers install markz until it is published to npm.
 
 ## Performance and size
 

@@ -1,8 +1,13 @@
 {
 	"name": "markz",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"description": "markz — small, opinionated Markdown.",
+	"homepage": "https://markz.amitkaps.com",
 	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/amitkaps/markz.git"
+	},
 	"files": [
 		"dist"
 	],
@@ -18,11 +23,11 @@
 		"./package.json": "./package.json"
 	},
 	"scripts": {
+		"prepack": "vp pack",
 		"dev": "vp pack --watch",
 		"build": "vp pack",
 		"check": "vp check",
 		"test": "vp test --run",
-		"prepublishOnly": "vp pack",
 		"size": "node scripts/size.ts",
 		"fuzz": "SEARCH=50 SEED=$RANDOM vp test --run test/constructs.test.ts test/robustness.test.ts",
 		"bench": "node test/speed.ts",
