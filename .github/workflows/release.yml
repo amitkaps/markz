@@ -1,13 +1,15 @@
 name: release
 
-# Push a `vX.Y.Z` tag → build, verify, and attach the installable tarball to a GitHub Release.
-# Consumers install from the release asset URL until the package is published to npm.
+# Push a `vX.Y.Z` tag → build, verify, publish the tarball to npm and attach it to a GitHub
+# Release. npm trusts this workflow as the package's publisher (OIDC), so there is no npm token;
+# the same exchange signs the provenance statement.
 on:
   push:
     tags: ['v*']
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   release:
@@ -34,6 +36,13 @@ jobs:
 
       # `pnpm pack` runs `prepack` (the build) first, so the tarball never ships a stale dist/.
       - run: pnpm pack
+
+      # The tarball just packed and checked, not a second build. A version with a pre-release part
+      # (`-rc.0`) goes to the `next` dist-tag so it never becomes `latest`.
+      - name: Publish to npm
+        run: |
+          tag=latest; case "$GITHUB_REF_NAME" in *-*) tag=next;; esac
+          npm publish ./amitkaps-markz-*.tgz --provenance --access public --tag "$tag"
 
       - name: Publish release
         env:

@@ -32,12 +32,12 @@ The site, [markz.amitkaps.com](https://markz.amitkaps.com), starts from [`prose/
 
 ## Install
 
-markz isn't on npm yet. Each release attaches its package to a
-[GitHub release](https://github.com/amitkaps/markz/releases):
-
 ```sh
-pnpm add https://github.com/amitkaps/markz/releases/download/v0.1.0/amitkaps-markz-0.1.0.tgz
+pnpm add @amitkaps/markz
 ```
+
+Each release's package is also attached to its
+[GitHub release](https://github.com/amitkaps/markz/releases).
 
 ## Not a drop-in Markdown parser
 

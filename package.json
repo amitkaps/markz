@@ -22,6 +22,9 @@
 		},
 		"./package.json": "./package.json"
 	},
+	"publishConfig": {
+		"access": "public"
+	},
 	"scripts": {
 		"prepack": "vp pack",
 		"dev": "vp pack --watch",

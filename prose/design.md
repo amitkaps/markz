@@ -304,8 +304,9 @@ re-export is private. It has no runtime dependencies and `sideEffects: false`, s
 tree-shakes what it doesn't call, and `prepack` builds, so a tarball never ships a stale `dist/`.
 
 A release is a `vX.Y.Z` tag matching `package.json`'s version. `.github/workflows/release.yml`
-checks, tests and packs it, and attaches `amitkaps-markz-X.Y.Z.tgz` to a GitHub release, which is how
-consumers install markz until it is published to npm.
+checks, tests and packs it, publishes that tarball to npm with provenance, and attaches it to a
+GitHub release. npm trusts the workflow as the publisher, so no npm token is stored anywhere. A
+pre-release (`vX.Y.Z-rc.N`) goes to the `next` dist-tag and never becomes `latest`.
 
 ## Performance and size
 
