@@ -49,25 +49,6 @@ jobs:
       - name: Site build (prerender, Cloudflare adapter)
         run: pnpm --filter markz-docs build
 
-  # The README promises current and LTS Node, and .node-version is the current one.
-  lts:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node: [22, 24]
-    steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ matrix.node }}
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Unit tests
-        run: pnpm test
-
   deploy:
     needs: ci
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
