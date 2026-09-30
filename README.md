@@ -41,7 +41,7 @@ Each release's package is also attached to its
 
 ## Compatibility
 
-- **Node.js:** current and LTS releases.
+- **Node.js:** the current release and the previous LTS (today, 26 and 24).
 - **Browsers:** [Baseline Widely Available](https://developer.mozilla.org/en-US/docs/Glossary/Baseline/Compatibility).
 
 markz is one ES module with no dependencies and no Node APIs, so the same file runs in Node,
