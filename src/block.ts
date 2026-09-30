@@ -156,13 +156,11 @@ class BlockParser {
 	/** @prose
 	 * ## Metadata
 	 *
-	 * A `---` line at the very start opens a metadata block, and the next `---` line closes it, as
-	 * micromark-extension-frontmatter and GitHub read it: opening a document with `---` asks for
-	 * metadata. The closing line is found by one forward scan. Whatever is between is metadata, and
-	 * a line the rule can't read is a warning, not a reason to read the block as Markdown. With no
-	 * closing line the first line is an ordinary thematic break, reported when the next line is a
-	 * `key:` line, since that is a block missing its end. A closed `+++` block is TOML, which stays
-	 * text and is reported.
+	 * The metadata block (grammar: metadata). The closing line is found by
+	 * one forward scan before any line inside is read, so a line the rule can't read is a warning,
+	 * never a reason to read the block as Markdown (`metadata-start`). Unclosed, the first line is a
+	 * thematic break, reported when the next line is a `key:` line, since that is a block missing
+	 * its end. A closed `+++` block (TOML) stays text and is reported.
 	 */
 	metadata(start: number): number {
 		const { src } = this;
@@ -205,11 +203,12 @@ class BlockParser {
 	 * indentation for a list item. A list always matches, and ends when a line inside it isn't an
 	 * item. A container element matches every line but a closing line, which is read at its own
 	 * level before the containers inside it take their prefixes: `{/name}` closes the innermost
-	 * element of the run it meets when the names match, and is otherwise left to be reported.
+	 * element of the run it meets when the names match (`element-close`), and is otherwise left to
+	 * be reported.
 	 *
 	 * A fence, math block or comment that is still open takes the rest of the line. Otherwise,
-	 * when a container didn't match, it closes. In CommonMark a paragraph line there would
-	 * continue lazily; markz starts a new paragraph and reports the lazy line.
+	 * when a container didn't match, it closes (grammar: `container-prefix`). There are no lazy
+	 * lines (`paragraph-lines`): a paragraph line there starts a new paragraph and is reported.
 	 */
 	line(start: number, end: number): void {
 		this.pos = start;
@@ -310,7 +309,7 @@ class BlockParser {
 	/** @prose
 	 * ## Block starts
 	 *
-	 * What the rest of a line opens, tried in a fixed order at the cursor. Returns true after a
+	 * What the rest of a line opens, tried in the grammar's order (`block-order`). Returns true after a
 	 * container, because the same line can open more (`- > # a`). Rejected forms are tried in the
 	 * same order as the forms they imitate, so `* * *` is a rejected rule and never a list inside a
 	 * list, and `Title` over `---` is a rejected setext heading and never a paragraph followed by a
@@ -508,12 +507,11 @@ class BlockParser {
 	/** @prose
 	 * ## Headings
 	 *
-	 * `#` to `######`, a space, and one line of content. A closing run of `#`s after a space is
-	 * stripped. The id is settled as the heading closes, against the ids used so far: a `{#id}`
-	 * line above gives it exactly (reported if an earlier heading has it), and otherwise it is
-	 * slugged from the heading's text and numbered past any id already taken. No id depends on
-	 * a later heading, so none changes once written. A trailing `{#id}` is kramdown's and Pandoc's
-	 * form, not ours: it stays part of the text and is reported.
+	 * One line of content, with its closing hashes stripped (grammar: heading, `closing-hashes`).
+	 * The id is settled as the heading closes, against the ids used so far (`heading-id`): a
+	 * `{#id}` line above gives it exactly, reported if an earlier heading has it. No id depends on
+	 * a later heading, so none changes once written. A trailing `{#id}` stays part of the text and
+	 * is reported.
 	 */
 	heading(at: number, depth: number, end: number): void {
 		const attributes = this.enter(false);
@@ -563,10 +561,10 @@ class BlockParser {
 	/** @prose
 	 * ## Fences
 	 *
-	 * Fenced code, ` ```=format ` raw blocks and `$$` math share one leaf: an opening line, content
-	 * lines with up to the opening fence's indentation removed, and a closing fence at least as
-	 * long. An unclosed fence runs to the end of its container. The value is built as a string,
-	 * since a container prefix can sit inside it; the body range still points at the source.
+	 * Code, raw and math blocks share one leaf: an opening line, content lines and a closing line
+	 * (grammar: code-block, raw-block, math-block; `fence-length`, `fence-indent`, `math-close`).
+	 * The value is built as a string, since a container prefix can sit inside it; the body range
+	 * still points at the source.
 	 */
 	openFence(kind: 'fence' | 'math', at: number, indent: number, ticks: number, info: string): void {
 		const attributes = this.enter(false);
@@ -618,9 +616,9 @@ class BlockParser {
 	/** @prose
 	 * ## Comments
 	 *
-	 * `<!--` at the start of a line opens a comment, which ends on the line with `-->`. A comment
-	 * that shares its first line with other text isn't a block, and is left to the inline pass. It
-	 * takes no attributes: an attribute line above it is reported as having no block.
+	 * A block comment (grammar: comment, `comment-close`). One that shares its first line with
+	 * other text is left to the inline pass. It takes no attributes: an attribute line above it is
+	 * reported as having no block.
 	 */
 	comment(at: number): boolean {
 		const close = this.lineIndex('-->', at + 2);
@@ -654,11 +652,9 @@ class BlockParser {
 	/** @prose
 	 * ## List items
 	 *
-	 * A bullet (`-`, `*`, `+`) or an ordered marker (`1.`, `1)`), then whitespace or the end of the
-	 * line. The item's content column is the marker's width plus the spaces after it, unless there
-	 * are five or more, or none: then it is one past the marker. A different bullet or delimiter
-	 * starts a new list. An item can interrupt a paragraph only if it has content and, when
-	 * ordered, starts at 1.
+	 * An item is settled from its marker line alone (grammar: list): its content column
+	 * (`item-content`), whether it continues the list (`same-marker`, `ordinal`), and whether it
+	 * may interrupt a paragraph (`item-interrupts`).
 	 */
 	listItem(cols: number, next: number): number {
 		const { src } = this;
@@ -721,16 +717,15 @@ class BlockParser {
 	/** @prose
 	 * ## Elements
 	 *
-	 * A `{@name …}` line opens a container, and `{@name … /}` or `[label]{@name … /}` is a leaf, whose
-	 * label is inline content. The name is the element it writes, a block element or a custom
-	 * element; any other name leaves the line as paragraph text and is reported. An opening line
-	 * can't interrupt a paragraph or a table, where it is text, as an attribute line is; a leaf
-	 * can, since a line ending in `/}` can't be prose. Attribute lines above an element merge into
-	 * its own.
+	 * A `{@name …}` line opens a container, and `{@name … /}` or `[label]{@name … /}` is a leaf
+	 * (grammar: element; `element-name`, `leaf-label`, `leaf-slash`). An opening line can't
+	 * interrupt a paragraph or a table, but a leaf can, since a line ending in `/}` can't be prose
+	 * (`element-interrupts`). Attribute lines above an element merge into its own.
 	 *
 	 * A `{/name}` line that reaches here closed nothing at an element's own level (`line`), so it
 	 * stays text and is reported. A container left open when its own container closes, or at the
-	 * end, is reported at its opening line: a leaf that lost its `/` is the usual cause.
+	 * end, is reported at its opening line (`unclosed-element`): a leaf that lost its `/` is the
+	 * usual cause.
 	 */
 	element(at: number, end: number, interrupting: boolean): boolean {
 		const { src } = this;
@@ -804,10 +799,9 @@ class BlockParser {
 	/** @prose
 	 * ## Block attributes
 	 *
-	 * A line holding only `{…}` decorates the next block in the same container, across blank
-	 * lines. Consecutive lines merge. They can't interrupt a paragraph or a table, where the line
-	 * is text, and if no block follows before the container ends, the lines are kept as a
-	 * paragraph and reported.
+	 * A line holding only `{…}` decorates the next block (grammar: attributes, `attribute-line`).
+	 * If no block follows before the container ends, the lines are kept as a paragraph and
+	 * reported.
 	 */
 	attributeLine(at: number, end: number): boolean {
 		const attributes = parseAttributes(this.src, at, end);
@@ -885,11 +879,10 @@ class BlockParser {
 	/** @prose
 	 * ## Paragraphs and tables
 	 *
-	 * Text that opens no block continues the open paragraph or table, or starts a paragraph. A
-	 * delimiter row (`| --- | :-: |`) under a paragraph turns the paragraph's last line into a
-	 * table header when the cell counts agree, and the line isn't indented four or more columns;
-	 * the lines before it stay a paragraph. Rows then
-	 * continue until a blank line or another block.
+	 * Text that opens no block continues the open paragraph or table, or starts a paragraph
+	 * (grammar: paragraph, table). A delimiter row turns the paragraph's last line into a table
+	 * header (`table-header`, `table-columns`), which is why a paragraph's lines are held until it
+	 * closes; the lines before it stay a paragraph. Rows then run to `table-end`.
 	 */
 	text(start: number, end: number): void {
 		const leaf = this.leaf;
@@ -1053,7 +1046,7 @@ class BlockParser {
 	/** @prose
 	 * ## Cursor
 	 *
-	 * Columns follow CommonMark's tab stops of 4. A prefix can end inside a tab (`>\tcode`); the
+	 * Columns follow tab stops of 4 (grammar: `indentation`). A prefix can end inside a tab (`>\tcode`); the
 	 * cursor then stays on the tab and `tab` counts its unread columns, which content reads as
 	 * spaces.
 	 */
@@ -1221,8 +1214,8 @@ const KEY = /^[A-Za-z_][\w-]*:(?:[ \t\r\n]|$)/;
  * ## Table rows
  *
  * A row's cells are split on `|`s that aren't escaped, after an optional leading and trailing
- * pipe. Each cell is trimmed, and a row of only a pipe has none. A delimiter row needs a pipe or a colon, as in GFM, so `Title` over
- * `---` stays a setext case while `a` over `:-:` is a one-column table.
+ * pipe, and each is trimmed (grammar: table, `table-columns`). The delimiter row's pipe or
+ * colon is what keeps `Title` over `---` a setext case while `a` over `:-:` is a table.
  */
 function cells(src: string, start: number, end: number): Range[] {
 	let s = start;
@@ -1268,7 +1261,8 @@ function delimiterRow(src: string, start: number, end: number): Align[] | null {
 /** @prose
  * ## Heading ids
  *
- * GitHub's algorithm, on the heading's plain text: lowercased, with every character removed that
+ * The slug of `heading-id`, held to the vendored github-slugger fixtures, on the heading's plain
+ * text: lowercased, with every character removed that
  * isn't alphabetic (any script's letters, and symbols such as `Ⓐ`), a mark, a decimal digit, a
  * connector such as `_`, `-` or a space, and then each space turned into `-`, one for one. That is
  * github-slugger's 8 KB character class, in four Unicode properties. A heading with nothing left

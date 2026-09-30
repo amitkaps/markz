@@ -3,7 +3,7 @@
  *
  * Where a `${…}` ends. markz never evaluates or validates the JavaScript inside; it only finds the
  * `}` that matches the opening brace, skipping strings, template literals (with their own nested
- * `${}`) and comments, so a brace inside any of them doesn't count (syntax.md: Expressions).
+ * `${}`) and comments, so a brace inside any of them doesn't count (grammar: `brace-depth`).
  * Regex literals aren't recognised, which is the documented limit. The same scanner serves inline
  * expressions, link destinations and attribute values.
  */
