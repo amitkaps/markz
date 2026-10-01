@@ -39,6 +39,14 @@ pnpm add @amitkaps/markz
 Each release's package is also attached to its
 [GitHub release](https://github.com/amitkaps/markz/releases).
 
+## Compatibility
+
+- **Node.js:** the current release and the previous LTS (today, 26 and 24).
+- **Browsers:** [Baseline Widely Available](https://developer.mozilla.org/en-US/docs/Glossary/Baseline/Compatibility).
+
+markz is one ES module with no dependencies and no Node APIs, so the same file runs in Node,
+browsers and workers.
+
 ## Not a drop-in Markdown parser
 
 markz parses the Markdown we write, not every Markdown in the wild. Pasted or generated Markdown
