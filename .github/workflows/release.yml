@@ -41,15 +41,10 @@ jobs:
       # (`npm stage approve`), so a tag push alone can't put a version in front of users. The
       # tarball is the one just packed and checked, not a second build. A version with a
       # pre-release part (`-rc.0`) goes to the `next` dist-tag so it never becomes `latest`.
-      # `npm stage` is newer than the npm some Node releases bundle, hence the update.
       - name: Stage on npm
         run: |
-          npm install -g npm@11
           tag=latest; case "$GITHUB_REF_NAME" in *-*) tag=next;; esac
-          # Run from outside the repository: its `devEngines` names pnpm, which npm refuses to run in.
-          tarball="$(ls "$PWD"/amitkaps-markz-*.tgz)"
-          cd "$RUNNER_TEMP"
-          npm stage publish "$tarball" --provenance --access public --tag "$tag"
+          pnpm stage publish ./amitkaps-markz-*.tgz --provenance --access public --tag "$tag"
 
       - name: Publish release
         env:
