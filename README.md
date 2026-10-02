@@ -8,25 +8,15 @@ HTML output, and no configuration. Make the Markdown decision
 once; use markz everywhere.
 
 ```ts
-import { html, parse, position, textContent, walk } from "@amitkaps/markz";
+import { html, parse } from "@amitkaps/markz";
 
-const doc = parse(markdown); // a read-only, source-mapped tree, and doc.warnings
-const page = html(doc); // or html(markdown)
+const page = html(markdown);
 
-walk(doc, {
-  enter(node) {
-    if (doc.type(node) === "heading")
-      console.log(doc.data(node, "heading").id, textContent(doc, node));
-  },
-});
-
-const at = position(markdown); // offset → { line, column }, lines from 1 and columns from 0
-for (const w of doc.warnings) console.log(at(w.start), w.message, "write", w.instead);
+const doc = parse(markdown); // a read-only, source-mapped tree
+console.log(doc.warnings); // what it didn't read, and what to write instead
 ```
 
-That is the whole API: `parse`, `html`, `walk` (with `enter` and `exit`, where `enter` returning
-`false` skips a node's children), `textContent` (the text a node renders as) and `position`. None
-of them takes options.
+The whole API is six functions and the read-only `Document`, in [`docs/api.md`](docs/api.md); none of them takes options. [`docs/usage.md`](docs/usage.md) shows how to use them.
 
 The site, [markz.amitkaps.com](https://markz.amitkaps.com), starts from [`docs/markz.md`](docs/markz.md). The language is in [`docs/syntax.md`](docs/syntax.md) and the design in [`docs/design.md`](docs/design.md).
 

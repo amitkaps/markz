@@ -5,22 +5,16 @@ dialect, a compact tree that maps every node back to the source, HTML output, an
 A project makes its Markdown decision once, and uses markz everywhere.
 
 ```ts
-import { html, parse, position, textContent, walk } from "@amitkaps/markz";
+import { html, parse } from "@amitkaps/markz";
 
-const doc = parse(markdown); // a read-only, source-mapped tree, and doc.warnings
-const page = html(doc); // or html(markdown)
+const page = html(markdown);
 
-walk(doc, {
-  enter(node) {
-    if (doc.type(node) === "heading") console.log(doc.data(node, "heading").id);
-  },
-});
-
-const at = position(markdown); // offset → { line, column }
-for (const w of doc.warnings) console.log(at(w.start), w.message, "write", w.instead);
+const doc = parse(markdown); // a read-only, source-mapped tree
+console.log(doc.warnings); // what it didn't read, and what to write instead
 ```
 
-That is the whole API: `parse`, `html`, `walk`, `textContent` and `position`. None of them takes
+That is the start. The whole API is six functions (`parse`, `html`, `walk`, `textContent`,
+`headings` and `position`) and the read-only `Document`, in [API](api.md). None of them takes
 options.
 
 ## The language
@@ -72,6 +66,9 @@ uses forms it leaves out. Converting a document means fixing what `doc.warnings`
 
 ## Read more
 
+- [Usage](usage.md): render, check a document, read its metadata, build a contents list, and what to
+  tell your agents.
+- [API](api.md): every export, and the tree it works on.
 - [Syntax](syntax.md): every construct, what it's limited to, and what's left out.
 - [Grammar](grammar.md): the language in EBNF, with the side rules that settle each choice.
 - [Design](design.md): the tree, source offsets, the parser, HTML, security and testing.

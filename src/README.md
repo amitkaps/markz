@@ -13,4 +13,4 @@ internal to the parser.
   check.
 - [`html.ts`](html.ts): the HTML fold.
 - [`walk.ts`](walk.ts) and [`position.ts`](position.ts): the utilities consumers fold and report
-  with, `walk`, `textContent` and `position`.
+  with, `walk`, `textContent`, `headings` and `position`.

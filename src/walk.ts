@@ -78,3 +78,36 @@ export function textContent(doc: Document, node: NodeId = doc.root): string {
   );
   return out;
 }
+
+/** @prose
+ * ## Headings
+ *
+ * The outline of a document, for a table of contents or a "jump to" list: every heading in source
+ * order, wherever it sits (a heading in a blockquote, list item or element counts), with the id
+ * `html()` writes for it, so a link to `#id` lands on it. It is a flat list, not a tree: depth is
+ * data, and how to nest, number or filter by it is the consumer's choice, which is why it isn't
+ * part of `html()`. `node` gives the source range through `doc.start` and `doc.end`.
+ */
+export interface Heading {
+  node: NodeId;
+  depth: 1 | 2 | 3 | 4 | 5 | 6;
+  id: string;
+  text: string;
+}
+
+export function headings(doc: Document): Heading[] {
+  const out: Heading[] = [];
+  walk(doc, {
+    enter(node) {
+      const type = doc.type(node);
+      if (type === "heading") {
+        const { depth, id } = doc.data(node, "heading");
+        out.push({ node, depth, id, text: textContent(doc, node) });
+        return false;
+      }
+      // Headings are blocks, so nothing inside a paragraph, a table or code holds one.
+      return type !== "paragraph" && type !== "table" && type !== "code";
+    },
+  });
+  return out;
+}
