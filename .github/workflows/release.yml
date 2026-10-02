@@ -46,7 +46,10 @@ jobs:
         run: |
           npm install -g npm@11
           tag=latest; case "$GITHUB_REF_NAME" in *-*) tag=next;; esac
-          npm stage publish ./amitkaps-markz-*.tgz --provenance --access public --tag "$tag"
+          # Run from outside the repository: its `devEngines` names pnpm, which npm refuses to run in.
+          tarball="$(ls "$PWD"/amitkaps-markz-*.tgz)"
+          cd "$RUNNER_TEMP"
+          npm stage publish "$tarball" --provenance --access public --tag "$tag"
 
       - name: Publish release
         env:
