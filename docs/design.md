@@ -329,7 +329,7 @@ document, and is the only timing CI gates on.
 - `pnpm bench --compare` times markz beside markdown-exit, marked and micromark on the blocks
   they all read alike, each in a fresh process. It is for our own insight. The parsers make
   different trade-offs, so nothing from it is published.
-- The site's Quality page measures this commit's build when the site is built: the gzip size
+- The Quality page measures this commit when it is generated (`pnpm quality`): the gzip size
   against the budget, the memory held by one document's tree, and parse + HTML time on documents
   a reader can picture, each a range, with the machine named.
 

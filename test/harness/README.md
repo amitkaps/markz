@@ -1,10 +1,10 @@
 # harness
 
-What the checks in [`../`](../) and the site's Quality page read and judge with. No tests
+What the checks in [`../`](../) and the Quality page read and judge with. No tests
 live here, so one change to how an example is filed or judged reaches both at once.
 
 - [`grammar.ts`](grammar.ts): the dialect's grammar, read from
-  [`prose/grammar.md`](../../prose/grammar.md) with markz: one entry per construct with its id,
+  [`docs/grammar.md`](../../docs/grammar.md) with markz: one entry per construct with its id,
   part, origin, EBNF productions and side rules. [`ebnf.ts`](ebnf.ts) reads the notation and
   recognizes a string by it.
 - [`syntax.ts`](syntax.ts): what `syntax.md` says about each construct, by id, and the Not
@@ -24,11 +24,11 @@ live here, so one change to how an example is filed or judged reaches both at on
   input, and the tree invariants among it.
 - [`corpus.ts`](corpus.ts): the real documents in [`../documents/`](../documents/) by tier, and
   the variants built from them: common, formatted and repeated to a size. `pnpm bench` and the
-  site's Quality page time them.
+  Quality page time them.
 - [`node.ts`](node.ts): lets a plain Node script load `src/` and the harness, which Vite
   otherwise resolves.
 - [`speed.ts`](speed.ts): warm-up, timed passes and retained memory, for `pnpm bench` and the
-  site's Size and Speed.
+  Quality page's Size and Speed.
 - [`parsers.ts`](parsers.ts): the other parsers `pnpm bench --compare` times markz beside, for
   our own insight.
 - [`adversarial.ts`](adversarial.ts): patterns that would make a careless parser quadratic, each

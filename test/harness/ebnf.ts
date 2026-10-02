@@ -1,7 +1,7 @@
 /** @prose
  * # EBNF
  *
- * The notation `prose/grammar.md` is written in, read into a tree so the grammar can be checked (every
+ * The notation `docs/grammar.md` is written in, read into a tree so the grammar can be checked (every
  * name defined, every production reachable), generate documents (step 16) and judge them (step
  * 18: `recognizer`). It is the W3C
  * notation of the XML spec, kept small: `name ::= expression`, `|` for alternatives, juxtaposition

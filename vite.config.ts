@@ -10,8 +10,8 @@ import { defineConfig } from "vite-plus";
 
 const generated = ["dist/**"];
 const vendored = ["test/examples/upstream/**/*.md", "test/documents/**"];
-// The site's generated files. `vp` reads this config for the whole workspace, `docs/` included.
-const site = ["docs/.svelte-kit/**", "docs/build/**", "docs/worker-configuration.d.ts"];
+// The site `prose build` writes, with the Quality page.
+const site = [".prose/**"];
 // Tests that measure time, which run after the rest.
 const timing = "test/complexity.test.ts";
 
@@ -27,7 +27,6 @@ export default defineConfig({
 
   // Oxfmt — `vp fmt` / `vp check`.
   fmt: {
-    svelte: {},
     ignorePatterns: [...generated, ...vendored, ...site, "pnpm-lock.yaml", "CHANGELOG.md"],
   },
 

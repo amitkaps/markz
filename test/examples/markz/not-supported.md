@@ -1,6 +1,6 @@
 # Not supported
 
-Each form `prose/syntax.md` cuts, under its warning code. The text stays, and every warning an example raises has that code.
+Each form `docs/syntax.md` cuts, under its warning code. The text stays, and every warning an example raises has that code.
 
 ## raw-html
 

@@ -4,7 +4,7 @@
  * The 20 KB budget, measured the way a consumer pays for it: everything `src/index.ts` pulls in,
  * bundled and minified, then gzipped (design: Performance and size). Run as a script, it fails the
  * build above the budget, so growth shows up in the PR that causes it rather than at the end.
- * Brotli is printed for reference only. The site's Quality page measures with the same `size()`.
+ * Brotli is printed for reference only. The Quality page measures with the same `size()`.
  */
 import { join } from "node:path";
 import { brotliCompressSync, gzipSync } from "node:zlib";
@@ -18,7 +18,6 @@ export interface Size {
   brotli: number;
 }
 
-/** A caller bundled away from this file (the site) passes the repo root. */
 export async function size(root = join(import.meta.dirname, "..")): Promise<Size> {
   const result = await build({
     configFile: false,

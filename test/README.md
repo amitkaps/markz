@@ -1,7 +1,7 @@
 # test
 
 Tests that span the package rather than one module, by what each file is. The statement of the
-dialect is [`prose/grammar.md`](../prose/grammar.md); here are the inputs, the harness that reads
+dialect is [`docs/grammar.md`](../docs/grammar.md); here are the inputs, the harness that reads
 and judges them, and the checks, each reporting by construct id or document.
 
 - [`examples/`](examples/): examples, each a small input with what it must give. [`upstream/`](examples/upstream/) holds the vendored
@@ -11,7 +11,7 @@ and judges them, and the checks, each reporting by construct id or document.
   with the edge they try.
 - [`documents/`](documents/): real documents, written by agents and by people, vendored and
   pinned. The variants built from them are never committed.
-- [`harness/`](harness/): the machinery the checks and the site's Quality page share, with no
+- [`harness/`](harness/): the machinery the checks and the Quality page share, with no
   tests of its own: the grammar, the examples and their filing, the oracles, the cases at each
   construct's edges, generation and soundness.
 
@@ -30,6 +30,8 @@ The checks:
 - [`documents.test.ts`](documents.test.ts): each real document, sound as written and formatted,
   its common blocks as micromark reads them, meaning the same after oxfmt, and warning as its
   snapshot in [`__snapshots__/`](__snapshots__/) says.
+- [`docs.test.ts`](docs.test.ts): each page in [`docs/`](../docs/) read without a warning, and its
+  relative links going to files that exist.
 - [`complexity.test.ts`](complexity.test.ts): every adversarial pattern, and a multi-megabyte
   document, held to linear time. It runs last, on its own.
 
