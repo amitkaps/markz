@@ -46,6 +46,8 @@ export function parseMetadata(
       if (!match && last !== null) delete value[last];
       last = null;
       if (!match) fail("metadata-line");
+      // Assigning `__proto__` on a plain object sets its prototype instead of adding a key.
+      else if (match[1] === "__proto__") fail("metadata-line", "`__proto__` is not a metadata key");
       else if (Object.hasOwn(value, match[1]!)) {
         fail(
           "metadata-duplicate-key",
