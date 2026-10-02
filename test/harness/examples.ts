@@ -22,6 +22,7 @@ import { html, parse, type Document, type NodeId, type Warning } from "../../src
 import {
   collapse,
   mathOracle,
+  flatten,
   metadataOracle,
   normalize,
   reference,
@@ -494,10 +495,11 @@ type Range = { start: number; end: number };
 /** @prose
  * ## Metadata against YAML
  *
- * A yaml-test-suite example is held to the `yaml` package, key by key: every key markz keeps
- * must have the value YAML gives it, and a block YAML rejects must raise a metadata warning. A
- * key markz skipped is fine when it warned about the line, and such an example warns rather than
- * matches. A block markz doesn't read as metadata at all differs, by the metadata rule.
+ * A yaml-test-suite example is held to the `yaml` package, key by key: every key markz keeps,
+ * with its nesting undone (`flatten`), must have the value YAML gives it, and a block YAML rejects
+ * must raise a metadata warning. A key markz skipped is fine when it warned about the line, and
+ * such an example warns rather than matches. A block markz doesn't read as metadata at all
+ * differs, by the metadata rule.
  */
 function againstYaml(e: Example, doc: Document): Result {
   const oracle = metadataOracle(e.markdown.slice(4, -4));
@@ -519,11 +521,12 @@ function againstYaml(e: Example, doc: Document): Result {
     return codes.length ? holds() : result("fail", "accepted a block YAML rejects");
   }
   const value = oracle.value as Record<string, unknown>;
-  for (const [key, v] of Object.entries(mine)) {
+  const kept = Object.entries(flatten(mine));
+  for (const [key, v] of kept) {
     if (JSON.stringify(v) !== JSON.stringify(value[key]))
       return result("fail", `\`${key}\` differs from YAML`);
   }
-  if (!codes.length && Object.keys(value).length !== Object.keys(mine).length) {
+  if (!codes.length && Object.keys(value).length !== kept.length) {
     return result("fail", "dropped a key without a warning");
   }
   return holds();

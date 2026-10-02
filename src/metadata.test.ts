@@ -1,11 +1,12 @@
 /** @prose
  * The metadata rule, held to the `yaml` package: every block markz accepts must give the same
- * object under YAML 1.2, and every YAML look-alike must be a warning rather than a string
- * (syntax.md: Metadata).
+ * object under YAML 1.2 (once dotted keys are expanded), and every YAML look-alike must be a
+ * warning rather than a string (syntax.md: Metadata).
  */
 import { describe, expect, it } from "vite-plus/test";
 import { parse as yaml } from "yaml";
 import { parse } from "./index";
+import { flatten } from "../test/harness/oracle";
 
 const block = (body: string) => `---\n${body}\n---\n`;
 
@@ -63,6 +64,73 @@ describe("metadata", () => {
     expect(doc.metadata).toEqual({ title: "Hi" });
     expect(Object.getPrototypeOf(doc.metadata)).toBe(Object.prototype);
     expect(doc.warnings.map((w) => w.code)).toEqual(["metadata-line"]);
+  });
+
+  describe("dotted keys", () => {
+    it("nest into objects at any depth and merge siblings in first-seen order", () => {
+      const doc = parse(block("a.b: 1\nx: 2\na.c.d: [p, q]\na.c.e: true"));
+      expect(doc.warnings).toEqual([]);
+      expect(doc.metadata).toEqual({ a: { b: 1, c: { d: ["p", "q"], e: true } }, x: 2 });
+      expect(Object.keys(doc.metadata!)).toEqual(["a", "x"]);
+    });
+
+    it("expand back to the flat object YAML gives", () => {
+      const body =
+        "deploy.provider: cloudflare\ndeploy.name: my-site\ndeploy.production: true\ntags: [a]";
+      expect(flatten(parse(block(body)).metadata!)).toEqual(yaml(body));
+    });
+
+    it.each([
+      ["a value then an object", "a: 1\na.b: 2", { a: 1 }],
+      ["an object then a value", "a.b: 2\na: 1", { a: { b: 2 } }],
+      ["null then an object", "a:\na.b: 2", { a: null }],
+      ["a list then an object", "a: []\na.b: 2", { a: [] }],
+      ["a leaf then a deeper path", "a.b: 1\na.b.c: 2", { a: { b: 1 } }],
+    ])("keep the first of %s", (_, body, first) => {
+      const doc = parse(block(`${body}\nkeep: 1`));
+      expect(doc.metadata).toEqual({ ...first, keep: 1 });
+      expect(doc.warnings.map((w) => w.code)).toEqual(["metadata-duplicate-key"]);
+    });
+
+    it("warn on a repeated path as a plain duplicate", () => {
+      const doc = parse(block("a.b: 1\na.b: 2"));
+      expect(doc.metadata).toEqual({ a: { b: 1 } });
+      expect(doc.warnings.map((w) => w.code)).toEqual(["metadata-duplicate-key"]);
+    });
+
+    it.each(["a..b", ".a", "a.", "a.b.", "a.0", "a.1b", "a b.c"])(
+      "skip the malformed path %s",
+      (key) => {
+        const doc = parse(block(`${key}: 1\nkeep: 1`));
+        expect(doc.metadata).toEqual({ keep: 1 });
+        expect(doc.warnings.map((w) => w.code)).toEqual(["metadata-line"]);
+      },
+    );
+
+    it.each(["a.__proto__", "__proto__.a", "a.__proto__.b"])("reject %s", (key) => {
+      const doc = parse(block(`${key}: 1\nkeep: 1`));
+      expect(doc.metadata).toEqual({ keep: 1 });
+      expect(Object.getPrototypeOf(doc.metadata)).toBe(Object.prototype);
+      expect(doc.warnings.map((w) => w.code)).toEqual(["metadata-line"]);
+    });
+
+    it("never walk into inherited properties", () => {
+      const before = Object.keys(Object);
+      const doc = parse(block("constructor.polluted: 1\ntoString.x: 2\nconstructor.y: 3"));
+      expect(doc.metadata).toEqual({ constructor: { polluted: 1, y: 3 }, toString: { x: 2 } });
+      expect(Object.keys(Object)).toEqual(before);
+      expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+    });
+
+    it("leave nothing behind when a following line skips the key", () => {
+      const doc = parse(block("a.b.c:\n  - x\na: 1"));
+      expect(doc.metadata).toEqual({ a: 1 });
+    });
+
+    it("leave a parent made by an earlier line when a later one is skipped", () => {
+      const doc = parse(block("a.b: 1\na.c:\n  - x"));
+      expect(doc.metadata).toEqual({ a: { b: 1 } });
+    });
   });
 
   it("records the block and its body ranges", () => {

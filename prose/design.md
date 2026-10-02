@@ -59,7 +59,7 @@ Only nodes that the syntax requires and that consumers use:
 
 ````text
 document
-metadata             parsed flat object (JSON-like, quotes optional), block range
+metadata             parsed object (JSON-like, quotes optional, dotted keys nested), block range
 comment              `<!-- … -->` on lines of its own; never rendered
 heading              depth, id, idExplicit
 paragraph
@@ -360,7 +360,8 @@ document, and is the only timing CI gates on.
   - elements and spans, by markz's own examples, and colon directives, from
     `micromark-extension-directive`'s suite, each reported
   - metadata: every row of the value table in `syntax.md`, each checked against the `yaml`
-    package, and every YAML look-alike (`~`, `True`, `1e3`, …) giving a warning, not a string
+    package once dotted keys are expanded back out, and every YAML look-alike (`~`, `True`,
+    `1e3`, …) giving a warning, not a string
   - math, including `$` used as currency
   - expressions: nesting, strings, comments, escapes, and emphasis inside `${…}`; malformed
     JavaScript that still closes; the regex-literal limit

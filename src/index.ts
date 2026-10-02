@@ -20,6 +20,7 @@ export type {
   DataType,
   Destination,
   Warning,
+  MetadataObject,
   MetadataScalar,
   MetadataValue,
   NodeData,
