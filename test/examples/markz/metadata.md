@@ -71,3 +71,17 @@ author:
 .
   name: A
 ```
+
+`__proto__` is not a key: it would set the metadata object's prototype rather than add an entry.
+The line is reported and the rest of the block is still read.
+
+```example 157
+---
+__proto__: x
+title: Report
+---
+.
+
+.
+__proto__: x
+```

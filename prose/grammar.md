@@ -85,7 +85,7 @@ plain ::= ([^ #x9#xA#xD"'{}#x5B#x5D&*!|>%@`,#?:-] | [?:-] [^ #x9#xA#xD]) char*
 
 - `metadata-start`: Only at offset 0, and only when a closing `---` follows; whatever is between is metadata, and a line this grammar does not match is a warning. Without the closing line the first `---` is a thematic break.
 - `metadata-continuation`: A line that is not a key line belongs to the value before it, which is skipped; lines inside brackets a rejected line left open are skipped too.
-- `metadata-keys`: A key appears once.
+- `metadata-keys`: A key appears once, and is not `__proto__`.
 - `plain-value`: A plain value contains no `: ` and is not one YAML 1.2 reads as another type (`True`, `~`, `0x1F`, `.5`, `1e3`).
 - `list-items`: A plain list item contains no `,`, `[`, `]` or `{`, `}`.
 

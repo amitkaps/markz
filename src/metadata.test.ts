@@ -58,6 +58,13 @@ describe("metadata", () => {
     expect(doc.warnings).toHaveLength(1);
   });
 
+  it.each(["null", "[x]", "x"])("skips a `__proto__` key (%s) and keeps the rest", (value) => {
+    const doc = parse(block(`__proto__: ${value}\ntitle: Hi`));
+    expect(doc.metadata).toEqual({ title: "Hi" });
+    expect(Object.getPrototypeOf(doc.metadata)).toBe(Object.prototype);
+    expect(doc.warnings.map((w) => w.code)).toEqual(["metadata-line"]);
+  });
+
   it("records the block and its body ranges", () => {
     const source = block("a: 1");
     const doc = parse(source);
