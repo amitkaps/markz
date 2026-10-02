@@ -44,7 +44,8 @@ jobs:
       - name: Stage on npm
         run: |
           tag=latest; case "$GITHUB_REF_NAME" in *-*) tag=next;; esac
-          pnpm stage publish ./amitkaps-markz-*.tgz --provenance --access public --tag "$tag"
+          # The tag is a detached checkout holding the tarball, which pnpm's git checks refuse.
+          pnpm stage publish ./amitkaps-markz-*.tgz --no-git-checks --provenance --access public --tag "$tag"
 
       - name: Publish release
         env:
