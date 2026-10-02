@@ -32,7 +32,7 @@ Read **`prose/markz.md`** and **`prose/design.md`** first: what markz is, and ho
 - The invariant: unsupported syntax stays literal text and produces a warning. It is never
   silently reinterpreted as a different supported construct.
 
-## Prose (`@amitkaps/prose`, `/__prose/`)
+## Prose (`@amitkaps/prose`, `pnpm prose`)
 
 - `prose/` is the lasting record: what the dialect is, how markz is built, and what building it
   taught. Decisions and lessons go there. `@prose` stays local to its code.
@@ -46,4 +46,4 @@ Read **`prose/markz.md`** and **`prose/design.md`** first: what markz is, and ho
 - Fill pending chunks as plan items. Work that belongs to one file goes in as a pending chunk there, not in a list elsewhere.
 - When unsure, or when a decision is the human's, leave a `@note` after the relevant `@prose` block instead of guessing.
 - When asked to "handle notes": find every `@note` (`grep -rn "@note"`), address the ones you can act on, and delete them — folding anything worth remembering into the `@prose` block each sat next to. Leave the ones waiting on the human, including your own questions.
-- Nothing checks prose against code on its own: when a change touches code under a `@prose` block, reread the block, and the grammar rules it cites, against the code. `/__prose/` also flags unresolved symbols and possibly-stale prose when it is open; treat either as a prompt to reread, not something to clear with a token edit.
+- Nothing checks prose against code on its own: when a change touches code under a `@prose` block, reread the block, and the grammar rules it cites, against the code. `pnpm prose` also flags unresolved symbols and possibly-stale prose when it is open; treat either as a prompt to reread, not something to clear with a token edit.

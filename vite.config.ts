@@ -3,11 +3,10 @@
  *
  * One [`vite-plus`](https://vite-plus.dev) config drives build, format, lint and test —
  * `vp <script>` in `package.json` reads whichever section its command needs. `pack` bundles the
- * library with tsdown; `prose()` ([`@amitkaps/prose`](https://github.com/amitkaps/prose),
- * dev-only) is mounted at `/__prose/` by `vp dev`.
+ * library with tsdown. `@amitkaps/prose` is a CLI now (`pnpm prose`), not a plugin, so it has no
+ * place here.
  */
 import { defineConfig } from 'vite-plus';
-import { prose } from '@amitkaps/prose';
 
 const generated = ['dist/**'];
 const vendored = ['test/examples/upstream/**/*.md', 'test/documents/**'];
@@ -17,8 +16,6 @@ const site = ['docs/.svelte-kit/**', 'docs/build/**', 'docs/worker-configuration
 const timing = 'test/complexity.test.ts';
 
 export default defineConfig({
-	plugins: process.env.VITEST ? [] : [prose()],
-
 	// tsdown — `vp pack`. ESM only, with declarations.
 	pack: {
 		entry: ['src/index.ts'],
