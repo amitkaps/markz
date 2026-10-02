@@ -17,13 +17,13 @@
 	},
 	"devDependencies": {
 		"@amitkaps/prose": "https://github.com/amitkaps/prose/releases/download/v0.1.0/amitkaps-prose-0.1.0.tgz",
-		"@sveltejs/adapter-cloudflare": "^8.0.0-next.6",
-		"@sveltejs/kit": "^3.0.0-next.29",
+		"@sveltejs/adapter-cloudflare": "^8.0.0",
+		"@sveltejs/kit": "^3.0.0",
 		"svelte": "^5.57.1",
 		"svelte-check": "^4.6.0",
 		"typescript": "^6.0.3",
-		"vite-plus": "1.0.0-rc.0",
-		"wrangler": "^4.140.0"
+		"vite-plus": "1.0.0",
+		"wrangler": "^4.146.0"
 	},
 	"engines": {
 		"node": ">=26"
