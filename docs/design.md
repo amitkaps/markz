@@ -217,25 +217,12 @@ Deciding whether a half-typed opener (`hello *`) shows or vanishes, and avoiding
 
 ## Public API
 
-```ts
-import { parse, html } from "@amitkaps/markz";
+The package exports `parse`, `html`, `walk`, `textContent`, `headings` and `position`, the
+read-only `Document`, and the types around them. [API](api.md) lists each one. Nothing takes an
+options object.
 
-const doc = parse(markdown); // AST
-const out = html(markdown); // or html(doc)
-```
-
-- `parse(source): Document`
-- `doc.warnings`: rejected syntax in source order, each `{ code, start, end, message, instead }`,
-  where `instead` is the supported form, as `syntax.md`'s "Not supported" table writes it
-- `html(source | Document): string`, rendered without recursion, like `walk`
-- `walk(doc, { enter?, exit? }, node?)`: depth-first from `node` (the root by default), without
-  recursion. `enter` returning `false` skips that node's children.
-- `textContent(doc, node?): string`, the text `html()` writes for a node, as a browser's
-  `textContent` reads it back: escapes decoded, punctuation curled, code and math included, images
-  left out. The source text of any node is `doc.source.slice(doc.start(node), doc.end(node))`
-- `position(source): (offset) => { line, column }`
-
-Nothing takes an options object.
+`headings` is the one helper that reads the tree for a consumer's outline, and it is not part of
+`html()`: depth, nesting and numbering are choices, and markz has none.
 
 ## HTML output
 
