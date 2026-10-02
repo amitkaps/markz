@@ -3,9 +3,9 @@
  * page module: the conformance page hydrates this layout, and would otherwise ship markz and every
  * Markdown source to the browser.
  */
-import { pages } from '#lib';
-import type { LayoutServerLoad } from './$types';
+import { pages } from "#lib";
+import type { LayoutServerLoad } from "./$types";
 
 export const load: LayoutServerLoad = () => ({
-	nav: pages.filter((p) => p.slug).map(({ slug, title }) => ({ slug, title }))
+  nav: pages.filter((p) => p.slug).map(({ slug, title }) => ({ slug, title })),
 });

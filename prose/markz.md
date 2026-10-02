@@ -5,19 +5,19 @@ dialect, a compact tree that maps every node back to the source, HTML output, an
 A project makes its Markdown decision once, and uses markz everywhere.
 
 ```ts
-import { html, parse, position, textContent, walk } from '@amitkaps/markz';
+import { html, parse, position, textContent, walk } from "@amitkaps/markz";
 
 const doc = parse(markdown); // a read-only, source-mapped tree, and doc.warnings
 const page = html(doc); // or html(markdown)
 
 walk(doc, {
-	enter(node) {
-		if (doc.type(node) === 'heading') console.log(doc.data(node, 'heading').id);
-	}
+  enter(node) {
+    if (doc.type(node) === "heading") console.log(doc.data(node, "heading").id);
+  },
 });
 
 const at = position(markdown); // offset → { line, column }
-for (const w of doc.warnings) console.log(at(w.start), w.message, 'write', w.instead);
+for (const w of doc.warnings) console.log(at(w.start), w.message, "write", w.instead);
 ```
 
 That is the whole API: `parse`, `html`, `walk`, `textContent` and `position`. None of them takes

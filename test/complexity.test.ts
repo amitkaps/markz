@@ -11,19 +11,19 @@
  * The corpus's scaling tier, the real agent and public documents repeated to megabytes, guards
  * the ordinary path the same way.
  */
-import { describe, expect, it } from 'vite-plus/test';
-import { html, parse } from '../src/index';
-import { PATTERNS } from './harness/adversarial';
-import { mix, repeat } from './harness/corpus';
+import { describe, expect, it } from "vite-plus/test";
+import { html, parse } from "../src/index";
+import { PATTERNS } from "./harness/adversarial";
+import { mix, repeat } from "./harness/corpus";
 
 const time = (input: string): number => {
-	let best = Infinity;
-	for (let i = 0; i < 3; i++) {
-		const start = performance.now();
-		html(parse(input));
-		best = Math.min(best, performance.now() - start);
-	}
-	return best;
+  let best = Infinity;
+  for (let i = 0; i < 3; i++) {
+    const start = performance.now();
+    html(parse(input));
+    best = Math.min(best, performance.now() - start);
+  }
+  return best;
 };
 
 /** How much longer four times the input may take. */
@@ -31,19 +31,19 @@ const RATIO = 8;
 const SLACK_MS = 10;
 
 function expectLinear(make: (n: number) => string, n: number): void {
-	time(make(n));
-	const small = time(make(n));
-	const large = time(make(4 * n));
-	expect(large, `${small.toFixed(1)} ms, then ${large.toFixed(1)} ms`).toBeLessThan(
-		RATIO * small + SLACK_MS
-	);
+  time(make(n));
+  const small = time(make(n));
+  const large = time(make(4 * n));
+  expect(large, `${small.toFixed(1)} ms, then ${large.toFixed(1)} ms`).toBeLessThan(
+    RATIO * small + SLACK_MS,
+  );
 }
 
-describe('adversarial input', () => {
-	it.each(Object.entries(PATTERNS))('%s', (_, make) => expectLinear(make, 2000), 30_000);
+describe("adversarial input", () => {
+  it.each(Object.entries(PATTERNS))("%s", (_, make) => expectLinear(make, 2000), 30_000);
 });
 
-describe('a large document', () => {
-	const text = mix();
-	it('stays linear to megabytes', () => expectLinear((n) => repeat(text, n), 1_000_000), 60_000);
+describe("a large document", () => {
+  const text = mix();
+  it("stays linear to megabytes", () => expectLinear((n) => repeat(text, n), 1_000_000), 60_000);
 });

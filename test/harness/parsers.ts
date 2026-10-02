@@ -9,29 +9,29 @@
  * (`corpus.ts`), the blocks every parser reads alike, so none is slower only because it does more.
  */
 
-export const OTHERS = ['markdown-exit', 'marked', 'micromark'];
+export const OTHERS = ["markdown-exit", "marked", "micromark"];
 
 export async function load(name: string): Promise<(text: string) => string> {
-	switch (name) {
-		case 'markz': {
-			const { parse, html } = await import('../../src/index');
-			return (s) => html(parse(s));
-		}
-		case 'markdown-exit': {
-			const md = new (await import('markdown-exit')).MarkdownExit();
-			return (s) => md.render(s);
-		}
-		case 'marked': {
-			const { Marked } = await import('marked');
-			const marked = new Marked({ gfm: true, async: false });
-			return (s) => marked.parse(s) as string;
-		}
-		case 'micromark': {
-			const { micromark } = await import('micromark');
-			const { gfm, gfmHtml } = await import('micromark-extension-gfm');
-			const options = { extensions: [gfm()], htmlExtensions: [gfmHtml()] };
-			return (s) => micromark(s, options);
-		}
-	}
-	throw new Error(`unknown parser ${name}`);
+  switch (name) {
+    case "markz": {
+      const { parse, html } = await import("../../src/index");
+      return (s) => html(parse(s));
+    }
+    case "markdown-exit": {
+      const md = new (await import("markdown-exit")).MarkdownExit();
+      return (s) => md.render(s);
+    }
+    case "marked": {
+      const { Marked } = await import("marked");
+      const marked = new Marked({ gfm: true, async: false });
+      return (s) => marked.parse(s) as string;
+    }
+    case "micromark": {
+      const { micromark } = await import("micromark");
+      const { gfm, gfmHtml } = await import("micromark-extension-gfm");
+      const options = { extensions: [gfm()], htmlExtensions: [gfmHtml()] };
+      return (s) => micromark(s, options);
+    }
+  }
+  throw new Error(`unknown parser ${name}`);
 }

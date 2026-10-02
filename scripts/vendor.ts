@@ -13,69 +13,69 @@
  * names the suite's repo at the clone's commit and what its examples are checked by (`SUITES`).
  * CommonMark and GFM's spec examples were converted once, and aren't written here.
  */
-import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
-import ts from 'typescript';
-import YAML from 'yaml';
-import { writeFences } from '../test/harness/fences.ts';
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import ts from "typescript";
+import YAML from "yaml";
+import { writeFences } from "../test/harness/fences.ts";
 
 /** Each suite's title, its GitHub repo and the path its tests are in, and what checks them. */
 const SUITES: Record<string, [title: string, repo: string, path: string, checks: string]> = {
-	'gfm-table': [
-		'micromark-extension-gfm-table',
-		'micromark/micromark-extension-gfm-table',
-		'test',
-		'oracle'
-	],
-	'gfm-strikethrough': [
-		'micromark-extension-gfm-strikethrough',
-		'micromark/micromark-extension-gfm-strikethrough',
-		'test',
-		'oracle'
-	],
-	'gfm-autolink-literal': [
-		'micromark-extension-gfm-autolink-literal',
-		'micromark/micromark-extension-gfm-autolink-literal',
-		'test',
-		'oracle'
-	],
-	'gfm-footnote': [
-		'micromark-extension-gfm-footnote',
-		'micromark/micromark-extension-gfm-footnote',
-		'test',
-		'oracle'
-	],
-	directive: [
-		'micromark-extension-directive',
-		'micromark/micromark-extension-directive',
-		'test',
-		'oracle'
-	],
-	frontmatter: [
-		'micromark-extension-frontmatter',
-		'micromark/micromark-extension-frontmatter',
-		'test',
-		'oracle'
-	],
-	math: ['micromark-extension-math', 'micromark/micromark-extension-math', 'test', 'math'],
-	yaml: ['yaml-test-suite', 'yaml/yaml-test-suite', 'src', 'yaml'],
-	slugger: ['github-slugger', 'Flet/github-slugger', 'test', 'slug']
+  "gfm-table": [
+    "micromark-extension-gfm-table",
+    "micromark/micromark-extension-gfm-table",
+    "test",
+    "oracle",
+  ],
+  "gfm-strikethrough": [
+    "micromark-extension-gfm-strikethrough",
+    "micromark/micromark-extension-gfm-strikethrough",
+    "test",
+    "oracle",
+  ],
+  "gfm-autolink-literal": [
+    "micromark-extension-gfm-autolink-literal",
+    "micromark/micromark-extension-gfm-autolink-literal",
+    "test",
+    "oracle",
+  ],
+  "gfm-footnote": [
+    "micromark-extension-gfm-footnote",
+    "micromark/micromark-extension-gfm-footnote",
+    "test",
+    "oracle",
+  ],
+  directive: [
+    "micromark-extension-directive",
+    "micromark/micromark-extension-directive",
+    "test",
+    "oracle",
+  ],
+  frontmatter: [
+    "micromark-extension-frontmatter",
+    "micromark/micromark-extension-frontmatter",
+    "test",
+    "oracle",
+  ],
+  math: ["micromark-extension-math", "micromark/micromark-extension-math", "test", "math"],
+  yaml: ["yaml-test-suite", "yaml/yaml-test-suite", "src", "yaml"],
+  slugger: ["github-slugger", "Flet/github-slugger", "test", "slug"],
 };
 
 export interface Vendored {
-	example: number;
-	/**
-	 * `<test group> › <test title>` from `index.js`, or `<fixture file> › <heading>`, or the file
-	 * alone for a fixture's untitled start.
-	 */
-	section: string;
-	markdown: string;
-	/**
-	 * What the suite expected, which may be another renderer's or handler's HTML. For YAML, the
-	 * test's JSON, or `error` when the YAML is invalid.
-	 */
-	html: string;
+  example: number;
+  /**
+   * `<test group> › <test title>` from `index.js`, or `<fixture file> › <heading>`, or the file
+   * alone for a fixture's untitled start.
+   */
+  section: string;
+  markdown: string;
+  /**
+   * What the suite expected, which may be another renderer's or handler's HTML. For YAML, the
+   * test's JSON, or `error` when the YAML is invalid.
+   */
+  html: string;
 }
 
 /** Options that change what micromark parses, so the suite's input no longer means the same. */
@@ -89,47 +89,47 @@ const SYNTAX_OPTIONS = /\bdisable\b|singleTilde|frontmatter\([^)]/;
  * documents are left to step 16.
  */
 function fixtures(dir: string): Vendored[] {
-	const out: Vendored[] = [];
-	const base = join(dir, 'test/fixtures');
-	if (!existsSync(base)) return out;
-	for (const file of readdirSync(base).sort()) {
-		if (!file.endsWith('.md') || file.endsWith('.offline.md')) continue;
-		const md = sections(readFileSync(join(base, file), 'utf8'));
-		const html = htmlSections(readFileSync(join(base, file.replace(/\.md$/, '.html')), 'utf8'), md);
-		for (const [i, [title, markdown]] of md.entries()) {
-			// A heading with nothing under it tests nothing.
-			if (!markdown.replace(/^#.*\n?/, '').trim()) continue;
-			out.push({
-				example: 0,
-				section: title ? `${file} › ${title}` : file,
-				markdown,
-				html: html[i]!
-			});
-		}
-	}
-	return out;
+  const out: Vendored[] = [];
+  const base = join(dir, "test/fixtures");
+  if (!existsSync(base)) return out;
+  for (const file of readdirSync(base).sort()) {
+    if (!file.endsWith(".md") || file.endsWith(".offline.md")) continue;
+    const md = sections(readFileSync(join(base, file), "utf8"));
+    const html = htmlSections(readFileSync(join(base, file.replace(/\.md$/, ".html")), "utf8"), md);
+    for (const [i, [title, markdown]] of md.entries()) {
+      // A heading with nothing under it tests nothing.
+      if (!markdown.replace(/^#.*\n?/, "").trim()) continue;
+      out.push({
+        example: 0,
+        section: title ? `${file} › ${title}` : file,
+        markdown,
+        html: html[i]!,
+      });
+    }
+  }
+  return out;
 }
 
 /** Splits a document before each ATX heading outside a fence. */
 function sections(text: string): [title: string, markdown: string][] {
-	const out: [string, string][] = [];
-	let fence = '';
-	for (const line of text.split(/(?<=\n)/)) {
-		const ticks = /^ {0,3}(`{3,}|~{3,})/.exec(line)?.[1];
-		if (fence) {
-			if (
-				ticks &&
-				ticks[0] === fence[0] &&
-				ticks.length >= fence.length &&
-				!line.trim().slice(ticks.length)
-			)
-				fence = '';
-		} else if (ticks) fence = ticks;
-		const heading = !fence && /^#{1,6} (.*)/.exec(line);
-		if (heading || !out.length) out.push([heading ? heading[1]!.trim() : '', '']);
-		out.at(-1)![1] += line;
-	}
-	return out.filter(([, md]) => md.trim());
+  const out: [string, string][] = [];
+  let fence = "";
+  for (const line of text.split(/(?<=\n)/)) {
+    const ticks = /^ {0,3}(`{3,}|~{3,})/.exec(line)?.[1];
+    if (fence) {
+      if (
+        ticks &&
+        ticks[0] === fence[0] &&
+        ticks.length >= fence.length &&
+        !line.trim().slice(ticks.length)
+      )
+        fence = "";
+    } else if (ticks) fence = ticks;
+    const heading = !fence && /^#{1,6} (.*)/.exec(line);
+    if (heading || !out.length) out.push([heading ? heading[1]!.trim() : "", ""]);
+    out.at(-1)![1] += line;
+  }
+  return out.filter(([, md]) => md.trim());
 }
 
 /**
@@ -138,24 +138,24 @@ function sections(text: string): [title: string, markdown: string][] {
  * is left empty and the oracle isn't checked against it.
  */
 function htmlSections(html: string, md: [string, string][]): string[] {
-	const starts: number[] = [];
-	let from = 0;
-	for (const [title] of md) {
-		let at = -1;
-		for (const m of html.slice(from).matchAll(/<h([1-6])[^>]*>([\s\S]*?)<\/h\1>/g)) {
-			if (m[2]!.replace(/<[^>]+>/g, '').trim() === title) {
-				at = from + m.index;
-				break;
-			}
-		}
-		starts.push(title ? at : 0);
-		if (at >= 0) from = at + 1;
-	}
-	return starts.map((start, i) => {
-		if (start < 0) return '';
-		const next = starts.slice(i + 1).find((s) => s > start);
-		return html.slice(start, next ?? html.length);
-	});
+  const starts: number[] = [];
+  let from = 0;
+  for (const [title] of md) {
+    let at = -1;
+    for (const m of html.slice(from).matchAll(/<h([1-6])[^>]*>([\s\S]*?)<\/h\1>/g)) {
+      if (m[2]!.replace(/<[^>]+>/g, "").trim() === title) {
+        at = from + m.index;
+        break;
+      }
+    }
+    starts.push(title ? at : 0);
+    if (at >= 0) from = at + 1;
+  }
+  return starts.map((start, i) => {
+    if (start < 0) return "";
+    const next = starts.slice(i + 1).find((s) => s > start);
+    return html.slice(start, next ?? html.length);
+  });
 }
 
 /** @prose
@@ -168,87 +168,87 @@ function htmlSections(html: string, md: [string, string][]): string[] {
  * directive suite's `options({'*': h})` installs handlers whose HTML isn't the oracle's.
  */
 function inline(dir: string, dropped: string[]): Vendored[] {
-	const file = join(dir, 'test/index.js');
-	const source = ts.createSourceFile(
-		file,
-		readFileSync(file, 'utf8'),
-		ts.ScriptTarget.Latest,
-		true
-	);
-	const out: Vendored[] = [];
-	const visit = (node: ts.Node, title: string) => {
-		if (ts.isCallExpression(node)) {
-			const callee = node.expression.getText();
-			const name = node.arguments[0];
-			if (/(^|\.)test$/.test(callee) && name && ts.isStringLiteralLike(name)) {
-				// `test(group)` holds `t.test(title)`s.
-				title = callee === 'test' ? name.text : `${title.split(' › ')[0]} › ${name.text}`;
-			}
-			if (callee === 'micromark') {
-				const input = literal(node.arguments[0]);
-				const options = node.arguments[1]?.getText() ?? '';
-				const line = source.getLineAndCharacterOfPosition(node.getStart()).line + 1;
-				if (input === null) dropped.push(`index.js:${line} input is not a literal`);
-				else if (SYNTAX_OPTIONS.test(options))
-					dropped.push(`index.js:${line} ${title}: options change the syntax`);
-				else
-					out.push({
-						example: 0,
-						section: title,
-						markdown: input,
-						html: ts.isObjectLiteralExpression(node.arguments[1] ?? node) ? expected(node) : ''
-					});
-			}
-		}
-		ts.forEachChild(node, (child) => visit(child, title));
-	};
-	visit(source, '');
-	return out;
+  const file = join(dir, "test/index.js");
+  const source = ts.createSourceFile(
+    file,
+    readFileSync(file, "utf8"),
+    ts.ScriptTarget.Latest,
+    true,
+  );
+  const out: Vendored[] = [];
+  const visit = (node: ts.Node, title: string) => {
+    if (ts.isCallExpression(node)) {
+      const callee = node.expression.getText();
+      const name = node.arguments[0];
+      if (/(^|\.)test$/.test(callee) && name && ts.isStringLiteralLike(name)) {
+        // `test(group)` holds `t.test(title)`s.
+        title = callee === "test" ? name.text : `${title.split(" › ")[0]} › ${name.text}`;
+      }
+      if (callee === "micromark") {
+        const input = literal(node.arguments[0]);
+        const options = node.arguments[1]?.getText() ?? "";
+        const line = source.getLineAndCharacterOfPosition(node.getStart()).line + 1;
+        if (input === null) dropped.push(`index.js:${line} input is not a literal`);
+        else if (SYNTAX_OPTIONS.test(options))
+          dropped.push(`index.js:${line} ${title}: options change the syntax`);
+        else
+          out.push({
+            example: 0,
+            section: title,
+            markdown: input,
+            html: ts.isObjectLiteralExpression(node.arguments[1] ?? node) ? expected(node) : "",
+          });
+      }
+    }
+    ts.forEachChild(node, (child) => visit(child, title));
+  };
+  visit(source, "");
+  return out;
 }
 
 function literal(node: ts.Node | undefined): string | null {
-	if (!node) return null;
-	if (ts.isStringLiteralLike(node)) return node.text;
-	if (ts.isParenthesizedExpression(node)) return literal(node.expression);
-	if (ts.isIdentifier(node)) return literal(binding(node));
-	// `['a', 'b'].join('\n\n')`
-	if (
-		ts.isCallExpression(node) &&
-		ts.isPropertyAccessExpression(node.expression) &&
-		node.expression.name.text === 'join' &&
-		ts.isArrayLiteralExpression(node.expression.expression)
-	) {
-		const items = node.expression.expression.elements.map(literal);
-		const separator = node.arguments.length ? literal(node.arguments[0]) : ',';
-		return separator === null || items.includes(null) ? null : items.join(separator);
-	}
-	if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-		const [a, b] = [literal(node.left), literal(node.right)];
-		return a === null || b === null ? null : a + b;
-	}
-	return null;
+  if (!node) return null;
+  if (ts.isStringLiteralLike(node)) return node.text;
+  if (ts.isParenthesizedExpression(node)) return literal(node.expression);
+  if (ts.isIdentifier(node)) return literal(binding(node));
+  // `['a', 'b'].join('\n\n')`
+  if (
+    ts.isCallExpression(node) &&
+    ts.isPropertyAccessExpression(node.expression) &&
+    node.expression.name.text === "join" &&
+    ts.isArrayLiteralExpression(node.expression.expression)
+  ) {
+    const items = node.expression.expression.elements.map(literal);
+    const separator = node.arguments.length ? literal(node.arguments[0]) : ",";
+    return separator === null || items.includes(null) ? null : items.join(separator);
+  }
+  if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+    const [a, b] = [literal(node.left), literal(node.right)];
+    return a === null || b === null ? null : a + b;
+  }
+  return null;
 }
 
 /** The initializer of the nearest enclosing `const` of that name. */
 function binding(name: ts.Identifier): ts.Expression | undefined {
-	for (let scope: ts.Node | undefined = name.parent; scope; scope = scope.parent) {
-		if (!ts.isBlock(scope) && !ts.isSourceFile(scope)) continue;
-		for (const statement of scope.statements) {
-			if (!ts.isVariableStatement(statement)) continue;
-			if (!(statement.declarationList.flags & ts.NodeFlags.Const)) continue;
-			for (const d of statement.declarationList.declarations) {
-				if (ts.isIdentifier(d.name) && d.name.text === name.text) return d.initializer;
-			}
-		}
-	}
-	return undefined;
+  for (let scope: ts.Node | undefined = name.parent; scope; scope = scope.parent) {
+    if (!ts.isBlock(scope) && !ts.isSourceFile(scope)) continue;
+    for (const statement of scope.statements) {
+      if (!ts.isVariableStatement(statement)) continue;
+      if (!(statement.declarationList.flags & ts.NodeFlags.Const)) continue;
+      for (const d of statement.declarationList.declarations) {
+        if (ts.isIdentifier(d.name) && d.name.text === name.text) return d.initializer;
+      }
+    }
+  }
+  return undefined;
 }
 
 /** The string `assert.equal(micromark(…), expected)` holds the call to, when it is a literal. */
 function expected(call: ts.CallExpression): string {
-	const parent = call.parent;
-	if (!ts.isCallExpression(parent) || parent.arguments[0] !== call) return '';
-	return literal(parent.arguments[1]) ?? '';
+  const parent = call.parent;
+  if (!ts.isCallExpression(parent) || parent.arguments[0] !== call) return "";
+  return literal(parent.arguments[1]) ?? "";
 }
 
 /** @prose
@@ -261,67 +261,67 @@ function expected(call: ts.CallExpression): string {
  * those tests are left out. The suite's own JSON, or its `fail`, checks the oracle.
  */
 function yamlSuite(dir: string, dropped: string[]): Vendored[] {
-	const out: Vendored[] = [];
-	const base = join(dir, 'src');
-	for (const file of readdirSync(base).sort()) {
-		if (!file.endsWith('.yaml')) continue;
-		const id = file.slice(0, -5);
-		let name = '';
-		let tags = '';
-		for (const [i, test] of (
-			YAML.parse(readFileSync(join(base, file), 'utf8'), { logLevel: 'error' }) as Test[]
-		).entries()) {
-			name = test.name ?? name;
-			tags = test.tags ?? tags;
-			if (test.yaml === undefined) continue;
-			const label = `${id}${i ? `:${i}` : ''}`;
-			const text = visible(test.yaml);
-			if (/^(?:---|\.\.\.)(?:\s|$)|^%/m.test(text) || text.includes('\uFEFF')) {
-				dropped.push(`${label} ${name}: document markers`);
-				continue;
-			}
-			let shape = 'error';
-			try {
-				const value = YAML.parse(text, { logLevel: 'error' });
-				shape =
-					value === null || typeof value !== 'object'
-						? 'scalar'
-						: Array.isArray(value)
-							? 'sequence'
-							: 'mapping';
-			} catch {}
-			if (shape !== 'mapping' && shape !== 'error') {
-				dropped.push(`${label} ${name}: a ${shape}, not a mapping`);
-				continue;
-			}
-			out.push({
-				example: 0,
-				section: `${label} › ${name} (${tags})`,
-				markdown: `---\n${text}${text.endsWith('\n') ? '' : '\n'}---\n`,
-				html: test.fail ? 'error' : (test.json ?? '')
-			});
-		}
-	}
-	return out;
+  const out: Vendored[] = [];
+  const base = join(dir, "src");
+  for (const file of readdirSync(base).sort()) {
+    if (!file.endsWith(".yaml")) continue;
+    const id = file.slice(0, -5);
+    let name = "";
+    let tags = "";
+    for (const [i, test] of (
+      YAML.parse(readFileSync(join(base, file), "utf8"), { logLevel: "error" }) as Test[]
+    ).entries()) {
+      name = test.name ?? name;
+      tags = test.tags ?? tags;
+      if (test.yaml === undefined) continue;
+      const label = `${id}${i ? `:${i}` : ""}`;
+      const text = visible(test.yaml);
+      if (/^(?:---|\.\.\.)(?:\s|$)|^%/m.test(text) || text.includes("\uFEFF")) {
+        dropped.push(`${label} ${name}: document markers`);
+        continue;
+      }
+      let shape = "error";
+      try {
+        const value = YAML.parse(text, { logLevel: "error" });
+        shape =
+          value === null || typeof value !== "object"
+            ? "scalar"
+            : Array.isArray(value)
+              ? "sequence"
+              : "mapping";
+      } catch {}
+      if (shape !== "mapping" && shape !== "error") {
+        dropped.push(`${label} ${name}: a ${shape}, not a mapping`);
+        continue;
+      }
+      out.push({
+        example: 0,
+        section: `${label} › ${name} (${tags})`,
+        markdown: `---\n${text}${text.endsWith("\n") ? "" : "\n"}---\n`,
+        html: test.fail ? "error" : (test.json ?? ""),
+      });
+    }
+  }
+  return out;
 }
 
 interface Test {
-	name?: string;
-	tags?: string;
-	yaml?: string;
-	json?: string;
-	fail?: boolean;
+  name?: string;
+  tags?: string;
+  yaml?: string;
+  json?: string;
+  fail?: boolean;
 }
 
 /** The suite writes invisible characters visibly: `␣` a space, `—»` a tab, `←` a CR, `∎` no final newline. */
 function visible(text: string): string {
-	return text
-		.replace(/␣/g, ' ')
-		.replace(/—*»/g, '\t')
-		.replace(/←/g, '\r')
-		.replace(/↵/g, '')
-		.replace(/⇔/g, '\uFEFF')
-		.replace(/∎\n?$/, '');
+  return text
+    .replace(/␣/g, " ")
+    .replace(/—*»/g, "\t")
+    .replace(/←/g, "\r")
+    .replace(/↵/g, "")
+    .replace(/⇔/g, "\uFEFF")
+    .replace(/∎\n?$/, "");
 }
 
 /** @prose
@@ -334,21 +334,21 @@ function visible(text: string): string {
  * trimmed, so an input that starts or ends with whitespace can't be written as one.
  */
 function sluggerSuite(dir: string, dropped: string[]): Vendored[] {
-	const fixtures = JSON.parse(readFileSync(join(dir, 'test/fixtures.json'), 'utf8')) as {
-		name: string;
-		input: string;
-		expected: string;
-	}[];
-	const out: Vendored[] = [];
-	for (const f of fixtures) {
-		if (f.input !== f.input.trim() || /[\r\n]/.test(f.input)) {
-			dropped.push(`${f.name}: ${JSON.stringify(f.input)} can't be a heading's text`);
-			continue;
-		}
-		const markdown = `# ${f.input.replace(/[!-/:-@[-`{-~]/g, '\\$&')}\n`;
-		out.push({ example: 0, section: f.name, markdown, html: f.expected });
-	}
-	return out;
+  const fixtures = JSON.parse(readFileSync(join(dir, "test/fixtures.json"), "utf8")) as {
+    name: string;
+    input: string;
+    expected: string;
+  }[];
+  const out: Vendored[] = [];
+  for (const f of fixtures) {
+    if (f.input !== f.input.trim() || /[\r\n]/.test(f.input)) {
+      dropped.push(`${f.name}: ${JSON.stringify(f.input)} can't be a heading's text`);
+      continue;
+    }
+    const markdown = `# ${f.input.replace(/[!-/:-@[-`{-~]/g, "\\$&")}\n`;
+    out.push({ example: 0, section: f.name, markdown, html: f.expected });
+  }
+  return out;
 }
 
 /** @prose
@@ -379,112 +379,112 @@ function sluggerSuite(dir: string, dropped: string[]): Vendored[] {
  *   test has (`mapping`, `whitespace`) don't count.
  */
 const YAML_FEATURES = new Set([
-	'alias',
-	'anchor',
-	'tag',
-	'local-tag',
-	'unknown-tag',
-	'flow',
-	'sequence',
-	'literal',
-	'folded',
-	'explicit-key',
-	'complex-key',
-	'empty-key',
-	'duplicate-key',
-	'double',
-	'single',
-	'comment',
-	'indent',
-	'error'
+  "alias",
+  "anchor",
+  "tag",
+  "local-tag",
+  "unknown-tag",
+  "flow",
+  "sequence",
+  "literal",
+  "folded",
+  "explicit-key",
+  "complex-key",
+  "empty-key",
+  "duplicate-key",
+  "double",
+  "single",
+  "comment",
+  "indent",
+  "error",
 ]);
 const CUT_NEIGHBOUR =
-	/(?:code \(indented\)|a definition|heading \(setext\)|html|thematic break) (?:before|after) a/;
+  /(?:code \(indented\)|a definition|heading \(setext\)|html|thematic break) (?:before|after) a/;
 const ATTRIBUTE_REPEAT =
-	/^content › should (?:not )?support (?:EOLs? .*|.*shortcuts.*|.*single(?: quoted)? attribute values)$/;
+  /^content › should (?:not )?support (?:EOLs? .*|.*shortcuts.*|.*single(?: quoted)? attribute values)$/;
 
 const FOOTNOTE =
-	/^(?:bang-caret|images-or-footnotes|links-or-footnotes|references-and-definitions|calls|definitions|inline-notes-pandoc)\.md|^micromark-extension-gfm-footnote › (?!should support `options)/;
+  /^(?:bang-caret|images-or-footnotes|links-or-footnotes|references-and-definitions|calls|definitions|inline-notes-pandoc)\.md|^micromark-extension-gfm-footnote › (?!should support `options)/;
 
 const SWEEPS = /^(?:http|www)-(?:domain|path)-|-character-reference-like-|^previous-complex/;
 
 function curate(suite: string, examples: Vendored[]): [kept: Vendored[], stress: Vendored[]] {
-	const kept: Vendored[] = [];
-	const stress: Vendored[] = [];
-	const seen = new Map<string, number>();
-	for (const e of examples) {
-		let keep = true;
-		if (suite === 'gfm-autolink-literal') keep = !SWEEPS.test(e.section);
-		if (suite === 'gfm-footnote') keep = FOOTNOTE.test(e.section);
-		if (suite === 'directive') {
-			// Variants that differ only in one character (`an empty shortcut (\`.\`)`) are one test.
-			const title = e.section
-				.split(' › ')
-				.at(-1)!
-				.replace(/ \(`[^`]*`\)$/, '');
-			keep = !seen.has(title) && !CUT_NEIGHBOUR.test(title) && !ATTRIBUTE_REPEAT.test(e.section);
-			seen.set(title, 1);
-		}
-		if (suite === 'yaml') {
-			const body = e.markdown.slice(4, -4);
-			const tags = (/\(([^)]*)\)$/.exec(e.section)?.[1]?.split(' ') ?? []).filter((t) =>
-				YAML_FEATURES.has(t)
-			);
-			keep =
-				(e.html !== 'error' &&
-					body.split('\n').every((l) => /^(?:[\w-]+:(?: .*)?|\s*(?:#.*)?)$/.test(l))) ||
-				tags.some((t) => !seen.has(t));
-			if (keep) for (const t of tags) seen.set(t, (seen.get(t) ?? 0) + 1);
-		}
-		(keep ? kept : stress).push(e);
-	}
-	return [kept, stress];
+  const kept: Vendored[] = [];
+  const stress: Vendored[] = [];
+  const seen = new Map<string, number>();
+  for (const e of examples) {
+    let keep = true;
+    if (suite === "gfm-autolink-literal") keep = !SWEEPS.test(e.section);
+    if (suite === "gfm-footnote") keep = FOOTNOTE.test(e.section);
+    if (suite === "directive") {
+      // Variants that differ only in one character (`an empty shortcut (\`.\`)`) are one test.
+      const title = e.section
+        .split(" › ")
+        .at(-1)!
+        .replace(/ \(`[^`]*`\)$/, "");
+      keep = !seen.has(title) && !CUT_NEIGHBOUR.test(title) && !ATTRIBUTE_REPEAT.test(e.section);
+      seen.set(title, 1);
+    }
+    if (suite === "yaml") {
+      const body = e.markdown.slice(4, -4);
+      const tags = (/\(([^)]*)\)$/.exec(e.section)?.[1]?.split(" ") ?? []).filter((t) =>
+        YAML_FEATURES.has(t),
+      );
+      keep =
+        (e.html !== "error" &&
+          body.split("\n").every((l) => /^(?:[\w-]+:(?: .*)?|\s*(?:#.*)?)$/.test(l))) ||
+        tags.some((t) => !seen.has(t));
+      if (keep) for (const t of tags) seen.set(t, (seen.get(t) ?? 0) + 1);
+    }
+    (keep ? kept : stress).push(e);
+  }
+  return [kept, stress];
 }
 
 const [suite, dir] = process.argv.slice(2);
 if (!suite || !dir || !SUITES[suite]) {
-	throw new Error(`usage: node scripts/vendor.ts <${Object.keys(SUITES).join('|')}> <clone>`);
+  throw new Error(`usage: node scripts/vendor.ts <${Object.keys(SUITES).join("|")}> <clone>`);
 }
 const dropped: string[] = [];
 const examples =
-	suite === 'yaml'
-		? yamlSuite(dir, dropped)
-		: suite === 'slugger'
-			? sluggerSuite(dir, dropped)
-			: [...fixtures(dir), ...inline(dir, dropped)];
+  suite === "yaml"
+    ? yamlSuite(dir, dropped)
+    : suite === "slugger"
+      ? sluggerSuite(dir, dropped)
+      : [...fixtures(dir), ...inline(dir, dropped)];
 // Upstream sometimes asserts the same input twice, under different options.
 const seen = new Set<string>();
 // A slugger fixture repeats its input on purpose.
 const kept =
-	suite === 'slugger'
-		? examples
-		: examples.filter((e) => !seen.has(e.markdown) && seen.add(e.markdown));
+  suite === "slugger"
+    ? examples
+    : examples.filter((e) => !seen.has(e.markdown) && seen.add(e.markdown));
 const [conformance, stress] = curate(suite, kept);
 conformance.forEach((e, i) => (e.example = i + 1));
 stress.forEach((e, i) => (e.example = i + 1));
-const commit = execFileSync('git', ['-C', dir, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+const commit = execFileSync("git", ["-C", dir, "rev-parse", "HEAD"], { encoding: "utf8" }).trim();
 const [title, repo, path, checks] = SUITES[suite]!;
 const write = (file: string, list: Vendored[], checkedBy: string) => {
-	const meta = {
-		source: suite,
-		url: `https://github.com/${repo}/tree/${commit}/${path}`,
-		commit,
-		checks: checkedBy
-	};
-	const fences = list.map((e) => ({
-		section: e.section,
-		number: e.example,
-		category: null,
-		rule: null,
-		markdown: e.markdown,
-		expected: e.html,
-		warnings: []
-	}));
-	writeFileSync(file, writeFences(title, meta, fences));
+  const meta = {
+    source: suite,
+    url: `https://github.com/${repo}/tree/${commit}/${path}`,
+    commit,
+    checks: checkedBy,
+  };
+  const fences = list.map((e) => ({
+    section: e.section,
+    number: e.example,
+    category: null,
+    rule: null,
+    markdown: e.markdown,
+    expected: e.html,
+    warnings: [],
+  }));
+  writeFileSync(file, writeFences(title, meta, fences));
 };
 write(`test/examples/upstream/${suite}.md`, conformance, checks);
-if (stress.length) write(`test/examples/upstream/stress/${suite}.md`, stress, 'sound');
+if (stress.length) write(`test/examples/upstream/stress/${suite}.md`, stress, "sound");
 console.log(
-	`${suite} at ${commit}: ${conformance.length} examples, ${stress.length} to stress, ${examples.length - kept.length} duplicate inputs`
+  `${suite} at ${commit}: ${conformance.length} examples, ${stress.length} to stress, ${examples.length - kept.length} duplicate inputs`,
 );
 for (const d of dropped) console.log(`  dropped ${d}`);

@@ -23,12 +23,12 @@
  * comment, or never reached, scans afresh.
  */
 export interface Memo {
-	/** Where each counted `{` closed, just past its `}`, or -1. */
-	closes: Map<number, number>;
-	/** Where a block comment that never ends opened. */
-	comment: number;
-	/** By quote character, the last string that didn't close: its quote and where it failed. */
-	strings: Map<number, [from: number, to: number]>;
+  /** Where each counted `{` closed, just past its `}`, or -1. */
+  closes: Map<number, number>;
+  /** Where a block comment that never ends opened. */
+  comment: number;
+  /** By quote character, the last string that didn't close: its quote and where it failed. */
+  strings: Map<number, [from: number, to: number]>;
 }
 
 export const memo = (): Memo => ({ closes: new Map(), comment: Infinity, strings: new Map() });
@@ -38,88 +38,88 @@ export const memo = (): Memo => ({ closes: new Map(), comment: Infinity, strings
  * doesn't close before `end`. `record` is what earlier scans of the same text and `end` found.
  */
 export function scanExpression(
-	source: string,
-	at: number,
-	end: number,
-	record: Memo = memo()
+  source: string,
+  at: number,
+  end: number,
+  record: Memo = memo(),
 ): number {
-	const known = record.closes.get(at + 1);
-	if (known !== undefined) return known;
-	// Where each `{` still open was, innermost last.
-	const braces = [at + 1];
-	const result = scan(source, at + 2, end, braces, record);
-	for (const b of braces) record.closes.set(b, -1);
-	return result;
+  const known = record.closes.get(at + 1);
+  if (known !== undefined) return known;
+  // Where each `{` still open was, innermost last.
+  const braces = [at + 1];
+  const result = scan(source, at + 2, end, braces, record);
+  for (const b of braces) record.closes.set(b, -1);
+  return result;
 }
 
 function scan(source: string, from: number, end: number, braces: number[], record: Memo): number {
-	// One entry per open context: a brace depth for code, TEMPLATE inside a template literal.
-	const stack = [1];
-	let i = from;
-	while (i < end) {
-		const c = source.charCodeAt(i);
-		const top = stack.length - 1;
-		if (stack[top] === TEMPLATE) {
-			if (c === BACKSLASH) i += 2;
-			else if (c === BACKTICK) {
-				stack.pop();
-				i++;
-			} else if (c === DOLLAR && source.charCodeAt(i + 1) === OPEN) {
-				stack.push(1);
-				braces.push(i + 1);
-				i += 2;
-			} else i++;
-		} else if (c === QUOTE || c === APOSTROPHE) {
-			i = skipString(source, i, end, record);
-			if (i < 0) return -1;
-		} else if (c === BACKTICK) {
-			stack.push(TEMPLATE);
-			i++;
-		} else if (c === SLASH && source.charCodeAt(i + 1) === SLASH) {
-			i = lineEnd(source, i, end);
-		} else if (c === SLASH && source.charCodeAt(i + 1) === STAR) {
-			if (i >= record.comment) return -1;
-			const close = source.indexOf('*/', i + 2);
-			if (close < 0 || close + 2 > end) {
-				record.comment = i;
-				return -1;
-			}
-			i = close + 2;
-		} else if (c === OPEN) {
-			stack[top]!++;
-			braces.push(i);
-			i++;
-		} else if (c === CLOSE) {
-			i++;
-			record.closes.set(braces.pop()!, i);
-			if (--stack[top]! === 0) {
-				stack.pop();
-				if (stack.length === 0) return i;
-			}
-		} else i++;
-	}
-	return -1;
+  // One entry per open context: a brace depth for code, TEMPLATE inside a template literal.
+  const stack = [1];
+  let i = from;
+  while (i < end) {
+    const c = source.charCodeAt(i);
+    const top = stack.length - 1;
+    if (stack[top] === TEMPLATE) {
+      if (c === BACKSLASH) i += 2;
+      else if (c === BACKTICK) {
+        stack.pop();
+        i++;
+      } else if (c === DOLLAR && source.charCodeAt(i + 1) === OPEN) {
+        stack.push(1);
+        braces.push(i + 1);
+        i += 2;
+      } else i++;
+    } else if (c === QUOTE || c === APOSTROPHE) {
+      i = skipString(source, i, end, record);
+      if (i < 0) return -1;
+    } else if (c === BACKTICK) {
+      stack.push(TEMPLATE);
+      i++;
+    } else if (c === SLASH && source.charCodeAt(i + 1) === SLASH) {
+      i = lineEnd(source, i, end);
+    } else if (c === SLASH && source.charCodeAt(i + 1) === STAR) {
+      if (i >= record.comment) return -1;
+      const close = source.indexOf("*/", i + 2);
+      if (close < 0 || close + 2 > end) {
+        record.comment = i;
+        return -1;
+      }
+      i = close + 2;
+    } else if (c === OPEN) {
+      stack[top]!++;
+      braces.push(i);
+      i++;
+    } else if (c === CLOSE) {
+      i++;
+      record.closes.set(braces.pop()!, i);
+      if (--stack[top]! === 0) {
+        stack.pop();
+        if (stack.length === 0) return i;
+      }
+    } else i++;
+  }
+  return -1;
 }
 
 function skipString(source: string, at: number, end: number, record: Memo): number {
-	const quote = source.charCodeAt(at);
-	const failed = record.strings.get(quote);
-	if (failed && at > failed[0] && at < failed[1]) return -1;
-	let i = at + 1;
-	for (; i < end; i++) {
-		const c = source.charCodeAt(i);
-		if (c === BACKSLASH) i++;
-		else if (c === quote) return i + 1;
-		else if (c === NEWLINE || c === RETURN) break;
-	}
-	record.strings.set(quote, [at, i]);
-	return -1;
+  const quote = source.charCodeAt(at);
+  const failed = record.strings.get(quote);
+  if (failed && at > failed[0] && at < failed[1]) return -1;
+  let i = at + 1;
+  for (; i < end; i++) {
+    const c = source.charCodeAt(i);
+    if (c === BACKSLASH) i++;
+    else if (c === quote) return i + 1;
+    else if (c === NEWLINE || c === RETURN) break;
+  }
+  record.strings.set(quote, [at, i]);
+  return -1;
 }
 
 function lineEnd(source: string, at: number, end: number): number {
-	let i = at;
-	while (i < end && source.charCodeAt(i) !== NEWLINE && source.charCodeAt(i) !== RETURN) i++;
-	return i;
+  let i = at;
+  while (i < end && source.charCodeAt(i) !== NEWLINE && source.charCodeAt(i) !== RETURN) i++;
+  return i;
 }
 
 const TEMPLATE = -1;
