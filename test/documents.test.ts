@@ -14,59 +14,59 @@
  * What markz warns about in each document as written is a snapshot, so a change in what it
  * reports is seen and accepted, never slipped in.
  */
-import { describe, expect, it } from 'vite-plus/test';
-import { html, parse, position } from '../src/index';
-import { TIERS, commonBlocks, documents, format } from './harness/corpus';
-import { apart, normalize, reference } from './harness/oracle';
-import { expectSound } from './harness/sound';
-import { row } from './harness/syntax';
+import { describe, expect, it } from "vite-plus/test";
+import { html, parse, position } from "../src/index";
+import { TIERS, commonBlocks, documents, format } from "./harness/corpus";
+import { apart, normalize, reference } from "./harness/oracle";
+import { expectSound } from "./harness/sound";
+import { row } from "./harness/syntax";
 
 const all = TIERS.flatMap((tier) =>
-	[...documents(tier)].map(([name, text]) => ({ key: `${tier}/${name}`, text }))
+  [...documents(tier)].map(([name, text]) => ({ key: `${tier}/${name}`, text })),
 );
 // One oxfmt run for every document, and one for every common variant: each is a process.
-const flat = (key: string) => key.replace('/', '-');
+const flat = (key: string) => key.replace("/", "-");
 const formatted = format(new Map(all.map((d) => [flat(d.key), d.text])));
 const common = new Map(all.map((d) => [d.key, commonBlocks(parse(d.text))]));
 const commonFormatted = format(
-	new Map(all.map((d) => [flat(d.key), common.get(d.key)!.join('\n\n') + '\n']))
+  new Map(all.map((d) => [flat(d.key), common.get(d.key)!.join("\n\n") + "\n"])),
 );
 
 /** What a document means, as HTML, without what oxfmt may rewrite and HTML ignores. */
 const meaning = (markdown: string) =>
-	html(parse(markdown))
-		.replace(/(<pre><code[^>]*>)[\s\S]*?(<\/code><\/pre>)/g, '$1$2')
-		.replace(/ {2,}/g, ' ');
+  html(parse(markdown))
+    .replace(/(<pre><code[^>]*>)[\s\S]*?(<\/code><\/pre>)/g, "$1$2")
+    .replace(/ {2,}/g, " ");
 
-describe.each(all)('$key', ({ key, text }) => {
-	const doc = parse(text);
+describe.each(all)("$key", ({ key, text }) => {
+  const doc = parse(text);
 
-	it('is sound', () => expectSound(text));
+  it("is sound", () => expectSound(text));
 
-	it('is sound formatted', () => expectSound(formatted.get(flat(key))!));
+  it("is sound formatted", () => expectSound(formatted.get(flat(key))!));
 
-	it('reads its common blocks as the oracle does', () => {
-		const differ = common
-			.get(key)!
-			.filter((block) => !apart(block) && normalize(html(block)) !== normalize(reference(block)));
-		expect(differ.slice(0, 3)).toEqual([]);
-	});
+  it("reads its common blocks as the oracle does", () => {
+    const differ = common
+      .get(key)!
+      .filter((block) => !apart(block) && normalize(html(block)) !== normalize(reference(block)));
+    expect(differ.slice(0, 3)).toEqual([]);
+  });
 
-	it('means the same formatted', () => {
-		const raw = common.get(key)!.join('\n\n') + '\n';
-		expect(meaning(commonFormatted.get(flat(key))!)).toBe(meaning(raw));
-		if (!doc.warnings.some((w) => row(w.code))) {
-			expect(meaning(formatted.get(flat(key))!)).toBe(meaning(text));
-		}
-	});
+  it("means the same formatted", () => {
+    const raw = common.get(key)!.join("\n\n") + "\n";
+    expect(meaning(commonFormatted.get(flat(key))!)).toBe(meaning(raw));
+    if (!doc.warnings.some((w) => row(w.code))) {
+      expect(meaning(formatted.get(flat(key))!)).toBe(meaning(text));
+    }
+  });
 
-	it('warns as before', () => {
-		const at = position(text);
-		const lines = doc.warnings.map((w) => {
-			const { line, column } = at(w.start);
-			const covered = text.slice(w.start, Math.min(w.end, w.start + 60)).replace(/\r?\n/g, '⏎');
-			return `${line}:${column} ${w.code} ${covered}`;
-		});
-		expect(lines).toMatchSnapshot();
-	});
+  it("warns as before", () => {
+    const at = position(text);
+    const lines = doc.warnings.map((w) => {
+      const { line, column } = at(w.start);
+      const covered = text.slice(w.start, Math.min(w.end, w.start + 60)).replace(/\r?\n/g, "⏎");
+      return `${line}:${column} ${w.code} ${covered}`;
+    });
+    expect(lines).toMatchSnapshot();
+  });
 });

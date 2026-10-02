@@ -7,23 +7,23 @@
  * with no options. This is the package entry point: the public API lives here and nothing else is
  * importable.
  */
-export { parse } from './parse';
-export { html } from './html';
-export { walk, textContent, type Visitor } from './walk';
-export { position, type Position } from './position';
-export { Document, NONE } from './ast';
-export type { WarningCode } from './warnings';
+export { parse } from "./parse";
+export { html } from "./html";
+export { walk, textContent, type Visitor } from "./walk";
+export { position, type Position } from "./position";
+export { Document, NONE } from "./ast";
+export type { WarningCode } from "./warnings";
 export type {
-	Align,
-	Attribute,
-	Attributes,
-	DataType,
-	Destination,
-	Warning,
-	MetadataScalar,
-	MetadataValue,
-	NodeData,
-	NodeId,
-	NodeType,
-	Range
-} from './ast';
+  Align,
+  Attribute,
+  Attributes,
+  DataType,
+  Destination,
+  Warning,
+  MetadataScalar,
+  MetadataValue,
+  NodeData,
+  NodeId,
+  NodeType,
+  Range,
+} from "./ast";

@@ -9,7 +9,7 @@ export const isSpace = (c: number): boolean => c === 32 || c === 9;
 
 /** `\` before ASCII punctuation drops; every other backslash stays. */
 export function unescape(text: string): string {
-	return text.includes('\\') ? text.replace(/\\([!-/:-@[-`{-~])/g, '$1') : text;
+  return text.includes("\\") ? text.replace(/\\([!-/:-@[-`{-~])/g, "$1") : text;
 }
 
 /** A named character reference, which markz keeps as written and reports (syntax.md). */

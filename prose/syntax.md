@@ -34,7 +34,7 @@ look like anything else is a string as written.
 ---
 # a comment
 title: Sales Report
-summary: 'Make it yours: Cloudflare, secrets.'
+summary: "Make it yours: Cloudflare, secrets."
 order: 2
 draft: false
 date: 2026-09-26
@@ -343,8 +343,8 @@ Body **here**.
 
 ```html
 <details class="proof">
-	<summary>Show the proof</summary>
-	<p>Body <strong>here</strong>.</p>
+  <summary>Show the proof</summary>
+  <p>Body <strong>here</strong>.</p>
 </details>
 ```
 

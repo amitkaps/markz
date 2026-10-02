@@ -8,25 +8,25 @@
  * clamped to the end.
  */
 export interface Position {
-	line: number;
-	column: number;
+  line: number;
+  column: number;
 }
 
 export function position(source: string): (offset: number) => Position {
-	const starts = [0];
-	for (let i = 0; i < source.length; i++) {
-		const c = source.charCodeAt(i);
-		if (c === 10 || (c === 13 && source.charCodeAt(i + 1) !== 10)) starts.push(i + 1);
-	}
-	return (offset) => {
-		const at = Math.max(0, Math.min(offset, source.length));
-		let low = 0;
-		let high = starts.length - 1;
-		while (low < high) {
-			const mid = (low + high + 1) >> 1;
-			if (starts[mid]! <= at) low = mid;
-			else high = mid - 1;
-		}
-		return { line: low + 1, column: at - starts[low]! };
-	};
+  const starts = [0];
+  for (let i = 0; i < source.length; i++) {
+    const c = source.charCodeAt(i);
+    if (c === 10 || (c === 13 && source.charCodeAt(i + 1) !== 10)) starts.push(i + 1);
+  }
+  return (offset) => {
+    const at = Math.max(0, Math.min(offset, source.length));
+    let low = 0;
+    let high = starts.length - 1;
+    while (low < high) {
+      const mid = (low + high + 1) >> 1;
+      if (starts[mid]! <= at) low = mid;
+      else high = mid - 1;
+    }
+    return { line: low + 1, column: at - starts[low]! };
+  };
 }

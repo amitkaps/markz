@@ -11,16 +11,16 @@
  * of repeated passes, with the middle half of the passes as its range, so one pass slowed by a
  * collection doesn't widen it.
  */
-import { setFlagsFromString } from 'node:v8';
-import { runInNewContext } from 'node:vm';
+import { setFlagsFromString } from "node:v8";
+import { runInNewContext } from "node:vm";
 
 export interface Timing {
-	/** The median pass, in milliseconds. */
-	ms: number;
-	/** The middle half of the passes. */
-	low: number;
-	high: number;
-	passes: number;
+  /** The median pass, in milliseconds. */
+  ms: number;
+  /** The middle half of the passes. */
+  low: number;
+  high: number;
+  passes: number;
 }
 
 // Each result is kept until the next, so no engine can drop a parse whose output goes unused.
@@ -29,42 +29,42 @@ export let kept: unknown;
 
 /** Runs `run` over every text in turn until `ms` is spent, so the engine has optimized it. */
 export function warm(run: (text: string) => unknown, texts: string[], ms: number): void {
-	const start = performance.now();
-	while (texts.length) {
-		for (const text of texts) {
-			kept = run(text);
-			if (performance.now() - start >= ms) return;
-		}
-	}
+  const start = performance.now();
+  while (texts.length) {
+    for (const text of texts) {
+      kept = run(text);
+      if (performance.now() - start >= ms) return;
+    }
+  }
 }
 
 /** One unmeasured pass over `texts`, then passes until `budgetMs` is spent, at least `least`. */
 export function time(
-	run: (text: string) => unknown,
-	texts: string[],
-	budgetMs: number,
-	least = 5
+  run: (text: string) => unknown,
+  texts: string[],
+  budgetMs: number,
+  least = 5,
 ): Timing {
-	const pass = () => {
-		const start = performance.now();
-		for (const text of texts) kept = run(text);
-		return performance.now() - start;
-	};
-	pass();
-	const passes: number[] = [];
-	for (let spent = 0; spent < budgetMs || passes.length < least;) {
-		const ms = pass();
-		passes.push(ms);
-		spent += ms;
-	}
-	passes.sort((a, b) => a - b);
-	const q = passes.length >> 2;
-	return {
-		ms: passes[passes.length >> 1]!,
-		low: passes[q]!,
-		high: passes[passes.length - 1 - q]!,
-		passes: passes.length
-	};
+  const pass = () => {
+    const start = performance.now();
+    for (const text of texts) kept = run(text);
+    return performance.now() - start;
+  };
+  pass();
+  const passes: number[] = [];
+  for (let spent = 0; spent < budgetMs || passes.length < least;) {
+    const ms = pass();
+    passes.push(ms);
+    spent += ms;
+  }
+  passes.sort((a, b) => a - b);
+  const q = passes.length >> 2;
+  return {
+    ms: passes[passes.length >> 1]!,
+    low: passes[q]!,
+    high: passes[passes.length - 1 - q]!,
+    passes: passes.length,
+  };
 }
 
 /** @prose
@@ -79,20 +79,20 @@ export function time(
 const HELD = 20;
 
 export function retained(parse: (text: string) => unknown, source: string): number {
-	setFlagsFromString('--expose-gc');
-	const gc = runInNewContext('gc') as () => void;
-	// Warm up, so compiled code and caches aren't counted as retained.
-	for (let i = 0; i < 3; i++) kept = parse(source);
-	kept = undefined;
-	gc();
-	gc();
-	const before = process.memoryUsage().heapUsed;
-	const held: unknown[] = [];
-	for (let i = 0; i < HELD; i++) held.push(parse(source));
-	gc();
-	gc();
-	const after = process.memoryUsage().heapUsed;
-	// Read after measuring, so the results are alive until then.
-	if (held.length !== HELD) throw new Error('lost a result');
-	return (after - before) / HELD;
+  setFlagsFromString("--expose-gc");
+  const gc = runInNewContext("gc") as () => void;
+  // Warm up, so compiled code and caches aren't counted as retained.
+  for (let i = 0; i < 3; i++) kept = parse(source);
+  kept = undefined;
+  gc();
+  gc();
+  const before = process.memoryUsage().heapUsed;
+  const held: unknown[] = [];
+  for (let i = 0; i < HELD; i++) held.push(parse(source));
+  gc();
+  gc();
+  const after = process.memoryUsage().heapUsed;
+  // Read after measuring, so the results are alive until then.
+  if (held.length !== HELD) throw new Error("lost a result");
+  return (after - before) / HELD;
 }

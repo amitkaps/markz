@@ -12,26 +12,26 @@
  * `-`, less the few names HTML reserves. It fits either kind.
  */
 export const INLINE: ReadonlySet<string> = new Set(
-	'abbr b i u s small cite q dfn time data var samp kbd mark sub sup ins bdi bdo ruby rt rp'.split(
-		' '
-	)
+  "abbr b i u s small cite q dfn time data var samp kbd mark sub sup ins bdi bdo ruby rt rp".split(
+    " ",
+  ),
 );
 export const BLOCK: ReadonlySet<string> = new Set(
-	'div section article aside header footer nav main address hgroup search details summary figure figcaption dl dt dd'.split(
-		' '
-	)
+  "div section article aside header footer nav main address hgroup search details summary figure figcaption dl dt dd".split(
+    " ",
+  ),
 );
 const RESERVED = new Set(
-	'annotation-xml color-profile font-face font-face-src font-face-uri font-face-format font-face-name missing-glyph'.split(
-		' '
-	)
+  "annotation-xml color-profile font-face font-face-src font-face-uri font-face-format font-face-name missing-glyph".split(
+    " ",
+  ),
 );
 
 export function custom(name: string): boolean {
-	return /^[a-z][a-z\d]*-[a-z\d-]*$/.test(name) && !RESERVED.has(name);
+  return /^[a-z][a-z\d]*-[a-z\d-]*$/.test(name) && !RESERVED.has(name);
 }
 
 /** Whether `name` is an element of this kind: inline for a span, block for a leaf or container. */
 export function element(name: string, inline: boolean): boolean {
-	return (inline ? INLINE : BLOCK).has(name) || custom(name);
+  return (inline ? INLINE : BLOCK).has(name) || custom(name);
 }

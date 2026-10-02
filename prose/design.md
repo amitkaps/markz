@@ -218,7 +218,7 @@ Deciding whether a half-typed opener (`hello *`) shows or vanishes, and avoiding
 ## Public API
 
 ```ts
-import { parse, html } from '@amitkaps/markz';
+import { parse, html } from "@amitkaps/markz";
 
 const doc = parse(markdown); // AST
 const out = html(markdown); // or html(doc)
