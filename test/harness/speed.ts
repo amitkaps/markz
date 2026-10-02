@@ -2,9 +2,8 @@
  * # Timing
  *
  * How markz's speed and memory are measured, shared by `pnpm bench` (`test/speed.ts`) and the
- * site's Quality page, which times this commit's build when the site is built. It is given the
- * functions to time rather than importing markz, so the bench times `src/` and the site the
- * built package.
+ * Quality page, which times this commit when the page is generated. It is given the functions to
+ * time rather than importing markz, so each caller says what it times.
  *
  * Every figure is warm: the parser has run over the documents for a while before anything is
  * timed, which is what a server or a watch build pays for each document. A figure is the median

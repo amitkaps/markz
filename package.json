@@ -35,7 +35,7 @@
     "fuzz": "SEARCH=50 SEED=$RANDOM vp test --run test/constructs.test.ts test/robustness.test.ts",
     "bench": "node test/speed.ts",
     "vendor": "node scripts/vendor.ts",
-    "docs": "pnpm --filter markz-docs dev",
+    "quality": "node scripts/quality.ts",
     "prose": "prose"
   },
   "devDependencies": {

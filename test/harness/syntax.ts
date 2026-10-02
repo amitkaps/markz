@@ -7,7 +7,7 @@
  * here depends on wording: headings and cells can be reworded as long as the ids and the codes
  * stay.
  */
-import syntax from "../../prose/syntax.md?raw";
+import syntax from "../../docs/syntax.md?raw";
 import { type WarningCode } from "../../src/index";
 
 export type Part = "Metadata" | "Block" | "Inline" | "Not supported";

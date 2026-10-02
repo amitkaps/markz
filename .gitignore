@@ -3,6 +3,9 @@ node_modules
 # Output
 /dist
 
+# The site (`pnpm prose build`, then `pnpm quality`)
+/.prose
+
 # Vite+
 /.vite
 

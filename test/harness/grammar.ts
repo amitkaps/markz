@@ -1,7 +1,7 @@
 /** @prose
  * # The grammar
  *
- * The dialect as data, read from [`prose/grammar.md`](../prose/grammar.md): every construct of
+ * The dialect as data, read from [`docs/grammar.md`](../docs/grammar.md): every construct of
  * `syntax.md`, by its id, with its part, its origin, its productions and the side rules EBNF can't
  * state. The page is the only copy, so there is nothing to drift: it is read with markz itself, a
  * `###` heading's explicit id naming the construct, the `##` above it the part, an `ebnf` code
@@ -14,7 +14,7 @@
  * a side rule here must say why (step 18). A misreading of the page by markz would show there as
  * a grammar that isn't well formed or doesn't match `syntax.md`.
  */
-import grammar from "../../prose/grammar.md?raw";
+import grammar from "../../docs/grammar.md?raw";
 import { parse, textContent } from "../../src/index";
 import { productions, references, type Production } from "./ebnf";
 

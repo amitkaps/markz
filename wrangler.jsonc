@@ -1,15 +1,9 @@
 {
-  "$schema": "./node_modules/wrangler/config-schema.json",
+  // The site is static files: `prose build` writes the pages and `pnpm quality` adds one.
   "name": "markz",
   "compatibility_date": "2026-09-09",
-  "compatibility_flags": ["nodejs_als"],
-  "main": ".svelte-kit/cloudflare/_worker.js",
-  "assets": {
-    "binding": "ASSETS",
-    "directory": ".svelte-kit/cloudflare",
-  },
+  "assets": { "directory": ".prose", "not_found_handling": "404-page" },
   "workers_dev": true,
-  "preview_urls": true,
   // Custom domain — needs the `amitkaps.com` zone on this Cloudflare account.
   // Cloudflare creates the DNS record + certificate on first deploy.
   "routes": [{ "pattern": "markz.amitkaps.com", "custom_domain": true }],

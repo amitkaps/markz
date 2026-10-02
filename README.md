@@ -28,7 +28,7 @@ That is the whole API: `parse`, `html`, `walk` (with `enter` and `exit`, where `
 `false` skips a node's children), `textContent` (the text a node renders as) and `position`. None
 of them takes options.
 
-The site, [markz.amitkaps.com](https://markz.amitkaps.com), starts from [`prose/markz.md`](prose/markz.md). The language is in [`prose/syntax.md`](prose/syntax.md) and the design in [`prose/design.md`](prose/design.md).
+The site, [markz.amitkaps.com](https://markz.amitkaps.com), starts from [`docs/markz.md`](docs/markz.md). The language is in [`docs/syntax.md`](docs/syntax.md) and the design in [`docs/design.md`](docs/design.md).
 
 ## Install
 
@@ -63,5 +63,6 @@ pnpm install
 ```
 
 `dev` (watch build), `build`, `check` (format, lint, typecheck) and `test` are the whole interface.
-The site is in [`docs/`](docs/): `pnpm docs` runs it, and its Quality page shows every spec
-example against the oracle, with markz's size and speed.
+The site is the repo read by [prose](https://prose.amitkaps.com): `pnpm prose build` writes it,
+and `pnpm quality` adds the Quality page, which shows every spec example against the oracle, with
+markz's size and speed.

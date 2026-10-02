@@ -373,7 +373,7 @@ export const examples: Example[] = [
 /** @prose
  * ## Checking an example
  *
- * One function decides every status, for the tests and for the site. An example holds in one of
+ * One function decides every status, for the tests and for the Quality page. An example holds in one of
  * three ways and fails in the fourth:
  *
  * - **match:** it gives what it is held to, the oracle's output or markz's own expected HTML.
