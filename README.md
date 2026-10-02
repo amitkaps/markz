@@ -64,5 +64,5 @@ pnpm install
 
 `dev` (watch build), `build`, `check` (format, lint, typecheck) and `test` are the whole interface.
 The site is the repo read by [prose](https://prose.amitkaps.com): `pnpm prose build` writes it,
-and `pnpm quality` adds the Quality page, which shows every spec example against the oracle, with
-markz's size and speed.
+and `pnpm quality` adds the [Quality page](https://markz.amitkaps.com/quality), which shows every
+spec example against the oracle, with markz's size and speed.
