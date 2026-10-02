@@ -19,6 +19,7 @@ import { frontmatter, frontmatterHtml } from "micromark-extension-frontmatter";
 import { math } from "micromark-extension-math";
 import GithubSlugger from "github-slugger";
 import YAML from "yaml";
+import type { MetadataObject } from "../../src/index";
 
 const extensions = [gfm(), frontmatter()];
 
@@ -156,6 +157,20 @@ export function metadataOracle(body: string): { value: unknown } | { error: stri
   } catch (error) {
     return { error: (error as Error).message.split("\n")[0]! };
   }
+}
+
+/**
+ * A metadata object as YAML would hold it: each leaf under its dotted path, which is how markz's
+ * nesting is undone (a key has no `.` of its own, so no two paths collide).
+ */
+export function flatten(object: MetadataObject, prefix = ""): Record<string, unknown> {
+  const flat: Record<string, unknown> = {};
+  for (const [key, v] of Object.entries(object)) {
+    if (typeof v === "object" && v !== null && !Array.isArray(v)) {
+      Object.assign(flat, flatten(v as MetadataObject, `${prefix}${key}.`));
+    } else flat[`${prefix}${key}`] = v;
+  }
+  return flat;
 }
 
 /** @prose

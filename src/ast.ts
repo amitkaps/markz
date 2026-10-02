@@ -67,11 +67,14 @@ export interface Range {
  * everything else is a range, so the source stays the one copy of the text.
  */
 export type MetadataScalar = string | number | boolean | null;
-export type MetadataValue = MetadataScalar | MetadataScalar[];
+export type MetadataValue = MetadataScalar | readonly MetadataScalar[] | MetadataObject;
+export interface MetadataObject {
+  readonly [key: string]: MetadataValue;
+}
 
 export interface NodeData {
-  /** The flat object, and the range of the lines between the `---` fences. */
-  metadata: { value: Record<string, MetadataValue>; range: Range };
+  /** The object (dotted keys nested), and the range of the lines between the `---` fences. */
+  metadata: { value: MetadataObject; range: Range };
   heading: { depth: 1 | 2 | 3 | 4 | 5 | 6; id: string; idExplicit: boolean };
   /** Decoded text; the node's range covers the raw characters. */
   text: { value: string };
@@ -204,7 +207,7 @@ export class Document {
   }
 
   /** The metadata object, which can only be the root's first child. */
-  get metadata(): Readonly<Record<string, MetadataValue>> | undefined {
+  get metadata(): MetadataObject | undefined {
     const first = this.firstChild(this.root);
     return first !== NONE && this.type(first) === "metadata"
       ? this.data(first, "metadata").value

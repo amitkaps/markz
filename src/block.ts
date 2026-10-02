@@ -1208,7 +1208,7 @@ function trailing(src: string, at: number, end: number): boolean {
 }
 
 /** A metadata key line, as `parseMetadata` reads one. */
-const KEY = /^[A-Za-z_][\w-]*:(?:[ \t\r\n]|$)/;
+const KEY = /^[A-Za-z_][\w-]*(?:\.[A-Za-z_][\w-]*)*:(?:[ \t\r\n]|$)/;
 
 /** @prose
  * ## Table rows

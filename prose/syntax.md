@@ -17,15 +17,15 @@ its warning code.
 
 ## Metadata
 
-Kept to what YAML 1.2, GitHub and formatters read the same way.
+Kept to what YAML 1.2, GitHub and formatters read the same way, with dotted keys expanded into
+nested objects.
 
 A document can open with a metadata block: key/value pairs between `---` lines, starting at
 offset 0 (what other tools call frontmatter). Opening a document with `---` asks for metadata:
 when a closing `---` line follows, everything between is the block, and a line the rule below can't read is a warning rather than a reason to read
 the block as Markdown. So a document can't open with a thematic break. Without a closing line, the
 first `---` is a thematic break, and if the next line is a `key:` line it gets the warning
-`metadata-unclosed`. markz parses the block into `doc.metadata`, a flat object, and keeps its
-range.
+`metadata-unclosed`. markz parses the block into `doc.metadata`, an object, and keeps its range.
 
 The rule is JSON-like, with quotes optional: one `key: value` per line, where a value that doesn't
 look like anything else is a string as written.
@@ -53,7 +53,24 @@ tags: [svelte, vite]
 | `[a, 2, "b, c"]`   | a list of values by these same rules, one line, no nesting   |
 | anything else      | string, as written: `Sales Report`, `2026-09-26`, `C# notes` |
 
-- **Keys** are `[A-Za-z_][A-Za-z0-9_-]*`, and a key appears once.
+- **Keys** are made of segments, each `[A-Za-z_][A-Za-z0-9_-]*`, and a key appears once.
+- **A dotted key** is a path into a nested object, at any depth, so a block reads as a small
+  JSON-shaped tree of scalars and lists. Keys that start the same share the object, in the order
+  each first appears. A segment has no `.` of its own, can't start with a digit and can't be
+  `__proto__`; a path that doesn't fit (`a..b`, `.a`, `a.`, `a.0`) gets `metadata-line` and is
+  skipped. A path is a value or an object, never both: of `a` and `a.b`, in either order, the
+  first wins and the second gets `metadata-duplicate-key`. Lists hold scalars; there are no lists
+  of objects, because metadata describes the document, and repeated records belong in its body,
+  as a list or a table.
+
+  ```yaml
+  title: My Site
+  deploy.provider: cloudflare
+  deploy.name: my-site
+  ```
+
+  is `{ title: "My Site", deploy: { provider: "cloudflare", name: "my-site" } }`.
+
 - **Comments:** a line starting with `#`, or ` #` after a value, as in YAML.
 - **Both quote styles** are accepted because formatters pick one by configuration (oxfmt writes
   single quotes in this repo and double quotes by default). Quote a value that would otherwise
@@ -62,8 +79,8 @@ tags: [svelte, vite]
   that contains `,`, `[` or `]`.
 - **YAML look-alikes are errors, not strings.** The block is still YAML to GitHub, editors,
   formatters and any YAML parser, and every block markz accepts has the same value under YAML
-  1.2. So a plain value YAML would read differently gets the warning `metadata-value`, not a
-  silent string:
+  1.2, once its dotted keys are expanded back out. So a plain value YAML would read differently
+  gets the warning `metadata-value`, not a silent string:
   `True`, `FALSE`, `~`, `Null`, `+1`, `.5`, `1e3`, `0x1F`, `.inf`. Write the canonical form or
   quote it.
 - **Everything else in YAML is out:** indented lines (nested maps, `- item` lists, multi-line
@@ -73,7 +90,8 @@ tags: [svelte, vite]
   and so are the lines inside brackets a rejected line leaves open. Of two
   duplicate keys, the first wins and the second gets the warning `metadata-duplicate-key`.
 
-markz is not a YAML parser, but every block it accepts gives the object YAML would.
+markz is not a YAML parser, but every block it accepts gives the object YAML would, with each
+dotted key (`a.b`, which YAML reads as the one key `"a.b"`) expanded into nested objects.
 
 ## Block
 

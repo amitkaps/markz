@@ -85,3 +85,52 @@ title: Report
 .
 __proto__: x
 ```
+
+A `.` in a key nests: keys that start the same share an object, and `html()` still writes nothing.
+
+```example 158
+---
+title: My Site
+deploy.provider: cloudflare
+deploy.name: my-site
+---
+# Hi
+.
+<h1 id="hi">Hi</h1>
+```
+
+A path is a value or an object, never both. The first one wins and the clashing line is reported.
+
+```example 159
+---
+a: 1
+a.b: 2
+---
+.
+
+.
+a.b: 2
+```
+
+```example 160
+---
+a.b.c: 1
+a.b: 2
+---
+.
+
+.
+a.b: 2
+```
+
+A path that isn't a run of keys joined by `.` isn't a key line, so it is reported and skipped.
+
+```example 161
+---
+a..b: 1
+---
+.
+
+.
+a..b: 1
+```

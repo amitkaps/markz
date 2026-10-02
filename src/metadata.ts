@@ -3,13 +3,19 @@
  *
  * The `---` block at the top of a document, read by syntax.md's JSON-like rule: one `key: value`
  * per line, where a value is null, a boolean, a number, a quoted string, a one-line `[…]` list, or
- * otherwise a string as written. It is not a YAML parser, but it never disagrees with one: a value
- * YAML 1.2 would read as something else (`True`, `~`, `1e3`) is a warning, and so is anything
- * YAML has that the rule doesn't (indented lines, `|`, `{a: b}`, anchors). A line in error skips its
- * key; the rest of the block is still read.
+ * otherwise a string as written, and a dotted key (`deploy.name`) puts it in a nested object. It
+ * is not a YAML parser, but it never disagrees with one: expand a block's dotted keys and it is
+ * the object YAML gives. A value YAML 1.2 would read as something else (`True`, `~`, `1e3`) is a
+ * warning, and so is anything YAML has that the rule doesn't (indented lines, `|`, `{a: b}`,
+ * anchors). A line in error skips its key; the rest of the block is still read.
  */
-import { type Builder, type MetadataScalar, type MetadataValue } from "./ast";
+import { type Builder, type MetadataObject, type MetadataScalar } from "./ast";
 import { type WarningCode } from "./warnings";
+
+/** The object as it is built; `MetadataObject` is how it is handed out. */
+interface Tree {
+  [key: string]: MetadataScalar | MetadataScalar[] | Tree;
+}
 
 /** Reads the lines between `start` and `end` (the fences excluded). */
 export function parseMetadata(
@@ -17,10 +23,10 @@ export function parseMetadata(
   start: number,
   end: number,
   b: Pick<Builder, "warn">,
-): Record<string, MetadataValue> {
-  const value: Record<string, MetadataValue> = {};
-  // The key the previous line set, so a line that continues its value can skip it.
-  let last: string | null = null;
+): MetadataObject {
+  const value: Tree = {};
+  // What the previous line added, so a line that continues its value can skip it.
+  let last: Entry | null = null;
   // Brackets a rejected line left open (`{`, `a: [1,`): the lines until they close are inside it.
   let open = 0;
   for (let at = start; at < end;) {
@@ -38,28 +44,25 @@ export function parseMetadata(
       fail("metadata-line");
     } else if (/^[ \t]/.test(line)) {
       fail("metadata-indented");
-      if (last !== null) delete value[last];
+      skip(last);
       last = null;
     } else if (line[0] !== "#") {
-      const match = /^([A-Za-z_][\w-]*):(?:[ \t]+|$)/.exec(line);
+      const match = /^([A-Za-z_][\w-]*(?:\.[A-Za-z_][\w-]*)*):(?:[ \t]+|$)/.exec(line);
       // Not a key line: part of the value before it (`one:` over `- 2`), or an error.
-      if (!match && last !== null) delete value[last];
+      if (!match) skip(last);
       last = null;
-      if (!match) fail("metadata-line");
-      // Assigning `__proto__` on a plain object sets its prototype instead of adding a key.
-      else if (match[1] === "__proto__") fail("metadata-line", "`__proto__` is not a metadata key");
-      else if (Object.hasOwn(value, match[1]!)) {
-        fail(
-          "metadata-duplicate-key",
-          `duplicate metadata key \`${match[1]}\`; the first one wins`,
-        );
-      } else {
-        const result = parseValue(stripComment(line.slice(match[0].length)));
-        if (typeof result === "string" && result.startsWith("!"))
-          fail("metadata-value", result.slice(1));
+      const path = match ? match[1]!.split(".") : null;
+      if (!match || !path) fail("metadata-line");
+      // Setting `__proto__` on an object changes its prototype instead of adding a key.
+      else if (path.includes("__proto__"))
+        fail("metadata-line", "`__proto__` is not a metadata key");
+      else {
+        const clash = conflict(value, path);
+        if (clash !== null) fail("metadata-duplicate-key", clash);
         else {
-          value[match[1]!] = (result as { value: MetadataValue }).value;
-          last = match[1]!;
+          const result = parseValue(stripComment(line.slice(match[0].length)));
+          if (typeof result === "string") fail("metadata-value", result.slice(1));
+          else last = insert(value, path, result.value);
         }
       }
     }
@@ -70,6 +73,59 @@ export function parseMetadata(
   return value;
 }
 
+/** The first entry a line added: the key itself, or the outermost object it had to make. */
+interface Entry {
+  parent: Tree;
+  key: string;
+}
+
+/** Removes what a line added, once a following line shows it was only part of a value. */
+function skip(entry: Entry | null): void {
+  if (entry) delete entry.parent[entry.key];
+}
+
+/** Why `path` can't be set in `tree`, or `null`: a key is once a value or once an object. */
+function conflict(tree: Tree, path: string[]): string | null {
+  let at = tree;
+  for (let i = 0; i < path.length; i++) {
+    const key = path[i]!;
+    // `hasOwn`, not `in`: `constructor` is not a key until a block sets it.
+    if (!Object.hasOwn(at, key)) return null;
+    const found = at[key]!;
+    const name = `\`${path.slice(0, i + 1).join(".")}\``;
+    const wins = "; the first one wins";
+    if (i === path.length - 1) {
+      return (
+        (isTree(found) ? `${name} is already an object` : `duplicate metadata key ${name}`) + wins
+      );
+    }
+    if (!isTree(found)) return `${name} is already a value, not an object${wins}`;
+    at = found;
+  }
+  return null;
+}
+
+/** Sets `path`, making the objects on the way; `conflict` has already said it fits. */
+function insert(tree: Tree, path: string[], value: MetadataScalar | MetadataScalar[]): Entry {
+  let at = tree;
+  let first: Entry | null = null;
+  for (const key of path.slice(0, -1)) {
+    if (!Object.hasOwn(at, key)) {
+      const next: Tree = {};
+      at[key] = next;
+      first ??= { parent: at, key };
+      at = next;
+    } else at = at[key] as Tree;
+  }
+  const key = path.at(-1)!;
+  at[key] = value;
+  return first ?? { parent: at, key };
+}
+
+function isTree(value: Tree[string]): value is Tree {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 /** How many more `{` and `[` than `}` and `]` a line has. */
 function brackets(line: string): number {
   let n = 0;
@@ -78,7 +134,7 @@ function brackets(line: string): number {
 }
 
 /** A value, or a `!message` string when it is rejected. */
-function parseValue(text: string): { value: MetadataValue } | string {
+function parseValue(text: string): { value: MetadataScalar | MetadataScalar[] } | string {
   if (text.startsWith("[")) {
     if (!text.endsWith("]")) return "!a list must close on its line";
     const inner = text.slice(1, -1).trim();
