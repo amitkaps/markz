@@ -9,11 +9,13 @@
  */
 import { NONE, type Document, type NodeId } from "./ast";
 
+/** What `walk` calls for each node. `enter` returning `false` skips the node's children. */
 export interface Visitor {
   enter?(node: NodeId): boolean | void;
   exit?(node: NodeId): void;
 }
 
+/** Visits a subtree depth-first, calling `enter` before a node's children and `exit` after. */
 export function walk(doc: Document, visitor: Visitor, from: NodeId = doc.root): void {
   let node = from;
   for (;;) {
@@ -79,6 +81,14 @@ export function textContent(doc: Document, node: NodeId = doc.root): string {
   return out;
 }
 
+/** One heading in a document's outline, with the id `html()` gives it. */
+export interface Heading {
+  node: NodeId;
+  depth: 1 | 2 | 3 | 4 | 5 | 6;
+  id: string;
+  text: string;
+}
+
 /** @prose
  * ## Headings
  *
@@ -88,13 +98,6 @@ export function textContent(doc: Document, node: NodeId = doc.root): string {
  * data, and how to nest, number or filter by it is the consumer's choice, which is why it isn't
  * part of `html()`. `node` gives the source range through `doc.start` and `doc.end`.
  */
-export interface Heading {
-  node: NodeId;
-  depth: 1 | 2 | 3 | 4 | 5 | 6;
-  id: string;
-  text: string;
-}
-
 export function headings(doc: Document): Heading[] {
   const out: Heading[] = [];
   walk(doc, {

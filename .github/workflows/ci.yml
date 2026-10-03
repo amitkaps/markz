@@ -35,6 +35,12 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # The package's `exports`, `files` and types, checked by publint against the packed tarball.
+      # It's fetched for this step, not a dependency. arethetypeswrong was ruled out, since it
+      # checks for old Node resolution that markz, ESM only on Node 24 and up, doesn't support.
+      - name: Package (publint)
+        run: pnpm dlx publint@0.3 --strict
+
       - name: Bundle size (20 KB gzip budget)
         run: pnpm size
 

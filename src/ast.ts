@@ -44,12 +44,14 @@ export const T = {
   expression: 24,
 } as const;
 
+/** A node type's name, like `"heading"`. */
 export type NodeType = keyof typeof T;
 
 const NAMES = Object.keys(T) as NodeType[];
 
 /** A node is its index. `NONE` stands for a missing parent, child or sibling. */
 export type NodeId = number;
+/** No node: the parent of the root, or a child or sibling that isn't there. */
 export const NONE: NodeId = -1;
 
 /** A half-open range of UTF-16 offsets into the parsed source. */
@@ -66,12 +68,6 @@ export interface Range {
  * are decoded or stripped of container prefixes (`> ` inside a blockquote) are stored as strings;
  * everything else is a range, so the source stays the one copy of the text.
  */
-export type MetadataScalar = string | number | boolean | null;
-export type MetadataValue = MetadataScalar | readonly MetadataScalar[] | MetadataObject;
-export interface MetadataObject {
-  readonly [key: string]: MetadataValue;
-}
-
 export interface NodeData {
   /** The object (dotted keys nested), and the range of the lines between the `---` fences. */
   metadata: { value: MetadataObject; range: Range };
@@ -101,6 +97,16 @@ export interface NodeData {
   expression: { code: string; range: Range };
 }
 
+/** A metadata value YAML can hold on one line. */
+export type MetadataScalar = string | number | boolean | null;
+/** A metadata value: a scalar, a list of scalars, or a nested object. */
+export type MetadataValue = MetadataScalar | readonly MetadataScalar[] | MetadataObject;
+/** The metadata block's keys and values, with dotted keys nested. */
+export interface MetadataObject {
+  readonly [key: string]: MetadataValue;
+}
+
+/** Where a link or an image points, and its title. */
 export interface Destination {
   destination: string;
   title: string | null;
@@ -109,31 +115,36 @@ export interface Destination {
   expressions: Range[];
 }
 
+/** A table column's alignment, or `null` when it has none. */
 export type Align = "left" | "center" | "right" | null;
 
 /** The node types that carry data, and so the ones `Document.data` accepts. */
 export type DataType = keyof NodeData;
 
 /** @prose
- * ## Attributes and warnings
+ * ## Attributes
  *
  * A `{…}` block, wherever it is allowed, becomes an `Attributes` in a second side table, so the
  * common case costs one empty slot. `#id` and `.class` are stored under the keys `id` and `class`,
  * each item with its own range, in source order: the renderer applies "classes accumulate, a later
  * value wins" and the AST stays verbatim.
- *
- * A warning is syntax markz kept as text or read in its own way: a stable code from
- * `warnings.ts`, its range, what was wrong, and the supported form to write instead.
  */
+export interface Attributes extends Range {
+  items: Attribute[];
+}
+
+/** One item of a `{…}` block, like `.note` or `lang=en`, with its range. */
 export interface Attribute extends Range {
   key: string;
   value: string;
 }
 
-export interface Attributes extends Range {
-  items: Attribute[];
-}
-
+/** @prose
+ * ## Warnings
+ *
+ * A warning is syntax markz kept as text or read in its own way: a stable code from
+ * `warnings.ts`, its range, what was wrong, and the supported form to write instead.
+ */
 export interface Warning extends Range {
   code: WarningCode;
   message: string;

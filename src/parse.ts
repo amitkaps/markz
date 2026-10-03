@@ -8,6 +8,7 @@
 import { Builder, type Document } from "./ast";
 import { blocks } from "./block";
 
+/** Parses markz Markdown into a read-only `Document`. */
 export function parse(source: string): Document {
   const start = source.charCodeAt(0) === 0xfeff ? 1 : 0;
   const b = new Builder(source, start);

@@ -14,6 +14,7 @@ import { element } from "./elements";
 import { parse } from "./parse";
 import { walk } from "./walk";
 
+/** Renders a document, or Markdown source, as HTML. */
 export function html(input: string | Document): string {
   const doc = typeof input === "string" ? parse(input) : input;
   const state: State = { out: "", column: 0 };

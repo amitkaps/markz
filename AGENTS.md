@@ -39,6 +39,9 @@ Read **`docs/markz.md`** and **`docs/design.md`** first: what markz is, and how 
 - Every file has file prose, and every meaningful unit of it is in a chunk with prose. Trivial declarations, types, constants and mechanical helpers don't need a chunk of their own unless they carry architectural intent; a paragraph written only to satisfy this rule is noise the human has to read. Folders have a `README.md`.
 - Every prose block, file, folder and `docs/` doc begins with a short first paragraph that is its summary for the human. It says what the node means, not what its code does. When a change alters a node's role, intent or place in the design, rewrite that paragraph in the same change.
 - Prose goes in `@prose` comments. Ordinary comments stay for code-level notes.
+- A library ships the comment above each export in its types, as that export's documentation. So
+  give every export a comment, even one line, and put a section's prose above the declaration it
+  describes.
 - A `@prose` block says how and why its code does what it does, and cites the rules it implements
   rather than restating them: a construct's rules live in `docs/grammar.md`, cited as
   ``(grammar: id; `side-rule`)``. Origins stay on the grammar's `Origin:` lines.
