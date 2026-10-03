@@ -290,6 +290,15 @@ into `dist/index.js` and its types, with one entry, `src/index.ts`: anything it 
 re-export is private. It has no runtime dependencies and `sideEffects: false`, so a consumer
 tree-shakes what it doesn't call, and `prepack` builds, so a tarball never ships a stale `dist/`.
 
+What ships is readable code without its prose. `dist/index.js` isn't minified, since a
+consumer's bundler minifies it for its own app, and anyone reading `node_modules` can follow it.
+Its comments are stripped, but license comments and `@__PURE__` annotations stay, and a `/*!`
+banner names the license so it survives a consumer's bundle. There are no sourcemaps.
+`dist/index.d.ts` keeps the comment above each export, `@prose` included, as that export's
+documentation on hover. Nothing strips it, so each export carries a comment written for that,
+and a section's `@prose` sits on the declaration it describes. `exports` is the only entry, with
+no `main` or `types`, which nothing on Node 24 reads. CI runs publint on the packed tarball.
+
 A release is a `vX.Y.Z` tag matching `package.json`'s version. `.github/workflows/release.yml`
 checks, tests and packs it, stages that tarball on npm with provenance, and attaches it to a
 GitHub release. npm trusts the workflow to stage, so no npm token is stored anywhere, and nothing

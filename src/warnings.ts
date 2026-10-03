@@ -75,4 +75,5 @@ export const WARNINGS = {
   "metadata-value": ["a value YAML reads differently", "the canonical form, or quote the value"],
 } as const satisfies Record<string, readonly [message: string, instead: string]>;
 
+/** A warning's stable code, one of the keys of `WARNINGS`. */
 export type WarningCode = keyof typeof WARNINGS;

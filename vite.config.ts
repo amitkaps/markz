@@ -16,13 +16,17 @@ const site = [".prose/**"];
 const timing = "test/complexity.test.ts";
 
 export default defineConfig({
-  // tsdown — `vp pack`. ESM only, with declarations.
+  // tsdown — `vp pack`. ESM only, with declarations. The code ships readable but without its
+  // comments, keeping license comments and `@__PURE__` annotations, and with no sourcemaps
+  // (design: Package). The `/*!` banner keeps the license with the code when a consumer bundles it.
   pack: {
     entry: ["src/index.ts"],
     format: ["esm"],
     dts: true,
     clean: true,
     fixedExtension: false,
+    banner: { js: "/*! @amitkaps/markz · MIT License · https://github.com/amitkaps/markz */" },
+    outputOptions: { comments: { legal: true, annotation: true, jsdoc: false } },
   },
 
   // Oxfmt — `vp fmt` / `vp check`.

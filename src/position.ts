@@ -7,11 +7,6 @@
  * CRLF, LF and a lone CR each end a line, as they do for the parser. An offset past the end is
  * clamped to the end.
  */
-export interface Position {
-  line: number;
-  column: number;
-}
-
 export function position(source: string): (offset: number) => Position {
   const starts = [0];
   for (let i = 0; i < source.length; i++) {
@@ -29,4 +24,10 @@ export function position(source: string): (offset: number) => Position {
     }
     return { line: low + 1, column: at - starts[low]! };
   };
+}
+
+/** A line, from 1, and a column, from 0, in UTF-16 code units. */
+export interface Position {
+  line: number;
+  column: number;
 }
