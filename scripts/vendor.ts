@@ -16,7 +16,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import ts from "typescript";
+import { parseSync } from "vite-plus";
 import YAML from "yaml";
 import { writeFences } from "../test/harness/fences.ts";
 
@@ -161,33 +161,30 @@ function htmlSections(html: string, md: [string, string][]): string[] {
 /** @prose
  * ## Inline tests
  *
- * `test/index.js` asserts `micromark(input, options)` against an expected string. The TypeScript
- * compiler reads the file, so a case is found by its shape, not by a regex over the source, and a
+ * `test/index.js` asserts `micromark(input, options)` against an expected string. oxc's parser (`parseSync`, which comes with vite-plus) reads the file, so a case is found by its shape, not by a regex over the source, and a
  * string input is taken as the engine would see it, escapes and concatenation resolved. The
  * expected HTML is kept only when the options are written out in place: a helper such as the
  * directive suite's `options({'*': h})` installs handlers whose HTML isn't the oracle's.
  */
 function inline(dir: string, dropped: string[]): Vendored[] {
   const file = join(dir, "test/index.js");
-  const source = ts.createSourceFile(
-    file,
-    readFileSync(file, "utf8"),
-    ts.ScriptTarget.Latest,
-    true,
-  );
+  const text = readFileSync(file, "utf8");
+  const text_ = (node: Node) => text.slice(node.start, node.end);
   const out: Vendored[] = [];
-  const visit = (node: ts.Node, title: string) => {
-    if (ts.isCallExpression(node)) {
-      const callee = node.expression.getText();
-      const name = node.arguments[0];
-      if (/(^|\.)test$/.test(callee) && name && ts.isStringLiteralLike(name)) {
+  const visit = (node: Node, parents: Node[], title: string) => {
+    if (node.type === "CallExpression") {
+      const call = node as CallNode;
+      const callee = text_(call.callee);
+      const name = call.arguments[0];
+      if (/(^|\.)test$/.test(callee) && name && stringOf(name) !== null) {
         // `test(group)` holds `t.test(title)`s.
-        title = callee === "test" ? name.text : `${title.split(" › ")[0]} › ${name.text}`;
+        title =
+          callee === "test" ? stringOf(name)! : `${title.split(" › ")[0]} › ${stringOf(name)!}`;
       }
       if (callee === "micromark") {
-        const input = literal(node.arguments[0]);
-        const options = node.arguments[1]?.getText() ?? "";
-        const line = source.getLineAndCharacterOfPosition(node.getStart()).line + 1;
+        const input = literal(call.arguments[0], parents);
+        const options = call.arguments[1] ? text_(call.arguments[1]) : "";
+        const line = text.slice(0, call.start).split("\n").length;
         if (input === null) dropped.push(`index.js:${line} input is not a literal`);
         else if (SYNTAX_OPTIONS.test(options))
           dropped.push(`index.js:${line} ${title}: options change the syntax`);
@@ -196,48 +193,91 @@ function inline(dir: string, dropped: string[]): Vendored[] {
             example: 0,
             section: title,
             markdown: input,
-            html: ts.isObjectLiteralExpression(node.arguments[1] ?? node) ? expected(node) : "",
+            html: call.arguments[1]?.type === "ObjectExpression" ? expected(call, parents) : "",
           });
       }
     }
-    ts.forEachChild(node, (child) => visit(child, title));
+    for (const child of children(node)) visit(child, [...parents, node], title);
   };
-  visit(source, "");
+  visit(parseSync(file, text).program as unknown as Node, [], "");
   return out;
 }
 
-function literal(node: ts.Node | undefined): string | null {
-  if (!node) return null;
-  if (ts.isStringLiteralLike(node)) return node.text;
-  if (ts.isParenthesizedExpression(node)) return literal(node.expression);
-  if (ts.isIdentifier(node)) return literal(binding(node));
-  // `['a', 'b'].join('\n\n')`
-  if (
-    ts.isCallExpression(node) &&
-    ts.isPropertyAccessExpression(node.expression) &&
-    node.expression.name.text === "join" &&
-    ts.isArrayLiteralExpression(node.expression.expression)
-  ) {
-    const items = node.expression.expression.elements.map(literal);
-    const separator = node.arguments.length ? literal(node.arguments[0]) : ",";
-    return separator === null || items.includes(null) ? null : items.join(separator);
+/** An oxc ESTree node, as far as this script reads one. */
+interface Node {
+  type: string;
+  start: number;
+  end: number;
+}
+interface CallNode extends Node {
+  callee: Node;
+  arguments: Node[];
+}
+
+/** The nodes directly under `node`, in source order. */
+function children(node: Node): Node[] {
+  const out: Node[] = [];
+  for (const value of Object.values(node)) {
+    for (const v of Array.isArray(value) ? value : [value]) {
+      if (v && typeof v === "object" && typeof (v as Node).type === "string") out.push(v as Node);
+    }
   }
-  if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-    const [a, b] = [literal(node.left), literal(node.right)];
+  return out.sort((a, b) => a.start - b.start);
+}
+
+/** The value of a string literal or a template with no substitutions, else `null`. */
+function stringOf(node: Node): string | null {
+  const n = node as Node & { value?: unknown; quasis?: { value: { cooked: string } }[] };
+  if (n.type === "Literal" && typeof n.value === "string") return n.value;
+  if (n.type === "TemplateLiteral" && n.quasis?.length === 1) return n.quasis[0]!.value.cooked;
+  return null;
+}
+
+function literal(node: Node | undefined, parents: Node[]): string | null {
+  if (!node) return null;
+  const string = stringOf(node);
+  if (string !== null) return string;
+  const n = node as Node & Record<string, unknown>;
+  if (n.type === "ParenthesizedExpression") return literal(n.expression as Node, parents);
+  if (n.type === "Identifier")
+    return literal(binding(n as unknown as Node & { name: string }, parents), parents);
+  // `['a', 'b'].join('\n\n')`
+  if (n.type === "CallExpression") {
+    const { callee, arguments: args } = n as unknown as CallNode;
+    const member = callee as Node & { object: Node; property: { name: string }; computed: boolean };
+    if (
+      member.type === "MemberExpression" &&
+      !member.computed &&
+      member.property.name === "join" &&
+      member.object.type === "ArrayExpression"
+    ) {
+      const elements = (member.object as Node & { elements: Node[] }).elements;
+      const items = elements.map((e) => literal(e, parents));
+      const separator = args.length ? literal(args[0], parents) : ",";
+      return separator === null || items.includes(null) ? null : items.join(separator);
+    }
+    return null;
+  }
+  if (n.type === "BinaryExpression" && n.operator === "+") {
+    const [a, b] = [literal(n.left as Node, parents), literal(n.right as Node, parents)];
     return a === null || b === null ? null : a + b;
   }
   return null;
 }
 
 /** The initializer of the nearest enclosing `const` of that name. */
-function binding(name: ts.Identifier): ts.Expression | undefined {
-  for (let scope: ts.Node | undefined = name.parent; scope; scope = scope.parent) {
-    if (!ts.isBlock(scope) && !ts.isSourceFile(scope)) continue;
-    for (const statement of scope.statements) {
-      if (!ts.isVariableStatement(statement)) continue;
-      if (!(statement.declarationList.flags & ts.NodeFlags.Const)) continue;
-      for (const d of statement.declarationList.declarations) {
-        if (ts.isIdentifier(d.name) && d.name.text === name.text) return d.initializer;
+function binding(name: Node & { name: string }, parents: Node[]): Node | undefined {
+  for (const scope of [...parents].reverse()) {
+    if (scope.type !== "BlockStatement" && scope.type !== "Program") continue;
+    for (const statement of (scope as Node & { body: Node[] }).body) {
+      if (statement.type !== "VariableDeclaration") continue;
+      const declaration = statement as Node & {
+        kind: string;
+        declarations: { id: Node & { name?: string }; init: Node | null }[];
+      };
+      if (declaration.kind !== "const") continue;
+      for (const d of declaration.declarations) {
+        if (d.id.type === "Identifier" && d.id.name === name.name) return d.init ?? undefined;
       }
     }
   }
@@ -245,10 +285,10 @@ function binding(name: ts.Identifier): ts.Expression | undefined {
 }
 
 /** The string `assert.equal(micromark(…), expected)` holds the call to, when it is a literal. */
-function expected(call: ts.CallExpression): string {
-  const parent = call.parent;
-  if (!ts.isCallExpression(parent) || parent.arguments[0] !== call) return "";
-  return literal(parent.arguments[1]) ?? "";
+function expected(call: Node, parents: Node[]): string {
+  const parent = parents.at(-1) as CallNode | undefined;
+  if (parent?.type !== "CallExpression" || parent.arguments[0] !== call) return "";
+  return literal(parent.arguments[1], parents.slice(0, -1)) ?? "";
 }
 
 /** @prose
