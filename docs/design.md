@@ -37,14 +37,15 @@ could lie. A consumer that wants a rewritten document writes Markdown and parses
 ```ts
 const doc = parse(source);
 
-for (const child of doc.children(doc.root)) {
-	if (doc.type(child) === 'heading') console.log(doc.data(child, 'heading').id);
-}
+for (const child of doc.children(doc.root)) console.log(doc.type(child)); // "heading", "paragraph", …
 
 walk(doc, {
-	enter(node) { … },
-	exit(node) { … },
+  enter(node) {
+    if (doc.type(node) === "link") console.log(doc.data(node, "link").destination);
+  },
 });
+
+doc.data(doc.root, "heading"); // throws a TypeError: the root is not a heading
 ```
 
 Iteration follows `firstChild`/`nextSibling` and allocates no arrays. Public type names are
@@ -57,33 +58,33 @@ as a string. Everything else is a range into the source.
 
 Only nodes that the syntax requires and that consumers use:
 
-````text
-document
-metadata             parsed object (JSON-like, quotes optional, dotted keys nested), block range
-comment              `<!-- … -->` on lines of its own; never rendered
-heading              depth, id, idExplicit
-paragraph
-text                 decoded value; source range covers the raw characters
-emphasis
-strong
-delete               GFM strikethrough
-link                 destination, title, destination range, expression ranges; autolink flag
-image                destination, title, alt, destination range, expression ranges
-code                 fenced; lang, meta, value, body range
-inlineCode
-blockquote
-list                 ordered, start, tight
-listItem             checked: true | false | null (GFM task items)
-thematicBreak
-break
-table                column alignments
-tableRow
-tableCell
-element              kind: inline | leaf | container; name (`span` for a span with none)
-math                 inline | block; raw TeX, value range
-raw                  format (`html`, …), value, content range; from a ` ```=format ` fence
-expression           code, code range
-````
+| Node            | Kind   | Data                                                                        |
+| --------------- | ------ | --------------------------------------------------------------------------- |
+| `document`      | root   |                                                                             |
+| `metadata`      | block  | parsed object (JSON-like, quotes optional, dotted keys nested), block range |
+| `comment`       | block  | `<!-- … -->` on lines of its own, never rendered                            |
+| `heading`       | block  | depth, id, idExplicit                                                       |
+| `paragraph`     | block  |                                                                             |
+| `blockquote`    | block  |                                                                             |
+| `list`          | block  | ordered, start, tight                                                       |
+| `listItem`      | block  | checked: `true`, `false` or `null` (task items)                             |
+| `code`          | block  | fenced: lang, meta, value, body range                                       |
+| `thematicBreak` | block  |                                                                             |
+| `table`         | block  | column alignments                                                           |
+| `tableRow`      | block  |                                                                             |
+| `tableCell`     | block  |                                                                             |
+| `raw`           | block  | format (`html`, …), value, content range, from a ` ```=format ` fence       |
+| `text`          | inline | decoded value, with a range over the raw characters                         |
+| `emphasis`      | inline |                                                                             |
+| `strong`        | inline |                                                                             |
+| `delete`        | inline | strikethrough                                                               |
+| `link`          | inline | destination, title, destination range, expression ranges, autolink flag     |
+| `image`         | inline | destination, title, alt, destination range, expression ranges               |
+| `inlineCode`    | inline |                                                                             |
+| `break`         | inline | a hard line break                                                           |
+| `expression`    | inline | code, code range                                                            |
+| `element`       | both   | kind (`inline`, `leaf` or `container`), name (`span` for a span with none)  |
+| `math`          | both   | inline or block, raw TeX, value range                                       |
 
 Elements, blocks, images and links can carry attributes: an id, classes and key-value pairs,
 each with its source range. They're kept in a side table, so the common case (no attributes)
@@ -127,7 +128,12 @@ markz has its own parser. It is written for this one dialect, runs in linear tim
 backtracking, and emits straight into the flat AST:
 
 ```text
-source → block pass (lines → containers, leaves; the inline pass per leaf, as it closes) → flat AST + warnings → html()
+source
+  ↓  block pass: lines → containers and leaves
+  ↓  inline pass: each leaf, as it closes
+flat AST + warnings
+  ↓
+html()
 ```
 
 **Everything is built in.** Elements, expressions, math, attributes, raw blocks, metadata,
@@ -250,7 +256,8 @@ allowlist for its kind, or a valid custom-element name. The allowlists (`src/ele
 out three kinds of name:
 
 - **What Markdown already writes:** `em`, `strong`, `code`, `a`, `img`, headings, lists and the
-  rest, so each element has one way in.
+  rest, so each element has one way in. A class on one of them goes on a span around it, as in
+  `[_word_]{.x}`.
 - **A second way:** `span`, since `[text]{.x}` already writes one.
 - **Anything active:** `script`, `style`, `iframe`, `object`, `embed`, `svg`, `math`, `template`,
   form controls, `dialog`, `audio` and `video`.
