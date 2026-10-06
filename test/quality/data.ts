@@ -148,7 +148,7 @@ export interface Quality {
 }
 
 export async function quality(): Promise<Quality> {
-  const docs = [...documents("agent").values(), ...documents("public").values()].sort(
+  const docs = [...documents("markz").values(), ...documents("public").values()].sort(
     (a, b) => a.length - b.length,
   );
   const typical = docs[docs.length >> 1]!;

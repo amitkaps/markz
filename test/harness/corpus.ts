@@ -2,21 +2,26 @@
  * # Corpus
  *
  * Real documents, and the variants built from them, which `documents.test.ts` holds markz to and
- * `pnpm bench` times. The documents are vendored in `test/documents/`, never edited; the variants
- * are built on each run and never committed. Each tier of documents answers its own question:
+ * `pnpm bench` times. The variants are built on each run and never committed. Each tier of
+ * documents answers its own question:
  *
- * - **agent**: markz's docs and those of the repos that consume it (base, prose, visdown). All of
- *   it is written by coding agents in real repos, so it is one voice: long paragraphs, backticked
- *   names, tables. It is what markz reads day to day.
+ * - **markz**: this repository's own writing (`README.md`, `AGENTS.md` and `docs/`), read where
+ *   it lives. It is the only real writing in the dialect, with its metadata, elements and math,
+ *   and it changes with markz.
  * - **public**: documentation written by people, in other styles: Node.js's API reference (dense
  *   links and code), the Rust book (narrative with listings) and Vite's guide (VitePress, with
- *   `:::` containers), so neither voice speaks for Markdown in general.
+ *   `:::` containers), so no one voice speaks for Markdown in general.
  * - **spec**: the CommonMark spec's own text, which other parsers benchmark on. It is dense with
  *   edge cases, not a typical document.
  *
  * A document comes in three variants. _dialect_ is the document as written. _common_ keeps only
  * the top-level blocks every parser reads alike. _formatted_ is the document after oxfmt, which is
- * how the consumers store it. The scaling tier repeats the agent and public documents to a size.
+ * how the consumers store it. The scaling tier repeats the markz and public documents to a size.
+ *
+ * The public and spec documents are vendored in `test/documents/`, pinned and never edited. The
+ * markz tier is never vendored. Frozen copies of markz's docs and of the repos that use it (base,
+ * prose, visdown) were dropped: they duplicated the live docs and snapshotted repos that keep
+ * changing.
  *
  * Nothing here parses at run time: a variant that needs markz's reading is given the parsed
  * document, so the tests and the Quality page both pass `src/`.
@@ -27,14 +32,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Document, NodeId } from "../../src/index";
 
-export type Tier = "agent" | "public" | "spec";
-export const TIERS: Tier[] = ["agent", "public", "spec"];
+export type Tier = "markz" | "public" | "spec";
+export const TIERS: Tier[] = ["markz", "public", "spec"];
 
 const root = join(import.meta.dirname, "../..");
 const DOCUMENTS = join(root, "test/documents");
 
 /** A tier's documents, named `<source>-<file>`, in a stable order. */
 export function documents(tier: Tier): Map<string, string> {
+  if (tier === "markz") return own();
   const dir = join(DOCUMENTS, tier);
   const out = new Map<string, string>();
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -47,6 +53,19 @@ export function documents(tier: Tier): Map<string, string> {
         }
       }
     }
+  }
+  return new Map([...out].sort(([a], [b]) => a.localeCompare(b)));
+}
+
+/** The markz tier: the root's documents, and `docs/` as `docs-<file>`. */
+function own(): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const name of ["README.md", "AGENTS.md"]) {
+    out.set(name, readFileSync(join(root, name), "utf8"));
+  }
+  for (const file of readdirSync(join(root, "docs"))) {
+    if (file.endsWith(".md"))
+      out.set(`docs-${file}`, readFileSync(join(root, "docs", file), "utf8"));
   }
   return new Map([...out].sort(([a], [b]) => a.localeCompare(b)));
 }
@@ -128,7 +147,7 @@ export function repeat(text: string, bytes: number): string {
   return out.slice(0, cut > 0 ? cut + 1 : bytes);
 }
 
-/** The scaling tier's text: the agent and public documents, one after another. */
+/** The scaling tier's text: the markz and public documents, one after another. */
 export function mix(): string {
-  return [...documents("agent").values(), ...documents("public").values()].join("\n\n");
+  return [...documents("markz").values(), ...documents("public").values()].join("\n\n");
 }

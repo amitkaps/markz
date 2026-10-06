@@ -8,7 +8,7 @@
  * a warm-up, so a garbage collection or a cold JIT doesn't decide it, and a few milliseconds of
  * slack keeps a fast pattern from failing on timer noise alone.
  *
- * The corpus's scaling tier, the real agent and public documents repeated to megabytes, guards
+ * The corpus's scaling tier, markz's own docs and the public documents repeated to megabytes, guards
  * the ordinary path the same way.
  */
 import { describe, expect, it } from "vite-plus/test";
