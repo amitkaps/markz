@@ -56,41 +56,15 @@ as a string. Everything else is a range into the source.
 
 ## Node types
 
-Only nodes that the syntax requires and that consumers use:
-
-| Node            | Kind   | Data                                                                        |
-| --------------- | ------ | --------------------------------------------------------------------------- |
-| `document`      | root   |                                                                             |
-| `metadata`      | block  | parsed object (JSON-like, quotes optional, dotted keys nested), block range |
-| `comment`       | block  | `<!-- … -->` on lines of its own, never rendered                            |
-| `heading`       | block  | depth, id, idExplicit                                                       |
-| `paragraph`     | block  |                                                                             |
-| `blockquote`    | block  |                                                                             |
-| `list`          | block  | ordered, start, tight                                                       |
-| `listItem`      | block  | checked: `true`, `false` or `null` (task items)                             |
-| `code`          | block  | fenced: lang, meta, value, body range                                       |
-| `thematicBreak` | block  |                                                                             |
-| `table`         | block  | column alignments                                                           |
-| `tableRow`      | block  |                                                                             |
-| `tableCell`     | block  |                                                                             |
-| `raw`           | block  | format (`html`, …), value, content range, from a ` ```=format ` fence       |
-| `text`          | inline | decoded value, with a range over the raw characters                         |
-| `emphasis`      | inline |                                                                             |
-| `strong`        | inline |                                                                             |
-| `delete`        | inline | strikethrough                                                               |
-| `link`          | inline | destination, title, destination range, expression ranges, autolink flag     |
-| `image`         | inline | destination, title, alt, destination range, expression ranges               |
-| `inlineCode`    | inline |                                                                             |
-| `break`         | inline | a hard line break                                                           |
-| `expression`    | inline | code, code range                                                            |
-| `element`       | both   | kind (`inline`, `leaf` or `container`), name (`span` for a span with none)  |
-| `math`          | both   | inline or block, raw TeX, value range                                       |
+There is a node for each construct the syntax has and a consumer uses, and nothing else. A node
+is a block, an inline, or both for elements and math. Each type, and the data it carries, is in
+[Reference](reference.md#node-types).
 
 Elements, blocks, images and links can carry attributes: an id, classes and key-value pairs,
 each with its source range. They're kept in a side table, so the common case (no attributes)
 costs nothing.
 
-There are no `html`, `definition` or footnote nodes: HTML exists only in raw blocks, and
+There are no `html`, `definition` or footnote nodes. HTML exists only in raw blocks, and
 reference links and footnotes would need the whole document read before a reference resolves.
 
 ## Source locations

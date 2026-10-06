@@ -72,28 +72,40 @@ the source. A `Document` is not constructed by hand; only `parse` makes one.
 
 ## Node types
 
-Every node has a type, a range and links to its parent and children. These types also carry data,
-read with `doc.data(node, type)`:
+Every node has a type, a range and links to its parent and children. The kind says where a node
+can sit: `block` among blocks, `inline` inside a paragraph, heading, cell or label. The data is
+what `doc.data(node, type)` reads, and a type with none has nothing to read.
 
-| Type         | Data                                                                             |
-| ------------ | -------------------------------------------------------------------------------- |
-| `metadata`   | `value` (the object, dotted keys nested), `range` (the lines between the fences) |
-| `heading`    | `depth` (1 to 6), `id`, `idExplicit` (whether `{#id}` set it)                    |
-| `text`       | `value`, decoded; the node's range covers the raw characters                     |
-| `link`       | `destination`, `title`, `autolink`, `destinationRange`, `expressions`            |
-| `image`      | the same as `link`, and `alt`                                                    |
-| `code`       | `lang`, `meta`, `value`, `body` (the range of the code)                          |
-| `inlineCode` | `value`                                                                          |
-| `list`       | `ordered`, `start`, `tight`                                                      |
-| `listItem`   | `checked`: `true` or `false` for a task item, `null` for any other               |
-| `table`      | `align`: `"left"`, `"center"`, `"right"` or `null` for each column               |
-| `element`    | `kind` (`"inline"`, `"leaf"` or `"container"`) and `name`                        |
-| `math`       | `block`, `value`, `range`                                                        |
-| `raw`        | `format` and `value`, from a ` ```=format ` block, and `range`                   |
-| `expression` | `code`, the text between the braces of `${…}`, and `range`                       |
+| Type            | Kind   | Data                                                                                        |
+| --------------- | ------ | ------------------------------------------------------------------------------------------- |
+| `document`      | root   |                                                                                             |
+| `metadata`      | block  | `value` (the object, dotted keys nested), `range` (the lines between the fences)            |
+| `comment`       | block  |                                                                                             |
+| `heading`       | block  | `depth` (1 to 6), `id`, `idExplicit` (whether `{#id}` set it)                               |
+| `paragraph`     | block  |                                                                                             |
+| `blockquote`    | block  |                                                                                             |
+| `list`          | block  | `ordered`, `start`, `tight`                                                                 |
+| `listItem`      | block  | `checked`: `true` or `false` for a task item, `null` for any other                          |
+| `code`          | block  | `lang`, `meta`, `value`, `body` (the range of the code)                                     |
+| `raw`           | block  | `format` and `value`, from a ` ```=format ` block, and `range`                              |
+| `thematicBreak` | block  |                                                                                             |
+| `table`         | block  | `align`: `"left"`, `"center"`, `"right"` or `null` for each column                          |
+| `tableRow`      | block  |                                                                                             |
+| `tableCell`     | block  |                                                                                             |
+| `text`          | inline | `value`, decoded, and the node's range covers the raw characters                            |
+| `emphasis`      | inline |                                                                                             |
+| `strong`        | inline |                                                                                             |
+| `delete`        | inline |                                                                                             |
+| `inlineCode`    | inline | `value`                                                                                     |
+| `link`          | inline | `destination`, `title`, `destinationRange`, `expressions` (ranges of `${…}`), `autolink`    |
+| `image`         | inline | `destination`, `title`, `destinationRange`, `expressions` and `alt`                         |
+| `break`         | inline |                                                                                             |
+| `expression`    | inline | `code`, the text between the braces of `${…}`, and `range`                                  |
+| `element`       | both   | `kind` (`"inline"`, `"leaf"` or `"container"`) and `name`, which is `span` for a plain span |
+| `math`          | both   | `block`, `value` (the TeX) and `range`                                                      |
 
-These types have no data of their own: `document`, `comment`, `paragraph`, `emphasis`, `strong`,
-`delete`, `blockquote`, `thematicBreak`, `break`, `tableRow` and `tableCell`.
+`delete` is strikethrough and `break` is a hard line break. A comment carries no data, since
+`html()` never writes it and its text is in the source.
 
 Each type is a construct in [Syntax](syntax.md), by the ids in the [Grammar](grammar.md). There are
 no `html`, `definition` or footnote nodes: markz has no raw HTML, reference links or footnotes.
