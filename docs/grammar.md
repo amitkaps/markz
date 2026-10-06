@@ -85,9 +85,9 @@ single-quoted ::= "'" ([^'#xA#xD] | "''")* "'"
 plain ::= ([^ #x9#xA#xD"'{}#x5B#x5D&*!|>%@`,#?:-] | [?:-] [^ #x9#xA#xD]) char*
 ```
 
-- `metadata-start`: Only at offset 0, and only when a closing `---` follows; whatever is between is metadata, and a line this grammar does not match is a warning. Without the closing line the first `---` is a thematic break.
-- `metadata-continuation`: A line that is not a key line belongs to the value before it, which is skipped; lines inside brackets a rejected line left open are skipped too.
-- `dotted-keys`: A `.` in a key makes a nested object: `a.b: 1` is `{ a: { b: 1 } }`, at any depth, and keys with the same start share the object, in the order each first appears. A key's segments are the parts between its dots; a segment has no `.` of its own and is never `__proto__`, which is reported as `metadata-line`.
+- `metadata-start`: Only at offset 0, and only when a closing `---` follows. Whatever is between is metadata, and a line this grammar does not match is a warning. Without the closing line, the first `---` is a thematic break.
+- `metadata-continuation`: A line that is not a key line belongs to the value before it, which is skipped. Lines inside brackets a rejected line left open are skipped too.
+- `dotted-keys`: A `.` in a key makes a nested object: `a.b: 1` is `{ a: { b: 1 } }`, at any depth, and keys with the same start share the object, in the order each first appears. A key's segments are the parts between its dots. A segment has no `.` of its own and is never `__proto__`, which is reported as `metadata-line`.
 - `metadata-keys`: A key appears once, and a path is a value or an object, never both: `a` and `a.b` clash, in either order, as do `a.b` and `a.b.c`. The first wins.
 - `plain-value`: A plain value contains no `: ` and is not one YAML 1.2 reads as another type (`True`, `~`, `0x1F`, `.5`, `1e3`).
 - `list-items`: A plain list item contains no `,`, `[`, `]` or `{`, `}`.

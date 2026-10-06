@@ -1,8 +1,8 @@
 # Reference
 
 Everything `@amitkaps/markz` exports: six functions, the read-only `Document` they work on, and
-the types of what it holds. None of them takes options. To do something with them, see
-[Usage](usage.md); for why they are shaped this way, see [Design](design.md).
+the types of what it holds. None of them takes options. What to do with them is in [Usage](usage.md), and why they are
+shaped this way is in [Design](design.md).
 
 ```ts
 import { parse, html, walk, textContent, headings, position } from "@amitkaps/markz";
@@ -101,8 +101,9 @@ no `html`, `definition` or footnote nodes: markz has no raw HTML, reference link
 ## Warnings
 
 Each entry in `doc.warnings` is `{ code, start, end, message, instead }`: a stable `code` to match
-on, the source range, what was wrong, and `instead`, the form to write. The codes, one per rejected
-form, are in [Syntax: Not supported](syntax.md#not-supported). `WarningCode` is their type.
+on, the source range, what was wrong, and `instead`, the form to write. Each form markz cuts has
+a code, in [Syntax: Not supported](syntax.md#not-supported), and the rest are named in their
+construct's section. `WarningCode` is their type.
 
 ## Types
 

@@ -1,0 +1,21 @@
+# @prose
+# # How the site is deployed
+#
+# The site is static files on a Cloudflare Worker, with no code. `prose build` writes the pages
+# into `.prose`, and `pnpm quality` adds the Quality page beside them.
+#
+# CI deploys it from `main` once the checks pass, with `wrangler deploy`, which reads this file
+# (`.github/workflows/ci.yml`). The custom domain needs the `amitkaps.com` zone on the same
+# Cloudflare account. Cloudflare creates its DNS record and certificate on the first deploy.
+
+name = "markz"
+compatibility_date = "2026-09-09"
+workers_dev = true
+routes = [{ pattern = "markz.amitkaps.com", custom_domain = true }]
+
+[assets]
+directory = ".prose"
+# Serve the site's own 404.html for any missing address.
+not_found_handling = "404-page"
+# Serve /src/html.ts from src/html.ts.html, with no redirect.
+html_handling = "auto-trailing-slash"

@@ -21,9 +21,10 @@ Kept to what YAML 1.2, GitHub and formatters read the same way, with dotted keys
 nested objects.
 
 A document can open with a metadata block: key/value pairs between `---` lines, starting at
-offset 0 (what other tools call frontmatter). Opening a document with `---` asks for metadata:
-when a closing `---` line follows, everything between is the block, and a line the rule below can't read is a warning rather than a reason to read
-the block as Markdown. So a document can't open with a thematic break. Without a closing line, the
+offset 0 (what other tools call frontmatter). Opening a document with `---` asks for metadata.
+When a closing `---` line follows, everything between is the block, and a line the rule below
+can't read is a warning, never a reason to read the block as Markdown. So a document can't open
+with a thematic break. Without a closing line, the
 first `---` is a thematic break, and if the next line is a `key:` line it gets the warning
 `metadata-unclosed`. markz parses the block into `doc.metadata`, an object, and keeps its range.
 
@@ -53,14 +54,15 @@ tags: [svelte, vite]
 | `[a, 2, "b, c"]`   | a list of values by these same rules, one line, no nesting   |
 | anything else      | string, as written: `Sales Report`, `2026-09-26`, `C# notes` |
 
-- **Keys** are made of segments, each `[A-Za-z_][A-Za-z0-9_-]*`, and a key appears once.
+- **Keys** are made of segments, each `[A-Za-z_][A-Za-z0-9_-]*`. A key appears once, and of two
+  duplicate keys the first wins and the second gets the warning `metadata-duplicate-key`.
 - **A dotted key** is a path into a nested object, at any depth, so a block reads as a small
   JSON-shaped tree of scalars and lists. Keys that start the same share the object, in the order
   each first appears. A segment has no `.` of its own, can't start with a digit and can't be
-  `__proto__`; a path that doesn't fit (`a..b`, `.a`, `a.`, `a.0`) gets `metadata-line` and is
+  `__proto__`. A path that doesn't fit (`a..b`, `.a`, `a.`, `a.0`) gets `metadata-line` and is
   skipped. A path is a value or an object, never both: of `a` and `a.b`, in either order, the
-  first wins and the second gets `metadata-duplicate-key`. Lists hold scalars; there are no lists
-  of objects, because metadata describes the document, and repeated records belong in its body,
+  first wins and the second gets `metadata-duplicate-key`. Lists hold scalars, with no lists of
+  objects, because metadata describes the document, and repeated records belong in its body,
   as a list or a table.
 
   ```yaml
@@ -87,11 +89,7 @@ tags: [svelte, vite]
   strings), `|` and `>`, `{a: b}`, anchors, aliases and tags. Each gets a warning
   (`metadata-indented`, `metadata-line` or `metadata-value`), and its key is skipped. A line that
   isn't a key line belongs to the value before it (`tags:` over `- a`), so that key is skipped too,
-  and so are the lines inside brackets a rejected line leaves open. Of two
-  duplicate keys, the first wins and the second gets the warning `metadata-duplicate-key`.
-
-markz is not a YAML parser, but every block it accepts gives the object YAML would, with each
-dotted key (`a.b`, which YAML reads as the one key `"a.b"`) expanded into nested objects.
+  and so are the lines inside brackets a rejected line leaves open.
 
 ## Block
 
@@ -112,7 +110,7 @@ Only the `#` form exists, and every heading gets an id.
 `#` to `######`, then a space, and one line of content. The optional closing `#`s
 (`## Title ##`) are accepted and stripped.
 
-Every heading gets an id, settled as the heading is parsed. No id depends on a later heading, so
+The id is settled as the heading is parsed. No id depends on a later heading, so
 none changes once it is written, which keeps streaming simple:
 
 - **`{#id}` on the line above sets it exactly**, giving an anchor that survives renaming the
@@ -124,8 +122,8 @@ none changes once it is written, which keeps streaming simple:
 The algorithm:
 
 1. Take the heading's plain text: text and inline-code values, with escapes and numeric
-   references decoded, punctuation curled, and `\ ` as a space. Link text counts; URLs, image alt
-   text, math and expressions don't.
+   references decoded, punctuation curled, and `\ ` as a space. Link text counts, and URLs, image
+   alt text, math and expressions don't.
 2. Lowercase it.
 3. Remove every character that isn't alphabetic, a mark, a decimal digit, a connector such as
    `_`, a space or `-`. Letters in any script are kept, and so are symbols Unicode counts as
@@ -183,8 +181,8 @@ There are no lazy continuation lines, and an item can be a task.
 The fence is backticks only.
 
 ` ``` ` or longer, then an info string. The first word is `lang` and the rest is `meta`. Nest by
-using a longer fence. A fence with no closing line runs to the end of its container, and
-gets the warning `unclosed-block` at its opening line. So does a raw or math block.
+using a longer fence. A fence with no closing line runs to the end of its container, and gets
+the warning `unclosed-block` at its opening line. So does a raw or math block.
 
 {#raw-block}
 
@@ -215,9 +213,9 @@ backtracking:
 
 ### Math blocks
 
-`$$` fences on lines of their own, or `$$E=mc^2$$` alone on a line. The node holds
-the raw TeX, and markz doesn't typeset it. `html()` writes `<pre><code class="language-math math-display">`, and the host adds
-KaTeX or Temml. A ` ```math ` fence stays an ordinary code block with `lang: "math"`, and its HTML
+`$$` fences on lines of their own, or `$$E=mc^2$$` alone on a line. The node holds the raw TeX,
+and markz doesn't typeset it. `html()` writes `<pre><code class="language-math math-display">`,
+and the host adds KaTeX or Temml. A ` ```math ` fence stays an ordinary code block with `lang: "math"`, and its HTML
 is already the `language-math` shape.
 
 {#table}
@@ -238,9 +236,9 @@ The marker is `---` only.
 
 ### Attributes
 
-`{…}` is markz's one extension syntax. Attributes decorate an
-element Markdown already makes, and `@name` in them makes an element Markdown has no syntax for:
-a block [element](#element) or an inline one in a [span](#span).
+`{…}` is markz's one extension syntax. Attributes decorate an element Markdown already makes, and
+`@name` in them makes an element Markdown has no syntax for, a block [element](#element) or an
+inline one in a [span](#span).
 
 ```md
 {#pricing .center}
@@ -297,8 +295,7 @@ This section defines the syntax for all four; the other places are also describe
 
 ### Elements
 
-An element is a `{…}` whose first item is `@name`, and the name is the element it
-writes. There is no HTML, so this is how wrappers and components with data are written. Inline
+An element is a `{…}` whose first item is `@name`, and the name is the element it writes. There is no HTML, so this is how wrappers and components with data are written. Inline
 elements are [spans](#span).
 
 ```md
@@ -319,8 +316,8 @@ Markdown **inside**, parsed and source-mapped.
   (lowercase letters, digits and `-`, starting with a letter and with a `-` in it, as
   `call-out`). Any other name, such as `{@chart /}` or `{@note}`, leaves the line as text and is
   reported (`element-name`). The name is never a class: classes come only from `.class`, so
-  `{@div .note}` is a note and `{@note}` is not an element. See [Element names](design.md#element-names)
-  for why.
+  `{@div .note}` is a note and `{@note}` is not an element. Why is in
+  [Element names](design.md#element-names).
 
 The block elements are those Markdown has no syntax for and that can't run code: `div`,
 `section`, `article`, `aside`, `header`, `footer`, `nav`, `main`, `address`, `hgroup`, `search`,
@@ -332,14 +329,14 @@ Where a container opens and closes:
   closer can, since `{/` and a line ending in `/}` can't be prose.
 - **`{/name}` closes the innermost element open in its container** when the names match.
   Otherwise it stays text and is reported (`element-close`), and nothing is closed. After a
-  `{#name}` line, the warning says to open the element with `{@name}`. A closing
-  line is read at its element's own level, before the containers inside the element take their
+  `{#name}` line, the warning says to open the element with `{@name}`. A closing line is read at
+  its element's own level, before the containers inside the element take their
   prefixes, so it ends a list or item it follows, as a closing code fence would.
 - **A `/` just before the `}` is the leaf's,** never part of an id, class or value:
   `{@div #a/}` is a leaf with the id `a`.
 - **An unclosed element runs to the end of its container or the document**, as an unclosed code
-  fence does, and gets the warning `unclosed-element` at its opener. A leaf that
-  lost its `/` is this case.
+  fence does, and gets the warning `unclosed-element` at its opener. A leaf that lost its `/` is
+  this case.
 
 `html()` writes the name as the element, with the attributes as they are for any element. An
 element has no label of its own: what HTML puts in a child element is written as one.
@@ -375,12 +372,12 @@ A consumer's own fold, such as visdown's Svelte codegen, maps names to component
 
 ### Comments
 
-`<!-- … -->` on lines of its own becomes a `comment` node, which `html()` never
-renders. It is the only thing kept from HTML, for notes that stay in the
-source (`<!-- @note … -->`).
+`<!-- … -->` on lines of its own becomes a `comment` node, which `html()` never renders. It is
+the only thing kept from HTML, for notes that stay in the source (`<!-- @note … -->`).
 
 - It may span lines, and ends on the line with `-->`. Text after `-->` on that line is part of the
-  comment and gets the warning `comment-trailing-text`. An unclosed comment runs to the end of its container, with the warning `unclosed-block`.
+  comment and gets the warning `comment-trailing-text`. An unclosed comment runs to the end of
+  its container, with the warning `unclosed-block`.
 - A comment that shares its first line with other text is inline, where it is text.
 
 ## Inline
@@ -389,8 +386,8 @@ source (`<!-- @note … -->`).
 
 ### Emphasis
 
-The markers are `_emphasis_`, `**strong**` and `~~strikethrough~~`. Where a run may open or close follows CommonMark's flanking
-rules, without the rest of its 17:
+The markers are `_emphasis_`, `**strong**` and `~~strikethrough~~`. Where a run may open or
+close follows CommonMark's flanking rules, without the rest of its 17.
 
 - A run can't open before whitespace, or before punctuation that follows a letter, and the mirror
   image for closing. `_` never opens or closes inside a word, so `snake_case_name` stays text.
@@ -457,28 +454,28 @@ the span's children. `html()` writes a `<span>` with the attributes, or, when th
 
 The inline elements are those Markdown has no syntax for and that can't run code: `abbr`, `b`,
 `i`, `u`, `s`, `small`, `cite`, `q`, `dfn`, `time`, `data`, `var`, `samp`, `kbd`, `mark`, `sub`,
-`sup`, `ins`, `bdi`, `bdo`, `ruby`, `rt` and `rp`. There is no `=em`, `=strong`, `=code` or
-`=del`, because `_x_`, `**x**`, `` `x` `` and `~~x~~` already write them: an edit is
+`sup`, `ins`, `bdi`, `bdo`, `ruby`, `rt` and `rp`. There is no `@em`, `@strong`, `@code` or
+`@del`, because `_x_`, `**x**`, `` `x` `` and `~~x~~` already write them: an edit is
 `~~old~~ [new]{@ins}`.
 
 {#inline-math}
 
 ### Inline math
 
-`$…$`: the opening `$` is followed by a non-space
-character, and the closing `$` follows a non-space character and isn't followed by a digit, so
-`costs $5 and $10` stays text. The TeX holds no unescaped `$`, and a run of two or more dollars
-never opens it: `$$x$$` inside a line of text and ``$`x`$`` stay text with a
-[`math-delimiter`](#not-supported) warning. Math is read before emphasis and escapes, so
-`$a_1 * b_2$` needs no backticks. `${` always starts an expression and never math. The
-node holds the raw TeX, and `html()` writes `<code class="language-math math-inline">`.
+`$…$`. The opening `$` is followed by a non-space character, and the closing `$` follows a
+non-space character and isn't followed by a digit, so `costs $5 and $10` stays text. The TeX
+holds no unescaped `$`. A run of two or more dollars never opens it, so `$$x$$` inside a line of
+text and ``$`x`$`` stay text with a [`math-delimiter`](#not-supported) warning. Math is read
+before emphasis and escapes, so `$a_1 * b_2$` needs no backticks. `${` always starts an
+expression and never math. The node holds the raw TeX, and `html()` writes
+`<code class="language-math math-inline">`.
 
 {#expression}
 
 ### Expressions
 
-`${…}` is a JavaScript template-literal interpolation, parsed as an `expression` node
-that holds the code and its range. markz never evaluates it.
+`${…}` is a JavaScript template-literal interpolation, parsed as an `expression` node that holds
+the code and its range. markz never evaluates it.
 
 - It is recognised in any inline position, in link destinations and in attribute values.
 - It binds tighter than emphasis, the way inline code does, so `${a * b * c}` is one expression.
@@ -496,16 +493,15 @@ that holds the code and its range. markz never evaluates it.
 - The node's code is what is between the braces, its lines joined by line endings and each
   trimmed, as inline math keeps its TeX, so a container's prefix (`> `) never reaches it.
 - `html()` writes `<code class="language-js expression">` holding the code, escaped, the way it
-  writes math it doesn't typeset: the host evaluates expressions from the tree, never from the HTML. In a link
-  destination or an attribute value, `${…}` stays part of that string.
+  writes math it doesn't typeset. The host evaluates expressions from the tree, never from the
+  HTML. In a link destination or an attribute value, `${…}` stays part of that string.
 
 {#line-break}
 
 ### Line breaks
 
-`\` at the end of a line is the only hard break. It is visible and
-explicit. Any other line ending inside a paragraph is a soft break. A poem
-ends each line with `\`, or a site styles it ([Usage](usage.md#keep-a-poems-line-breaks)).
+`\` at the end of a line is the only hard break. It is visible and explicit. Any other line
+ending inside a paragraph is a soft break. A poem ends each line with `\`, or a site styles it ([Usage](usage.md#keep-a-poems-line-breaks)).
 
 Spaces or tabs after the `\` don't change that: `\ ` at the end of a line is a hard break, not a
 [non-breaking space](#escape). The space can't be seen, and formatters strip it, which leaves the
@@ -519,15 +515,15 @@ There are no named character references, and `\ ` is a non-breaking space.
 
 - A backslash before any ASCII punctuation character is that character: `\*`, `\_`, `\$`, `\{`, …
 - Numeric references decode: `&#169;`, `&#x2014;`. They are the only character references.
-- `&` is ordinary text: write it literally, and `html()` escapes it.
-- `\` followed by a space is a non-breaking space (U+00A0): `10\ km`, `Dr.\ Smith`. In a heading id it counts as a space.
+- `&` is ordinary text. Write it as it is, and `html()` escapes it.
+- `\` followed by a space is a non-breaking space (U+00A0), as in `10\ km` and `Dr.\ Smith`. In a
+  heading id it counts as a space.
 
 {#smart-punctuation}
 
 ### Smart punctuation
 
-Built in, and applied to text only, never to code, math, expressions, URLs or
-attribute values.
+Built in, and applied to text only, never to code, math, expressions, URLs or attribute values.
 
 | Source              | Text value                                                           |
 | ------------------- | -------------------------------------------------------------------- |
@@ -537,22 +533,23 @@ attribute values.
 | `---`               | `—` (em dash). A line holding only `---` is still a horizontal rule. |
 | `...`               | `…`                                                                  |
 
-- Whether a quote opens or closes is decided by the character before it: start of text,
-  whitespace, an opening bracket, a dash, another quote or an emphasis marker means it opens.
+- A quote reads past the quotes and emphasis markers just before it. It opens after the start of
+  text, whitespace, an opening bracket or a dash, and closes after anything else. So `"'word'"`
+  nests, and `_"word"_` is curled as `"word"` would be.
 - A run of more than three hyphens is split into em and en dashes with the same count.
 - `\"`, `\'`, `\-` and `\.` keep the straight character.
 - The text node's `value` holds the typographic character, and its range still covers the
-  source characters. `value` and `textContent()` are the rendered text: escapes and numeric
-  references decoded, punctuation curled. What the author typed is always
-  `source.slice(start, end)`, and a consumer that needs the source uses that.
+  source characters. What the author typed is always `source.slice(start, end)`
+  ([Design](design.md#source-locations)).
 - Heading ids are made from the typographic text. Quotes and dashes are punctuation, so they
   drop out, and `Don't` and `Don’t` give the same id.
 
 ## Not supported
 
 Each of these stays literal text and adds a warning over exactly its characters. The warning's
-`code` is the table's first column, and its `instead` is the "Write instead" column. They are cut on principle, not
-missing features: the Why column says what each would cost. Two look-alikes are ordinary prose, so
+`code` is the table's first column, and its `instead` is the "Write instead" column. They are
+cut on principle, not missing features, and the Why column says what each would cost. Two
+look-alikes are ordinary prose, so
 they stay text without a report: a lone `[x]` (a reference link's definition is reported instead)
 and a bare `{…}`.
 
@@ -637,13 +634,6 @@ One case needs care. For two adjacent lists, oxfmt keeps them apart by switching
 
 ## Grammar
 
-[`grammar.md`](grammar.md) states the dialect. For each construct it holds the id, under the
-same part as here, the productions in EBNF, and the side rules EBNF can't state:
-container prefixes, fence lengths, emphasis flanking, which block a line opens first. A form cut
-above has no production. It is a Not supported row, keyed by its warning code.
-
-The productions say what markz accepts, not how it reads it. On their own they are ambiguous, as
-every Markdown grammar is, and the side rules settle each choice. The parser is written by hand
-as the one reading of both: a single pass, deterministic, with lookahead that is bounded or
-remembers where it failed ([Design](design.md#parser-foundation)). The tests hold the grammar to this
-page, with the same constructs and parts. The fuzzer generates documents from it, and every construct is held to it at its edges.
+[`grammar.md`](grammar.md) states the dialect this page explains. Each construct there has the
+same id, under the same part, with its productions in EBNF and the side rules EBNF can't state.
+A form cut above has no production. The tests hold the two pages to each other.

@@ -46,8 +46,8 @@ pnpm quality                    # the Quality page, beside them
 ```
 
 The root `README.md` is the home page. The bar links the docs in `docs/`, in the order of the
-`nav` list in [docs/README.md](README.md). CI builds both on every pull request, and deploys the folder from `main` to a
-Cloudflare Worker set up in [wrangler.jsonc](../wrangler.jsonc).
+`nav` list in [docs/README.md](README.md). CI builds both on every pull request, and deploys the
+folder from `main` to a Cloudflare Worker set up in [wrangler.toml](../wrangler.toml).
 
 ## Release
 
