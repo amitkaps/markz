@@ -42,6 +42,12 @@ interface State {
  * a task item's checkbox goes at the start of its first paragraph. Comments and metadata write
  * nothing, and a raw block writes its content only when its format is `html`. `open` returns
  * `false` for a node whose children it has written itself or must not write.
+ *
+ * The checkbox is GFM's, disabled and without a label, so the output matches the oracle. An
+ * accessibility checker reports the missing label, and that report is accepted. A disabled box
+ * is skipped by Tab, and a screen reader reads the item's text right after it. An `aria-label`
+ * of its state (`Done`, `To do`) would repeat what "checked" already says. A `<label>` around the
+ * item would put its links inside another control. Both are ruled out.
  */
 function open(doc: Document, node: NodeId, state: State): boolean {
   const type = doc.type(node);

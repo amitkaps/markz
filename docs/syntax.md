@@ -102,16 +102,6 @@ dotted key (`a.b`, which YAML reads as the one key `"a.b"`) expanded into nested
 A paragraph never continues lazily into a blockquote or list item (see Blockquotes and Lists).
 
 - Text separated by a blank line.
-- **A poem or a quote with its own line breaks** gets `{.verse}` on the line above. `html()`
-  writes it as a normal paragraph, `<p class="verse">`, and the paragraph's newlines are kept in
-  the output. The site's CSS `.verse { white-space: pre-line }` shows them. The `\` on every
-  line isn't needed.
-
-```md
-{.verse}
-Moko kahan dhundhe re bande
-Main to tere paas mein
-```
 
 {#heading}
 
@@ -511,8 +501,8 @@ that holds the code and its range. markz never evaluates it.
 ### Line breaks
 
 `\` at the end of a line is the only hard break. It is visible and
-explicit. Any other line ending inside a paragraph is a soft break. For
-a poem, see `{.verse}` under [Paragraphs](#paragraph).
+explicit. Any other line ending inside a paragraph is a soft break. A poem
+ends each line with `\`, or a site styles it ([Usage](usage.md#keep-a-poems-line-breaks)).
 
 Spaces or tabs after the `\` don't change that: `\ ` at the end of a line is a hard break, not a
 [non-breaking space](#escape). The space can't be seen, and formatters strip it, which leaves the
@@ -599,7 +589,7 @@ and a bare `{…}`.
 | `bare-url`          | Bare URLs (`https://…`, `www.…`, `me@example.com`)                             | `<https://…>` or `[text](url)`                                    | GFM's largest construct, and the only one that has to look back at text already emitted: an email is known only at its `@`, and trailing punctuation is trimmed afterwards. |
 | `relative-autolink` | Relative autolinks (`</docs/intro>`)                                           | `[About](/about)`                                                 | An autolink needs a scheme, and `</about>` is a closing HTML tag, reported as raw HTML. A link should have real text.                                                       |
 | `named-reference`   | Named character references (`&copy;`, `&amp;`, `&nbsp;`)                       | the character itself (`©`, `&`), or `\ ` for a non-breaking space | Files are UTF-8, `html()` escapes `&` and `<` itself, and the table of 2,125 names is about 12 KB gzip.                                                                     |
-| `trailing-spaces`   | Two trailing spaces as a line break                                            | `\` at end of line, or `{.verse}` on a poem                       | Invisible syntax.                                                                                                                                                           |
+| `trailing-spaces`   | Two trailing spaces as a line break                                            | `\` at end of line                                                | Invisible syntax.                                                                                                                                                           |
 | `underscore-strong` | `__strong__`                                                                   | `**strong**`                                                      | One marker. oxfmt rewrites it.                                                                                                                                              |
 | `star-emphasis`     | `*emphasis*`, except inside `_…_` or touching a letter ([Emphasis](#emphasis)) | `_emphasis_`                                                      | One marker, and the source of most emphasis edge cases. oxfmt rewrites it.                                                                                                  |
 | `single-tilde`      | `~single~` strikethrough                                                       | `~~text~~`                                                        | One marker. oxfmt rewrites it.                                                                                                                                              |
