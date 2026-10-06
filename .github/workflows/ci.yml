@@ -44,9 +44,7 @@ jobs:
       - name: Bundle size (20 KB gzip budget)
         run: pnpm size
 
-      # `--out .prose` is prose's next default; the installed 0.3.0 writes `.prose/site`. Drop it
-      # once prose releases.
       - name: Site (prose build, then the Quality page)
         run: |
-          pnpm prose build --out .prose
+          pnpm prose build
           pnpm quality

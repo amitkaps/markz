@@ -41,7 +41,7 @@ and `pnpm test` first, and `pnpm build` too after a dependency bump.
 the site has no code of its own.
 
 ```sh
-pnpm prose build --out .prose   # the repository's pages
+pnpm prose build                # the repository's pages
 pnpm quality                    # the Quality page, beside them
 ```
 
@@ -54,7 +54,7 @@ Cloudflare builds the site from `main` and serves it from a Worker with static a
 Worker to the repository with these settings.
 
 - **Production branch:** `main`
-- **Build command:** `pnpm install && pnpm prose build --out .prose && pnpm quality`
+- **Build command:** `pnpm install && pnpm prose build && pnpm quality`
 - **Deploy command:** `pnpm dlx wrangler deploy`
 
 The deploy command uses `pnpm dlx`, not `npx`, because `npx` refuses to run in a repository whose
