@@ -1,5 +1,19 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`agents/agents.md-AGENTS.md > warns as before 1`] = `[]`;
+
+exports[`agents/airflow-AGENTS.md > warns as before 1`] = `
+[
+  "156:510 star-emphasis *not*",
+]
+`;
+
+exports[`agents/deno-CLAUDE.md > warns as before 1`] = `[]`;
+
+exports[`agents/next.js-AGENTS.md > warns as before 1`] = `[]`;
+
+exports[`agents/ruff-AGENTS.md > warns as before 1`] = `[]`;
+
 exports[`markz/AGENTS.md > warns as before 1`] = `[]`;
 
 exports[`markz/README.md > warns as before 1`] = `[]`;

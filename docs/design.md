@@ -376,8 +376,9 @@ document, and is the only timing CI gates on.
   sound: no throw, a valid tree, warnings inside the source, the same page whatever the line
   endings, and safe HTML. A multi-MB document guards the ordinary path against quadratic
   behaviour.
-- **Real documents:** markz's own docs, read in place, and human-written documentation (Node.js,
-  the Rust book, Vite), vendored in `test/documents/`. Each is sound as
+- **Real documents:** markz's own docs, read in place. Vendored in `test/documents/` are the
+  agent instructions of open-source projects (Next.js, Airflow, Ruff, Deno, the AGENTS.md
+  example) and human-written documentation (Node.js, the Rust book, Vite). Each is sound as
   written and after oxfmt, its common blocks read as micromark reads them, formatting never
   changes what it means, and its warnings are a snapshot.
 
