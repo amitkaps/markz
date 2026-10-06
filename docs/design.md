@@ -108,8 +108,8 @@ Rules:
   (`&#169;` → `©`, `\*` → `*`) and with smart punctuation (`"` → `“`). `start`/`end` cover the raw
   characters. A soft line break is a `\n` in the text before it, whose range covers the line
   ending, never the next line's container prefix, so one text node spans lines only where the
-  source has nothing between them. A consumer scanning for syntax of its
-  own reads `source.slice(start, end)`, so a decoded escape can't shift its columns.
+  source has nothing between them. A consumer scanning for syntax of its own reads
+  `source.slice(start, end)`, so a decoded escape can't shift its columns.
 - **Containers with prefixed lines** (blockquotes, list items) span from their first
   marker to the end of their last content. The `> ` and indentation prefixes inside that span
   belong to no child.
@@ -117,10 +117,9 @@ Rules:
   source and falls before `document.start`.
 
 `position(source)` builds a line-start table once and converts offsets to `{ line, column }` by
-binary search. Lines are 1-based and columns are 0-based, as in source-map v3. A consumer that parses an
-extracted string (a comment body with its `*` gutters stripped) maps lines back to the file
-itself. markz only promises offsets
-into what it was given.
+binary search. Lines are 1-based and columns are 0-based, as in source-map v3. A consumer that
+parses an extracted string (a comment body with its `*` gutters stripped) maps lines back to the
+file itself. markz only promises offsets into what it was given.
 
 ## Parser foundation
 
@@ -140,8 +139,7 @@ html()
 smart punctuation and heading ids are cases in the same two scanners. They aren't plug-ins
 layered on a CommonMark core, because a fixed dialect needs no extension points. That also keeps
 precedence in one place: `${…}` binding tighter than emphasis is just the order of the inline
-scanner's cases. There is nothing after the two passes: a heading's id is settled when the
-heading closes, against the ids used so far.
+scanner's cases.
 
 **No backtracking.** The language leaves out every construct whose meaning depends on text after
 it:
@@ -157,8 +155,9 @@ it:
 | bare-URL autolinks        | an email is known only at its `@`, and trailing punctuation is trimmed afterwards  |
 
 What remains is small enough to write by hand, needs no named-entity table, lets `html()` be safe
-outside raw blocks, and never depends on later text, which keeps streaming simple. The rest is openers (`[`, `_`, `**`, `` ` ``,
-`$`, `${`, and `{` after a `)` or `]`) that either close or turn out to be text:
+outside raw blocks, and never depends on later text, which keeps streaming simple. The rest is
+openers (`[`, `_`, `**`, `` ` ``, `$`, `${`, and `{` after a `)` or `]`) that either close or
+turn out to be text.
 
 - **Openers go on a stack.** The inline pass keeps what it has read as a linked list of items. A
   closer wraps the items since its opener into one node; an opener still unmatched at the end of
@@ -173,12 +172,9 @@ outside raw blocks, and never depends on later text, which keeps streaming simpl
   line cost a thousand.
 - **Block attributes are one line**, so the block pass never looks ahead.
 
-**The grammar states the dialect, and the parser is its one reading.** [`syntax.md`](syntax.md)
-explains the dialect, and [`grammar.md`](grammar.md) states it: each construct's productions in EBNF, plus
-the side rules EBNF can't state (container prefixes, fence lengths, flanking, which block a line
-opens first). The productions alone are ambiguous, as every Markdown grammar is, and the side
-rules settle each choice. The parser isn't generated from the grammar. It is written by hand and
-keeps one invariant:
+**The grammar states the dialect, and the parser is its one reading.** [`grammar.md`](grammar.md)
+states each construct in EBNF, with the side rules that settle what the productions leave
+ambiguous. The parser isn't generated from it. It is written by hand and keeps one invariant.
 
 - **Single pass:** the block pass reads each line once, and the inline pass reads each leaf once,
   as it closes.
@@ -190,11 +186,11 @@ keeps one invariant:
   line, a table's delimiter row) or records where it failed, so no character is scanned more than
   a constant number of times.
 
-**Heading ids are settled in the pass.** CommonMark defines headings but not ids, so
-every renderer adds them its own way or not at all. markz uses GitHub's algorithm, so anchors
-match GitHub's, and a `{#id}` line sets one by hand. An id is settled as
-its heading is parsed, against the ids used so far, so it never depends on a later heading. The
-rules and the contract cases are in [`syntax.md`](syntax.md#heading).
+**Heading ids are settled in the pass.** CommonMark defines headings but not ids, so every
+renderer adds them its own way or not at all. markz uses GitHub's algorithm, so anchors match
+GitHub's, and a `{#id}` line sets one by hand. An id is settled as its heading is parsed,
+against the ids used so far, so it never depends on a later heading. The rules and the contract
+cases are in [`syntax.md`](syntax.md#heading).
 
 **micromark is the test oracle, not a dependency.** The language needs to be identical to GFM on
 the constructs they share, not compliant with all of it, and micromark with GFM checks exactly
@@ -202,8 +198,9 @@ that (see [Testing](#testing)).
 
 ## Streaming
 
-This is not built, because every use so far parses complete files. A live editor preview works with plain `parse` on every change: an unclosed
-`**` shows as text until its closer is typed, as in every Markdown preview.
+This is not built, because every use so far parses complete files. A live editor preview works
+with plain `parse` on every change. An unclosed `**` shows as text until its closer is typed, as
+in every Markdown preview.
 
 The use case it would serve is showing Markdown while it is still arriving, as in an LLM chat UI.
 The design is kept ready for it:
@@ -232,8 +229,8 @@ Nothing takes an options object.
 
 ## HTML output
 
-`html()` is part of the package. It is a fold over the AST. It works the same in Node, Workers and the browser, because it builds a
-string and never touches the DOM.
+`html()` is part of the package. It is a fold over the AST, and works the same in Node, Workers
+and the browser, because it builds a string and never touches the DOM.
 
 - **Heading ids** are written as `id`.
 - **Attributes** are written onto the element they belong to (see [Security](#security) for the
@@ -291,8 +288,7 @@ nesting.
 ## Package
 
 The package is `@amitkaps/markz` (npm refuses the bare `markz` as too close to `marked`), and it
-belongs to no application.
-There is one package, no `markz-*` companions. It is ESM only, built by `vp pack`
+belongs to no application. There is one package, with no `markz-*` companions. It is ESM only, built by `vp pack`
 into `dist/index.js` and its types, with one entry, `src/index.ts`: anything it doesn't
 re-export is private. It has no runtime dependencies and `sideEffects: false`, so a consumer
 tree-shakes what it doesn't call, and `prepack` builds, so a tarball never ships a stale `dist/`.
@@ -308,18 +304,17 @@ no `main` or `types`, which nothing on Node 24 reads. CI runs publint on the pac
 
 A release is a `vX.Y.Z` tag matching `package.json`'s version. `.github/workflows/release.yml`
 checks, tests and packs it, stages that tarball on npm with provenance, and attaches it to a
-GitHub release. npm trusts the workflow to stage, so no npm token is stored anywhere, and nothing
-reaches users until a maintainer approves the staged version with 2FA (`npm stage approve`): a
+GitHub release. npm trusts the workflow to stage, so no npm token is stored anywhere. Nothing
+reaches users until a maintainer approves the staged version with 2FA (`npm stage approve`), so a
 tag push alone can't publish. A pre-release (`vX.Y.Z-rc.N`) goes to the `next` dist-tag and
 never becomes `latest`.
 
 ## Performance and size
 
 **The budget is 20 KB gzip** for everything `import { parse, html } from '@amitkaps/markz'` pulls in,
-bundled and minified. `pnpm size` measures it and CI fails above it. The budget is why markz
-parses for itself: a general parser with GFM and extensions leaves little room for anything
-else. The language drops named entities, so no build carries a 12 KB entity table, and one
-budget covers Node, Workers and the browser.
+bundled and minified. `pnpm size` measures it and CI fails above it. One budget covers Node,
+Workers and the browser, and how it shaped the design is in
+[Lessons](lessons.md#size).
 
 **Speed is a property of the design** before it is a number: one pass over the source, linear
 time, no backtracking, and a flat tree of typed arrays with offsets into the source.
