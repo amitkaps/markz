@@ -56,3 +56,13 @@ An unclosed bracket is text, and the span after it still opens.
 .
 <p>[HTML and <span class="x">b</span></p>
 ```
+
+A `{` after a span's `]` with no `}` on its line could only have been meant as attributes.
+
+```example 164 unclosed
+Press [Ctrl]{@kbd and go.
+.
+<p>Press [Ctrl]{@kbd and go.</p>
+.
+{@kbd and go.
+```

@@ -66,6 +66,9 @@ type Leaf =
       kind: "fence" | "math";
       start: number;
       end: number;
+      /** The end of the opening line, where an unclosed block is reported. */
+      head: number;
+      closed: boolean;
       indent: number;
       ticks: number;
       info: string;
@@ -73,7 +76,7 @@ type Leaf =
       value: string;
       attributes: Attributes | undefined;
     }
-  | { kind: "comment"; start: number; end: number }
+  | { kind: "comment"; start: number; end: number; head: number; closed: boolean }
   | { kind: "table"; columns: number; end: number };
 
 /** Block-attribute lines waiting for the block they decorate. */
@@ -109,6 +112,8 @@ class BlockParser {
    * hashed and stored once.
    */
   readonly ids = new Map<string, number>();
+  /** The ids of `{#id}` lines so far, for a `{/name}` that meant `{@name}`. */
+  idLines: Set<string> | null = null;
   /** The whitespace `blank` last found: on which line, and from where to where. */
   space = { lineEnd: -1, from: -1, to: -1 };
   /**
@@ -569,7 +574,19 @@ class BlockParser {
   openFence(kind: "fence" | "math", at: number, indent: number, ticks: number, info: string): void {
     const attributes = this.enter(false);
     const end = this.trimmedEnd();
-    this.leaf = { kind, start: at, end, indent, ticks, info, body: null, value: "", attributes };
+    this.leaf = {
+      kind,
+      start: at,
+      end,
+      head: end,
+      closed: false,
+      indent,
+      ticks,
+      info,
+      body: null,
+      value: "",
+      attributes,
+    };
   }
 
   continueLeaf(leaf: Exclude<Leaf, { kind: "paragraph" | "table" }>): void {
@@ -588,6 +605,7 @@ class BlockParser {
         : this.closingFence("`") >= leaf.ticks;
     if (closing) {
       leaf.end = this.trimmedEnd();
+      leaf.closed = true;
       if (!leaf.body) leaf.body = { start: lineStart, end: lineStart };
       this.closeLeaf();
       return;
@@ -628,7 +646,8 @@ class BlockParser {
     if (this.top.kind === "list") this.closeContainer();
     // A comment takes no attributes, so attribute lines above it have no block.
     this.flushPending(this.stack.length);
-    this.leaf = { kind: "comment", start: at, end: this.lineEnd };
+    const head = this.trimmedEnd();
+    this.leaf = { kind: "comment", start: at, end: this.lineEnd, head, closed: false };
     if (oneLine) this.closeComment(close + 3);
     return true;
   }
@@ -645,7 +664,9 @@ class BlockParser {
       this.report("comment-trailing-text", end, this.trimmedEnd());
       end = this.trimmedEnd();
     }
-    (this.leaf as { end: number }).end = end;
+    const leaf = this.leaf as { end: number; closed: boolean };
+    leaf.end = end;
+    leaf.closed = true;
     this.closeLeaf();
   }
 
@@ -725,7 +746,7 @@ class BlockParser {
    * A `{/name}` line that reaches here closed nothing at an element's own level (`line`), so it
    * stays text and is reported. A container left open when its own container closes, or at the
    * end, is reported at its opening line (`unclosed-element`): a leaf that lost its `/` is the
-   * usual cause.
+   * usual cause. A `{/name}` after a `{#name}` line says to write `{@name}`, the likeliest slip.
    */
   element(at: number, end: number, interrupting: boolean): boolean {
     const { src } = this;
@@ -734,6 +755,13 @@ class BlockParser {
       if (name) {
         if (!element(name, false))
           this.report("element-name", at, end, `\`${name}\` is not an element name`);
+        else if (this.idLines?.has(name))
+          this.report(
+            "element-close",
+            at,
+            end,
+            `\`{#${name}}\` sets an id: open the element with \`{@${name}}\``,
+          );
         else this.report("element-close", at, end, `no open \`${name}\` element to close here`);
       } else {
         const close = braceEnd(src, at, end);
@@ -808,6 +836,9 @@ class BlockParser {
     if (!attributes || attributes.end !== end || bareOnly(this.src, attributes)) return false;
     this.closeLeaf();
     if (this.top.kind === "list") this.closeContainer();
+    const [only] = attributes.items;
+    if (attributes.items.length === 1 && only!.key === "id")
+      (this.idLines ??= new Set()).add(only!.value);
     const pending = this.pending;
     if (pending && pending.depth === this.stack.length) {
       // In place: copying the list on every line would be quadratic in the run's length.
@@ -946,6 +977,8 @@ class BlockParser {
     if (!leaf) return;
     this.leaf = null;
     const { b, src } = this;
+    if ((leaf.kind === "fence" || leaf.kind === "math" || leaf.kind === "comment") && !leaf.closed)
+      this.unclosed(leaf);
     switch (leaf.kind) {
       case "paragraph": {
         const { lines } = leaf;
@@ -1001,6 +1034,24 @@ class BlockParser {
         this.top.end = Math.max(this.top.end, leaf.end);
         this.top.children++;
     }
+  }
+
+  /** @prose
+   * A code, raw or math block, or a comment, that ends with its container or the document instead
+   * of a closing line is reported at its opening line (grammar: `unclosed-block`). The block is
+   * still read to the end, as CommonMark reads an unclosed fence. What follows the opening line
+   * reads as code, math or nothing, which is rarely what the author meant.
+   */
+  unclosed(leaf: Exclude<Leaf, { kind: "paragraph" | "table" }>): void {
+    const what =
+      leaf.kind === "comment"
+        ? "comment"
+        : leaf.kind === "math"
+          ? "`$$` block"
+          : /^=\S/.test(leaf.info)
+            ? "raw block"
+            : "code fence";
+    this.report("unclosed-block", leaf.start, leaf.head, `${what} is never closed`);
   }
 
   closeContainer(): void {

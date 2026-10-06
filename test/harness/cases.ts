@@ -334,6 +334,7 @@ export const EVERYWHERE: Record<string, Test> = {
 export const WARNED: Record<string, string> = {
   "element-close": "element-close",
   "unclosed-element": "unclosed-element",
+  "unclosed-block": "unclosed-block",
   "attribute-syntax": "attribute-syntax",
   "orphan-attributes": "attribute-line",
   "comment-trailing-text": "comment-close",

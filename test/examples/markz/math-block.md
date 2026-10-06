@@ -38,4 +38,6 @@ x
 .
 <pre><code class="language-math math-display">x
 </code></pre>
+.
+$$
 ```
