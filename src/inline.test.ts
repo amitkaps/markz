@@ -3,8 +3,9 @@
  * link expressions, text values), exact ranges, and heading ids. What the inline constructs write
  * is in `test/examples/markz/`. Every parsed document is also held to the tree invariants.
  */
+import fc from "fast-check";
 import { describe, expect, it } from "vite-plus/test";
-import { html, parse, type Document, type NodeId, type NodeType } from "./index";
+import { html, parse, textContent, type Document, type NodeId, type NodeType } from "./index";
 import { expectTree } from "../test/harness/tree";
 
 function parsed(source: string): Document {
@@ -77,6 +78,40 @@ describe("text", () => {
       ["a &#169; \\*b\\*\n", "a © *b*\n"],
       ['"c"', "“c”"],
     ]);
+  });
+});
+
+/** @prose
+ * ## Quote sides
+ *
+ * A word wrapped in any nesting of quotes and emphasis opens every quote on its left and closes
+ * every quote on its right (grammar: smart-punctuation; `quote-side`). The wrapping starts at the
+ * start of text, after a space or after a bracket, and ends at a space or punctuation. A word that
+ * starts with an apostrophe (`'90s`) is left out, since only the author can tell it from a quote.
+ */
+describe("quote sides", () => {
+  const layer = fc.constantFrom('"', "'", "_", "**", "~~");
+  // The same marker twice in a row would be `__` or `****`, a different construct.
+  const layers = fc
+    .array(layer, { minLength: 1, maxLength: 6 })
+    .filter((ls) => ls.every((l, i) => i === 0 || l !== ls[i - 1] || l === '"' || l === "'"));
+
+  it("opens on a word's left and closes on its right", () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom("", "a ", "a (", "a ["),
+        layers,
+        fc.constantFrom("", " b", ".", ",", ")"),
+        (before, ls, after) => {
+          const source = before + ls.join("") + "word" + [...ls].reverse().join("") + after;
+          const text = textContent(parsed(source));
+          const at = text.indexOf("word");
+          const quotes = (s: string) => s.replace(/[^“”‘’"']/g, "");
+          expect(quotes(text.slice(0, at)), source).toMatch(/^[“‘]*$/);
+          expect(quotes(text.slice(at + 4)), source).toMatch(/^[”’]*$/);
+        },
+      ),
+    );
   });
 });
 
