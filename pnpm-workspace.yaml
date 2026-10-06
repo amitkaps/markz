@@ -1,9 +1,8 @@
 # pnpm 12 reads project settings from here (moved out of .npmrc).
 
-# Dependencies allowed to run install scripts (esbuild; workerd, for the deploy).
+# Dependencies allowed to run install scripts.
 allowBuilds:
   esbuild: true
-  workerd: true
 
 # Supply-chain cooldown, in minutes. 0 tracks the newest releases; a real
 # project wants 1440+.

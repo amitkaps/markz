@@ -46,8 +46,19 @@ pnpm quality                    # the Quality page, beside them
 ```
 
 The root `README.md` is the home page. The bar links the docs in `docs/`, in the order of the
-`nav` list in [docs/README.md](README.md). CI builds both on every pull request, and deploys the
-folder from `main` to a Cloudflare Worker set up in [wrangler.toml](../wrangler.toml).
+`nav` list in [docs/README.md](README.md). CI builds both on every pull request, so a change
+that breaks the site can't merge.
+
+Cloudflare builds the site from `main` and serves it from a Worker with static assets, set up in
+[wrangler.toml](../wrangler.toml). Every merge deploys it. In Cloudflare, connect the `markz`
+Worker to the repository with these settings.
+
+- **Production branch:** `main`
+- **Build command:** `pnpm install && pnpm prose build --out .prose && pnpm quality`
+- **Deploy command:** `pnpm dlx wrangler deploy`
+
+The deploy command uses `pnpm dlx`, not `npx`, because `npx` refuses to run in a repository whose
+`devEngines` names pnpm. Wrangler isn't a dependency, since only the deploy runs it.
 
 ## Release
 
