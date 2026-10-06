@@ -6,6 +6,9 @@
  * can change without breaking anything that keys on it. Each form `syntax.md` cuts has one code,
  * named in the Code column of its Not supported table; the rest belong to a construct (a reused
  * heading id, a malformed metadata line) and are named in that construct's section.
+ *
+ * Codes are names, not numbers like `MD001`. A name reads without a lookup and matches its row in
+ * `syntax.md`, and editors take any string as a diagnostic's code.
  */
 export const WARNINGS = {
   // Not supported: metadata.
