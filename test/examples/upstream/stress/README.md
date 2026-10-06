@@ -2,7 +2,7 @@
 
 Upstream examples that curation keeps off the Conformance page: sweeps of a character class and
 variants of a form markz cuts or doesn't read, written by
-[`scripts/vendor.ts`](../../../../scripts/vendor.ts) next to the curated file in `../`, from the
+[`test/vendor.ts`](../../../vendor.ts) next to the curated file in `../`, from the
 same pinned commit. They aren't filed or given a status. [`stress.test.ts`](../../../stress.test.ts)
 only holds markz to what must hold for any input: it finishes quickly, doesn't throw, builds a
 valid tree, and warns over every bare URL GFM links and every footnote it reads.

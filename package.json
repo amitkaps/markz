@@ -29,11 +29,11 @@
     "build": "vp pack",
     "check": "vp check",
     "test": "vp test --run",
-    "size": "node scripts/size.ts",
+    "size": "node test/size.ts",
     "fuzz": "SEARCH=50 SEED=$RANDOM vp test --run test/constructs.test.ts test/robustness.test.ts",
     "bench": "node test/speed.ts",
-    "vendor": "node scripts/vendor.ts",
-    "quality": "node scripts/quality.ts",
+    "vendor": "node test/vendor.ts",
+    "quality": "node test/quality/quality.ts",
     "prose": "prose"
   },
   "devDependencies": {

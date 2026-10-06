@@ -1,8 +1,8 @@
 # test
 
-Tests that span the package rather than one module, by what each file is. The statement of the
-dialect is [`docs/grammar.md`](../docs/grammar.md); here are the inputs, the harness that reads
-and judges them, and the checks, each reporting by construct id or document.
+Tests that span the package rather than one module, and the tools that serve them. The
+statement of the dialect is [`docs/grammar.md`](../docs/grammar.md). Here are the inputs, the
+harness that reads and judges them, the checks, and the tools that measure markz and show it.
 
 - [`examples/`](examples/): examples, each a small input with what it must give. [`upstream/`](examples/upstream/) holds the vendored
   suites, one file each, with the sweeps curation keeps off the Quality page in
@@ -35,10 +35,19 @@ The checks:
 - [`complexity.test.ts`](complexity.test.ts): every adversarial pattern, and a multi-megabyte
   document, held to linear time. It runs last, on its own.
 
-[`speed.ts`](speed.ts) is `pnpm bench`: markz alone, on the working tree, in a few seconds, in
-MB/s per document tier and per construct, against this machine's baseline with a noise band.
-`--compare` times it beside other parsers, for our own insight. It is a plain Node script, which
-[`harness/node.ts`](harness/node.ts) lets load `src/` and the harness.
+The tools are plain Node scripts, each a `pnpm` command. They aren't part of `pnpm test`.
+
+- [`size.ts`](size.ts) is `pnpm size`, the 20 KB gzip budget. CI runs it on every PR, and it
+  fails above the budget.
+- [`speed.ts`](speed.ts) is `pnpm bench`: markz alone, on the working tree, in a few seconds, in
+  MB/s per document tier and per construct, against this machine's baseline with a noise band.
+  `--compare` times it beside other parsers, for our own insight.
+  [`harness/node.ts`](harness/node.ts) lets it load `src/` and the harness.
+- [`vendor.ts`](vendor.ts) is `pnpm vendor`. It turns an upstream suite's tests into examples for
+  [`examples/upstream/`](examples/upstream/), from a local clone at the pinned commit. It is run
+  by hand when a suite is re-pinned.
+- [`quality/`](quality/) is `pnpm quality`, the Quality page that the site shows beside prose's
+  pages.
 
 `pnpm test` searches from a fixed seed. `pnpm fuzz` runs the construct and robustness checks
 fifty times as far from a random one; `SEARCH` and `SEED` set both by hand.

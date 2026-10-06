@@ -8,7 +8,7 @@
  * side (a directive handler, `allowDangerousHtml`) keeps its input. A test whose options change the
  * syntax (`disable`, `singleTilde`, a frontmatter preset or custom matter) is dropped, as is anything whose input isn't a literal.
  *
- * `node scripts/vendor.ts gfm-table ../micromark-extension-gfm-table` writes
+ * `node test/vendor.ts gfm-table ../micromark-extension-gfm-table` writes
  * `test/examples/upstream/gfm-table.md` and prints what it kept and dropped. Each file's metadata
  * names the suite's repo at the clone's commit and what its examples are checked by (`SUITES`).
  * CommonMark and GFM's spec examples were converted once, and aren't written here.
@@ -18,7 +18,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseSync } from "vite-plus";
 import YAML from "yaml";
-import { writeFences } from "../test/harness/fences.ts";
+import { writeFences } from "./harness/fences.ts";
 
 /** Each suite's title, its GitHub repo and the path its tests are in, and what checks them. */
 const SUITES: Record<string, [title: string, repo: string, path: string, checks: string]> = {
@@ -483,7 +483,7 @@ function curate(suite: string, examples: Vendored[]): [kept: Vendored[], stress:
 
 const [suite, dir] = process.argv.slice(2);
 if (!suite || !dir || !SUITES[suite]) {
-  throw new Error(`usage: node scripts/vendor.ts <${Object.keys(SUITES).join("|")}> <clone>`);
+  throw new Error(`usage: node test/vendor.ts <${Object.keys(SUITES).join("|")}> <clone>`);
 }
 const dropped: string[] = [];
 const examples =

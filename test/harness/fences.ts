@@ -86,7 +86,7 @@ export function readFences(text: string): Fences {
 /** @prose
  * ## Writing
  *
- * What `scripts/vendor.ts` writes an upstream suite with, so a vendored file is always the one
+ * What `test/vendor.ts` writes an upstream suite with, so a vendored file is always the one
  * form `readFences` reads back to the same examples. It refuses what the format can't carry: a
  * mark already in the text, or a lone `.` line.
  */

@@ -11,7 +11,7 @@
  * generator strips its types and inlines it, so the page is one file.
  */
 /// <reference lib="dom" />
-import type { Edges, Row, Status } from "./quality-data";
+import type { Edges, Row, Status } from "./data";
 
 interface Data {
   rows: Row[];

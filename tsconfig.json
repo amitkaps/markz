@@ -16,8 +16,8 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "noEmit": true,
-    // Node runs `scripts/` directly, and needs the extension.
+    // Node runs the tools in `test/` directly, and needs the extension.
     "allowImportingTsExtensions": true
   },
-  "include": ["src", "test", "scripts", "vite.config.ts"]
+  "include": ["src", "test", "vite.config.ts"]
 }

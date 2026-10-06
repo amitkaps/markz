@@ -22,7 +22,7 @@ against it where it has any. The files are generated, so the formatter leaves th
   [micromark-extension-directive](https://github.com/micromark/micromark-extension-directive/blob/75da8c52a3f40de6485ac1928fdcdefd7ea0c3fb/test/index.js)
   (commit `75da8c5`), and `frontmatter.md`, from
   [micromark-extension-frontmatter](https://github.com/micromark/micromark-extension-frontmatter/blob/f05bf24461d31041f37f4562fd48877af4dcc67b/test/index.js)
-  (commit `f05bf24`), written by [`scripts/vendor.ts`](../../../scripts/vendor.ts). Each fixture
+  (commit `f05bf24`), written by [`test/vendor.ts`](../../vendor.ts). Each fixture
   section is an example, with GitHub's HTML for it, and each `micromark(input, …)` in
   `test/index.js` with a literal input is one, numbered in that order, under its `test()` group
   and title. The expected HTML is kept only where the options are written out in place: the
