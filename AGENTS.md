@@ -46,10 +46,10 @@ pnpm bench             # markz's speed alone, in seconds
 pnpm bench --compare   # beside markdown-exit, marked and micromark, for our own insight
 pnpm quality           # writes the Quality page from the test harness
 pnpm vendor            # refreshes the vendored test inputs
-pnpm prose build --out .prose   # the site: this repository, read by prose
+pnpm prose build                # the site: this repository, read by prose
 ```
 
-The site (markz.amitkaps.com) is the repository read by `prose build`, plus the Quality page that `pnpm quality` writes beside it. Neither is part of the package, and the site has no code of its own. CI builds both and deploys the folder from `main`. Scripts are one word, and a variant is a flag.
+The site (markz.amitkaps.com) is the repository read by `prose build`, plus the Quality page that `pnpm quality` writes beside it. Neither is part of the package, and the site has no code of its own. CI builds both, and Cloudflare deploys the folder from `main`. Scripts are one word, and a variant is a flag.
 
 ## Workflow
 
