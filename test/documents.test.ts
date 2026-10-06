@@ -1,8 +1,8 @@
 /** @prose
  * # Documents, checked
  *
- * Every real document in `documents/`, in its own `describe`, held to what an example can't
- * show: whole documents as people and agents write them. Each must be sound as written and after
+ * Every real document in the corpus (`harness/corpus.ts`), in its own `describe`, held to what an
+ * example can't show: whole documents as people and agents write them. Each must be sound as written and after
  * oxfmt. The blocks of its common variant, which every parser reads alike, must each read as
  * micromark reads them, unless the oracle can't judge one (`APART`). Formatting must not change
  * what it means: the common variant always, and the whole document when markz cut nothing in it,

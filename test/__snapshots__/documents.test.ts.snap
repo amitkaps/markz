@@ -1,98 +1,28 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`agent/base-lessons.md > warns as before 1`] = `
+exports[`markz/AGENTS.md > warns as before 1`] = `[]`;
+
+exports[`markz/README.md > warns as before 1`] = `[]`;
+
+exports[`markz/docs-README.md > warns as before 1`] = `[]`;
+
+exports[`markz/docs-design.md > warns as before 1`] = `[]`;
+
+exports[`markz/docs-development.md > warns as before 1`] = `[]`;
+
+exports[`markz/docs-grammar.md > warns as before 1`] = `
 [
-  "70:0 lazy-line sync\`, Vite+'s config resolution (\`Cannot read properties of",
+  "67:1 duplicate-id #metadata",
 ]
 `;
 
-exports[`agent/base-setup.md > warns as before 1`] = `[]`;
+exports[`markz/docs-lessons.md > warns as before 1`] = `[]`;
 
-exports[`agent/base-stack.md > warns as before 1`] = `[]`;
+exports[`markz/docs-reference.md > warns as before 1`] = `[]`;
 
-exports[`agent/base-upgrade.md > warns as before 1`] = `[]`;
+exports[`markz/docs-syntax.md > warns as before 1`] = `[]`;
 
-exports[`agent/markz-README.md > warns as before 1`] = `[]`;
-
-exports[`agent/markz-directive.md > warns as before 1`] = `[]`;
-
-exports[`agent/markz-plan.md > warns as before 1`] = `[]`;
-
-exports[`agent/markz-spec.md > warns as before 1`] = `[]`;
-
-exports[`agent/markz-syntax.md > warns as before 1`] = `[]`;
-
-exports[`agent/prose-lessons.md > warns as before 1`] = `
-[
-  "21:245 inline-attributes {}",
-]
-`;
-
-exports[`agent/prose-plan.md > warns as before 1`] = `
-[
-  "27:11 star-emphasis *since*",
-]
-`;
-
-exports[`agent/prose-review.md > warns as before 1`] = `
-[
-  "22:16 star-emphasis *since*",
-  "26:36 star-emphasis *since*",
-]
-`;
-
-exports[`agent/prose-spec.md > warns as before 1`] = `
-[
-  "12:206 star-emphasis *since*",
-  "18:262 star-emphasis *a specific piece of code*",
-  "18:420 star-emphasis *across*",
-  "18:648 star-emphasis *system*",
-  "49:43 star-emphasis *since*",
-  "53:89 star-emphasis *since*",
-  "56:64 star-emphasis *since*",
-  "69:80 star-emphasis *code*",
-  "76:220 star-emphasis *since*",
-  "196:157 star-emphasis *across*",
-  "236:260 star-emphasis *undocumented*",
-  "238:127 star-emphasis *means*",
-  "266:88 star-emphasis *since*",
-  "341:49 star-emphasis *is*",
-  "342:361 star-emphasis *since*",
-  "373:12 star-emphasis *since*",
-]
-`;
-
-exports[`agent/visdown-changelog.md > warns as before 1`] = `[]`;
-
-exports[`agent/visdown-content-overview.md > warns as before 1`] = `[]`;
-
-exports[`agent/visdown-content-status.md > warns as before 1`] = `[]`;
-
-exports[`agent/visdown-examples-budget-dashboard… > warns as before 1`] = `[]`;
-
-exports[`agent/visdown-examples-order-status.md > warns as before 1`] = `[]`;
-
-exports[`agent/visdown-examples-sales-report.md > warns as before 1`] = `[]`;
-
-exports[`agent/visdown-examples-threshold-filter… > warns as before 1`] = `[]`;
-
-exports[`agent/visdown-plan.md > warns as before 1`] = `
-[
-  "46:2 lazy-line \`packages/cli\`'s own \`node_modules\`, not the invoking cwd) i",
-]
-`;
-
-exports[`agent/visdown-spec.md > warns as before 1`] = `
-[
-  "158:41 star-emphasis *and*",
-  "204:0 tilde-fence ~~~markdown",
-  "205:0 setext-heading ---",
-  "207:0 setext-heading ---",
-  "218:0 tilde-fence ~~~",
-  "242:0 tilde-fence ~~~markdown",
-  "252:0 tilde-fence ~~~",
-]
-`;
+exports[`markz/docs-usage.md > warns as before 1`] = `[]`;
 
 exports[`public/node-esm.md > warns as before 1`] = `
 [
