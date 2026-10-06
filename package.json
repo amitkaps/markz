@@ -49,13 +49,12 @@
     "micromark-extension-math": "^3.1.0",
     "typescript": "^7.0.2",
     "vite-plus": "1.0.0",
-    "wrangler": "^4.147.0",
     "yaml": "^2.9.1"
   },
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
-      "version": "12.8.1",
+      "version": "12.9.1",
       "onFail": "error"
     },
     "runtime": {
@@ -67,5 +66,5 @@
   "engines": {
     "node": ">=24"
   },
-  "packageManager": "pnpm@12.8.1"
+  "packageManager": "pnpm@12.9.1"
 }

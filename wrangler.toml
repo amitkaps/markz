@@ -4,9 +4,10 @@
 # The site is static files on a Cloudflare Worker, with no code. `prose build` writes the pages
 # into `.prose`, and `pnpm quality` adds the Quality page beside them.
 #
-# CI deploys it from `main` once the checks pass, with `wrangler deploy`, which reads this file
-# (`.github/workflows/ci.yml`). The custom domain needs the `amitkaps.com` zone on the same
-# Cloudflare account. Cloudflare creates its DNS record and certificate on the first deploy.
+# Cloudflare builds and deploys it from `main` on every merge, and `wrangler deploy` reads this
+# file. Its build and deploy commands are set on the Worker in the dashboard
+# ([development](docs/development.md#the-site)). The custom domain is set here, and needs the
+# `amitkaps.com` zone on the same account.
 
 name = "markz"
 compatibility_date = "2026-09-09"
