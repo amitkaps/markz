@@ -1,8 +1,8 @@
 # markz
 
-markz is a small Markdown language and the one package that reads it. It has one fixed
-dialect, a compact tree that maps every node back to the source, HTML output, and no options.
-A project makes its Markdown decision once, and uses markz everywhere.
+markz is a small, opinionated Markdown, and the one package that reads it, with no
+dependencies. It has one fixed dialect, a compact tree that maps every node back to the source,
+HTML output, and no options.
 
 ```ts
 import { html, parse } from "@amitkaps/markz";
