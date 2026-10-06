@@ -9,7 +9,7 @@ harness that reads and judges them, the checks, and the tools that measure markz
   [`upstream/stress/`](examples/upstream/stress/). [`markz/`](examples/markz/) holds markz's own,
   one file per construct and one for the Not supported rows, numbered as `markz:17`, some labelled
   with the edge they try.
-- [`documents/`](documents/): real documents written by people, vendored and pinned. markz's
+- [`documents/`](documents/): real documents written by people and by agents, vendored and pinned. markz's
   own docs join them as a tier, read in place. The variants built from them are never committed.
 - [`harness/`](harness/): the machinery the checks and the Quality page share, with no
   tests of its own: the grammar, the examples and their filing, the oracles, the cases at each

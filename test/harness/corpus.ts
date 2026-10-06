@@ -8,6 +8,9 @@
  * - **markz**: this repository's own writing (`README.md`, `AGENTS.md` and `docs/`), read where
  *   it lives. It is the only real writing in the dialect, with its metadata, elements and math,
  *   and it changes with markz.
+ * - **agents**: the instructions open-source projects keep for coding agents (`AGENTS.md`,
+ *   `CLAUDE.md`). It is the Markdown agents read and write most, and none of it is markz's.
+ *   Its warnings show how much of that writing the dialect cuts.
  * - **public**: documentation written by people, in other styles: Node.js's API reference (dense
  *   links and code), the Rust book (narrative with listings) and Vite's guide (VitePress, with
  *   `:::` containers), so no one voice speaks for Markdown in general.
@@ -16,9 +19,10 @@
  *
  * A document comes in three variants. _dialect_ is the document as written. _common_ keeps only
  * the top-level blocks every parser reads alike. _formatted_ is the document after oxfmt, which is
- * how the consumers store it. The scaling tier repeats the markz and public documents to a size.
+ * how the consumers store it. The scaling tier repeats the markz and public documents to a size. It leaves out the agents tier, whose files read
+ * as checklists more than pages.
  *
- * The public and spec documents are vendored in `test/documents/`, pinned and never edited. The
+ * The agents, public and spec documents are vendored in `test/documents/`, pinned and never edited. The
  * markz tier is never vendored. Frozen copies of markz's docs and of the repos that use it (base,
  * prose, visdown) were dropped: they duplicated the live docs and snapshotted repos that keep
  * changing.
@@ -32,8 +36,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Document, NodeId } from "../../src/index";
 
-export type Tier = "markz" | "public" | "spec";
-export const TIERS: Tier[] = ["markz", "public", "spec"];
+export type Tier = "markz" | "agents" | "public" | "spec";
+export const TIERS: Tier[] = ["markz", "agents", "public", "spec"];
 
 const root = join(import.meta.dirname, "../..");
 const DOCUMENTS = join(root, "test/documents");
