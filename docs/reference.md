@@ -1,4 +1,4 @@
-# API
+# Reference
 
 Everything `@amitkaps/markz` exports: six functions, the read-only `Document` they work on, and
 the types of what it holds. None of them takes options. To do something with them, see

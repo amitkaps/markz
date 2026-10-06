@@ -10,7 +10,11 @@
  * `pnpm quality [file]`, by default `.prose/quality.html`. The cards and every construct's
  * row are plain HTML; `<markz-quality>` (`quality-element.ts`) adds the filters and the examples.
  * The page's own text goes through markz, so the page is a check on this commit's parser too.
+ *
+ * The page isn't one of prose's, so it keeps its own look. Its header is only a breadcrumb back
+ * to the home page. A copy of the docs' links was dropped, because it drifted from prose's bar.
  */
+import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { stripTypeScriptTypes } from "node:module";
 import { dirname, join } from "node:path";
@@ -33,6 +37,7 @@ const { PARTS, STATUSES, conformance, constructEdges, quality } = (await vite.ss
 )) as typeof import("./quality-data.ts");
 
 const REPO = "https://github.com/amitkaps/markz";
+const commit = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
 
 const WHAT: Record<Status, string> = {
   match: "gives the oracle’s output, or markz’s own expected HTML",
@@ -165,14 +170,7 @@ ${css}</style>
 <body>
 <div class="shell">
 <header>
-<a href="/" class="brand">markz</a>
-<nav>
-<a href="/docs/syntax.md">Syntax</a>
-<a href="/docs/grammar.md">Grammar</a>
-<a href="/docs/design.md">Design</a>
-<a href="/docs/lessons.md">Lessons</a>
-<a href="/quality" aria-current="page">Quality</a>
-</nav>
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/" class="brand">markz</a><span aria-hidden="true">/</span><span aria-current="page">Quality</span></nav>
 </header>
 <main>
 <markz-quality>
@@ -192,7 +190,7 @@ ${PARTS.map((p) => part(p, rows)).join("\n")}
 </markz-quality>
 </main>
 <footer>
-<span>Rendered by markz, built from this commit</span>
+<span>Rendered by markz, built from <a href="${REPO}/commit/${commit}"><code>${commit.slice(0, 7)}</code></a></span>
 <a href="${REPO}">github.com/amitkaps/markz</a>
 </footer>
 </div>

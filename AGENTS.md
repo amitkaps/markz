@@ -1,6 +1,6 @@
 # Agents
 
-How to work in this repository: what markz is, the prose rules it follows, then its commands and workflow. Read [docs/markz.md](docs/markz.md) and [docs/design.md](docs/design.md) first.
+How to work in this repository: what markz is, the prose rules it follows, then its commands and workflow. Read [README.md](README.md) and [docs/design.md](docs/design.md) first.
 
 ## Markz
 
@@ -8,7 +8,7 @@ markz is one package. It holds the parser, the AST utilities and `html()`. The d
 
 - The invariant: unsupported syntax stays literal text and produces a warning. It is never silently reinterpreted as a different supported construct.
 - `docs/syntax.md` explains the language and `docs/grammar.md` states it, with a stable id per construct (`{#id}` above its heading). `test/harness/grammar.ts` reads it with markz.
-- The docs describe markz as it is, in neutral terms. Inspirations are named once, on the home page (`docs/markz.md`). Each construct's origin (CommonMark, GFM, djot, pandoc, GitHub, or markz's own) is the `Origin:` line under its heading in `grammar.md`.
+- The docs describe markz as it is, in neutral terms. Inspirations are named once, on the home page (`README.md`). Each construct's origin (CommonMark, GFM, djot, pandoc, GitHub, or markz's own) is the `Origin:` line under its heading in `grammar.md`.
 - micromark is only the oracle for constructs from CommonMark or GFM. Don't let "same as GFM" leak past them.
 - Every example is filed under a construct id or a Not supported row's warning code (`test/harness/examples.ts`). When the oracle disagrees with `syntax.md`, file the example as `differ` under the construct whose rule explains it. Don't bend the parser.
 - markz's own examples go in `test/examples/markz/<id>.md`. Each is numbered in its fence with the next unused `markz:N`.

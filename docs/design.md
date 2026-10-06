@@ -2,7 +2,7 @@
 
 How markz is built: the tree it produces, how offsets map to the source, how the parser reads in
 one pass, what `html()` writes and what it refuses, and how it is tested. [Syntax](syntax.md) is
-the language this reads, and [the home page](markz.md) says what markz is for.
+the language this reads, and [the home page](../README.md) says what markz is for.
 
 ## AST
 
@@ -218,8 +218,8 @@ Deciding whether a half-typed opener (`hello *`) shows or vanishes, and avoiding
 ## Public API
 
 The package exports `parse`, `html`, `walk`, `textContent`, `headings` and `position`, the
-read-only `Document`, and the types around them. [API](api.md) lists each one. Nothing takes an
-options object.
+read-only `Document`, and the types around them. [Reference](reference.md) lists each one.
+Nothing takes an options object.
 
 `headings` is the one helper that reads the tree for a consumer's outline, and it is not part of
 `html()`: depth, nesting and numbering are choices, and markz has none.
