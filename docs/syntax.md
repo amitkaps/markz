@@ -183,7 +183,8 @@ There are no lazy continuation lines, and an item can be a task.
 The fence is backticks only.
 
 ` ``` ` or longer, then an info string. The first word is `lang` and the rest is `meta`. Nest by
-using a longer fence.
+using a longer fence. A fence with no closing line runs to the end of its container, and
+gets the warning `unclosed-block` at its opening line. So does a raw or math block.
 
 {#raw-block}
 
@@ -288,8 +289,9 @@ This section defines the syntax for all four; the other places are also describe
   attributes, so `{a, b}`, `{"json": 1}` and prose braces never need escaping. A `{…}` in one of
   the four places that doesn't parse as attributes is text too. Where it can only have been meant
   as attributes, after a link, image or `[text]`, or on a line starting `{@` or `{/`, it also gets
-  the warning `attribute-syntax` when its `}` is on the same line (`[x]{@kbd type='bar'}`). A line
-  holding any other `{…}` doesn't, since it may be prose.
+  the warning `attribute-syntax` (`[x]{@kbd type='bar'}`). After a link, image or `[text]`, a `{`
+  with no `}` on its line gets it too (`[x]{@kbd`). A line starting `{@` or `{/` needs its `}`,
+  and a line holding any other `{…}` gets no warning, since it may be prose.
 
 {#element}
 
@@ -329,7 +331,8 @@ Where a container opens and closes:
 - **An opener can't interrupt a paragraph or a table**, as a `{…}` line can't. A leaf and a
   closer can, since `{/` and a line ending in `/}` can't be prose.
 - **`{/name}` closes the innermost element open in its container** when the names match.
-  Otherwise it stays text and is reported (`element-close`), and nothing is closed. A closing
+  Otherwise it stays text and is reported (`element-close`), and nothing is closed. After a
+  `{#name}` line, the warning says to open the element with `{@name}`. A closing
   line is read at its element's own level, before the containers inside the element take their
   prefixes, so it ends a list or item it follows, as a closing code fence would.
 - **A `/` just before the `}` is the leaf's,** never part of an id, class or value:
@@ -377,7 +380,7 @@ renders. It is the only thing kept from HTML, for notes that stay in the
 source (`<!-- @note … -->`).
 
 - It may span lines, and ends on the line with `-->`. Text after `-->` on that line is part of the
-  comment and gets the warning `comment-trailing-text`. An unclosed comment runs to the end of its container.
+  comment and gets the warning `comment-trailing-text`. An unclosed comment runs to the end of its container, with the warning `unclosed-block`.
 - A comment that shares its first line with other text is inline, where it is text.
 
 ## Inline

@@ -60,6 +60,7 @@ hex ::= [0-9A-Fa-f]
 - `inline-order`: Inline code, math and expressions bind tightest, then autolinks, links and spans, then emphasis. An opener either closes or stays text, and the input is never read again.
 - `text`: Text is any run of characters that opens no other inline construct, or whose construct does not close.
 - `blank-lines`: A line of only spaces and tabs is blank, whatever else could read it, and a blank line ends a paragraph.
+- `unclosed-block`: A code, raw or math block, or a comment, with no closing line runs to the end of its container, with a warning at its opening line.
 - `brackets`: The brackets in a link's or a span's text, or a leaf element's label, balance, unless a `\` escapes one.
 
 ## Metadata
@@ -165,7 +166,7 @@ code-line ::= char* line-end
 closing-fence ::= indent? fence space* line-end
 ````
 
-- `fence-length`: A fence closes on a line holding only a backtick run at least as long as the opening one. Unclosed, it runs to the end of its container.
+- `fence-length`: A fence closes on a line holding only a backtick run at least as long as the opening one.
 - `fence-indent`: Each content line loses up to as much indentation as the opening fence had.
 - `info-string`: The first word of the info string, escapes decoded, is `lang`, and the rest is `meta`.
 
@@ -245,7 +246,7 @@ block-attributes ::= indent? attributes space* line-end
 - `attribute-line`: A block-attribute line decorates the next block in its container, across blank lines. Consecutive lines merge, and a line above an element merges into the element's own. It cannot interrupt a paragraph or a table.
 - `attribute-merge`: Classes accumulate. For any other key, the later value wins.
 - `attribute-boolean`: A block of only boolean keys counts only after a link, image or span's `]`, or an element's name. On a line of its own or after a word, `{year}` is text.
-- `attribute-syntax`: A `{…}` after a link, image or span's `]`, or on a line starting `{@` or `{/`, that does not parse is text, and a warning when it closes on the same line.
+- `attribute-syntax`: A `{…}` after a link, image or span, or on a line starting `{@` or `{/`, that does not parse is text, and a warning. On such a line, the warning needs the `}` on the same line. After a link, image or span, a `{` with no `}` left on its line is warned too.
 
 {#element}
 
@@ -269,7 +270,7 @@ custom-element ::= [a-z] [a-z0-9]* '-' [a-z0-9-]*
 - `leaf-label`: A leaf is one line, and its label is inline content, and its children.
 - `leaf-slash`: A `/` just before the `}` closes a leaf, and is never part of an id, class or value, so `{@div #a/}` is a leaf with the id `a`.
 - `element-interrupts`: An opening line can't interrupt a paragraph or a table. A leaf or a closing line can.
-- `element-close`: A closing line closes the innermost element open in its container when the names match. Otherwise it is text, and a warning.
+- `element-close`: A closing line closes the innermost element open in its container when the names match. Otherwise it is text, and a warning. When a `{#name}` line came before it, the warning says the element opens with `{@name}`.
 - `unclosed-element`: Unclosed, an element runs to the end of its container, with a warning at its opening line.
 
 {#comment}
@@ -283,7 +284,7 @@ comment ::= indent? '<!--' (('>' | '->' | (char | line-end)* '-->') space* line-
   | (char | line-end)*)
 ```
 
-- `comment-close`: A comment ends at the first `-->`, and `<!-->` and `<!--->` are whole comments, as in CommonMark. Unclosed, it runs to the end of its container. A `<!--` after other text on its line is inline text.
+- `comment-close`: A comment ends at the first `-->`, and `<!-->` and `<!--->` are whole comments, as in CommonMark. A `<!--` after other text on its line is inline text.
 
 ## Inline
 

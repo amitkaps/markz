@@ -53,6 +53,10 @@ export const WARNINGS = {
     "close the innermost open element, at its own level",
   ],
   "unclosed-element": ["an element with no closing line", "a `{/name}` line, or `/}` for a leaf"],
+  "unclosed-block": [
+    "a block with no closing line",
+    "a closing fence, a `$$` line or `-->`, before its container ends",
+  ],
   "attribute-syntax": [
     "attributes markz does not read",
     '`#id`, `.class`, `key=value` or `key="a value"`, and a bare `key`, on one line',

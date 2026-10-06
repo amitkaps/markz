@@ -119,6 +119,13 @@ describe("elements", () => {
     ]);
   });
 
+  it("point a closing line after a `{#name}` line to `{@name}`", () => {
+    const doc = parsed("{#aside}\nx\n{/aside}\n");
+    expect(doc.warnings.map((w) => [w.code, w.message])).toEqual([
+      ["element-close", "`{#aside}` sets an id: open the element with `{@aside}`"],
+    ]);
+  });
+
   it("merge an attribute line above into their own attributes", () => {
     expect(html(parsed("{#top}\n{@section .intro}\nx\n{/section}\n"))).toBe(
       '<section class="intro" id="top"><p>x</p>\n</section>\n',

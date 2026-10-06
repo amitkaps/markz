@@ -12,6 +12,10 @@ This keeps what should shape the next change.
 - **A cut form stays text and warns.** Every vendored suite found places where markz read a cut
   form as something else in silence. The rule holds only because each cut has a code, a range
   and a replacement, and tests key on codes, never on wording.
+- **Warn when the page can't be what was meant.** Beyond the cut forms, markz warns only where
+  the output is almost certainly a mistake: a block with no closing line that swallows the rest of
+  its container, a `{` after a `]` that never closes, a `{/name}` after a `{#name}` line. Text
+  that could be ordinary prose gets no warning, so a clean document stays clean.
 - **One extension syntax.** Colon directives came with fence counting, a label HTML has no place
   for, and a bare `:name` that swallows prose. `{…}` with `@name` does the same work with one
   recognition rule. A closing line that names what it closes turns a mismatch into a warning.
@@ -69,12 +73,8 @@ This keeps what should shape the next change.
 
 ## Ideas to improve
 
-- **Unclosed blocks should warn alike.** An unclosed element warns `unclosed-element`. An
-  unclosed code fence, raw block, `$$` block or comment also runs to the end of its container,
-  silently. They should get the same warning, decided together.
-- **Warnings, decided as a whole.** Warnings where markz differs from CommonMark and GFM are
-  settled. Others, such as a hint when `{#name}` meets a later `{/name}`, or a djot `{=format}`,
-  should be decided together rather than one at a time.
+- **djot's inline raw, `{=format}`.** It stays literal text with no warning. Raw blocks are the
+  least used construct so far, so a warning for the inline form waits until they are used more.
 - **Headings.** What is left of their cost is the inline pass on each short title.
 - **Items.** A pending text string, or writing nodes during the scan, remain open, though
   merging items showed no gain.

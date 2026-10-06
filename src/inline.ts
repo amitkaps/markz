@@ -1091,7 +1091,11 @@ class InlinePass {
     return t + n;
   }
 
-  /** A `{…}` where attributes attach that doesn't parse as them stays text, and is reported. */
+  /**
+   * A `{…}` where attributes attach that doesn't parse as them stays text, and is reported. So
+   * does a `{` there with no `}` left on its line: after a `]` or `)` it can only have meant
+   * attributes.
+   */
   attributeSyntax(t: number, lineEnd: number): void {
     // A later `{` before the `}` last found, or with none left on the line, has the same answer.
     const at = this.at(t);
@@ -1101,7 +1105,8 @@ class InlinePass {
         ? last.close
         : braceEnd(this.src, at, lineEnd);
     this.lastBrace = { from: at, lineEnd, close };
-    if (close >= 0) this.b.warn("attribute-syntax", this.at(t), close);
+    if (close >= 0) this.b.warn("attribute-syntax", at, close);
+    else this.b.warn("attribute-syntax", at, lineEnd, "`{` is never closed on its line");
   }
 
   report(code: WarningCode, t: number, e: number, message?: string): void {
