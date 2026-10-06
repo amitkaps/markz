@@ -36,10 +36,7 @@ export const WARNINGS = {
     "named character reference",
     "the character itself (`©`, `&`), or `\\ ` for a non-breaking space",
   ],
-  "trailing-spaces": [
-    "two trailing spaces as a line break",
-    "`\\` at end of line, or `{.verse}` on a poem",
-  ],
+  "trailing-spaces": ["two trailing spaces as a line break", "`\\` at end of line"],
   "underscore-strong": ["`__strong__`", "`**strong**`"],
   "star-emphasis": ["`*emphasis*`", "`_emphasis_`"],
   "single-tilde": ["`~single~` strikethrough", "`~~text~~`"],

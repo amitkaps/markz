@@ -124,6 +124,9 @@ class InlinePass {
   found: Map<string, { from: number; at: number }> | null = null;
   /** The last `braceEnd` search: from where, on which line, and what it found. */
   lastBrace = { from: -1, lineEnd: -1, close: -1 };
+  /** Where the last quote ended, and the side it took. */
+  quoteEnd = -1;
+  quoteOpens = false;
   /** Openers waiting for a closer, by kind, and link brackets. */
   stacks: Record<string, Item[]> = {};
   brackets: Item[] = [];
@@ -1048,11 +1051,24 @@ class InlinePass {
    * Straight quotes curl by the character before them, and hyphen runs become dashes (grammar:
    * smart-punctuation; `quote-side`, `dash-runs`). The text value holds the
    * typographic character, and the range still covers what was typed.
+   *
+   * A quote reads past the quotes and emphasis markers just before it, so `'fine'"` and `_hi_"`
+   * close where `"'Hi` and `"_hi` open. Each quote steps back only over the markers since the
+   * last quote, and takes that quote's side, so a run is read once and the pass stays linear.
    */
   quote(list: List, t: number, from: number): number {
-    const c = this.text[t]!;
-    const before = t > from ? this.text[t - 1] : undefined;
-    const opens = isSpace(before) || /[([{\-–—"'_*~]/.test(before!);
+    const { text } = this;
+    const c = text[t]!;
+    let i = t;
+    while (i > from && /[_*~]/.test(text[i - 1]!)) i--;
+    let opens: boolean;
+    if (i > from && i === this.quoteEnd) opens = this.quoteOpens;
+    else {
+      const before = i > from ? text[i - 1] : undefined;
+      opens = isSpace(before) || /[([{\-–—]/.test(before!);
+    }
+    this.quoteEnd = t + 1;
+    this.quoteOpens = opens;
     const value = c === '"' ? (opens ? "“" : "”") : opens ? "‘" : "’";
     this.plain(list, t, t + 1, value);
     return t + 1;

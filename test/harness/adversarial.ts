@@ -42,6 +42,7 @@ export const PATTERNS: Record<string, (n: number) => string> = {
   "emphasis openers": (n) => "_a **b ".repeat(n),
   "strikethrough openers": (n) => "~~a ".repeat(n),
   "nested emphasis": (n) => "_a ".repeat(n) + "_".repeat(n),
+  "quotes among markers": (n) => "a_\"'~~*".repeat(n) + "_".repeat(n) + '"'.repeat(n),
   "nested brackets": (n) => "[".repeat(n) + "a" + "]".repeat(n),
   "links in links": (n) => "[a ".repeat(n) + "](".repeat(n),
   "bare URLs": (n) => "www.a ".repeat(n),

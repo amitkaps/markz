@@ -67,6 +67,30 @@ const contents = headings(parse(markdown))
 How deep to go, and whether to nest, number or style it, is yours to decide: markz doesn't
 put a contents list in `html()`.
 
+## Keep a poem's line breaks
+
+A poem or a quote with its own line breaks can end each line with `\`, the language's only
+hard break. `html()` writes a `<br />` there, which shows wherever the HTML goes.
+
+On a site, a class and one CSS rule do the same without the `\` on every line:
+
+```md
+{.verse}
+Moko kahan dhundhe re bande
+Main to tere paas mein
+```
+
+```css
+.verse {
+  white-space: pre-line;
+}
+```
+
+`html()` writes `<p class="verse">` and keeps the paragraph's newlines, as it does for every
+paragraph. The class means nothing to markz, and the breaks show only where that CSS applies.
+In a feed, an email or a preview without it, the lines run together. `html()` never adds a class
+for styling, so this one is the author's choice.
+
 ## For agents
 
 An agent that writes Markdown for a project that uses markz should write markz, and check it. Copy

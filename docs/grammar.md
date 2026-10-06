@@ -420,5 +420,5 @@ Origin: djot.
 smart-punctuation ::= '"' | "'" | '--' | '---' | '...'
 ```
 
-- `quote-side`: A quote opens after the start of text, whitespace, an opening bracket, a dash, another quote or an emphasis marker, and closes otherwise.
+- `quote-side`: A quote reads past the quotes and emphasis markers just before it. It opens after the start of text, whitespace, an opening bracket or a dash there, and closes otherwise.
 - `dash-runs`: A run of more than three hyphens splits into em and en dashes with the same count.
