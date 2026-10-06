@@ -8,7 +8,7 @@
  *
  * `prose build` writes the rest of the site and this adds one file to it, so run it after:
  * `pnpm quality [file]`, by default `.prose/quality.html`. The cards and every construct's
- * row are plain HTML; `<markz-quality>` (`quality-element.ts`) adds the filters and the examples.
+ * row are plain HTML; `<markz-quality>` ([element.ts](element.ts)) adds the filters and the examples.
  * The page's own text goes through markz, so the page is a check on this commit's parser too.
  *
  * The page isn't one of prose's, so it keeps its own look. Its header is only a breadcrumb back
@@ -19,7 +19,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { stripTypeScriptTypes } from "node:module";
 import { dirname, join } from "node:path";
 import { createServer } from "vite-plus";
-import type { Quality, Row, Status } from "./quality-data.ts";
+import type { Quality, Row, Status } from "./data.ts";
 
 // The harness reads its examples with Vite's `import.meta.glob`, so it is loaded through Vite's
 // module loader rather than by Node.
@@ -31,10 +31,10 @@ const vite = await createServer({
 });
 const { html, parse } = (await vite.ssrLoadModule(
   "/src/index.ts",
-)) as typeof import("../src/index.ts");
+)) as typeof import("../../src/index.ts");
 const { PARTS, STATUSES, conformance, constructEdges, quality } = (await vite.ssrLoadModule(
-  "/scripts/quality-data.ts",
-)) as typeof import("./quality-data.ts");
+  "/test/quality/data.ts",
+)) as typeof import("./data.ts");
 
 const REPO = "https://github.com/amitkaps/markz";
 const commit = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
@@ -145,7 +145,7 @@ ${q.speed.map((r) => `<tr><th scope="row">${escape(r.label)} <span class="what">
 
 /** The element's source, as the JavaScript a browser runs. */
 function script(): string {
-  const source = readFileSync(join(import.meta.dirname, "quality-element.ts"), "utf8");
+  const source = readFileSync(join(import.meta.dirname, "element.ts"), "utf8");
   return stripTypeScriptTypes(source);
 }
 
@@ -155,7 +155,7 @@ const json = (value: unknown) => JSON.stringify(value).replace(/</g, "\\u003c");
 export async function page(): Promise<string> {
   const rows = conformance();
   const q = await quality();
-  const css = readFileSync(join(import.meta.dirname, "quality.css"), "utf8");
+  const css = readFileSync(join(import.meta.dirname, "style.css"), "utf8");
   const built = new Date().toUTCString();
   return `<!doctype html>
 <html lang="en">
@@ -203,7 +203,7 @@ ${script()}</script>
 }
 
 if (import.meta.main) {
-  const out = process.argv[2] ?? join(import.meta.dirname, "../.prose/quality.html");
+  const out = process.argv[2] ?? join(import.meta.dirname, "../../.prose/quality.html");
   mkdirSync(dirname(out), { recursive: true });
   const text = await page();
   writeFileSync(out, text);

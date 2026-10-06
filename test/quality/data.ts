@@ -18,16 +18,16 @@
 import { readdirSync, readFileSync } from "node:fs";
 import os from "node:os";
 import { join } from "node:path";
-import { html, parse } from "../src/index";
-import { BUDGET, size } from "./size.ts";
-import { EDGES, edges } from "../test/harness/cases";
-import { documents } from "../test/harness/corpus";
-import { check, examples } from "../test/harness/examples";
-import { search } from "../test/harness/generate";
-import { CONSTRUCTS } from "../test/harness/grammar";
-import { normalize } from "../test/harness/oracle";
-import { retained, time, warm } from "../test/harness/speed";
-import { title } from "../test/harness/syntax";
+import { html, parse } from "../../src/index";
+import { BUDGET, size } from "../size.ts";
+import { EDGES, edges } from "../harness/cases";
+import { documents } from "../harness/corpus";
+import { check, examples } from "../harness/examples";
+import { search } from "../harness/generate";
+import { CONSTRUCTS } from "../harness/grammar";
+import { normalize } from "../harness/oracle";
+import { retained, time, warm } from "../harness/speed";
+import { title } from "../harness/syntax";
 
 export type Status = "match" | "warn" | "differ" | "fail";
 export const STATUSES: Status[] = ["match", "warn", "differ", "fail"];
@@ -129,7 +129,7 @@ export function constructEdges(): Record<string, Edges> {
   );
 }
 
-const root = join(import.meta.dirname, "..");
+const root = join(import.meta.dirname, "../..");
 const WARM_MS = 1_000;
 const BUDGET_MS = 200;
 
