@@ -1,7 +1,7 @@
 # Usage
 
 Install markz, render a document, find out what it rejected, and use what it knows about the
-document. Each section is a short recipe; every function it uses is in [API](api.md). The language
+document. Each section is a short recipe; every function it uses is in [Reference](reference.md). The language
 itself is in [Syntax](syntax.md).
 
 ## Install
