@@ -469,29 +469,54 @@ export function valid(id: string, count: number, seed: number): string[] {
 /** @prose
  * A construct's search: its valid cases and their neighbours, counted by the edge each reached,
  * with every case markz and the grammar read differently that nothing settles. The test holds
- * the counts above zero and the unsettled list empty, and the Conformance page shows the counts.
+ * the counts above zero and the unsettled list empty, and the Quality page shows the counts.
+ *
+ * The page also shows one case of each edge, so a reader sees what the counts are of. It is the
+ * shortest valid case that has neighbours of both kinds, with the first of each. A carriage
+ * return can't be seen on the page, so a case without one is preferred, and an edit that only
+ * adds or drops one is never shown.
  */
 export interface Reached {
   valid: number;
   boundary: number;
   "near-miss": number;
   unsettled: string[];
+  sample: { valid: string; boundary: string | null; "near-miss": string | null } | null;
 }
 
+const cr = (s: string) => s.includes("\r");
+const seen = (s: string) => s.replace(/\r/g, "");
+
 export function edges(id: string, runs: number, seed: number): Reached {
-  const reached: Reached = { valid: 0, boundary: 0, "near-miss": 0, unsettled: [] };
+  const reached: Reached = { valid: 0, boundary: 0, "near-miss": 0, unsettled: [], sample: null };
+  let best = Infinity;
   for (const s of valid(id, runs, seed)) {
     const v = judge(id, s);
     if (v.agree && v.accepted) reached.valid++;
     else if (!v.agree && !v.settled) reached.unsettled.push(`valid ${JSON.stringify(s)}`);
+    const sample = {
+      valid: s,
+      boundary: null as string | null,
+      "near-miss": null as string | null,
+    };
     for (const n of neighbours(id, s)) {
       const w = judge(id, n);
-      if (w.agree) reached[w.accepted ? "boundary" : "near-miss"]++;
-      else if (!w.settled) {
+      if (w.agree) {
+        const edge = w.accepted ? "boundary" : "near-miss";
+        reached[edge]++;
+        if (seen(n) !== seen(s) && (!sample[edge] || (cr(sample[edge]) && !cr(n)))) {
+          sample[edge] = n;
+        }
+      } else if (!w.settled) {
         const side = w.grammar ? "grammar accepts" : "markz reads";
         reached.unsettled.push(`only ${side} ${JSON.stringify(n)}`);
       }
     }
+    if (!(v.agree && v.accepted)) continue;
+    // Both kinds first, then the fewer carriage returns, then the shorter case.
+    const crs = Object.values(sample).filter((x) => x && cr(x)).length;
+    const score = (sample.boundary && sample["near-miss"] ? 0 : 1e6) + crs * 1e3 + s.length;
+    if (score < best) [best, reached.sample] = [score, sample];
   }
   return reached;
 }

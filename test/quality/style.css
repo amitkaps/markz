@@ -271,6 +271,9 @@ main {
   border-radius: var(--radius);
   cursor: pointer;
 }
+div.stat {
+  cursor: auto;
+}
 .stat[aria-pressed="false"] {
   opacity: 0.4;
 }
@@ -457,6 +460,12 @@ main {
   color: var(--text);
   font-variant-numeric: tabular-nums;
 }
+.edges code {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text);
+  white-space: pre;
+}
 .preview {
   flex: 1 1 12rem;
   min-width: 0;
@@ -477,8 +486,14 @@ main {
   grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
   gap: 0.6rem;
 }
+/* Each box fills its column, so the boxes side by side end on one line. */
 .pane {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+}
+.pane pre {
+  flex: 1;
 }
 .pane h3 {
   margin: 0 0 0.25rem;

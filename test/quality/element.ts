@@ -54,11 +54,22 @@ function pane(title: string, ...content: Child[]): HTMLElement {
   return h("div", { class: "pane" }, h("h3", {}, title), ...content);
 }
 
+/** What each oracle's output is, for the panes' headings. */
+const OUTPUT: Record<string, string> = {
+  yaml: "metadata",
+  "github-slugger": "id",
+  "micromark-extension-math": "math",
+};
+
 function example(r: Row): HTMLElement {
+  const output = OUTPUT[r.oracle] ?? "HTML";
   const panes = [
     pane("Markdown", h("pre", {}, ...visible(r.markdown))),
-    pane(r.oracle === "markz" ? "Expected" : `${r.oracle} (oracle)`, h("pre", {}, r.expected)),
-    pane("markz", h("pre", {}, r.markz)),
+    pane(
+      r.oracle === "markz" ? `Expected ${output}` : `${r.oracle}’s ${output}`,
+      h("pre", {}, r.expected),
+    ),
+    pane(`markz’s ${output}`, h("pre", {}, r.markz)),
     r.metadata && pane("Metadata", h("pre", {}, r.metadata)),
   ];
   const [expected, markz] = r.normalized ?? [];
@@ -97,30 +108,42 @@ function example(r: Row): HTMLElement {
   );
 }
 
-function edgesOf(e: Edges, all: Row[]): HTMLElement {
-  const by = (k: "ambiguous" | "unclosed"): Child[] => {
-    const why = e.none[k];
-    return why
-      ? [`no ${k}: `, h("span", { class: "why" }, why)]
-      : [h("b", {}, String(all.filter((r) => r.category === k).length)), ` ${k}`];
-  };
+/** @prose
+ * A construct's edges in one line: each count with one case of its kind, so the reader sees what
+ * is counted. The terms are the Edges card's. Its ambiguous and unclosed examples are rows below,
+ * so the line only says why a construct has none.
+ */
+function edgesOf(e: Edges): HTMLElement {
+  const count = (
+    n: number,
+    one: string,
+    many: string,
+    sample: string | null | undefined,
+  ): Child[] => [
+    h("b", {}, n.toLocaleString("en")),
+    ` ${n === 1 ? one : many}`,
+    sample != null && " like ",
+    sample != null && h("code", {}, sample.replace(/\r\n|\n/g, "⏎").replace(/\r/g, "␍")),
+  ];
+  const none = (["ambiguous", "unclosed"] as const).flatMap((k) =>
+    e.none[k] ? [h("p", {}, `No ${k} example. `, h("span", { class: "why" }, e.none[k]!))] : [],
+  );
   return h(
     "div",
     { class: "edges" },
     h(
       "p",
       {},
-      "Generated from the grammar: ",
-      h("b", {}, String(e.valid)),
-      " valid, ",
-      h("b", {}, String(e.boundary)),
-      " boundary and ",
-      h("b", {}, String(e["near-miss"])),
-      " near misses",
+      "Edges: ",
+      ...count(e.valid, "valid", "valid", e.sample?.valid),
+      ", ",
+      ...count(e.boundary, "boundary", "boundary", e.sample?.boundary),
+      ", ",
+      ...count(e["near-miss"], "near miss", "near misses", e.sample?.["near-miss"]),
       e.unsettled > 0 && h("span", { class: "fail-n" }, `, ${e.unsettled} unsettled`),
       ".",
     ),
-    h("p", {}, "Written by hand: ", ...by("ambiguous"), " · ", ...by("unclosed")),
+    ...none,
   );
 }
 
@@ -201,12 +224,11 @@ class MarkzQuality extends HTMLElement {
   #fill(el: HTMLDetailsElement): void {
     const name = el.id;
     const list = el.querySelector(".list")!;
-    const all = this.#bySection.get(name) ?? [];
     const rows = this.#rows(name);
     const limit = this.#limit.get(name) ?? PAGE;
     const children: Child[] = [];
     const edges = this.#data.edges[name];
-    if (edges) children.push(edgesOf(edges, all));
+    if (edges) children.push(edgesOf(edges));
     if (!rows.length) children.push(h("p", { class: "empty" }, "No examples match these filters."));
     for (const r of rows.slice(0, limit)) children.push(example(r));
     if (rows.length > limit) {
