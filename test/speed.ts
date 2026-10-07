@@ -1,16 +1,17 @@
 /** @prose
  * # Speed
  *
- * `pnpm bench`: markz alone, on this working tree's `src/`, in a few seconds. It answers one
- * question while you work: did this change move it? Each cell is parse + HTML over some text, in
- * MB/s: each document tier read whole, and each construct over its own examples, repeated to a
- * size (`examples/markz/<id>.md`), so a slower construct shows by name. Last comes what holding
- * the CommonMark spec's tree costs, as a multiple of its source.
+ * `pnpm bench`: markz alone, this working tree's `src/` against `origin/main`'s, in seconds. It
+ * answers one question while you work: did this change move it? Each cell is parse + HTML over
+ * some text, in MB/s: each document tier read whole, and each construct over its own examples,
+ * repeated to a size (`examples/markz/<id>.md`), so a slower construct shows by name. Last comes
+ * what holding the CommonMark spec's tree costs, as a multiple of its source.
  *
- * A cell's speed is its median pass, and its noise the middle half of the passes around it
- * (`harness/speed.ts`). The first run on a machine is its baseline, kept in `node_modules/.cache/`
- * (`--save` makes the current run the baseline). Every later run shows each cell's change from
- * it, marked only where the change is wider than both runs' noise, and than 5%.
+ * Both versions run in one process, a pass of each in turn (`harness/speed.ts`), and that is
+ * repeated in three fresh processes (`--versus`). A cell shows the median change and the range
+ * across the processes. It is marked only when every process puts it beyond 5% the same way. A
+ * saved baseline from an earlier run was ruled out, since the machine drifts between runs by more
+ * than any change worth finding. `--against <ref>` times against another commit.
  *
  * `--compare` times markz beside the parsers in `harness/parsers.ts` on each tier's common
  * variant, each parser in a fresh process of its own (`--parser <name>`), so no parser's heap or
@@ -18,11 +19,19 @@
  *
  * `--profile` shows where the time goes rather than how much there is (`harness/profile.ts`). It
  * profiles every tier, or one tier or construct by name (`--profile heading`), and writes the
- * profile beside the baseline for DevTools.
+ * profile to `node_modules/.cache/` for DevTools.
  */
 import "./harness/node.ts";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 
@@ -30,14 +39,18 @@ const { html, parse } = await import("../src/index.ts");
 const { TIERS, common, documents, repeat } = await import("./harness/corpus.ts");
 const { readFences } = await import("./harness/fences.ts");
 const { OTHERS, load } = await import("./harness/parsers.ts");
-const { retained, time, warm } = await import("./harness/speed.ts");
+const { retained, time, versus, warm } = await import("./harness/speed.ts");
 const { profile, summarize } = await import("./harness/profile.ts");
 
 const root = join(import.meta.dirname, "..");
-const BASELINE = join(root, "node_modules/.cache/markz/speed.json");
-const PROFILE = join(root, "node_modules/.cache/markz/markz.cpuprofile");
+const CACHE = join(root, "node_modules/.cache/markz");
+const PROFILE = join(CACHE, "markz.cpuprofile");
 const PROFILE_MS = 3_000;
 const BUDGET_MS = 25;
+/** Both versions' passes together, for each cell. */
+const VERSUS_MS = 60;
+/** Processes the comparison runs in. A version's luck with the JIT holds for a whole process. */
+const RUNS = 3;
 const WARM_MS = 1_000;
 const CONSTRUCT_BYTES = 20_000;
 /** No change under this is marked, however quiet both runs were. */
@@ -138,40 +151,73 @@ if (flag("--parser") >= 0) {
   console.log(`parse + HTML: ${chosen.map((c) => c.name).join(", ")}, warm\n`);
   console.log(summarize(cpu, root));
   console.log(`\n${relative(root, PROFILE)} opens in DevTools for the flame chart`);
-} else {
+} else if (flag("--versus") >= 0) {
+  // One process of the default bench: both versions over every cell, as JSON on stdout.
+  const base = await import(join(argv[flag("--versus") + 1]!, "src/index.ts"));
+  const before = (text: string) => base.html(base.parse(text));
   const cells = timed();
-
-  let baseline: Record<string, Speed> | null = null;
-  try {
-    baseline = JSON.parse(readFileSync(BASELINE, "utf8")) as Record<string, Speed>;
-  } catch {
-    // The first run on this machine becomes its baseline.
+  const texts = cells.flatMap((c) => c.texts);
+  // Warmed in turns: whichever version warmed last measured a few percent faster.
+  for (let i = 0; i < 10; i++) {
+    warm(before, texts, WARM_MS / 10);
+    warm(run, texts, WARM_MS / 10);
+  }
+  const out: Record<string, { mbPerSecond: number; change: number }> = {};
+  for (const cell of cells) {
+    const bytes = cell.texts.reduce((sum, t) => sum + t.length, 0);
+    const v = versus(before, run, cell.texts, VERSUS_MS);
+    out[cell.name] = { mbPerSecond: bytes / 1e3 / v.ms, change: v.change };
+  }
+  process.stdout.write(JSON.stringify(out));
+} else {
+  // The ref's `src/`, unpacked once per commit, for the processes to load beside the working tree's.
+  const ref = flag("--against") >= 0 ? argv[flag("--against") + 1]! : "origin/main";
+  const git = (...args: string[]) => spawnSync("git", args, { cwd: root, maxBuffer: 1 << 28 });
+  const sha = git("rev-parse", "--verify", `${ref}^{commit}`).stdout.toString().trim();
+  if (!sha) {
+    console.error(`no commit "${ref}"`);
+    process.exit(1);
+  }
+  // Node strips types only outside `node_modules`, so the ref's files can't live in the cache.
+  const dir = join(tmpdir(), "markz-bench", sha);
+  if (!existsSync(join(dir, "src/index.ts"))) {
+    mkdirSync(dir, { recursive: true });
+    const tar = git("archive", "--format=tar", sha, "src").stdout;
+    spawnSync("tar", ["-x", "-C", dir], { input: tar });
   }
 
   const started = performance.now();
-  warm(
-    run,
-    cells.flatMap((c) => c.texts),
-    WARM_MS,
-  );
-  const results: Record<string, Speed> = {};
-  const width = Math.max(...cells.map((c) => c.name.length)) + 2;
+  const runs: Record<string, { mbPerSecond: number; change: number }>[] = [];
+  for (let i = 0; i < RUNS; i++) {
+    const child = spawnSync(
+      process.execPath,
+      [join(import.meta.dirname, "speed.ts"), "--versus", dir],
+      { encoding: "utf8" },
+    );
+    if (child.status !== 0) {
+      console.error(child.stderr);
+      process.exit(1);
+    }
+    runs.push(JSON.parse(child.stdout));
+  }
+
+  const cells = Object.keys(runs[0]!);
+  const width = Math.max(...cells.map((c) => c.length)) + 2;
+  const median = (xs: number[]) => xs.toSorted((a, b) => a - b)[xs.length >> 1]!;
+  const pct = (x: number) => `${x >= 0 ? "+" : ""}${(x * 100).toFixed(0)}%`;
+  console.log(`against ${ref} (${sha.slice(0, 7)}), both in each of ${RUNS} processes\n`);
   console.log(
-    `${"MB/s, parse + HTML".padEnd(width)}${"now".padStart(8)}${"noise".padStart(8)}  change`,
+    `${"MB/s, parse + HTML".padEnd(width)}${"now".padStart(8)}${"change".padStart(9)}${"runs".padStart(16)}`,
   );
   for (const cell of cells) {
-    const now = speed(run, cell.texts);
-    results[cell.name] = now;
-    const before = baseline?.[cell.name];
-    let change = "";
-    if (before) {
-      const delta = now.mbPerSecond / before.mbPerSecond - 1;
-      const band = Math.max(now.noise, before.noise, FLOOR);
-      change = `${delta >= 0 ? "+" : ""}${(delta * 100).toFixed(0)}%`;
-      if (Math.abs(delta) > band) change += delta > 0 ? "  faster" : "  SLOWER";
-    }
+    const changes = runs.map((r) => r[cell]!.change);
+    const mark = changes.every((c) => c > FLOOR)
+      ? "  faster"
+      : changes.every((c) => c < -FLOOR)
+        ? "  SLOWER"
+        : "";
     console.log(
-      `${cell.name.padEnd(width)}${mb(now.mbPerSecond).padStart(8)}${`±${(now.noise * 50).toFixed(0)}%`.padStart(8)}  ${change}`,
+      `${cell.padEnd(width)}${mb(median(runs.map((r) => r[cell]!.mbPerSecond))).padStart(8)}${pct(median(changes)).padStart(9)}${`${pct(Math.min(...changes))} to ${pct(Math.max(...changes))}`.padStart(16)}${mark}`,
     );
   }
 
@@ -179,15 +225,5 @@ if (flag("--parser") >= 0) {
   console.log(
     `\nholding the CommonMark spec's tree: ${(retained(parse, spec) / spec.length).toFixed(1)}× its source`,
   );
-
-  const save = !baseline || argv.includes("--save");
-  if (save) {
-    mkdirSync(join(BASELINE, ".."), { recursive: true });
-    writeFileSync(BASELINE, JSON.stringify(results, null, "\t"));
-  }
-  console.log(
-    `${((performance.now() - started) / 1000).toFixed(1)} s · ${
-      save ? "saved as the baseline" : "against the baseline; --save replaces it"
-    }`,
-  );
+  console.log(`${((performance.now() - started) / 1000).toFixed(1)} s`);
 }

@@ -71,8 +71,12 @@ This keeps what should shape the next change.
   same few thousands of times, which timed id numbering no author asks for. The profile still
   shows it, as the id lookup, and an ASCII fast path for the slug measured flat.
 - **Two runs of the bench can differ by 30% on unchanged code.** The machine drifts between runs
-  by more than either run's noise band. Loading both versions of `src/` in one process and
-  alternating their passes settled each idea above to within a few percent.
+  by more than either run's noise band, so the bench no longer keeps a baseline. It loads both
+  versions of `src/` in one process and alternates their passes.
+- **One process isn't enough either.** Whichever version warmed up last ran a few percent
+  faster, so they warm in turns. Even then a version's luck with the JIT holds for a whole
+  process, and one construct could come out 15% apart on unchanged code. A change now counts only
+  when three fresh processes all show it.
 - **Comparisons across trade-offs mislead.** Other parsers read different syntax with different
   guarantees, so a table of speeds or sizes says little. markz compares privately and publishes
   only its own conformance, size and speed.
@@ -89,8 +93,6 @@ This keeps what should shape the next change.
 
 - **djot's inline raw, `{=format}`.** It stays literal text with no warning. Raw blocks are the
   least used construct so far, so a warning for the inline form waits until they are used more.
-- **A/B in the bench.** `pnpm bench` against a git ref, both loaded in one process, would make
-  the A/B measurement in Speed a command rather than a scratch script.
 - **Items.** A pending text string, or writing nodes during the scan, remain open, though
   merging items showed no gain.
 - **Streaming.** Healing an unfinished document at one point, without changing `parse`

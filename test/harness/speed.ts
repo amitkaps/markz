@@ -67,6 +67,58 @@ export function time(
 }
 
 /** @prose
+ * ## One version against another
+ *
+ * Two versions of markz timed in one process, a pass of each in turn, with the order swapped
+ * every pair. Whatever the machine does then slows both alike. Two separate runs promise no such
+ * thing, and on unchanged code they have differed by 30% (lessons: Speed). The change is the
+ * median of the pairs' ratios.
+ *
+ * The pairs in one process agree closely, but they share the process's luck with the JIT. On
+ * unchanged code one construct could come out 15% apart, and a different one each run. So a
+ * caller repeats this in fresh processes and trusts only a change they all show.
+ */
+export interface Versus {
+  /** The median pass of `after`, in milliseconds. */
+  ms: number;
+  /** How much faster `after` is than `before`, as a fraction: 0.1 is 10% faster. */
+  change: number;
+}
+
+/** Five unmeasured pairs, then pairs until `budgetMs` is spent, at least `least`. */
+export function versus(
+  before: (text: string) => unknown,
+  after: (text: string) => unknown,
+  texts: string[],
+  budgetMs: number,
+  least = 5,
+): Versus {
+  const pass = (run: (text: string) => unknown) => {
+    const start = performance.now();
+    for (const text of texts) kept = run(text);
+    return performance.now() - start;
+  };
+  for (let i = 0; i < 5; i++) {
+    pass(before);
+    pass(after);
+  }
+  const afters: number[] = [];
+  const ratios: number[] = [];
+  for (let spent = 0; spent < budgetMs || ratios.length < least;) {
+    const first = ratios.length % 2 ? before : after;
+    const a = pass(first);
+    const b = pass(first === before ? after : before);
+    const [old, now] = first === before ? [a, b] : [b, a];
+    afters.push(now);
+    ratios.push(old / now);
+    spent += a + b;
+  }
+  afters.sort((x, y) => x - y);
+  ratios.sort((x, y) => x - y);
+  return { ms: afters[afters.length >> 1]!, change: ratios[ratios.length >> 1]! - 1 };
+}
+
+/** @prose
  * ## Retained memory
  *
  * What holding one parsed document keeps alive: the source is parsed `HELD` times with every
