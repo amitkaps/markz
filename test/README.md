@@ -50,6 +50,7 @@ The tools are plain Node scripts, each a `pnpm` command. They aren't part of `pn
   pages.
 
 `pnpm test` searches from a fixed seed. `pnpm fuzz` runs the construct and robustness checks
-fifty times as far from a random one; `SEARCH` and `SEED` set both by hand.
+fifty times as far from a random one, and `SEARCH` and `SEED` set both by hand. When and how to
+run it, and what to do with what it finds, is in [Development](../docs/dev.md#fuzz).
 
 Unit tests of offsets and node data live next to their module in `src/`.

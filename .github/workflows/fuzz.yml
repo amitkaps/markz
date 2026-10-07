@@ -1,0 +1,58 @@
+name: fuzz
+
+# A longer search than CI's, run by hand: `gh workflow run fuzz` or the Actions tab. It isn't a
+# check, since a new seed can fail on a case no pull request caused. A failure lists each failing
+# test with the settings that replay it, and the whole log is kept with the run.
+on:
+  workflow_dispatch:
+    inputs:
+      search:
+        description: "How many times further than pnpm test to search"
+        default: "50"
+      seed:
+        description: "The seed to search from, or random"
+        default: "random"
+
+permissions:
+  contents: read
+
+jobs:
+  fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Fuzz
+        run: pnpm fuzz 2>&1 | tee fuzz.log
+        shell: bash -o pipefail {0}
+        env:
+          SEARCH: ${{ inputs.search }}
+          SEED: ${{ inputs.seed }}
+
+      - name: Summary
+        if: failure()
+        run: |
+          {
+            echo "## Fuzz failed (SEARCH=$SEARCH)"
+            echo '```'
+            grep -E "^ FAIL " fuzz.log
+            echo
+            grep -E -A11 "AssertionError|Property failed" fuzz.log | head -200
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+        env:
+          SEARCH: ${{ inputs.search }}
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: fuzz-log
+          path: fuzz.log

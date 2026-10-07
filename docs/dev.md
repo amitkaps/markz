@@ -34,6 +34,20 @@ Each script is one word, named for the question it answers. Two scripts may run 
 (`hotspots` is `speed.ts --profile`), and a variant of one question is a flag. How the tests are organised is in
 [test/README.md](../test/README.md), and why is in [Quality](quality.md#how-markz-is-tested).
 
+## Fuzz
+
+`pnpm test` searches each construct from one fixed seed, and its cases reach every choice in the
+grammar. `pnpm fuzz` searches fifty times as far from a new seed, so it finds what a fixed search
+misses. It isn't a CI check, since a new seed can fail on a case no pull request caused.
+
+Run it before a release, and after a change to `docs/grammar.md`, `test/harness/cases.ts` or a
+parser pass. The `fuzz` workflow runs it on GitHub on demand, with `gh workflow run fuzz` or from the
+Actions tab. A failure lists each failing test with the seed that replays it, and the run keeps
+the whole log.
+
+When it finds a case, settle it as any other, then add its shortest form to `FOUND` in
+`test/harness/cases.ts`, so `pnpm test` judges it on every run.
+
 ## Workflow
 
 `main` is protected. A pull request is required, and the `ci` check must pass. Branch, commit,
@@ -66,7 +80,8 @@ The deploy command uses `pnpm dlx`, not `npx`, because `npx` refuses to run in a
 
 ## Release
 
-Bump `version` in `package.json` and merge to `main`. Then tag the release and push the tag.
+Run `pnpm fuzz`, bump `version` in `package.json` and merge to `main`. Then tag the release and
+push the tag.
 
 ```sh
 git tag v0.3.0 && git push origin v0.3.0

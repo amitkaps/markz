@@ -125,7 +125,7 @@ export function constructEdges(): Record<string, Edges> {
   const { runs, seed } = search(8);
   return Object.fromEntries(
     CONSTRUCTS.map(({ id }) => {
-      const { unsettled, ...reached } = edges(id, runs, seed);
+      const { unsettled, missed: _, ...reached } = edges(id, runs, seed);
       return [id, { ...reached, unsettled: unsettled.length, none: EDGES[id] ?? {} }];
     }),
   );

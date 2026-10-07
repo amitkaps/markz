@@ -40,6 +40,12 @@ This keeps what should shape the next change.
   YAML and heading ids each found gaps, and one found a hang. Whole suites also buried the page
   in variants of forms markz cuts, so each keeps what tests a decision and the rest only has to
   run cleanly.
+- **A search finds only what its generator writes.** The edge cases nested at depth one, and one
+  depth count covered every alternative. So each choice nested under another took its first
+  option, and every element was a `div` and every link's destination had angle brackets. A longer
+  search didn't help, since no seed could write the rest. Each recursion now counts its own depth,
+  and the cases keep drawing until they take every choice, for two more seconds of `pnpm test`.
+  That found three side rules the edge tests didn't apply, and one the grammar didn't state.
 - **Linear time needs its own tests.** Before adversarial patterns were timed, 23 of 51 were
   quadratic. The common fix: a scan that fails remembers where, and settles every opener it
   passed, so nothing is scanned twice.
