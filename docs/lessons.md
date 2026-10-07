@@ -75,7 +75,14 @@ This keeps what should shape the next change.
 
 - **djot's inline raw, `{=format}`.** It stays literal text with no warning. Raw blocks are the
   least used construct so far, so a warning for the inline form waits until they are used more.
-- **Headings.** What is left of their cost is the inline pass on each short title.
+- **Leaves with no syntax.** What is left of a heading's cost is the inline pass on its short
+  title. A leaf with no character in the plain-text stop set could become one text node without
+  the pass, which would help table cells and short paragraphs too. Bare URLs, quotes and dashes
+  all start on stop characters, so skipping the pass loses nothing.
+- **Block lines without copies.** The lazy-line check, setext, fence and `$$` tests copy the rest
+  of a line before testing it, and the lazy-line check runs on every paragraph line. Sticky
+  regexes at the line's offset would test the source in place. Short copies are cheap in V8, so
+  the gain may be small.
 - **Items.** A pending text string, or writing nodes during the scan, remain open, though
   merging items showed no gain.
 - **Streaming.** Healing an unfinished document at one point, without changing `parse`
