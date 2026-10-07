@@ -269,6 +269,8 @@ tree-shakes what it doesn't call, and `prepack` builds, so a tarball never ships
 
 What ships is readable code without its prose. `dist/index.js` isn't minified, since a
 consumer's bundler minifies it for its own app, and anyone reading `node_modules` can follow it.
+A page with no bundler imports it from jsDelivr's `/+esm`, which minifies it
+([Usage](usage.md#in-the-browser)).
 Its comments are stripped, but license comments and `@__PURE__` annotations stay, and a `/*!`
 banner names the license so it survives a consumer's bundle. There are no sourcemaps.
 `dist/index.d.ts` keeps the comment above each export, `@prose` included, as that export's

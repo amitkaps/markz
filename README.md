@@ -30,6 +30,14 @@ the previous LTS, which today are 26 and 24. In the browser, it needs
 It is one ES module with no dependencies and no Node APIs, so the same file runs in Node, browsers
 and workers.
 
+A page with no build step imports it from a CDN, which serves it minified:
+
+```html
+<script type="module">
+  import { html } from "https://cdn.jsdelivr.net/npm/@amitkaps/markz@0.3/+esm";
+</script>
+```
+
 ## The language
 
 markz reads the Markdown people already write: `#` headings, `**strong**`, `_emphasis_`, `-`
