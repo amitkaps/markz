@@ -1028,10 +1028,10 @@ class BlockParser {
           const format = leaf.info.slice(1).split(/[ \t]/)[0]!;
           node = b.leaf("raw", leaf.start, leaf.end, { format, value, range: body });
         } else {
-          const info = decode(leaf.info);
-          const space = info.search(/[ \t]/);
-          const lang = space < 0 ? info : info.slice(0, space);
-          const meta = space < 0 ? "" : info.slice(space).trim();
+          // Split before decoding, so a `&#9;` or `&#32;` stays inside its word.
+          const space = leaf.info.search(/[ \t]/);
+          const lang = decode(space < 0 ? leaf.info : leaf.info.slice(0, space));
+          const meta = space < 0 ? "" : decode(leaf.info.slice(space).trim());
           node = b.leaf("code", leaf.start, leaf.end, {
             lang: lang || null,
             meta: meta || null,

@@ -142,3 +142,13 @@ x [y]{@div /} z
 .
 {@div /}
 ```
+
+An opening line ends at its line ending, even inside an expression.
+
+```example 165 ambiguous element-line
+{@div title=${
+x}}
+.
+<p>{@div title=<code class="language-js expression">
+x</code>}</p>
+```

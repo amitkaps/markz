@@ -56,6 +56,14 @@ A link's text holds no link, so the inner one wins.
 <p>[a <a href="c">b</a> d](e)</p>
 ```
 
+At the start of a line, `<?` opens no HTML block, since markz has none.
+
+```example 166 ambiguous autolink-start
+<?a@b.c>
+.
+<p><a href="mailto:?a@b.c">?a@b.c</a></p>
+```
+
 ```example 82 unclosed
 [a](b and [c
 .
