@@ -121,6 +121,9 @@ This keeps what should shape the next change.
 
 - **djot's inline raw, `{=format}`.** It stays literal text with no warning. Raw blocks are the
   least used construct so far, so a warning for the inline form waits until they are used more.
+- **`***` as a thematic break.** oxfmt writes `***` for a rule that starts a document, since
+  `---` there opens metadata, and scripts and docs often use it. Accepting it breaks the rule of
+  one marker. `*` emphasis has a precedent, since markz reads it where oxfmt writes it.
 - **Items.** A pending text string, or writing nodes during the scan, remain open, though
   merging items showed no gain.
 - **Streaming.** Healing an unfinished document at one point, without changing `parse`
