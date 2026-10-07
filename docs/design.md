@@ -50,9 +50,9 @@ doc.data(doc.root, "heading"); // throws a TypeError: the root is not a heading
 
 Iteration follows `firstChild`/`nextSibling` and allocates no arrays. Public type names are
 strings (`NodeType`), and the numeric codes stay internal. `doc.data(node, type)` reads a node's
-side-table entry and throws if the node is of another type, so a wrong guess fails loudly. Text
-that a container prefix can interrupt (a code block inside a blockquote loses its `> `) is stored
-as a string. Everything else is a range into the source.
+side-table entry and throws if the node is of another type, so a wrong guess fails loudly. A
+value that is decoded (a text node's) or stripped of container prefixes (a code block inside a
+blockquote loses its `> `) is stored as a string. Everything else is a range into the source.
 
 ## Node types
 
@@ -130,8 +130,8 @@ it:
 
 What remains is small enough to write by hand, needs no named-entity table, lets `html()` be safe
 outside raw blocks, and never depends on later text, which keeps streaming simple. The rest is
-openers (`[`, `_`, `**`, `` ` ``, `$`, `${`, and `{` after a `)` or `]`) that either close or
-turn out to be text.
+openers (`[`, `![`, `_`, `**`, `~~`, `` ` ``, `$`, `${`, and `{` after a `)` or `]`) that either
+close or turn out to be text.
 
 - **Openers go on a stack.** The inline pass keeps what it has read as a linked list of items. A
   closer wraps the items since its opener into one node; an opener still unmatched at the end of
@@ -148,7 +148,7 @@ turn out to be text.
 
 **The grammar states the dialect, and the parser is its one reading.** [`grammar.md`](grammar.md)
 states each construct in EBNF, with the side rules that settle what the productions leave
-ambiguous. The parser isn't generated from it. It is written by hand and keeps one invariant.
+ambiguous. The parser isn't generated from it. It is written by hand, to four rules.
 
 - **Single pass:** the block pass reads each line once, and the inline pass reads each leaf once,
   as it closes.
@@ -166,9 +166,8 @@ GitHub's, and a `{#id}` line sets one by hand. An id is settled as its heading i
 against the ids used so far, so it never depends on a later heading. The rules and the contract
 cases are in [`syntax.md`](syntax.md#heading).
 
-**micromark is the test oracle, not a dependency.** The language needs to be identical to GFM on
-the constructs they share, not compliant with all of it, and micromark with GFM checks exactly
-that (see [Testing](#testing)).
+**micromark is the test oracle, not a dependency.** markz must match GFM on the constructs they
+share, not all of GFM, and micromark checks exactly that ([Testing](#testing)).
 
 ## Streaming
 
@@ -195,7 +194,7 @@ Deciding whether a half-typed opener (`hello *`) shows or vanishes, and avoiding
 ## Public API
 
 The package exports `parse`, `html`, `walk`, `textContent`, `headings` and `position`, the
-read-only `Document`, and the types around them. [Reference](reference.md) lists each one.
+read-only `Document` with `NONE` for "no node", and the types around them. [Reference](reference.md) lists each one.
 Nothing takes an options object.
 
 `headings` is the one helper that reads the tree for a consumer's outline, and it is not part of
@@ -210,7 +209,7 @@ and the browser, because it builds a string and never touches the DOM.
 - **Attributes** are written onto the element they belong to (see [Security](#security) for the
   ones that are dropped).
 - **` ```=html ` raw blocks are written verbatim.** Raw blocks in other formats are skipped. Everywhere
-  else, `<` and `&` in text are escaped, and comments are dropped.
+  else, `&`, `<`, `>` and `"` are escaped, and comments are dropped.
 - **Smart punctuation** is already in the text values, so `html()` writes curly quotes and dashes
   without a pass of its own.
 - **Math, expressions and elements** are written in the shapes [`syntax.md`](syntax.md)
@@ -250,11 +249,11 @@ nesting.
 - **Everything else is safe by construction.** Outside raw blocks, unsafe values can reach the
   output only through URLs and attributes, and `html()` handles both:
   - It drops event-handler attributes (`on*`).
-  - It drops any URL or attribute value with an unsafe scheme (`javascript:`, `vbscript:`, and
-    `data:` other than images).
+  - A URL with an unsafe scheme (`javascript:`, `vbscript:`, and `data:` other than a raster
+    image) is written empty, and an attribute value with one is dropped.
   - `style` and other attributes pass through, since limited styling is the point of attributes.
-  - The AST keeps everything verbatim.
-- The AST itself makes no safety promise. A consumer building its own output owns its policy.
+- The AST keeps everything verbatim and makes no safety promise. A consumer building its own
+  output owns its policy.
 - markz ships no sanitizer. In the browser, a host that wants defence in depth passes `html()`'s
   output to the platform's HTML Sanitizer API (`Element.setHTML()`). Chrome 146 and Firefox 148
   ship it and Safari doesn't yet, so feature-detect it and fall back to DOMPurify.
@@ -285,8 +284,8 @@ never becomes `latest`.
 
 ## Performance and size
 
-**The budget is 20 KB gzip** for everything `import { parse, html } from '@amitkaps/markz'` pulls in,
-bundled and minified. `pnpm size` measures it and CI fails above it. One budget covers Node,
+**The budget is 20 KB gzip** for the whole package, every export bundled and minified. `pnpm size`
+measures it and CI fails above it. One budget covers Node,
 Workers and the browser, and how it shaped the design is in
 [Lessons](lessons.md#size).
 
