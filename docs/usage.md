@@ -12,6 +12,21 @@ pnpm add @amitkaps/markz
 
 markz has no dependencies and runs the same in Node, Workers and the browser.
 
+## In the browser
+
+A page with no build step imports markz from a CDN, pinned to a version:
+
+```html
+<script type="module">
+  import { html } from "https://cdn.jsdelivr.net/npm/@amitkaps/markz@0.3/+esm";
+
+  document.querySelector("main").innerHTML = html(markdown);
+</script>
+```
+
+jsDelivr's `/+esm` serves the module minified. The file in the package is readable and not
+minified, since a bundler minifies it for its own app.
+
 ## Render
 
 ```ts
