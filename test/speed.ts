@@ -15,21 +15,28 @@
  * `--compare` times markz beside the parsers in `harness/parsers.ts` on each tier's common
  * variant, each parser in a fresh process of its own (`--parser <name>`), so no parser's heap or
  * JIT state colours another's numbers. It is for our own insight: nothing here is published.
+ *
+ * `--profile` shows where the time goes rather than how much there is (`harness/profile.ts`). It
+ * profiles every tier, or one tier or construct by name (`--profile heading`), and writes the
+ * profile beside the baseline for DevTools.
  */
 import "./harness/node.ts";
 import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 
 const { html, parse } = await import("../src/index.ts");
 const { TIERS, common, documents, repeat } = await import("./harness/corpus.ts");
 const { readFences } = await import("./harness/fences.ts");
 const { OTHERS, load } = await import("./harness/parsers.ts");
 const { retained, time, warm } = await import("./harness/speed.ts");
+const { profile, summarize } = await import("./harness/profile.ts");
 
 const root = join(import.meta.dirname, "..");
 const BASELINE = join(root, "node_modules/.cache/markz/speed.json");
+const PROFILE = join(root, "node_modules/.cache/markz/markz.cpuprofile");
+const PROFILE_MS = 3_000;
 const BUDGET_MS = 25;
 const WARM_MS = 1_000;
 const CONSTRUCT_BYTES = 20_000;
@@ -46,6 +53,24 @@ function speed(run: (text: string) => unknown, texts: string[]): Speed {
   const bytes = texts.reduce((sum, t) => sum + t.length, 0);
   const t = time(run, texts, BUDGET_MS, 3);
   return { mbPerSecond: bytes / 1e3 / t.ms, noise: (t.high - t.low) / t.ms };
+}
+
+const run = (text: string) => html(parse(text));
+
+/** What the bench times: each document tier whole, and each construct's examples repeated. */
+function timed(): { name: string; texts: string[] }[] {
+  const out = TIERS.map((tier) => ({
+    name: `${tier} documents`,
+    texts: [...documents(tier).values()],
+  }));
+  const own = join(root, "test/examples/markz");
+  for (const file of readdirSync(own).sort()) {
+    if (!file.endsWith(".md") || file === "README.md" || file === "not-supported.md") continue;
+    const examples = readFences(readFileSync(join(own, file), "utf8")).examples;
+    const text = examples.map((e) => e.markdown.replace(/\s*$/, "\n")).join("\n");
+    out.push({ name: file.slice(0, -3), texts: [repeat(text, CONSTRUCT_BYTES)] });
+  }
+  return out;
 }
 
 const argv = process.argv.slice(2);
@@ -94,19 +119,27 @@ if (flag("--parser") >= 0) {
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
-} else {
-  const run = (text: string) => html(parse(text));
-  const cells = TIERS.map((tier) => ({
-    name: `${tier} documents`,
-    texts: [...documents(tier).values()],
-  }));
-  const own = join(root, "test/examples/markz");
-  for (const file of readdirSync(own).sort()) {
-    if (!file.endsWith(".md") || file === "README.md" || file === "not-supported.md") continue;
-    const examples = readFences(readFileSync(join(own, file), "utf8")).examples;
-    const text = examples.map((e) => e.markdown.replace(/\s*$/, "\n")).join("\n");
-    cells.push({ name: file.slice(0, -3), texts: [repeat(text, CONSTRUCT_BYTES)] });
+} else if (flag("--profile") >= 0) {
+  // A tier or construct to profile, or every tier.
+  const target = argv[flag("--profile") + 1];
+  const all = timed();
+  const chosen = target
+    ? all.filter((c) => c.name === target || c.name === `${target} documents`)
+    : all.filter((c) => c.name.endsWith(" documents"));
+  if (!chosen.length) {
+    console.error(`no tier or construct "${target}": ${all.map((c) => c.name).join(", ")}`);
+    process.exit(1);
   }
+  const texts = chosen.flatMap((c) => c.texts);
+  warm(run, texts, WARM_MS);
+  const cpu = await profile(run, texts, PROFILE_MS);
+  mkdirSync(join(PROFILE, ".."), { recursive: true });
+  writeFileSync(PROFILE, JSON.stringify(cpu));
+  console.log(`parse + HTML: ${chosen.map((c) => c.name).join(", ")}, warm\n`);
+  console.log(summarize(cpu, root));
+  console.log(`\n${relative(root, PROFILE)} opens in DevTools for the flame chart`);
+} else {
+  const cells = timed();
 
   let baseline: Record<string, Speed> | null = null;
   try {

@@ -29,6 +29,8 @@ live here, so one change to how an example is filed or judged reaches both at on
   otherwise resolves.
 - [`speed.ts`](speed.ts): warm-up, timed passes and retained memory, for `pnpm bench` and the
   Quality page's Size and Speed.
+- [`profile.ts`](profile.ts): a warm CPU profile and its table of self time by area and function,
+  for `pnpm bench --profile`.
 - [`parsers.ts`](parsers.ts): the other parsers `pnpm bench --compare` times markz beside, for
   our own insight.
 - [`adversarial.ts`](adversarial.ts): patterns that would make a careless parser quadratic, each
