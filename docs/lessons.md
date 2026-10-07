@@ -121,9 +121,15 @@ This keeps what should shape the next change.
 
 - **djot's inline raw, `{=format}`.** It stays literal text with no warning. Raw blocks are the
   least used construct so far, so a warning for the inline form waits until they are used more.
-- **`***` as a thematic break.** oxfmt writes `***` for a rule that starts a document, since
-  `---` there opens metadata, and scripts and docs often use it. Accepting it breaks the rule of
-  one marker. `*` emphasis has a precedent, since markz reads it where oxfmt writes it.
+- **The second markers, `***` and `~~~`.** markz takes one marker for a rule (`---`) and one for
+  a fence (backticks). Accepting either second marker breaks that rule, though `*` emphasis is a
+  precedent, read where oxfmt writes it. Each has a case of its own.
+  - `***`: oxfmt writes it for a rule on a document's first line, since `---` there opens
+    metadata. Prettier writes `---`, so a rule, a `key: value` line and a rule become metadata
+    and vanish. A narrower option accepts `***` only on the first line, where `---` has two
+    meanings.
+  - `~~~`: a tilde fence needs no escaping where Markdown sits in a JavaScript template literal,
+    such as a test or a prompt. oxfmt rewrites it to backticks.
 - **Items.** A pending text string, or writing nodes during the scan, remain open, though
   merging items showed no gain.
 - **Streaming.** Healing an unfinished document at one point, without changing `parse`
