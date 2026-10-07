@@ -327,6 +327,11 @@ function unsafe(value: string, image = true): boolean {
   );
 }
 
+/** @prose
+ * `escape` is the one place text becomes safe to write into HTML, so every string from the
+ * document passes through it. The parser marks nothing as already safe. Faster versions and a
+ * parser flag were measured and ruled out ([Lessons](../docs/lessons.md#speed)).
+ */
 function escape(text: string): string {
   return /[&<>"]/.test(text) ? text.replace(/[&<>"]/g, (c) => ESCAPES[c]!) : text;
 }

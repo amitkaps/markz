@@ -59,9 +59,16 @@ This keeps what should shape the next change.
   with no syntax is written as one text node: headings +12%, tables +10%, paragraphs +6%. Whole
   documents barely moved, since nearly every sentence holds a `.`, which may start a bare URL.
   Its test first ran past a cell's end to the row's, which the wide-table complexity test caught.
-- **`escape` is half of `html()` and stays.** Its regex test over every byte written is the
-  cost, and a loop over character codes was 25–33% slower. Replacing the callback with
-  `replaceAll` measured flat.
+- **`escape` is the top hotspot and stays as it is.** It takes about a tenth of parse and HTML
+  time. Most of that is the test that finds nothing, since only 7% of the strings it gets hold a
+  character to escape. A loop over character codes was 25–33% slower, and `replaceAll` or a
+  `switch` measured flat. A `search` followed by a loop won 15% alone but lost 2–4% on whole
+  documents.
+- **The parser doesn't mark text as needing escaping.** Text nodes and inline code are 85% of
+  the calls, and the inline scanner already stops at `<`, `&` and `"`. A flag could skip most
+  tests, for an estimated few percent. It's ruled out because every place that builds text would
+  then share the safety check, and one wrong flag lets unescaped text into the page. Merging
+  adjacent text nodes is out too, since only 6% of text nodes have a text sibling next.
 - **Block lines need no copy-free tests.** The lazy-line check copies the rest of its line, but
   it runs only when a line misses an open container. The other copies are on lines that start
   with `#`, a fence or `$$`, so an ordinary line copies nothing.
