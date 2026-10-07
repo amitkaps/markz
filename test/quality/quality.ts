@@ -19,7 +19,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { stripTypeScriptTypes } from "node:module";
 import { dirname, join } from "node:path";
 import { createServer } from "vite-plus";
-import type { Quality, Row, Status } from "./data.ts";
+import type { Edges, Quality, Row, Status } from "./data.ts";
 
 // The harness reads its examples with Vite's `import.meta.glob`, so it is loaded through Vite's
 // module loader rather than by Node.
@@ -80,6 +80,9 @@ measured on this commit when the page is generated.
 whitespace and smart punctuation are normalized; [yaml](https://eemeli.org/yaml/) for metadata
 values; and [github-slugger](https://github.com/Flet/github-slugger) for heading ids. markz's own
 examples carry their expected output. This page runs the same code as \`pnpm test\`.
+
+**Edges.** Each construct is also tried at its edges, with cases generated from the grammar and
+every one-character edit of them. markz must read each one as the grammar does.
 `;
 
 function part(part: (typeof PARTS)[number], rows: Row[]): string {
@@ -110,7 +113,40 @@ ${items.join("\n")}
 </section>`;
 }
 
-function cards(rows: Row[], q: Quality): string {
+const EDGE_WHAT = {
+  valid: "cases written from a construct’s grammar rule, read as that construct",
+  boundary: "one-character edits the grammar still accepts, still read as the construct",
+  "near-miss": "one-character edits the grammar rejects, not read as the construct",
+  unsettled: "markz and the grammar disagree, and no side rule says why, which fails the tests",
+};
+
+/** @prose
+ * The Edges card totals every construct's generated cases (`harness/cases.ts`). They aren't
+ * examples: they have no HTML to compare, and there are about fifteen times as many. So they are
+ * counted on a card of their own, with a case of each edge in every construct's row, and never
+ * listed.
+ */
+function edgesCard(edges: Edges[]): string {
+  const sum = (k: keyof typeof EDGE_WHAT) => edges.reduce((n, e) => n + e[k], 0);
+  const n = (x: number) => x.toLocaleString("en");
+  const unsettled = sum("unsettled");
+  const total = sum("valid") + sum("boundary") + sum("near-miss") + unsettled;
+  const stat = (k: keyof typeof EDGE_WHAT, label: string) =>
+    `<div class="stat ${k === "unsettled" && unsettled ? "fail" : "match"}"><span class="n">${n(sum(k))}</span> <span class="label">${label}</span> <span class="what">${escape(EDGE_WHAT[k])}</span></div>`;
+  return `<div class="card">
+<h2>Edges</h2>
+<p class="headline"><span class="n">${n(total)}</span> cases generated from the grammar${unsettled ? `, <span class="fail-n">${n(unsettled)} unsettled</span>` : ", each read as the grammar reads it"}</p>
+<div class="stats">
+${stat("valid", "valid")}
+${stat("boundary", "boundary")}
+${stat("near-miss", "near miss")}
+${stat("unsettled", "unsettled")}
+</div>
+<p class="what">Generated on every test run from one fixed seed, so each run tries the same cases. Each construct’s row shows one of each.</p>
+</div>`;
+}
+
+function cards(rows: Row[], q: Quality, edges: Edges[]): string {
   const totals = tally(rows);
   return `<section class="cards" aria-label="Summary">
 <div class="card">
@@ -124,6 +160,7 @@ ${STATUSES.map(
 ).join("\n")}
 </div>
 </div>
+${edgesCard(edges)}
 <div class="card-row">
 <div class="card">
 <h2>Size</h2>
@@ -154,6 +191,7 @@ const json = (value: unknown) => JSON.stringify(value).replace(/</g, "\\u003c");
 
 export async function page(): Promise<string> {
   const rows = conformance();
+  const edges = constructEdges();
   const q = await quality();
   const css = readFileSync(join(import.meta.dirname, "style.css"), "utf8");
   const built = new Date().toUTCString();
@@ -179,7 +217,7 @@ ${css}</style>
 ${markz(INTRO)}
 <p class="meta">${rows.length} examples · built ${built}</p>
 </header>
-${cards(rows, q)}
+${cards(rows, q, Object.values(edges))}
 <div class="filters">
 <input type="search" placeholder="Search Markdown, a warning code, or #232" aria-label="Search">
 <button type="button" class="chip clear" hidden></button>
@@ -194,7 +232,7 @@ ${PARTS.map((p) => part(p, rows)).join("\n")}
 <a href="${REPO}">github.com/amitkaps/markz</a>
 </footer>
 </div>
-<script type="application/json" id="quality-data">${json({ rows, edges: constructEdges() })}</script>
+<script type="application/json" id="quality-data">${json({ rows, edges })}</script>
 <script type="module">
 ${script()}</script>
 </body>

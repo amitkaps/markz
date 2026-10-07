@@ -10,6 +10,7 @@ it: a new one takes the next number after the highest, and a removed one's numbe
 again.
 
 The info string may go on to name the edge the example tries, for [`../../harness/cases.ts`](../../harness/cases.ts):
-`example 17 near-miss`, `boundary`, `unclosed`, or `ambiguous <rule>` with the side rule that
-settles it. Every construct has an ambiguous and an unclosed example, or a reason in `cases.ts`
+`example 17 unclosed`, or `example 17 ambiguous <rule>` with the side rule that settles it. The
+other edges (valid, boundary and near miss) are generated from the grammar, so no example is
+labelled with them. Every construct has an ambiguous and an unclosed example, or a reason in `cases.ts`
 why it can't.

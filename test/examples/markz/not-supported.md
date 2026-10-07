@@ -37,7 +37,7 @@ a <b>c</b> and <!-- x -->
 
 `<!-->` and `<!--->` are whole comments, as in CommonMark, so they are raw HTML too.
 
-```example 106 near-miss
+```example 106 ambiguous comment-close
 <!-->b and a <!---> c
 .
 <p>&lt;!--&gt;b and a &lt;!---&gt; c</p>

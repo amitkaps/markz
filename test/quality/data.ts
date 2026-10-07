@@ -7,8 +7,8 @@
  * Conformance is the test harness's own `check`, so the page files each example under
  * `syntax.md`'s constructs and compares as `pnpm test` does, and can't disagree with the tests
  * because it runs their code. Each construct's edges come from the same search
- * `constructs.test.ts` runs, from the same seed: how many generated cases reached each edge, and
- * why a construct has no ambiguous or unclosed example where it can't.
+ * `constructs.test.ts` runs, from the same seed: how many generated cases reached each edge, one
+ * case of each, and why a construct has no ambiguous or unclosed example where it can't.
  *
  * Size is the gzip the size gate measures against its budget, and what the tree for the CommonMark
  * spec holds beside its source. Speed is parse + HTML on documents a reader can picture. The
@@ -41,6 +41,8 @@ export interface Edges {
   "near-miss": number;
   /** Cases markz and the grammar read differently that nothing settles; the tests hold it at 0. */
   unsettled: number;
+  /** One case of each edge, so a reader sees what the counts are of. */
+  sample: { valid: string; boundary: string | null; "near-miss": string | null } | null;
   none: Partial<Record<"ambiguous" | "unclosed", string>>;
 }
 

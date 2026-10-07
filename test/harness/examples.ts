@@ -66,9 +66,12 @@ export type Source = Upstream | "markz";
 export type Checks = "oracle" | "yaml" | "slug" | "math" | "expected";
 const CHECKS: Checks[] = ["oracle", "yaml", "slug", "math"];
 export type Kind = "oracle" | "differ" | "not supported" | "expected";
-/** The edges a construct is tried at (`cases.ts`); a valid case needs no label. */
-export type Category = "valid" | "boundary" | "near-miss" | "ambiguous" | "unclosed";
-export const CATEGORIES: Category[] = ["valid", "boundary", "near-miss", "ambiguous", "unclosed"];
+/**
+ * The edges a hand-written example tries. The other edges (valid, boundary, near miss) are
+ * generated from the grammar (`cases.ts`), so no example is labelled with them.
+ */
+export type Category = "ambiguous" | "unclosed";
+export const CATEGORIES: Category[] = ["ambiguous", "unclosed"];
 export type Status = "match" | "warn" | "differ" | "fail";
 
 export interface Example {
