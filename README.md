@@ -85,11 +85,11 @@ entities. Converting a document means fixing what `doc.warnings` lists.
 - [Syntax](docs/syntax.md): every construct, what it's limited to, and what's left out.
 - [Reference](docs/reference.md): every export, and the tree it works on.
 - [Grammar](docs/grammar.md): the language in EBNF, with the side rules that settle each choice.
-- [Design](docs/design.md): the tree, source offsets, the parser, HTML, security and testing.
-- [Quality](https://markz.amitkaps.com/quality): conformance, size and speed, measured on this
-  commit.
+- [Design](docs/design.md): the tree, source offsets, the parser, HTML and security.
+- [Quality](docs/quality.md): how markz is tested, and how to read the report of conformance,
+  size and speed on each commit.
 - [Lessons](docs/lessons.md): what building it taught, and what could be better.
-- [Development](docs/development.md): build, test, release and deploy the site.
+- [Development](docs/dev.md): build, test, release and deploy the site.
 
 markz builds on CommonMark and GFM, takes its cuts and attribute syntax from djot and its math
 from pandoc and GitHub, and uses micromark as the oracle its tests check against.

@@ -99,10 +99,6 @@ This keeps what should shape the next change.
   ([Design](design.md#streaming)).
 - **The Quality page.** Robustness, the real-document corpus, formatter agreement and HTML
   safety could join conformance, size and speed.
-- **The Quality page in the docs menu.** Only the home page links to it now. prose builds the
-  menu from `nav:` in `docs/README.md` and keeps only files in `docs/`, so `/quality` would be
-  dropped without a warning. Once prose accepts a site path there, `/quality` goes after
-  `design.md`, and prose should warn about any entry it drops.
 - **amitkaps.github.io migrates to the dialect:** `<img>` to `![](…){…}`; video wrappers to
   `{@div .video-container}` … `{/div}`; `<br>` to a trailing `\`; embeds, SVG and scripts to
   ` ```=html ` blocks; poems to `{.verse}`; `<sup>`, `<sub>`, `<ins>` and `<abbr>` to

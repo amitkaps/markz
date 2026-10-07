@@ -2,7 +2,7 @@
  * # Oracle
  *
  * The reference markz's `html()` is held to: micromark with GFM and YAML frontmatter,
- * which are well-tested and dev-only (design: Testing). Frontmatter writes nothing, as metadata
+ * which are well-tested and dev-only (quality: How markz is tested). Frontmatter writes nothing, as metadata
  * doesn't in `html()`, so every example checks that markz finds the same block. Two settings make it render what markz should, not
  * what micromark's own policy would:
  *

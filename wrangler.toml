@@ -6,7 +6,7 @@
 #
 # Cloudflare builds and deploys it from `main` on every merge, and `wrangler deploy` reads this
 # file. Its build and deploy commands are set on the Worker in the dashboard
-# ([development](docs/development.md#the-site)). The custom domain is set here, and needs the
+# ([development](docs/dev.md#the-site)). The custom domain is set here, and needs the
 # `amitkaps.com` zone on the same account.
 
 name = "markz"
