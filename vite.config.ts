@@ -32,8 +32,6 @@ export default defineConfig({
   // Oxfmt — `vp fmt` / `vp check`.
   fmt: {
     ignorePatterns: [...generated, ...vendored, ...site, "pnpm-lock.yaml", "CHANGELOG.md"],
-    // markz reads a metadata list on one line only, and the docs' `nav:` list is over 100 wide.
-    overrides: [{ files: ["docs/README.md"], options: { printWidth: 120 } }],
   },
 
   // Oxlint — `vp lint` / `vp check`.
