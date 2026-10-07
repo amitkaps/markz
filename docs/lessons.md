@@ -95,6 +95,11 @@ This keeps what should shape the next change.
   from every build.
 - **Measured in every PR.** `pnpm size` fails above the budget, so growth shows where it's
   caused. Allowlists and messages are most of what features add.
+- **Count memory where the engine keeps it.** The tree's typed arrays live outside V8's heap, so a
+  figure from the heap alone missed them. It reported 4.5× the source for the spec's tree while
+  the tree held 7.1×. The arrays start with room for one node per 8 bytes, and real documents have
+  one per 22–56. `finish` returned views onto the whole guess. It now copies each array to its
+  nodes, which brought the tree to 4.8× with no change in speed.
 
 ## Ideas to improve
 

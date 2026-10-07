@@ -245,8 +245,10 @@ export interface Store {
  * innermost one and makes it innermost, `close` sets its end and pops it, and `leaf` adds a
  * finished child. Children are appended through a `lastChild` array that only the builder has, so
  * appending is constant time and the document doesn't carry the extra column. Arrays grow by
- * doubling from a guess based on the source length. `finish` closes the root at the end of the
- * source and trims the arrays to size without copying.
+ * doubling from a guess based on the source length, which leaves room for dense documents.
+ * `finish` closes the root at the end of the source and copies each array down to its nodes. A
+ * view would keep the whole guess alive, which on real documents is several times the nodes
+ * ([Lessons](../docs/lessons.md#size)).
  */
 type DataArgs<K extends NodeType> = K extends DataType ? [data: NodeData[K]] : [];
 
@@ -328,12 +330,12 @@ export class Builder {
     if (this.#open.length !== 1) throw new Error(`${this.#open.length - 1} nodes left open`);
     const n = this.#size;
     const store: Store = {
-      type: this.#type.subarray(0, n),
-      start: this.#start.subarray(0, n),
-      end: this.#end.subarray(0, n),
-      parent: this.#parent.subarray(0, n),
-      firstChild: this.#firstChild.subarray(0, n),
-      nextSibling: this.#nextSibling.subarray(0, n),
+      type: this.#type.slice(0, n),
+      start: this.#start.slice(0, n),
+      end: this.#end.slice(0, n),
+      parent: this.#parent.slice(0, n),
+      firstChild: this.#firstChild.slice(0, n),
+      nextSibling: this.#nextSibling.slice(0, n),
       data: this.#data,
       attributes: this.#attributes,
     };

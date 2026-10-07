@@ -130,12 +130,18 @@ export function versus(
  * ## Retained memory
  *
  * What holding one parsed document keeps alive: the source is parsed `HELD` times with every
- * result held, and the heap after a full collection, less the heap before, divided by `HELD`, is
- * the figure. Every parse gets the same string, so a tree that keeps a reference to its source
- * pays nothing for it. The collector is reached through V8's flags, so no one has to start Node
+ * result held, and the memory after a full collection, less the memory before, divided by `HELD`,
+ * is the figure. Memory is the heap plus array buffers. V8 stores a typed array's contents outside
+ * the heap, so the heap alone misses the tree's arrays. Every parse gets the same string, so a
+ * tree that keeps a reference to its source pays nothing for it. The collector is reached through V8's flags, so no one has to start Node
  * with `--expose-gc`.
  */
 const HELD = 20;
+
+const memory = () => {
+  const { heapUsed, arrayBuffers } = process.memoryUsage();
+  return heapUsed + arrayBuffers;
+};
 
 export function retained(parse: (text: string) => unknown, source: string): number {
   setFlagsFromString("--expose-gc");
@@ -145,12 +151,12 @@ export function retained(parse: (text: string) => unknown, source: string): numb
   kept = undefined;
   gc();
   gc();
-  const before = process.memoryUsage().heapUsed;
+  const before = memory();
   const held: unknown[] = [];
   for (let i = 0; i < HELD; i++) held.push(parse(source));
   gc();
   gc();
-  const after = process.memoryUsage().heapUsed;
+  const after = memory();
   // Read after measuring, so the results are alive until then.
   if (held.length !== HELD) throw new Error("lost a result");
   return (after - before) / HELD;
