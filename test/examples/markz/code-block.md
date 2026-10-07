@@ -46,3 +46,12 @@ b
 .
 <pre><code class="language-aAb"></code></pre>
 ````
+
+A reference decodes after the split, so a tab it writes stays in the language.
+
+````example 167 ambiguous info-string
+```a&#9;b c
+```
+.
+<pre><code class="language-a	b"></code></pre>
+````

@@ -309,11 +309,29 @@ function unbalanced(text: string): boolean {
 /** The text between a link or label's first `[` and the `]` that closes the case's brackets. */
 const label = (s: string) => s.slice(s.indexOf("[") + 1, s.lastIndexOf("]"));
 
+/** Brackets that don't balance, or a closing `]` that a `\` at the end of the text escapes. */
+const brackets = (text: string) => unbalanced(text) || /(?:^|[^\\])(?:\\\\)*\\$/.test(text);
+
 type Test = (s: string, id: string) => boolean;
 
+/**
+ * A `$` or backtick run in the text between the brackets with no partner there, and one past the
+ * `]`, where inline math or code would close and take the `]` with it.
+ */
+function crosses(s: string): boolean {
+  const close = s.lastIndexOf("]");
+  const inside = s.slice(s.indexOf("[") + 1, close).replace(/\\./g, "");
+  const after = s.slice(close + 1).replace(/\\./g, "");
+  // Inside, a `${` opens an expression, not math. Past the `]`, the `$` of a `${` still closes it.
+  const run = (r: string) => new RegExp(`(?<!\`)${r}(?!\`)`, "g");
+  const odd = (re: RegExp) => (inside.match(re) ?? []).length % 2 === 1;
+  if (odd(/\$(?!\{)/g) && /[^\s]\$/.test(after)) return true;
+  return (inside.match(/`+/g) ?? []).some((r) => odd(run(r)) && run(r).test(after));
+}
+
 /** Each `${…}` in a case, up to the `}` that brings brace depth back to zero, or to the end. */
-function expressions(s: string): { code: string; end: number }[] {
-  const out: { code: string; end: number }[] = [];
+function expressions(s: string): { code: string; start: number; end: number }[] {
+  const out: { code: string; start: number; end: number }[] = [];
   for (let at = s.indexOf("${"); at >= 0; at = s.indexOf("${", at + 2)) {
     let depth = 0;
     let i = at + 1;
@@ -321,7 +339,7 @@ function expressions(s: string): { code: string; end: number }[] {
       depth += s[i] === "{" ? 1 : s[i] === "}" ? -1 : 0;
       if (depth === 0) break;
     }
-    out.push({ code: s.slice(at + 2, i), end: i });
+    out.push({ code: s.slice(at + 2, i), start: at, end: i });
   }
   return out;
 }
@@ -395,7 +413,7 @@ export const SETTLED: Record<string, Record<string, Test>> = {
     },
   },
   element: {
-    brackets: (s) => /^\s*\[/.test(s) && unbalanced(label(first(s))),
+    brackets: (s) => /^\s*\[/.test(s) && brackets(label(first(s))),
     "leaf-label": (s) => /^\s*\[/.test(s) && /[\r\n]/.test(label(s)),
     // The productions can read `{@div #a/}` as a container with the id `a/`, its next lines inside.
     "leaf-slash": (s) => {
@@ -407,6 +425,12 @@ export const SETTLED: Record<string, Record<string, Test>> = {
         doc.type(leaf) === "element" &&
         doc.data(leaf, "element").kind === "leaf"
       );
+    },
+    "brace-depth": (s) => closesBefore(s),
+    "element-line": (s) => {
+      const open = s.indexOf("{@");
+      const end = open + s.slice(open).search(LINE_END);
+      return expressions(s).some((e) => e.start > open && e.start < end && /[\r\n]/.test(e.code));
     },
     "element-close": (s) => {
       const name = /\{@([A-Za-z][\w-]*)/.exec(first(s))?.[1];
@@ -449,8 +473,16 @@ export const SETTLED: Record<string, Record<string, Test>> = {
   expression: {
     "brace-depth": (s) => expressions(s)[0]?.end !== s.length - 1,
   },
-  link: { brackets: (s) => unbalanced(label(s)) },
-  span: { brackets: (s) => unbalanced(label(s)), "brace-depth": (s) => closesBefore(s) },
+  link: {
+    brackets: (s) => brackets(label(s)),
+    "inline-order": crosses,
+    "brace-depth": (s) => closesBefore(s),
+  },
+  span: {
+    brackets: (s) => brackets(label(s)),
+    "inline-order": crosses,
+    "brace-depth": (s) => closesBefore(s),
+  },
 };
 
 /** @prose
@@ -545,8 +577,27 @@ export interface Reached {
  * run. A longer search finds what the fixed one misses, and this keeps it found.
  */
 export const FOUND: Record<string, string[]> = {
-  // `leaf-slash`: the productions read the `/` into the id and the next line into a container.
-  element: ["{@div #a/}\nb\n", "{@div #b/} \r[\n"],
+  element: [
+    // `leaf-slash`: the productions read the `/` into the id and the next line into a container.
+    "{@div #a/}\nb\n",
+    "{@div #b/} \r[\n",
+    // `element-line`: the productions let an expression on the opening line hold a line ending.
+    "\n{@div\tN=${\r}\t/}\t\r",
+    // `brackets`: the productions close the label at a `]` that a `\` escapes.
+    "[\\]{@m- /}",
+    // `brace-depth`, on an opening line.
+    "   [b]{@j-\ta=${}}\t/}\t\r",
+  ],
+  span: ["[\\]{K}"],
+  // `brace-depth`: the productions close an expression at a later `}`.
+  attributes: ["{7=${{}}"],
+  link: [
+    // `brace-depth`, after a link.
+    "![]( ){ 4=${}}\tR\t}",
+    // `inline-order`: math opened in the link's text closes past its `]`.
+    "![$a](\r()a\r() \r){E=$ }",
+    '[$](\t\r\n<>\t""){3=${b}\t}',
+  ],
 };
 
 const cr = (s: string) => s.includes("\r");

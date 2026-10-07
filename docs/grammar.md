@@ -168,7 +168,7 @@ closing-fence ::= indent? fence space* line-end
 
 - `fence-length`: A fence closes on a line holding only a backtick run at least as long as the opening one.
 - `fence-indent`: Each content line loses up to as much indentation as the opening fence had.
-- `info-string`: The first word of the info string, escapes decoded, is `lang`, and the rest is `meta`.
+- `info-string`: The first word of the info string is `lang`, and the rest is `meta`. Escapes and references are decoded after the split, so a `&#9;` is part of its word.
 
 {#raw-block}
 
@@ -269,6 +269,7 @@ custom-element ::= [a-z] [a-z0-9]* '-' [a-z0-9-]*
 - `element-name`: The name is the element it writes. A line with any other name is text, and a warning. The names HTML reserves (`font-face`, `annotation-xml`, …) are not custom elements.
 - `leaf-label`: A leaf is one line, and its label is inline content, and its children.
 - `leaf-slash`: A `/` just before the `}` closes a leaf, and is never part of an id, class or value, so `{@div #a/}` is a leaf with the id `a`.
+- `element-line`: An opening line is one line, so an expression in a value can't hold a line ending. A line that needs one is a paragraph.
 - `element-interrupts`: An opening line can't interrupt a paragraph or a table. A leaf or a closing line can.
 - `element-close`: A closing line closes the innermost element open in its container when the names match. Otherwise it is text, and a warning. When a `{#name}` line came before it, the warning says the element opens with `{@name}`.
 - `unclosed-element`: Unclosed, an element runs to the end of its container, with a warning at its opening line.
@@ -343,6 +344,7 @@ domain-label ::= [A-Za-z0-9] ([A-Za-z0-9-]* [A-Za-z0-9])?
 - `link-text`: A link's text holds no link. An image's text is its alt text, as plain text.
 - `scheme-length`: A scheme is 2 to 32 characters.
 - `destination`: Escapes and `${…}` count inside a destination, and parentheses balance.
+- `autolink-start`: An email autolink may start a line with `<?` or `<!`, where CommonMark opens a raw HTML block. markz has no HTML blocks, so it reads the autolink.
 
 {#span}
 

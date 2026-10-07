@@ -231,6 +231,14 @@ export const APART: [reason: string, test: (markdown: string, found: Token[]) =>
     (markdown) => /<[^\s<>@]*![^\s<>]*@/.test(markdown),
   ],
   [
+    "micromark keeps a `%` before two letters or digits that aren't hex (`%AL`), where commonmark.js writes `%25`",
+    (markdown) => /%(?![\da-fA-F]{2})[A-Za-z\d]{2}/.test(markdown),
+  ],
+  [
+    "CommonMark opens a raw HTML block at a line's `<?`, where markz reads an email autolink (grammar: link; `autolink-start`)",
+    (markdown) => /^ {0,3}<\?/m.test(markdown),
+  ],
+  [
     "after an opening `---` that never closes, the frontmatter extension leaves the next lines a paragraph",
     (markdown) => /^---[ \t]*\n/.test(markdown),
   ],
