@@ -72,17 +72,8 @@ const counts = (t: Tally) =>
 
 const INTRO = `
 What markz is held to, what it costs to ship and hold, and how long it takes. Everything here is
-measured on this commit when the page is generated.
-
-**Conformance.** The grammar is tested as a language: every example markz is held to, filed as
-\`syntax.md\` is. Upstream suites are checked against an oracle:
-[micromark](https://github.com/micromark/micromark) for CommonMark, GFM and frontmatter, after
-whitespace and smart punctuation are normalized; [yaml](https://eemeli.org/yaml/) for metadata
-values; and [github-slugger](https://github.com/Flet/github-slugger) for heading ids. markz's own
-examples carry their expected output. This page runs the same code as \`pnpm test\`.
-
-**Edges.** Each construct is also tried at its edges, with cases generated from the grammar and
-every one-character edit of them. markz must read each one as the grammar does.
+measured on this commit when the page is generated, by the same code as \`pnpm test\`.
+[Quality](/docs/quality.md) says how markz is tested and what each status and edge means.
 `;
 
 function part(part: (typeof PARTS)[number], rows: Row[]): string {

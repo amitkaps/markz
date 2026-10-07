@@ -85,9 +85,9 @@ entities. Converting a document means fixing what `doc.warnings` lists.
 - [Syntax](docs/syntax.md): every construct, what it's limited to, and what's left out.
 - [Reference](docs/reference.md): every export, and the tree it works on.
 - [Grammar](docs/grammar.md): the language in EBNF, with the side rules that settle each choice.
-- [Design](docs/design.md): the tree, source offsets, the parser, HTML, security and testing.
-- [Quality](https://markz.amitkaps.com/quality): conformance, size and speed, measured on this
-  commit.
+- [Design](docs/design.md): the tree, source offsets, the parser, HTML and security.
+- [Quality](docs/quality.md): how markz is tested, and how to read the report of conformance,
+  size and speed on each commit.
 - [Lessons](docs/lessons.md): what building it taught, and what could be better.
 - [Development](docs/development.md): build, test, release and deploy the site.
 

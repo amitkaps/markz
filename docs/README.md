@@ -1,5 +1,5 @@
 ---
-nav: [usage.md, syntax.md, reference.md, grammar.md, design.md, lessons.md, development.md]
+nav: [usage.md, syntax.md, reference.md, grammar.md, design.md, quality.md, lessons.md, development.md]
 ---
 
 # Docs
@@ -13,5 +13,6 @@ order.
 3. [Reference](reference.md): every export, and the tree it works on.
 4. [Grammar](grammar.md): the same language, stated formally.
 5. [Design](design.md): how it is built, and what it leaves out.
-6. [Lessons](lessons.md): what building it taught.
-7. [Development](development.md): build, test, release and deploy the site.
+6. [Quality](quality.md): what it is held to, and how to read the report.
+7. [Lessons](lessons.md): what building it taught.
+8. [Development](development.md): build, test, release and deploy the site.

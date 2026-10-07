@@ -27,7 +27,7 @@ pnpm vendor            # refreshes the vendored test inputs
 ```
 
 Scripts are one word, and a variant is a flag. How the tests are organised is in
-[test/README.md](../test/README.md), and why is in [Design](design.md#testing).
+[test/README.md](../test/README.md), and why is in [Quality](quality.md#how-markz-is-tested).
 
 ## Workflow
 
