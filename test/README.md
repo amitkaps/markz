@@ -40,7 +40,7 @@ The tools are plain Node scripts, each a `pnpm` command. They aren't part of `pn
 - [`size.ts`](size.ts) is `pnpm size`, the 20 KB gzip budget. CI runs it on every PR, and it
   fails above the budget.
 - [`speed.ts`](speed.ts) is `pnpm bench`: markz alone, on the working tree, in a few seconds, in
-  MB/s per document tier and per construct, against this machine's baseline with a noise band.
+  MB/s per document tier and per construct, the working tree against `origin/main`.
   `--profile` shows where its time goes, and `--compare` times it beside other parsers, for our
   own insight.
   [`harness/node.ts`](harness/node.ts) lets it load `src/` and the harness.

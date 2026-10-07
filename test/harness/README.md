@@ -27,8 +27,8 @@ live here, so one change to how an example is filed or judged reaches both at on
   Quality page time them.
 - [`node.ts`](node.ts): lets a plain Node script load `src/` and the harness, which Vite
   otherwise resolves.
-- [`speed.ts`](speed.ts): warm-up, timed passes and retained memory, for `pnpm bench` and the
-  Quality page's Size and Speed.
+- [`speed.ts`](speed.ts): warm-up, timed passes, one version against another and retained
+  memory, for `pnpm bench` and the Quality page's Size and Speed.
 - [`profile.ts`](profile.ts): a warm CPU profile and its table of self time by area and function,
   for `pnpm bench --profile`.
 - [`parsers.ts`](parsers.ts): the other parsers `pnpm bench --compare` times markz beside, for

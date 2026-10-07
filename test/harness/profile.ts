@@ -4,7 +4,7 @@
  * Where markz's time goes, for `pnpm bench --profile`. A bench cell says _that_ something is
  * slow, and this says _where_: self time by area (block pass, inline pass, `html()`) and by
  * function, the same table from one run to the next. Whether a change helped is still the plain
- * bench's job, against its baseline.
+ * bench's job, against `origin/main`.
  *
  * The profiler starts only after the caller's warm-up, so the profile is of optimized code, as
  * every bench figure is. It samples, so a function under `FLOOR` of the samples is noise and isn't

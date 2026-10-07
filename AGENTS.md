@@ -42,7 +42,7 @@ pnpm test
 pnpm build             # the package, into dist/
 pnpm size              # gzip size against the budget
 pnpm fuzz              # random constructs and robustness, a new seed each run
-pnpm bench             # markz's speed alone, in seconds
+pnpm bench             # markz's speed, this working tree against origin/main
 pnpm bench --compare   # beside markdown-exit, marked and micromark, for our own insight
 pnpm bench --profile   # where the time goes, by area and function; or one tier or construct
 pnpm quality           # writes the Quality page from the test harness
