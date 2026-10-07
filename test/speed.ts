@@ -1,11 +1,11 @@
 /** @prose
  * # Speed
  *
- * `pnpm bench`: markz alone, this working tree's `src/` against `origin/main`'s, in seconds. It
+ * `pnpm speed`: markz alone, this working tree's `src/` against `origin/main`'s, in seconds. It
  * answers one question while you work: did this change move it? Each cell is parse + HTML over
  * some text, in MB/s: each document tier read whole, and each construct over its own examples,
- * repeated to a size (`examples/markz/<id>.md`), so a slower construct shows by name. Last comes
- * what holding the CommonMark spec's tree costs, as a multiple of its source.
+ * repeated to a size (`examples/markz/<id>.md`), so a slower construct shows by name. What a tree
+ * holds in memory is a cost, so `pnpm size` prints it.
  *
  * Both versions run in one process, a pass of each in turn (`harness/speed.ts`), and that is
  * repeated in three fresh processes (`--versus`). A cell shows the median change and the range
@@ -13,12 +13,12 @@
  * saved baseline from an earlier run was ruled out, since the machine drifts between runs by more
  * than any change worth finding. `--against <ref>` times against another commit.
  *
- * `--compare` times markz beside the parsers in `harness/parsers.ts` on each tier's common
+ * `pnpm compare` (`--compare`) times markz beside the parsers in `harness/parsers.ts` on each tier's common
  * variant, each parser in a fresh process of its own (`--parser <name>`), so no parser's heap or
  * JIT state colours another's numbers. It is for our own insight: nothing here is published.
  *
- * `--profile` shows where the time goes rather than how much there is (`harness/profile.ts`). It
- * profiles every tier, or one tier or construct by name (`--profile heading`), and writes the
+ * `pnpm hotspots` (`--profile`) shows where the time goes rather than how much there is (`harness/profile.ts`). It
+ * profiles every tier, or one tier or construct by name (`pnpm hotspots heading`), and writes the
  * profile to `node_modules/.cache/` for DevTools.
  */
 import "./harness/node.ts";
@@ -39,7 +39,7 @@ const { html, parse } = await import("../src/index.ts");
 const { TIERS, common, documents, repeat } = await import("./harness/corpus.ts");
 const { readFences } = await import("./harness/fences.ts");
 const { OTHERS, load } = await import("./harness/parsers.ts");
-const { retained, time, versus, warm } = await import("./harness/speed.ts");
+const { time, versus, warm } = await import("./harness/speed.ts");
 const { profile, summarize } = await import("./harness/profile.ts");
 
 const root = join(import.meta.dirname, "..");
@@ -58,7 +58,7 @@ const FLOOR = 0.05;
 
 const run = (text: string) => html(parse(text));
 
-/** What the bench times: each document tier whole, and each construct's examples repeated. */
+/** What is timed: each document tier whole, and each construct's examples repeated. */
 function timed(): { name: string; texts: string[] }[] {
   const out = TIERS.map((tier) => ({
     name: `${tier} documents`,
@@ -149,7 +149,7 @@ if (flag("--parser") >= 0) {
   console.log(summarize(cpu, root));
   console.log(`\n${relative(root, PROFILE)} opens in DevTools for the flame chart`);
 } else if (flag("--versus") >= 0) {
-  // One process of the default bench: both versions over every cell, as JSON on stdout.
+  // One process of `pnpm speed`: both versions over every cell, as JSON on stdout.
   const base = await import(join(argv[flag("--versus") + 1]!, "src/index.ts"));
   const before = (text: string) => base.html(base.parse(text));
   const cells = timed();
@@ -176,7 +176,7 @@ if (flag("--parser") >= 0) {
     process.exit(1);
   }
   // Node strips types only outside `node_modules`, so the ref's files can't live in the cache.
-  const dir = join(tmpdir(), "markz-bench", sha);
+  const dir = join(tmpdir(), "markz-speed", sha);
   if (!existsSync(join(dir, "src/index.ts"))) {
     mkdirSync(dir, { recursive: true });
     const tar = git("archive", "--format=tar", sha, "src").stdout;
@@ -217,10 +217,5 @@ if (flag("--parser") >= 0) {
       `${cell.padEnd(width)}${mb(median(runs.map((r) => r[cell]!.mbPerSecond))).padStart(8)}${pct(median(changes)).padStart(9)}${`${pct(Math.min(...changes))} to ${pct(Math.max(...changes))}`.padStart(16)}${mark}`,
     );
   }
-
-  const spec = [...documents("spec").values()][0]!;
-  console.log(
-    `\nholding the CommonMark spec's tree: ${(retained(parse, spec) / spec.length).toFixed(1)}× its source`,
-  );
-  console.log(`${((performance.now() - started) / 1000).toFixed(1)} s`);
+  console.log(`\n${((performance.now() - started) / 1000).toFixed(1)} s`);
 }

@@ -1,13 +1,13 @@
 /** @prose
  * # Profile
  *
- * Where markz's time goes, for `pnpm bench --profile`. A bench cell says _that_ something is
+ * Where markz's time goes, for `pnpm hotspots`. A `pnpm speed` cell says _that_ something is
  * slow, and this says _where_: self time by area (block pass, inline pass, `html()`) and by
- * function, the same table from one run to the next. Whether a change helped is still the plain
- * bench's job, against `origin/main`.
+ * function, the same table from one run to the next. Whether a change helped is still
+ * `pnpm speed`'s job, against `origin/main`.
  *
  * The profiler starts only after the caller's warm-up, so the profile is of optimized code, as
- * every bench figure is. It samples, so a function under `FLOOR` of the samples is noise and isn't
+ * every timed figure is. It samples, so a function under `FLOOR` of the samples is noise and isn't
  * listed. V8 inlines small helpers into their callers, and their time is counted there. Profiling
  * with inlining off was ruled out, since it changes the speed being measured.
  */

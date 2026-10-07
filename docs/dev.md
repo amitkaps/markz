@@ -7,8 +7,8 @@ changing it, including the prose rules it follows, are in [AGENTS.md](../AGENTS.
 
 `package.json` says what the repository needs. `devEngines` names the Node and pnpm to develop
 with, and `engines` names the Node range the package runs on. markz supports the current Node and
-the previous LTS, which today are 26 and 24. Development asks for 26, so tests, the bench and the
-Quality page all run on one Node, and pnpm stops with an error on any other. `vp` is a dev dependency, so run it through the
+the previous LTS, which today are 26 and 24. Development asks for 26, so the tests, the timings and the
+Quality report all run on one Node, and pnpm stops with an error on any other. `vp` is a dev dependency, so run it through the
 `pnpm` scripts, not a global install.
 
 ## Build and test
@@ -17,16 +17,21 @@ Quality page all run on one Node, and pnpm stops with an error on any other. `vp
 pnpm install
 pnpm check             # format, lint and types
 pnpm test
+pnpm fuzz              # random constructs and robustness, a new seed each run
 pnpm build             # the package, into dist/
 pnpm dev               # the same build, on every change
-pnpm size              # gzip size against the budget
-pnpm fuzz              # random constructs and robustness, a new seed each run
-pnpm bench             # markz's speed alone, in seconds
-pnpm bench --compare   # beside other parsers, for our own insight
+pnpm size              # what it costs: gzip against the budget, and memory to hold a tree
+pnpm speed             # did a change move it: this tree against origin/main, or --against <ref>
+pnpm hotspots          # where the time goes; or one tier or construct by name
+pnpm compare           # beside markdown-exit, marked and micromark, for our own insight
+pnpm quality           # the Quality report, from the test harness, beside the site
+pnpm prose             # the site, live as you edit
+pnpm prose build       # the site, into .prose/
 pnpm vendor            # refreshes the vendored test inputs
 ```
 
-Scripts are one word, and a variant is a flag. How the tests are organised is in
+Each script is one word, named for the question it answers. Two scripts may run the same file
+(`hotspots` is `speed.ts --profile`), and a variant of one question is a flag. How the tests are organised is in
 [test/README.md](../test/README.md), and why is in [Quality](quality.md#how-markz-is-tested).
 
 ## Workflow
@@ -41,12 +46,8 @@ and `pnpm test` first, and `pnpm build` too after a dependency bump.
 [prose](https://prose.amitkaps.com), plus the Quality page. Neither is part of the package, and
 the site has no code of its own.
 
-```sh
-pnpm prose build                # the repository's pages
-pnpm quality                    # the Quality page, beside them
-```
-
-The root `README.md` is the home page. The bar links the docs in `docs/`, in the order of the
+`pnpm prose build` writes the repository's pages, and `pnpm quality` then writes the Quality
+report beside them. The root `README.md` is the home page. The bar links the docs in `docs/`, in the order of the
 `nav` list in [docs/README.md](README.md). CI builds both on every pull request, so a change
 that breaks the site can't merge.
 
