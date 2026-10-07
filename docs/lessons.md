@@ -55,10 +55,24 @@ This keeps what should shape the next change.
   (+11%), block starts tried only on their first character (+8%), and less allocated per leaf
   and node (+12%). A `switch` on character codes measured no faster, and halving the number of
   inline items changed nothing: making and copying items isn't where the time goes.
+- **Skipping the inline pass on plain leaves paid where leaves are short.** A one-line leaf
+  with no syntax is written as one text node: headings +12%, tables +10%, paragraphs +6%. Whole
+  documents barely moved, since nearly every sentence holds a `.`, which may start a bare URL.
+  Its test first ran past a cell's end to the row's, which the wide-table complexity test caught.
+- **`escape` is half of `html()` and stays.** Its regex test over every byte written is the
+  cost, and a loop over character codes was 25–33% slower. Replacing the callback with
+  `replaceAll` measured flat.
+- **Block lines need no copy-free tests.** The lazy-line check copies the rest of its line, but
+  it runs only when a line misses an open container. The other copies are on lines that start
+  with `#`, a fence or `$$`, so an ordinary line copies nothing.
 - **Measure warm.** Timing code the engine hadn't finished optimizing hid most of these gains.
   Every figure now comes after a second of warm-up, as the median of repeated passes.
 - **Construct timings need realistic input.** Headings looked slow because the test repeated the
-  same few thousands of times, which timed id numbering no author asks for.
+  same few thousands of times, which timed id numbering no author asks for. The profile still
+  shows it, as the id lookup, and an ASCII fast path for the slug measured flat.
+- **Two runs of the bench can differ by 30% on unchanged code.** The machine drifts between runs
+  by more than either run's noise band. Loading both versions of `src/` in one process and
+  alternating their passes settled each idea above to within a few percent.
 - **Comparisons across trade-offs mislead.** Other parsers read different syntax with different
   guarantees, so a table of speeds or sizes says little. markz compares privately and publishes
   only its own conformance, size and speed.
@@ -75,14 +89,8 @@ This keeps what should shape the next change.
 
 - **djot's inline raw, `{=format}`.** It stays literal text with no warning. Raw blocks are the
   least used construct so far, so a warning for the inline form waits until they are used more.
-- **Leaves with no syntax.** What is left of a heading's cost is the inline pass on its short
-  title. A leaf with no character in the plain-text stop set could become one text node without
-  the pass, which would help table cells and short paragraphs too. Bare URLs, quotes and dashes
-  all start on stop characters, so skipping the pass loses nothing.
-- **Block lines without copies.** The lazy-line check, setext, fence and `$$` tests copy the rest
-  of a line before testing it, and the lazy-line check runs on every paragraph line. Sticky
-  regexes at the line's offset would test the source in place. Short copies are cheap in V8, so
-  the gain may be small.
+- **A/B in the bench.** `pnpm bench` against a git ref, both loaded in one process, would make
+  the A/B measurement in Speed a command rather than a scratch script.
 - **Items.** A pending text string, or writing nodes during the scan, remain open, though
   merging items showed no gain.
 - **Streaming.** Healing an unfinished document at one point, without changing `parse`

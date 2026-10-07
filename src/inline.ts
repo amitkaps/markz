@@ -23,6 +23,9 @@ import { type WarningCode } from "./warnings";
 /**
  * Writes the inline nodes. For a heading it also returns their plain text, which the heading's id
  * is made from; every other leaf skips building it.
+ *
+ * A one-line leaf with no character that starts a construct is one text node, written without
+ * the pass. Bare URLs, quotes and dashes all start on such a character, so this skips nothing.
  */
 export function inline(
   b: Builder,
@@ -32,6 +35,16 @@ export function inline(
   heading = false,
 ): string {
   if (lines.length === 0) return "";
+  if (lines.length === 1) {
+    const { start, end } = lines[0]!;
+    LEAF.lastIndex = start;
+    LEAF.test(source);
+    if (LEAF.lastIndex >= end) {
+      const value = source.slice(start, end);
+      if (value) b.leaf("text", start, end, { value });
+      return heading ? value : "";
+    }
+  }
   const pass = new InlinePass(b, source, lines, cell);
   const list = pass.scan(0, pass.text.length);
   pass.emit(list);
@@ -1159,6 +1172,8 @@ class InlinePass {
 
 /** A run of characters that start no case in `scan`: plain text, matched in one step. */
 const PLAIN = /[^\n\\`$<&[\]!_*~:"'\-.@{]*/y;
+/** `PLAIN` that also stops at `|`, so a table cell's test ends at its own pipe, not the row's end. */
+const LEAF = /[^\n\\`$<&[\]!_*~:"'\-.@{|]*/y;
 const ENTITY = /^&(?:#(\d{1,7})|#[xX]([\da-fA-F]{1,6})|([A-Za-z][A-Za-z\d]{1,31}));/;
 const NAME = /[A-Za-z][\w-]*/y;
 /** An email's domain: ASCII segments, a `.` counting only before a letter or digit. */
