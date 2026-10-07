@@ -1,8 +1,9 @@
 name: fuzz
 
 # A longer search than CI's, run by hand: `gh workflow run fuzz` or the Actions tab. It isn't a
-# check, since a new seed can fail on a case no pull request caused. A failure lists each failing
-# test with the settings that replay it, and the whole log is kept with the run.
+# check, since a new seed can fail on a case no pull request caused. Every run's summary records
+# the commit, settings and result, so the Actions history is the log of what was searched. A
+# failure also lists each failing test with its cases, and the whole log is kept with the run.
 on:
   workflow_dispatch:
     inputs:
@@ -31,6 +32,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Fuzz
+        id: fuzz
         run: pnpm fuzz 2>&1 | tee fuzz.log
         shell: bash -o pipefail {0}
         env:
@@ -38,18 +40,23 @@ jobs:
           SEED: ${{ inputs.seed }}
 
       - name: Summary
-        if: failure()
+        if: always()
         run: |
           {
-            echo "## Fuzz failed (SEARCH=$SEARCH)"
-            echo '```'
-            grep -E "^ FAIL " fuzz.log
+            echo "## Fuzz ${{ steps.fuzz.outcome }} on ${GITHUB_SHA::7}"
             echo
-            grep -E -A11 "AssertionError|Property failed" fuzz.log | head -200
-            echo '```'
+            echo "\`$(grep -m1 -E "^SEARCH=[0-9.]+ SEED=[0-9]+" fuzz.log || echo "SEARCH=$SEARCH SEED=$SEED")\`"
+            if [ "${{ steps.fuzz.outcome }}" = failure ]; then
+              echo '```'
+              grep -E "^ FAIL " fuzz.log
+              echo
+              grep -E -A11 "AssertionError|Property failed" fuzz.log | head -200
+              echo '```'
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
         env:
           SEARCH: ${{ inputs.search }}
+          SEED: ${{ inputs.seed }}
 
       - uses: actions/upload-artifact@v7
         if: always()

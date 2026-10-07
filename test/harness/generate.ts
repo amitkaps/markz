@@ -245,18 +245,11 @@ export function mutated(documents: readonly string[]): fc.Arbitrary<string> {
  *
  * The fuzzer and the edge cases search from one fixed seed, so `pnpm test` is deterministic and a
  * red run replays. `SEARCH` in the environment multiplies every search's runs, and `SEED` moves
- * it elsewhere: `pnpm fuzz` runs fifty times as far, and `SEED=random` draws a new seed in each
- * test file. fast-check prints the seed of any failure, and an edge test prints both settings
- * with its shortest unsettled cases.
+ * it elsewhere: `pnpm fuzz` runs fifty times as far, and `SEED=random` draws one new seed for the
+ * run (`vite.config.ts`), which it prints first. fast-check prints the seed of any failure, and an
+ * edge test prints both settings with its shortest unsettled cases.
  */
 export function search(runs: number): { runs: number; seed: number } {
   const times = Number(process.env["SEARCH"] ?? 1);
-  const seed = process.env["SEED"];
-  return {
-    runs: Math.ceil(runs * times),
-    seed: seed === "random" ? RANDOM : Number(seed ?? 20260927),
-  };
+  return { runs: Math.ceil(runs * times), seed: Number(process.env["SEED"] ?? 20260927) };
 }
-
-// Drawn in JavaScript, since `$RANDOM` is empty in the `sh` that runs scripts on Linux.
-const RANDOM = Math.floor(Math.random() * 2 ** 31);
