@@ -295,14 +295,15 @@ time, no backtracking, and a flat tree of typed arrays with offsets into the sou
 `test/complexity.test.ts` holds linear time on adversarial patterns and a multi-megabyte
 document, and is the only timing CI gates on.
 
-- `pnpm bench` is markz alone (`test/speed.ts`), the working tree against `origin/main`, in
-  about 20 seconds: MB/s per document tier and per construct, the change and its range across
-  three processes, and what holding the CommonMark spec's tree costs. `--against <ref>` picks
-  another commit.
-- `pnpm bench --profile` shows where the time goes: self time by area (block pass, inline pass,
+- `pnpm size` prints the gzip size against the budget, and what holding the CommonMark spec's
+  tree costs, as a multiple of its source.
+- `pnpm speed` is markz alone (`test/speed.ts`), the working tree against `origin/main`, in
+  about 20 seconds: MB/s per document tier and per construct, and the change and its range across
+  three processes. `--against <ref>` picks another commit.
+- `pnpm hotspots` shows where the time goes: self time by area (block pass, inline pass,
   `html()`) and by function, warm, over every tier or one tier or construct by name. It finds
-  where to look, and the plain bench says whether a change helped.
-- `pnpm bench --compare` times markz beside markdown-exit, marked and micromark on the blocks
+  where to look, and `pnpm speed` says whether a change helped.
+- `pnpm compare` times markz beside markdown-exit, marked and micromark on the blocks
   they all read alike, each in a fresh process. It is for our own insight. The parsers make
   different trade-offs, so nothing from it is published.
 - [The Quality report](quality.md) measures this commit when it is generated (`pnpm quality`): the gzip size

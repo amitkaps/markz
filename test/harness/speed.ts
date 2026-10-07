@@ -1,8 +1,8 @@
 /** @prose
  * # Timing
  *
- * How markz's speed and memory are measured, shared by `pnpm bench` (`test/speed.ts`) and the
- * Quality page, which times this commit when the page is generated. It is given the functions to
+ * How markz's speed and memory are measured, shared by `pnpm speed` (`test/speed.ts`), `pnpm size`
+ * and the Quality page, which times this commit when the page is generated. It is given the functions to
  * time rather than importing markz, so each caller says what it times.
  *
  * Every figure is warm: the parser has run over the documents for a while before anything is

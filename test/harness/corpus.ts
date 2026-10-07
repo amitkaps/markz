@@ -2,7 +2,7 @@
  * # Corpus
  *
  * Real documents, and the variants built from them, which `documents.test.ts` holds markz to and
- * `pnpm bench` times. The variants are built on each run and never committed. Each tier of
+ * `pnpm speed` times. The variants are built on each run and never committed. Each tier of
  * documents answers its own question:
  *
  * - **markz**: this repository's own writing (`README.md`, `AGENTS.md` and `docs/`), read where

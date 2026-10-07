@@ -23,15 +23,15 @@ live here, so one change to how an example is filed or judged reaches both at on
 - [`sound.ts`](sound.ts) and [`tree.ts`](tree.ts): what every document must satisfy, whatever the
   input, and the tree invariants among it.
 - [`corpus.ts`](corpus.ts): the real documents in [`../documents/`](../documents/) by tier, and
-  the variants built from them: common, formatted and repeated to a size. `pnpm bench` and the
+  the variants built from them: common, formatted and repeated to a size. `pnpm speed` and the
   Quality page time them.
 - [`node.ts`](node.ts): lets a plain Node script load `src/` and the harness, which Vite
   otherwise resolves.
 - [`speed.ts`](speed.ts): warm-up, timed passes, one version against another and retained
-  memory, for `pnpm bench` and the Quality page's Size and Speed.
+  memory, for `pnpm speed`, `pnpm size` and the Quality page's Size and Speed.
 - [`profile.ts`](profile.ts): a warm CPU profile and its table of self time by area and function,
-  for `pnpm bench --profile`.
-- [`parsers.ts`](parsers.ts): the other parsers `pnpm bench --compare` times markz beside, for
+  for `pnpm hotspots`.
+- [`parsers.ts`](parsers.ts): the other parsers `pnpm compare` times markz beside, for
   our own insight.
 - [`adversarial.ts`](adversarial.ts): patterns that would make a careless parser quadratic, each
   growing in proportion to a count.

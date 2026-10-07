@@ -39,18 +39,20 @@ The same rules as the snippet in [prose's docs](https://github.com/amitkaps/pros
 pnpm install
 pnpm check             # format, lint and types
 pnpm test
-pnpm build             # the package, into dist/
-pnpm size              # gzip size against the budget
 pnpm fuzz              # random constructs and robustness, a new seed each run
-pnpm bench             # markz's speed, this working tree against origin/main
-pnpm bench --compare   # beside markdown-exit, marked and micromark, for our own insight
-pnpm bench --profile   # where the time goes, by area and function; or one tier or construct
-pnpm quality           # writes the Quality page from the test harness
+pnpm build             # the package, into dist/
+pnpm dev               # the same build, on every change
+pnpm size              # what it costs: gzip against the budget, and memory to hold a tree
+pnpm speed             # did a change move it: this tree against origin/main, or --against <ref>
+pnpm hotspots          # where the time goes; or one tier or construct by name
+pnpm compare           # beside markdown-exit, marked and micromark, for our own insight
+pnpm quality           # the Quality report, from the test harness, beside the site
+pnpm prose             # the site, live as you edit
+pnpm prose build       # the site, into .prose/
 pnpm vendor            # refreshes the vendored test inputs
-pnpm prose build                # the site: this repository, read by prose
 ```
 
-The site (markz.amitkaps.com) is the repository read by `prose build`, plus the Quality page that `pnpm quality` writes beside it. Neither is part of the package, and the site has no code of its own. CI builds both, and Cloudflare deploys the folder from `main`. Scripts are one word, and a variant is a flag.
+The site (markz.amitkaps.com) is the repository read by `prose build`, plus the Quality page that `pnpm quality` writes beside it. Neither is part of the package, and the site has no code of its own. CI builds both, and Cloudflare deploys the folder from `main`. Each script is one word, named for the question it answers. Two scripts may run the same file (`hotspots` is `speed.ts --profile`), and a variant of one question is a flag.
 
 ## Workflow
 

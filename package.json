@@ -31,7 +31,9 @@
     "test": "vp test --run",
     "size": "node test/size.ts",
     "fuzz": "SEARCH=50 SEED=$RANDOM vp test --run test/constructs.test.ts test/robustness.test.ts",
-    "bench": "node test/speed.ts",
+    "speed": "node test/speed.ts",
+    "hotspots": "node test/speed.ts --profile",
+    "compare": "node test/speed.ts --compare",
     "vendor": "node test/vendor.ts",
     "quality": "node test/quality/quality.ts",
     "prose": "prose"
