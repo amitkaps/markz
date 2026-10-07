@@ -42,8 +42,13 @@ misses. It isn't a CI check, since a new seed can fail on a case no pull request
 
 Run it before a release, and after a change to `docs/grammar.md`, `test/harness/cases.ts` or a
 parser pass. The `fuzz` workflow runs it on GitHub on demand, with `gh workflow run fuzz` or from the
-Actions tab. A failure lists each failing test with the seed that replays it, and the run keeps
-the whole log.
+Actions tab. `pnpm fuzz` prints its seed first, and each cloud run's summary records its
+commit, seed and result, so the Actions history is the log of what was searched. A failure also
+lists each failing test with its cases, and the run keeps the whole log.
+
+The log is for replaying, not for picking seeds. A seed searches different cases once the
+grammar or the generator changes, so a seed that passed is no reason to skip it, or to run it
+again.
 
 When it finds a case, settle it as any other, then add its shortest form to `FOUND` in
 `test/harness/cases.ts`, so `pnpm test` judges it on every run.

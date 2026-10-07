@@ -14,6 +14,14 @@ const vendored = ["test/examples/upstream/**/*.md", "test/documents/**"];
 const site = [".prose/**"];
 // Tests that measure time, which run after the rest.
 const timing = "test/complexity.test.ts";
+// `SEED=random` is drawn once here, so every test file searches from the same seed, and printed,
+// so a passing run says what it searched. `$RANDOM` is empty in the `sh` that runs scripts on Linux.
+const seed =
+  process.env["SEED"] === "random"
+    ? String(Math.floor(Math.random() * 2 ** 31))
+    : process.env["SEED"];
+if (process.env["SEED"] === "random")
+  console.log(`SEARCH=${process.env["SEARCH"] ?? 1} SEED=${seed}`);
 
 export default defineConfig({
   // tsdown — `vp pack`. ESM only, with declarations. The code ships readable but without its
@@ -47,6 +55,7 @@ export default defineConfig({
   test: {
     expect: { requireAssertions: true },
     environment: "node",
+    env: seed ? { SEED: seed } : {},
     projects: [
       {
         extends: true,
