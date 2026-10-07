@@ -55,7 +55,14 @@ describe.each(CONSTRUCTS.map((c) => c.id))("%s", (id) => {
     "is read as the grammar reads it at its edges, or a side rule says why not",
     () => {
       const reached = edges(id, runs, seed);
-      expect(reached.unsettled.slice(0, 10)).toEqual([]);
+      // The shortest cases show a cause most plainly, and the search settings replay them.
+      const shortest = [...reached.unsettled].sort((a, b) => a.length - b.length).slice(0, 10);
+      const replay = `SEARCH=${process.env["SEARCH"] ?? 1} SEED=${seed}`;
+      expect(
+        reached.unsettled.length,
+        `${reached.unsettled.length} unsettled (${replay}), the shortest:\n${shortest.join("\n")}`,
+      ).toBe(0);
+      expect(reached.missed, "choices no valid case took").toEqual([]);
       expect(reached.valid, "valid cases markz reads").toBeGreaterThan(0);
       expect(reached.boundary, "boundary cases markz still reads").toBeGreaterThan(0);
       expect(reached["near-miss"], "near misses markz doesn't read").toBeGreaterThan(0);

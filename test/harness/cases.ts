@@ -17,7 +17,7 @@ import { parse, textContent, type Document, type NodeId, type NodeType } from ".
 import { productions, recognizer, type Expr } from "./ebnf";
 import { CONSTRUCTS, DOCUMENT, PRODUCTIONS } from "./grammar";
 import { row } from "./syntax";
-import { grammarDocument } from "./generate";
+import { choices, grammarBuilt } from "./generate";
 
 /** @prose
  * ## Reading a case
@@ -311,6 +311,28 @@ const label = (s: string) => s.slice(s.indexOf("[") + 1, s.lastIndexOf("]"));
 
 type Test = (s: string, id: string) => boolean;
 
+/** Each `${…}` in a case, up to the `}` that brings brace depth back to zero, or to the end. */
+function expressions(s: string): { code: string; end: number }[] {
+  const out: { code: string; end: number }[] = [];
+  for (let at = s.indexOf("${"); at >= 0; at = s.indexOf("${", at + 2)) {
+    let depth = 0;
+    let i = at + 1;
+    for (; i < s.length; i++) {
+      depth += s[i] === "{" ? 1 : s[i] === "}" ? -1 : 0;
+      if (depth === 0) break;
+    }
+    out.push({ code: s.slice(at + 2, i), end: i });
+  }
+  return out;
+}
+
+/**
+ * An expression the productions could close at another `}`: one inside it, or one past the `}`
+ * that closes its attributes.
+ */
+const closesBefore = (s: string) =>
+  expressions(s).some((e) => e.code.includes("}") || s.slice(e.end + 1).split("}").length > 2);
+
 /** @prose
  * The document's rules can decide a case of any construct: a blank line inside it ends it, a
  * line that opens another block ends the paragraph an inline construct sits in, and deep
@@ -375,6 +397,17 @@ export const SETTLED: Record<string, Record<string, Test>> = {
   element: {
     brackets: (s) => /^\s*\[/.test(s) && unbalanced(label(first(s))),
     "leaf-label": (s) => /^\s*\[/.test(s) && /[\r\n]/.test(label(s)),
+    // The productions can read `{@div #a/}` as a container with the id `a/`, its next lines inside.
+    "leaf-slash": (s) => {
+      if (!/[^ \t]\/\}[ \t]*$/.test(first(s)) || body(s).length < 2) return false;
+      const doc = parse(s);
+      const [leaf] = doc.children(doc.root);
+      return (
+        leaf !== undefined &&
+        doc.type(leaf) === "element" &&
+        doc.data(leaf, "element").kind === "leaf"
+      );
+    },
     "element-close": (s) => {
       const name = /\{@([A-Za-z][\w-]*)/.exec(first(s))?.[1];
       const close = new RegExp(`^ {0,3}\\{/${name}\\}[ \\t]*$`);
@@ -387,6 +420,10 @@ export const SETTLED: Record<string, Record<string, Test>> = {
     },
   },
   attributes: {
+    "attribute-line": (s) => expressions(s).some((e) => /[\r\n]/.test(e.code)),
+    "brace-depth": (s) => closesBefore(s),
+    // In a quoted value, the productions can end the value at a `"` that markz reads inside `${…}`.
+    "expression-places": (s) => expressions(s).some((e) => e.code.includes('"')),
     "attribute-boolean": (s) => /^\s*\{\s*(?:[A-Za-z][\w:-]*\s*)*\}\s*$/.test(s),
   },
   emphasis: {
@@ -410,17 +447,10 @@ export const SETTLED: Record<string, Record<string, Test>> = {
     },
   },
   expression: {
-    "brace-depth": (s) => {
-      let depth = 0;
-      for (let i = 1; i < s.length; i++) {
-        depth += s[i] === "{" ? 1 : s[i] === "}" ? -1 : 0;
-        if (depth === 0) return i !== s.length - 1;
-      }
-      return true;
-    },
+    "brace-depth": (s) => expressions(s)[0]?.end !== s.length - 1,
   },
   link: { brackets: (s) => unbalanced(label(s)) },
-  span: { brackets: (s) => unbalanced(label(s)) },
+  span: { brackets: (s) => unbalanced(label(s)), "brace-depth": (s) => closesBefore(s) },
 };
 
 /** @prose
@@ -459,17 +489,39 @@ function literals(id: string): string[] {
   return [...out];
 }
 
-export function valid(id: string, count: number, seed: number): string[] {
-  return fc.sample(grammarDocument({ alphabet: "ab", depth: 1, repeats: 1 }, id), {
-    numRuns: count,
+/** @prose
+ * A construct's valid cases are the first `count` its search draws, then each later draw that
+ * reaches a choice none before it did. The search draws a few thousand, which costs little, since
+ * judging a case and its neighbours is where the time goes. A choice still unreached is reported
+ * as missed, so a part of the grammar the cases never write fails the test instead of hiding.
+ */
+const DRAWS = 2000;
+
+export function valid(
+  id: string,
+  count: number,
+  seed: number,
+): { cases: string[]; missed: string[] } {
+  const want = new Set(choices(id));
+  const cases: string[] = [];
+  const drawn = fc.sample(grammarBuilt({ alphabet: "ab", depth: 1, repeats: 1 }, id), {
+    numRuns: Math.max(count, DRAWS),
     seed,
   });
+  for (const [i, b] of drawn.entries()) {
+    const fresh = b.took.filter((t) => want.has(t));
+    if (i < count || fresh.length) cases.push(b.text);
+    for (const t of fresh) want.delete(t);
+    if (i >= count && want.size === 0) break;
+  }
+  return { cases, missed: [...want] };
 }
 
 /** @prose
  * A construct's search: its valid cases and their neighbours, counted by the edge each reached,
  * with every case markz and the grammar read differently that nothing settles. The test holds
- * the counts above zero and the unsettled list empty, and the Quality page shows the counts.
+ * the counts above zero and the unsettled and missed lists empty, and the Quality page shows the
+ * counts.
  *
  * The page also shows one case of each edge, so a reader sees what the counts are of. It is the
  * shortest valid case that has neighbours of both kinds, with the first of each. A carriage
@@ -481,16 +533,41 @@ export interface Reached {
   boundary: number;
   "near-miss": number;
   unsettled: string[];
+  /** The choices in the construct's productions that no valid case took. */
+  missed: string[];
   sample: { valid: string; boundary: string | null; "near-miss": string | null } | null;
 }
+
+/** @prose
+ * ## Found by a longer search
+ *
+ * A case `pnpm fuzz` once found unsettled stays here once it's settled, and is judged on every
+ * run. A longer search finds what the fixed one misses, and this keeps it found.
+ */
+export const FOUND: Record<string, string[]> = {
+  // `leaf-slash`: the productions read the `/` into the id and the next line into a container.
+  element: ["{@div #a/}\nb\n", "{@div #b/} \r[\n"],
+};
 
 const cr = (s: string) => s.includes("\r");
 const seen = (s: string) => s.replace(/\r/g, "");
 
 export function edges(id: string, runs: number, seed: number): Reached {
-  const reached: Reached = { valid: 0, boundary: 0, "near-miss": 0, unsettled: [], sample: null };
+  const { cases, missed } = valid(id, runs, seed);
+  const reached: Reached = {
+    valid: 0,
+    boundary: 0,
+    "near-miss": 0,
+    unsettled: [],
+    missed,
+    sample: null,
+  };
+  for (const s of FOUND[id] ?? []) {
+    const v = judge(id, s);
+    if (!v.agree && !v.settled) reached.unsettled.push(`found ${JSON.stringify(s)}`);
+  }
   let best = Infinity;
-  for (const s of valid(id, runs, seed)) {
+  for (const s of cases) {
     const v = judge(id, s);
     if (v.agree && v.accepted) reached.valid++;
     else if (!v.agree && !v.settled) reached.unsettled.push(`valid ${JSON.stringify(s)}`);

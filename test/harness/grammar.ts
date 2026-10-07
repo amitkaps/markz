@@ -94,8 +94,8 @@ for (const [construct, grammar] of [
 
 export const construct = (id: string): Construct | undefined => CONSTRUCTS.find((c) => c.id === id);
 
-/** The names reachable from `document`. */
-export function reachable(): Set<string> {
+/** The names reachable from `start`, itself included. */
+export function reachable(start = "document"): Set<string> {
   const seen = new Set<string>();
   const visit = (name: string) => {
     if (seen.has(name)) return;
@@ -103,6 +103,6 @@ export function reachable(): Set<string> {
     const p = PRODUCTIONS.get(name);
     if (p) for (const n of references(p.expr)) visit(n);
   };
-  visit("document");
+  visit(start);
   return seen;
 }
