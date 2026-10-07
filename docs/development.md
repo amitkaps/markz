@@ -56,7 +56,6 @@ Worker to the repository with these settings.
 
 - **Production branch:** `main`
 - **Build command:** `pnpm install && pnpm prose build && pnpm quality`
-- **Build variable:** `NODE_VERSION` set to `26`, which `devEngines` requires
 - **Deploy command:** `pnpm dlx wrangler deploy`
 
 The deploy command uses `pnpm dlx`, not `npx`, because `npx` refuses to run in a repository whose
