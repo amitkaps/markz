@@ -7,7 +7,8 @@ changing it, including the prose rules it follows, are in [AGENTS.md](../AGENTS.
 
 `package.json` says what the repository needs. `devEngines` names the Node and pnpm to develop
 with, and `engines` names the Node range the package runs on. markz supports the current Node and
-the previous LTS, which today are 26 and 24. `vp` is a dev dependency, so run it through the
+the previous LTS, which today are 26 and 24. Development asks for 26, so tests, the bench and the
+Quality page all run on one Node, and pnpm stops with an error on any other. `vp` is a dev dependency, so run it through the
 `pnpm` scripts, not a global install.
 
 ## Build and test
@@ -55,6 +56,7 @@ Worker to the repository with these settings.
 
 - **Production branch:** `main`
 - **Build command:** `pnpm install && pnpm prose build && pnpm quality`
+- **Build variable:** `NODE_VERSION` set to `26`, which `devEngines` requires
 - **Deploy command:** `pnpm dlx wrangler deploy`
 
 The deploy command uses `pnpm dlx`, not `npx`, because `npx` refuses to run in a repository whose

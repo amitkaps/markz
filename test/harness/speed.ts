@@ -37,33 +37,41 @@ export function warm(run: (text: string) => unknown, texts: string[], ms: number
   }
 }
 
-/** One unmeasured pass over `texts`, then passes until `budgetMs` is spent, at least `least`. */
+/** @prose
+ * ## Groups in turns
+ *
+ * Several groups of texts are timed in rounds, one pass of each per round, rather than one group
+ * after another. A busy stretch on the machine then slows every group alike, so their figures
+ * stay in proportion. Timed one after another on a shared build machine, a 100 KB group once came
+ * out as slow as a 200 KB one.
+ */
+
+/** One unmeasured round, then rounds until each group has had `budgetMs` on average, at least `least`. */
 export function time(
   run: (text: string) => unknown,
-  texts: string[],
+  groups: string[][],
   budgetMs: number,
   least = 5,
-): Timing {
-  const pass = () => {
+): Timing[] {
+  const pass = (texts: string[]) => {
     const start = performance.now();
     for (const text of texts) kept = run(text);
     return performance.now() - start;
   };
-  pass();
-  const passes: number[] = [];
-  for (let spent = 0; spent < budgetMs || passes.length < least;) {
-    const ms = pass();
-    passes.push(ms);
-    spent += ms;
+  for (const texts of groups) pass(texts);
+  const passes: number[][] = groups.map(() => []);
+  for (let spent = 0, round = 0; spent < budgetMs * groups.length || round < least; round++) {
+    groups.forEach((texts, g) => {
+      const ms = pass(texts);
+      passes[g]!.push(ms);
+      spent += ms;
+    });
   }
-  passes.sort((a, b) => a - b);
-  const q = passes.length >> 2;
-  return {
-    ms: passes[passes.length >> 1]!,
-    low: passes[q]!,
-    high: passes[passes.length - 1 - q]!,
-    passes: passes.length,
-  };
+  return passes.map((p) => {
+    p.sort((a, b) => a - b);
+    const q = p.length >> 2;
+    return { ms: p[p.length >> 1]!, low: p[q]!, high: p[p.length - 1 - q]!, passes: p.length };
+  });
 }
 
 /** @prose
