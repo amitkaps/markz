@@ -70,6 +70,19 @@ describe("ranges", () => {
     expect(source.slice(data.body.start, data.body.end)).toBe("a\n>\tb");
     expect(source.slice(doc.start(code), doc.end(code))).toBe("```js meta\n> a\n>\tb\n> ```");
   });
+
+  // A code block whose lines are the source as it is takes one slice of it, so the value must
+  // still read every line ending as `\n` and keep nothing a prefix or indent took.
+  it.each([
+    ["untouched lines", "```\na\n  b\n```\n", "a\n  b\n"],
+    ["a lone CR", "```\na\rb\n```\n", "a\nb\n"],
+    ["CRLF", "```\r\na\r\nb\r\n```\r\n", "a\nb\n"],
+    ["an indented fence", "  ```\n  a\n   b\n  ```\n", "a\n b\n"],
+    ["no closing line or final newline", "```\na\nb", "a\nb\n"],
+  ])("give a code block with %s the value its lines read as", (_, source, value) => {
+    const doc = parsed(source);
+    expect(doc.data(first(doc, "code"), "code").value).toBe(value);
+  });
 });
 
 describe("attributes", () => {

@@ -7,7 +7,9 @@
  *
  * The lines are joined into one flat string with `\n` between them (with `join`: a string built
  * with `+=` is a rope V8 walks on every character read), and every position in it maps back to
- * the source, so a node may span lines while its range stays exact. Atomic constructs
+ * the source, so a node may span lines while its range stays exact. When the joined lines are
+ * the source as it is, the pass reads the source's slice instead. Text values are slices of this
+ * string, and a slice of a fresh copy would keep the whole leaf alive in the tree. Atomic constructs
  * (code, math, expressions, autolinks, escapes, references) are consumed where they start, which
  * is how they bind tighter than emphasis. Emphasis and brackets, for links and spans, are openers
  * that either close or stay text: the pass builds a linked list of items, and a match wraps the
@@ -158,7 +160,9 @@ class InlinePass {
       parts.push(src.slice(line.start, line.end));
       length += line.end - line.start + 1;
     }
-    this.text = parts.join("\n");
+    const joined = parts.join("\n");
+    const whole = lines.length > 1 ? src.slice(lines[0]!.start, lines.at(-1)!.end) : joined;
+    this.text = whole === joined ? whole : joined;
   }
 
   memo(text: "t" | "s", end: number): Memo {

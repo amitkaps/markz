@@ -100,6 +100,16 @@ This keeps what should shape the next change.
   the tree held 7.1×. The arrays start with room for one node per 8 bytes, and real documents have
   one per 22–56. `finish` returned views onto the whole guess. It now copies each array to its
   nodes, which brought the tree to 4.8× with no change in speed.
+- **A string built with `+=` is cheap to make and costly to hold.** Code-block values grew a
+  line at a time, so each one kept a rope with a piece per line. Text values sliced each leaf's
+  joined lines, so each kept a copy of its whole paragraph. Together they were most of the heap.
+  A code block whose lines are untouched now takes one slice of the source, and a leaf whose
+  joined lines match the source reads from it. That brought the spec's tree from 4.8× to 3.2× its
+  source, and code blocks got a few percent faster.
+- **Copying to save memory cost speed where it ran per line or per node.** Joining every code
+  block's lines made raw blocks 13% slower, since `html()` writes them as they are. Matching each
+  text node against its source made documents 3–5% slower. One check per leaf costs nothing
+  measurable, so the copies are only made where the source can't be used.
 
 ## Ideas to improve
 

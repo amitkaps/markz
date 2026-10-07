@@ -73,7 +73,9 @@ type Leaf =
       ticks: number;
       info: string;
       body: Range | null;
-      value: string;
+      lines: string[];
+      /** Whether the content lines are the source as it is, one after another. */
+      verbatim: boolean;
       attributes: Attributes | undefined;
     }
   | { kind: "comment"; start: number; end: number; head: number; closed: boolean }
@@ -568,8 +570,11 @@ class BlockParser {
    *
    * Code, raw and math blocks share one leaf: an opening line, content lines and a closing line
    * (grammar: code-block, raw-block, math-block; `fence-length`, `fence-indent`, `math-close`).
-   * The value is built as a string, since a container prefix can sit inside it; the body range
-   * still points at the source.
+   * The body range points at the source. The value is one slice of the source when the content
+   * lines are the source as it is, one after another and split by `\n`. Otherwise a container
+   * prefix, an indent, a tab or another line ending sits inside, and the lines are joined once.
+   * Either way the value is a flat string, not a rope of a piece per line
+   * ([Lessons](../docs/lessons.md#size)).
    */
   openFence(kind: "fence" | "math", at: number, indent: number, ticks: number, info: string): void {
     const attributes = this.enter(false);
@@ -584,7 +589,8 @@ class BlockParser {
       ticks,
       info,
       body: null,
-      value: "",
+      lines: [],
+      verbatim: true,
       attributes,
     };
   }
@@ -613,7 +619,11 @@ class BlockParser {
     const { cols } = this.indent();
     this.advance(Math.min(cols, leaf.indent));
     const text = " ".repeat(this.tab) + src.slice(this.tab ? this.pos + 1 : this.pos, this.lineEnd);
-    leaf.value += text + "\n";
+    leaf.verbatim &&=
+      this.pos === lineStart &&
+      !this.tab &&
+      (!leaf.body || (leaf.body.end + 1 === lineStart && src[leaf.body.end] === "\n"));
+    leaf.lines.push(text);
     if (leaf.body) leaf.body.end = this.lineEnd;
     else leaf.body = { start: lineStart, end: this.lineEnd };
     leaf.end = this.lineEnd;
@@ -1001,16 +1011,22 @@ class BlockParser {
       case "fence":
       case "math": {
         const body = leaf.body ?? { start: leaf.end, end: leaf.end };
+        const value =
+          leaf.lines.length === 0
+            ? ""
+            : leaf.verbatim && src[body.end] === "\n"
+              ? src.slice(body.start, body.end + 1)
+              : [...leaf.lines, ""].join("\n");
         let node: NodeId;
         if (leaf.kind === "math") {
           node = b.leaf("math", leaf.start, leaf.end, {
             block: true,
-            value: leaf.value,
+            value,
             range: body,
           });
         } else if (/^=\S/.test(leaf.info)) {
           const format = leaf.info.slice(1).split(/[ \t]/)[0]!;
-          node = b.leaf("raw", leaf.start, leaf.end, { format, value: leaf.value, range: body });
+          node = b.leaf("raw", leaf.start, leaf.end, { format, value, range: body });
         } else {
           const info = decode(leaf.info);
           const space = info.search(/[ \t]/);
@@ -1019,7 +1035,7 @@ class BlockParser {
           node = b.leaf("code", leaf.start, leaf.end, {
             lang: lang || null,
             meta: meta || null,
-            value: leaf.value,
+            value,
             body,
           });
         }
