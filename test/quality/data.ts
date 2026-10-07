@@ -164,9 +164,14 @@ export async function quality(): Promise<Quality> {
 
   const run = (text: string) => html(parse(text));
   warm(run, [...docs, ...pages, spec], WARM_MS);
-  const speed = runs.map(([label, texts]) => {
-    const t = time(run, texts, BUDGET_MS);
-    return { label, bytes: texts.reduce((n, s) => n + s.length, 0), low: t.low, high: t.high };
+  const timings = time(
+    run,
+    runs.map(([, texts]) => texts),
+    BUDGET_MS,
+  );
+  const speed = runs.map(([label, texts], i) => {
+    const { low, high } = timings[i]!;
+    return { label, bytes: texts.reduce((n, s) => n + s.length, 0), low, high };
   });
   return {
     size: {

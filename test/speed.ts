@@ -56,18 +56,6 @@ const CONSTRUCT_BYTES = 20_000;
 /** No change under this is marked, however quiet both runs were. */
 const FLOOR = 0.05;
 
-interface Speed {
-  mbPerSecond: number;
-  /** The middle half of the passes' spread, as a fraction of the median. */
-  noise: number;
-}
-
-function speed(run: (text: string) => unknown, texts: string[]): Speed {
-  const bytes = texts.reduce((sum, t) => sum + t.length, 0);
-  const t = time(run, texts, BUDGET_MS, 3);
-  return { mbPerSecond: bytes / 1e3 / t.ms, noise: (t.high - t.low) / t.ms };
-}
-
 const run = (text: string) => html(parse(text));
 
 /** What the bench times: each document tier whole, and each construct's examples repeated. */
@@ -99,7 +87,16 @@ if (flag("--parser") >= 0) {
   const run = await load(argv[flag("--parser") + 1]!);
   warm(run, Object.values(tiers).flat(), WARM_MS);
   const out: Record<string, number> = {};
-  for (const [tier, texts] of Object.entries(tiers)) out[tier] = speed(run, texts).mbPerSecond;
+  const entries = Object.entries(tiers);
+  const timings = time(
+    run,
+    entries.map(([, texts]) => texts),
+    BUDGET_MS,
+    3,
+  );
+  entries.forEach(([tier, texts], i) => {
+    out[tier] = texts.reduce((sum, t) => sum + t.length, 0) / 1e3 / timings[i]!.ms;
+  });
   process.stdout.write(JSON.stringify(out));
 } else if (flag("--compare") >= 0) {
   const dir = mkdtempSync(join(tmpdir(), "markz-compare-"));
