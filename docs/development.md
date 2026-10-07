@@ -56,6 +56,8 @@ Worker to the repository with these settings.
 
 - **Production branch:** `main`
 - **Build command:** `pnpm install && pnpm prose build && pnpm quality`
+- **Build variable:** `NODE_VERSION` set to `26`. Cloudflare reads pnpm's version from the
+  repository but not Node's, and `devEngines` stops the build on any other Node.
 - **Deploy command:** `pnpm dlx wrangler deploy`
 
 The deploy command uses `pnpm dlx`, not `npx`, because `npx` refuses to run in a repository whose
