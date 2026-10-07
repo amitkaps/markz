@@ -298,6 +298,9 @@ document, and is the only timing CI gates on.
 - `pnpm bench` is markz alone (`test/speed.ts`), on the working tree, in seconds: MB/s per
   document tier and per construct against this machine's baseline with a noise band, and what
   holding the CommonMark spec's tree costs.
+- `pnpm bench --profile` shows where the time goes: self time by area (block pass, inline pass,
+  `html()`) and by function, warm, over every tier or one tier or construct by name. It finds
+  where to look, and the plain bench says whether a change helped.
 - `pnpm bench --compare` times markz beside markdown-exit, marked and micromark on the blocks
   they all read alike, each in a fresh process. It is for our own insight. The parsers make
   different trade-offs, so nothing from it is published.

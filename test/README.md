@@ -41,7 +41,8 @@ The tools are plain Node scripts, each a `pnpm` command. They aren't part of `pn
   fails above the budget.
 - [`speed.ts`](speed.ts) is `pnpm bench`: markz alone, on the working tree, in a few seconds, in
   MB/s per document tier and per construct, against this machine's baseline with a noise band.
-  `--compare` times it beside other parsers, for our own insight.
+  `--profile` shows where its time goes, and `--compare` times it beside other parsers, for our
+  own insight.
   [`harness/node.ts`](harness/node.ts) lets it load `src/` and the harness.
 - [`vendor.ts`](vendor.ts) is `pnpm vendor`. It turns an upstream suite's tests into examples for
   [`examples/upstream/`](examples/upstream/), from a local clone at the pinned commit. It is run

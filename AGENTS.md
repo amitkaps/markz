@@ -44,6 +44,7 @@ pnpm size              # gzip size against the budget
 pnpm fuzz              # random constructs and robustness, a new seed each run
 pnpm bench             # markz's speed alone, in seconds
 pnpm bench --compare   # beside markdown-exit, marked and micromark, for our own insight
+pnpm bench --profile   # where the time goes, by area and function; or one tier or construct
 pnpm quality           # writes the Quality page from the test harness
 pnpm vendor            # refreshes the vendored test inputs
 pnpm prose build                # the site: this repository, read by prose
