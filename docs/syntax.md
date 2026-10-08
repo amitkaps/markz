@@ -9,34 +9,34 @@ rules, with every edge case, are in the [grammar](grammar.md).
 
 ## At a glance
 
-| To write                 | Write                                                            |
-| ------------------------ | ---------------------------------------------------------------- |
-| Metadata                 | `key: value` lines between `---` lines, at the very top          |
-| A heading                | `#` to `######` and a space: `## Title`                          |
-| A heading's id           | `{#id}` on the line above the heading                            |
-| A paragraph              | lines of text, with a blank line between paragraphs              |
-| Emphasis, strong, struck | `_emphasis_`, `**strong**`, `~~struck~~`                         |
-| Inline code              | `` `code` ``                                                     |
-| A link                   | `[text](url "title")`                                            |
-| A link to a URL or email | `<https://example.com>`, `<me@example.com>`                      |
-| An image                 | `![alt](image.png "title")`                                      |
-| A list                   | `- item`, or `1. item` for a numbered one                        |
-| A task                   | `- [ ] to do`, `- [x] done`                                      |
-| A quote                  | `>` at the start of every line                                   |
-| A code block             | a ` ``` ` fence, with the language after it                      |
-| A table                  | pipes, with a `---` row under the header, and `:---:` to align   |
-| A rule                   | `---`                                                            |
-| A line break             | `\` at the end of the line                                       |
-| Math                     | `$x$` in a line, and `$$` fences or `$$x$$` for a block          |
-| A value from code        | `${name}`                                                        |
-| A class, id or attribute | `{.class #id key=value}` above a block, or after a link or image |
-| A styled word            | `[text]{.class}`                                                 |
-| An inline element        | `[Ctrl]{@kbd}`                                                   |
-| A block element          | `{@call-out}` … `{/call-out}`, or `[label]{@name /}` on one line |
-| HTML                     | a ` ```=html ` fence                                             |
-| A comment                | `<!-- … -->` on lines of its own                                 |
-| A symbol as itself       | `\` before it (`\*`, `\$`), or a number (`&#169;`)               |
-| A non-breaking space     | `\ `, a backslash and a space                                    |
+| To write                 | Write                                                                 |
+| ------------------------ | --------------------------------------------------------------------- |
+| Metadata                 | `key: value` lines between `---` lines, at the very top               |
+| A heading                | `#` to `######` and a space: `## Title`                               |
+| A heading's id           | `{#id}` on the line above the heading                                 |
+| A paragraph              | lines of text, with a blank line between paragraphs                   |
+| Emphasis, strong, struck | `_emphasis_`, `**strong**`, `~~struck~~`                              |
+| Inline code              | `` `code` ``                                                          |
+| A link                   | `[text](url "title")`                                                 |
+| A link to a URL or email | `<https://example.com>`, `<me@example.com>`                           |
+| An image                 | `![alt](image.png "title")`                                           |
+| A list                   | `- item`, or `1. item` for a numbered one                             |
+| A task                   | `- [ ] to do`, `- [x] done`                                           |
+| A quote                  | `>` at the start of every line                                        |
+| A code block             | a ` ``` ` fence, with the language after it                           |
+| A table                  | pipes, with a `---` row under the header, and `:---:` to align        |
+| A rule                   | `---`                                                                 |
+| A line break             | `\` at the end of the line                                            |
+| Math                     | `$x$` in a line, and `$$` fences or `$$x$$` for a block               |
+| A value from code        | `${name}`                                                             |
+| A class, id or attribute | `{.class #id key=value open}` above a block, or after a link or image |
+| A styled word            | `[text]{.class}`                                                      |
+| An inline element        | `[Ctrl]{@kbd}`                                                        |
+| A block element          | `{@call-out}` … `{/call-out}`, or `[label]{@name /}` on one line      |
+| HTML                     | a ` ```=html ` fence                                                  |
+| A comment                | `<!-- … -->` on lines of its own                                      |
+| A symbol as itself       | `\` before it (`\*`, `\$`), or a number (`&#169;`)                    |
+| A non-breaking space     | `\ `, a backslash and a space                                         |
 
 ## Writing safely
 
@@ -226,9 +226,13 @@ them makes an [element](#element) Markdown has no syntax for.
 | Straight after `[text]`, with no space                           | a span of the text | classes on words, and inline elements              |
 | Lines holding `{@name …}` and `{/name}`, or `[label]{@name … /}` | an element         | wrappers and components                            |
 
-- **Inside the braces:** `#id`, `.class` and `key=value`, with `key="a value"` for spaces, and a
-  bare `key` for HTML's yes-or-no attributes (`{@details open}`). Classes add up. For any other
-  key, the later value wins. A value may hold `${…}`.
+- **Inside the braces:** `#id`, `.class` and `key=value`, with `key="a value"` for spaces. A
+  bare `key` is an HTML attribute that is on or off, as `open`, `hidden` or `download`. Classes
+  add up. For any other key, the later value wins. A value may hold `${…}`.
+- **Bare keys alone count only on an element, a span, a link or an image:** `{@details open}`,
+  `[x]{hidden}`, `[file](/a.pdf){download}`. On a line of its own, `{open}` stays text, since
+  `{year}` there reads as a placeholder. Add a class or an id to use one above a block:
+  `{.note open}`.
 - **One line.** Attributes start and end on the same line.
 - **A `{…}` line decorates the next block,** across blank lines, since formatters add one before
   a heading. With no block after it, it stays text with the warning `orphan-attributes`.

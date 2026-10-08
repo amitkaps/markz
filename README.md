@@ -43,17 +43,17 @@ A page with no build step imports it from a CDN, which serves it minified:
 markz reads the Markdown people already write: `#` headings, `_emphasis_`, `**strong**`, `-`
 lists, fenced code, links, images, tables, tasks and `~~strikethrough~~`. On top of that:
 
-| To write                 | Write                                                   |
-| ------------------------ | ------------------------------------------------------- |
-| Metadata                 | `key: value` lines between `---` lines, at the very top |
-| A class, id or attribute | `{.class #id key=value}` above a block, or after a link |
-| A styled word            | `[text]{.class}`                                        |
-| An inline element        | `[Ctrl]{@kbd}`                                          |
-| A block element          | `{@details}` … `{/details}`, or `[label]{@name /}`      |
-| Math                     | `$x$` in a line, or a `$$` block                        |
-| A value from code        | `${name}`, kept whole for the page to evaluate          |
-| HTML                     | a ` ```=html ` fence                                    |
-| A comment                | `<!-- … -->` on lines of its own                        |
+| To write                 | Write                                                        |
+| ------------------------ | ------------------------------------------------------------ |
+| Metadata                 | `key: value` lines between `---` lines, at the very top      |
+| A class, id or attribute | `{.class #id key=value open}` above a block, or after a link |
+| A styled word            | `[text]{.class}`                                             |
+| An inline element        | `[Ctrl]{@kbd}`                                               |
+| A block element          | `{@details}` … `{/details}`, or `[label]{@name /}`           |
+| Math                     | `$x$` in a line, or a `$$` block                             |
+| A value from code        | `${name}`, kept whole for the page to evaluate               |
+| HTML                     | a ` ```=html ` fence                                         |
+| A comment                | `<!-- … -->` on lines of its own                             |
 
 There is one way to write each thing. Forms that make a parser read ahead and change its mind,
 such as setext headings, reference links, raw HTML in text and indented code, aren't part of
