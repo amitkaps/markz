@@ -162,9 +162,9 @@ ambiguous. The parser isn't generated from it. It is written by hand, to four ru
   a constant number of times.
 
 **Heading ids are settled in the pass.** CommonMark defines headings but not ids, so every
-renderer adds them its own way or not at all. markz uses GitHub's algorithm, so anchors match
-GitHub's, and a `{#id}` line sets one by hand. An id is settled as its heading is parsed,
-against the ids used so far, so it never depends on a later heading. The rules and the contract
+renderer adds them its own way or not at all. markz uses GitHub's algorithm, so a link to a
+heading works on GitHub and on the site. A `{#id}` line sets one by hand. An id is settled as its
+heading is parsed, against the ids used so far, so it never depends on a later heading. The rules and the contract
 cases are in [`syntax.md`](syntax.md#heading).
 
 **micromark is the test oracle, not a dependency.** markz must match GFM on the constructs they
@@ -214,7 +214,9 @@ and the browser, because it builds a string and never touches the DOM.
 - **Smart punctuation** is already in the text values, so `html()` writes curly quotes and dashes
   without a pass of its own.
 - **Math, expressions and elements** are written in the shapes [`syntax.md`](syntax.md)
-  gives for each.
+  gives for each. An expression is `<code>`, not `<output>`. markz never evaluates, so it has
+  only the code, and `<output>` would present that code as a result. `<output>` is also a form
+  control that screen readers announce. A host that computes the value writes it as it likes.
 
 Framework output is not part of markz. An element's name is the element `html()` writes, custom
 elements included, and a framework's own fold maps names to its components (`chart-view` to
@@ -234,7 +236,8 @@ out three kinds of name:
   form controls, `dialog`, `audio` and `video`.
 
 The parser decides whether a name is an element and warns when it isn't, and the whole `{…}`
-stays text. `html()` still refuses active elements as a second line, because a document can be
+stays text. Writing `{@note}` as `<custom-note>` is ruled out. The writer would style `note` and
+get `custom-note`. A name would also change meaning on the day HTML adds it as an element. `html()` still refuses active elements as a second line, because a document can be
 built without the parser. A leaf's `[label]` and a span's `[text]` are content, and a container
 has no label: `details` takes a `[…]{@summary /}` line, so `html()` needs no rule for where a
 label goes. A closing line names what it closes, so a mismatch is a warning, not a silent wrong
