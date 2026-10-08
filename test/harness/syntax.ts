@@ -60,7 +60,7 @@ const between = (from: string, to: string) =>
   syntax.split(`\n## ${from}\n`)[1]!.split(`\n## ${to}\n`)[0]!;
 
 export const rows: Row[] = [];
-for (const block of between("Not supported", "Canonical form").split(/^### /m).slice(1)) {
+for (const block of between("Not supported", "Formatters").split(/^### /m).slice(1)) {
   const group = block.slice(0, block.indexOf("\n"));
   for (const line of block.split("\n")) {
     if (!line.startsWith("| ") || line.startsWith("| Code") || line.startsWith("| ---")) continue;

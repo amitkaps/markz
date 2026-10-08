@@ -119,6 +119,37 @@ heading-marker ::= '#' '#'? '#'? '#'? '#'? '#'?
 - `closing-hashes`: A run of `#`s ends the heading only after a space and at the end of the line, so `# b#` keeps its `#`, as does an escaped `\#`.
 - `heading-id`: Every heading gets an id as it closes: the `id` of its block attributes, or else the slug of its plain text numbered past the ids already used.
 
+The slug is GitHub's, so a link to a heading works on GitHub too. No id depends on a later
+heading, so none changes once it is written. An explicit id that an earlier heading already has
+is kept by both, and the later one gets the warning `duplicate-id`.
+
+| Step | What happens                                                                                                                                                                                                                                                                                                 |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1    | Take the heading's plain text: text and inline-code values, with escapes and numeric references decoded, and `\ ` as a space. Link text counts. URLs, image alt text, math and expressions don't.                                                                                                            |
+| 2    | Lowercase it.                                                                                                                                                                                                                                                                                                |
+| 3    | Remove every character that isn't alphabetic, a mark, a decimal digit, a connector such as `_`, a space or `-`. Letters in any script stay, as do symbols Unicode counts as alphabetic (`Ⓐ`). Other numbers (`½`, `²`), other whitespace and other symbols go. There is no NFKC normalization, as on GitHub. |
+| 4    | Turn each space into `-`, one for one. Runs aren't collapsed and nothing is trimmed, so `a - b` gives `a---b`.                                                                                                                                                                                               |
+| 5    | If nothing is left, use `section`.                                                                                                                                                                                                                                                                           |
+| 6    | If the id is taken, explicit or generated, try `-1`, `-2`, … until one is free.                                                                                                                                                                                                                              |
+
+These cases are the contract, and the tests hold to them. A heading whose text looks like a suffix
+keeps it, and a later repeat goes past it: `# foo-1`, `# foo`, `# foo` give `foo-1`, `foo` and
+`foo-2`.
+
+| Heading                              | id               |
+| ------------------------------------ | ---------------- |
+| `## Foo`                             | `foo`            |
+| `## Foo`                             | `foo-1`          |
+| `## Foo 1`                           | `foo-1-1`        |
+| `## Café au lait`                    | `café-au-lait`   |
+| `## शुरुआत करें`                         | `शुरुआत-करें`        |
+| `## 日本語の見出し`                  | `日本語の見出し` |
+| `## 1. Rename`                       | `1-rename`       |
+| `## See [docs](https://example.com)` | `see-docs`       |
+| `## a - b`                           | `a---b`          |
+| `## 😄 Smile`                        | `-smile`         |
+| `## ???`                             | `section`        |
+
 {#blockquote}
 
 ### Blockquotes
