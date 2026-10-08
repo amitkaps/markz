@@ -3,7 +3,7 @@
 What changed in each release of `@amitkaps/markz`, newest first, and what to change when you
 upgrade. Each release's section becomes its GitHub release notes.
 
-## Unreleased
+## 0.4.0 (2026-10-08)
 
 markz now aims to have no footguns. Every input does what it looks like, or gets a warning that
 says what to write. Formatters and GitHub may show a document differently, but they must not
