@@ -9,9 +9,9 @@ is built. What markz is for is on [the home page](../README.md). The docs read b
 order.
 
 1. [Usage](usage.md): install, render, check a document, and what to tell your agents.
-2. [Syntax](syntax.md): the language, construct by construct.
+2. [Syntax](syntax.md): the language at a glance, then construct by construct.
 3. [Reference](reference.md): every export, and the tree it works on.
-4. [Grammar](grammar.md): the same language, stated formally.
+4. [Grammar](grammar.md): the same language, with every exact rule.
 5. [Design](design.md): how it is built, and what it leaves out.
 6. [Quality](quality.md): what it is held to, and how to read the report.
 7. [Lessons](lessons.md): what building it taught.

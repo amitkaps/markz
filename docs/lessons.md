@@ -27,16 +27,23 @@ This keeps what should shape the next change.
   GitHub writes them. `\ ` at the end of a line is a hard break, since the space is invisible and
   formatters strip it. Heading ids are GitHub's, which four Unicode properties give, not an 8 KB
   character class.
-- **Other tools may differ, but must not damage.** The first aim was that GitHub, YAML and oxfmt
-  read a document the same way as markz. That aim added rules a writer had to learn. The aim now
+- **Other tools may differ, but must not damage.** The first aim was that GitHub, YAML and
+  formatters read a document the same way as markz. That aim added rules a writer had to learn. The aim now
   is weaker. GitHub may show `{@call-out}` as text, but it must not hide content, show a metadata
   error or break a heading link. A formatter may rewrite the source, but markz must read the
   result the same way.
-- **A second marker comes in only when a formatter writes it.** `*` emphasis and the `*`, `+` and
-  `1)` list markers are read because oxfmt writes them. `~~~` fences stay out, since oxfmt
-  rewrites them to backticks. Their case was Markdown inside a JavaScript template literal, where
+- **A second marker comes in only when a formatter writes it.** `*` emphasis, the `*`, `+` and
+  `1)` list markers, and `***` on a document's first line are read because formatters write them.
+  `***` is then a rule anywhere, since "only on the first line" is one more rule to learn. `~~~`
+  fences stay out, since formatters rewrite them to backticks. Their case was Markdown inside a JavaScript template literal, where
   a backtick ends the string. Tildes don't solve it, since inline code and `${` still need
   escaping there. A `.md` file read by the code needs none.
+- **Smart punctuation is presentation.** It curled `--force`, `'90s` and `5'10"` wrong with no
+  warning, and its rules didn't fit in a line a writer could hold. Text is kept as typed, and a
+  site that wants curly quotes adds them in its own pass over the tree.
+- **Metadata checks what writers get wrong.** Warnings for rare YAML (`1e3`, `0x1F`) guarded no
+  one, while ` #` in a value, `draft: no` and `version: 1.10` lost data with no warning. The
+  checks now cover the everyday mistakes, and keys are flat, with a `.` read as YAML reads it.
 - **Footnotes stay out.** No proposal says where a note's body goes. A span holds inline text, and
   a body placed elsewhere needs the whole document before a note can be resolved.
 
@@ -62,7 +69,7 @@ This keeps what should shape the next change.
   quadratic. The common fix: a scan that fails remembers where, and settles every opener it
   passed, so nothing is scanned twice.
 - **Real documents catch what examples don't.** Agent-written and human-written docs, read as
-  written and after oxfmt, check that formatting never changes meaning.
+  written and after formatting, check that formatting never changes meaning.
 
 ## Speed
 
@@ -133,24 +140,9 @@ This keeps what should shape the next change.
 
 - **djot's inline raw, `{=format}`.** It stays literal text with no warning. Raw blocks are the
   least used construct so far, so a warning for the inline form waits until they are used more.
-- **Simplify, so a writer can learn markz from one page.** Each step updates its own docs.
-  1. Done: the silent cases warn or stay text (`star-digits`, `element-lazy-line`,
-     `expression-bracket`), and `element-name` suggests the writer's own name.
-  2. Done: smart punctuation left the dialect, since `--force`, `'90s` and `5'10"` came out wrong
-     with no warning. Metadata keys are flat, with `.` an ordinary character, as YAML reads it.
-     Metadata warns on everyday mistakes (` #` in a value, `no`, `1.10`) and reads rare YAML
-     (`1e3`, `0x1F`) as strings.
-  3. Done: `***` is a rule, since oxfmt 0.72.0 writes it on a document's first line, where `---`
-     opens metadata. It is read anywhere, so the rule fits a line, and `___` and `* * *` stay
-     out. `vite-plus` is 1.1.0.
-  4. `syntax.md` opens with the whole language on one page.
 - **Items.** A pending text string, or writing nodes during the scan, remain open, though
   merging items showed no gain.
 - **Streaming.** Healing an unfinished document at one point, without changing `parse`
   ([Design](design.md#streaming)).
 - **The Quality page.** Robustness, the real-document corpus, formatter agreement and HTML
   safety could join conformance, size and speed.
-- **amitkaps.github.io migrates to the dialect:** `<img>` to `![](…){…}`; video wrappers to
-  `{@div .video-container}` … `{/div}`; `<br>` to a trailing `\`; embeds, SVG and scripts to
-  ` ```=html ` blocks; poems to `{.verse}`; `<sup>`, `<sub>`, `<ins>` and `<abbr>` to
-  `[…]{@sup}` and the like; named references to their characters.

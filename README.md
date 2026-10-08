@@ -40,32 +40,26 @@ A page with no build step imports it from a CDN, which serves it minified:
 
 ## The language
 
-markz reads the Markdown people already write: `#` headings, `**strong**`, `_emphasis_`, `-`
-lists, fenced code, links, images, tables, task items and `~~strikethrough~~`. On top of that:
+markz reads the Markdown people already write: `#` headings, `_emphasis_`, `**strong**`, `-`
+lists, fenced code, links, images, tables, tasks and `~~strikethrough~~`. On top of that:
 
-- **A metadata block** of `key: value` lines at the top of the document.
-- **`{…}`, one extension syntax.** `#id`, `.class` and `key=value` decorate what Markdown makes,
-  and `@name` makes an element Markdown has no syntax for:
-
-  ```md
-  [Ctrl]{@kbd} and [a note]{.aside}
-
-  {@details}
-  [Show the proof]{@summary /}
-
-  The proof.
-  {/details}
-  ```
-
-- **Math**, as `$x$` and `$$` blocks.
-- **Expressions**, as `${…}`, kept whole for a template to evaluate.
-- **Raw HTML** only inside a ` ```=html ` block.
+| To write                 | Write                                                   |
+| ------------------------ | ------------------------------------------------------- |
+| Metadata                 | `key: value` lines between `---` lines, at the very top |
+| A class, id or attribute | `{.class #id key=value}` above a block, or after a link |
+| A styled word            | `[text]{.class}`                                        |
+| An inline element        | `[Ctrl]{@kbd}`                                          |
+| A block element          | `{@details}` … `{/details}`, or `[label]{@name /}`      |
+| Math                     | `$x$` in a line, or a `$$` block                        |
+| A value from code        | `${name}`, kept whole for the page to evaluate          |
+| HTML                     | a ` ```=html ` fence                                    |
+| A comment                | `<!-- … -->` on lines of its own                        |
 
 There is one way to write each thing. Forms that make a parser read ahead and change its mind,
 such as setext headings, reference links, raw HTML in text and indented code, aren't part of
 the language. They stay literal text and add a warning naming the form to write instead. markz
-never guesses what a document meant. The whole language is in [Syntax](docs/syntax.md), and
-stated formally in [Grammar](docs/grammar.md).
+never guesses what a document meant. [Syntax](docs/syntax.md) has the whole language at a
+glance, and [Grammar](docs/grammar.md) states it exactly.
 
 ## Principles
 
