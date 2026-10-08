@@ -132,4 +132,12 @@ describe("metadata", () => {
     expect(unclosed.metadata).toBeUndefined();
     expect(unclosed.type(unclosed.firstChild(unclosed.root))).toBe("thematicBreak");
   });
+
+  it.each(["a: 1", "deploy.1: x", "a..b: y"])(
+    "reports an unclosed block whose first line is the key line %s",
+    (line) => {
+      const codes = parse(`---\n${line}\n`).warnings.map((w) => w.code);
+      expect(codes).toContain("metadata-unclosed");
+    },
+  );
 });

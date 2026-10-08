@@ -15,7 +15,7 @@
 import { type Attributes, type Builder, type NodeId, type Range, type Align } from "./ast";
 import { bareOnly, braceEnd, parseAttributes, parseElement } from "./attributes";
 import { isSpace, NAMED } from "./chars";
-import { element, insteadOf } from "./elements";
+import { element, notElement } from "./elements";
 import { decode, inline } from "./inline";
 import { parseMetadata } from "./metadata";
 import { type WarningCode } from "./warnings";
@@ -426,22 +426,18 @@ class BlockParser {
     const item = this.listItem(cols, next);
     if (item !== NONE_OPENED) return item === OPENED;
     if (c === ":" && COLON_LINE.test(src.slice(next, end))) this.report("directive", next, end);
-    // Reported only once the line is an element: see `lazyBefore`.
     const table = this.leaf?.kind === "table";
-    const lazy = this.lazy || table;
-    this.lazy = false;
-    if (c === "{" && (src[next + 1] === "@" || src[next + 1] === "/")) {
-      if (this.element(next, end, paragraph || table)) {
-        if (lazy) this.report("element-lazy-line", next, end);
-        return false;
-      }
-    } else if (c === "[" && src[end - 1] === "}" && src[end - 2] === "/") {
-      if (this.leafElement(next, end)) {
-        if (lazy) this.report("element-lazy-line", next, end);
-        return false;
-      }
+    if (
+      (c === "{" &&
+        (src[next + 1] === "@" || src[next + 1] === "/") &&
+        this.element(next, end, paragraph || table)) ||
+      (c === "[" && src[end - 1] === "}" && src[end - 2] === "/" && this.leafElement(next, end))
+    ) {
+      // Reported only once the line is an element: see `lazyBefore`.
+      if (this.lazy || table) this.report("element-lazy-line", next, end);
+      return false;
     }
-    if (c === "{" && !paragraph && this.leaf?.kind !== "table") {
+    if (c === "{" && !paragraph && !table) {
       if (this.attributeLine(next, end)) return false;
       this.multilineAttributes(next, end);
     }
@@ -782,14 +778,7 @@ class BlockParser {
     if (src[at + 1] === "/") {
       const name = CLOSE.exec(src.slice(at, end))?.[1];
       if (name) {
-        if (!element(name, false))
-          this.report(
-            "element-name",
-            at,
-            end,
-            `\`${name}\` is not an element name`,
-            insteadOf(name, false),
-          );
+        if (!element(name, false)) this.report("element-name", at, end, ...notElement(name, false));
         else if (this.idLines?.has(name))
           this.report(
             "element-close",
@@ -798,13 +787,10 @@ class BlockParser {
             `\`{#${name}}\` sets an id: open the element with \`{@${name}}\``,
           );
         else this.report("element-close", at, end, `no open \`${name}\` element to close here`);
-      } else {
-        const close = braceEnd(src, at, end);
-        if (close >= 0) this.report("attribute-syntax", at, close);
+        return false;
       }
-      return false;
     }
-    const head = parseElement(src, at, end);
+    const head = src[at + 1] === "/" ? null : parseElement(src, at, end);
     if (!head) {
       const close = braceEnd(src, at, end);
       if (close >= 0) this.report("attribute-syntax", at, close);
@@ -812,13 +798,7 @@ class BlockParser {
     }
     if (head.attributes.end !== end) return false;
     if (!element(head.name, false)) {
-      this.report(
-        "element-name",
-        at,
-        end,
-        `\`${head.name}\` is not an element name`,
-        insteadOf(head.name, false),
-      );
+      this.report("element-name", at, end, ...notElement(head.name, false));
       return false;
     }
     if (!head.slash && interrupting) return false;
@@ -846,13 +826,7 @@ class BlockParser {
     const head = parseElement(src, close + 1, end);
     if (!head?.slash || head.attributes.end !== end) return false;
     if (!element(head.name, false)) {
-      this.report(
-        "element-name",
-        at,
-        end,
-        `\`${head.name}\` is not an element name`,
-        insteadOf(head.name, false),
-      );
+      this.report("element-name", at, end, ...notElement(head.name, false));
       return false;
     }
     const attributes = merge(this.enter(false), own(head.attributes));
@@ -1331,7 +1305,7 @@ function trailing(src: string, at: number, end: number): boolean {
 }
 
 /** A metadata key line, as `parseMetadata` reads one. */
-const KEY = /^[A-Za-z_][\w-]*(?:\.[A-Za-z_][\w-]*)*:(?:[ \t\r\n]|$)/;
+const KEY = /^[A-Za-z_][\w.-]*:(?:\s|$)/;
 
 /** @prose
  * ## Table rows

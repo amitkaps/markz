@@ -111,3 +111,19 @@ title: Issue #42
 .
 title: Issue #42
 ```
+
+A line that isn't a `key:` line belongs to the value above it, so YAML's indented list takes
+`tags` with it. The rest of the block is still read.
+
+```example 174 ambiguous metadata-continuation
+---
+tags:
+  - a
+title: x
+---
+# Doc
+.
+<h1 id="doc">Doc</h1>
+.
+  - a
+```

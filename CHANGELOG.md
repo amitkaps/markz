@@ -37,6 +37,8 @@ damage it.
 - A parsed tree takes less memory. Code blocks and text read from the source, and the tree's
   arrays are sized to its nodes.
 - One-line leaves with no syntax skip the inline pass, which makes headings and tables faster.
+- An unclosed `---` block whose first line has a key like `deploy.1:` or `a..b:` now gets
+  `metadata-unclosed`, as `a:` does.
 
 ## 0.3.0 (2026-10-06)
 
