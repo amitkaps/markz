@@ -48,6 +48,9 @@ in [Design](design.md#performance-and-size).
   rule must say why (`test/harness/cases.ts`). The cases take every choice in the construct's
   productions, or the test names the ones they missed. Each construct also has a hand-written ambiguous and
   unclosed example, or a reason it can't.
+- **Every side rule held:** each is named by a settlement, a warning, or an example, or is a
+  CommonMark or GFM rule the oracle holds. A new rule can't be added without saying what checks
+  it.
 - **Differential against micromark + GFM:** every CommonMark and GFM spec example in a shared
   construct must give identical `html()` output. So must documents the fuzzer generates from the CommonMark and GFM
   productions of the grammar, unless markz reported a cut form. An example where markz keeps a

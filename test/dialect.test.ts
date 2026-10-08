@@ -10,7 +10,8 @@
  *   markz writes, from `src/elements.ts`.
  * - **The warnings** are each named in `syntax.md`, and each Not supported row's "Write instead" is
  *   its code's. Every warning that is not a row settles a case by the side rule it enforces, and
- *   every side rule a settlement names is a real one.
+ *   every side rule a settlement names is a real one. Every side rule is held by something: a
+ *   settlement, a warning, an example labelled with it, the oracle or the judge.
  * - **The filing** names real examples, numbers markz's own once each, and still compares most
  *   upstream examples with the oracle, so a rule that swallowed a suite would show. Each vendored
  *   file is exactly what `fences.ts` writes, so an edit by hand shows.
@@ -23,7 +24,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vite-plus/test";
 import { BLOCK, INLINE } from "../src/elements";
 import { WARNINGS } from "../src/warnings";
-import { EVERYWHERE, SETTLED, WARNED, sideRules } from "./harness/cases";
+import { EVERYWHERE, JUDGED, ORACLE, SETTLED, WARNED, sideRules } from "./harness/cases";
 import { references, type Expr } from "./harness/ebnf";
 import { examples, headingTexts, listed, oracleDiffers } from "./harness/examples";
 import { readFences, writeFences } from "./harness/fences";
@@ -104,7 +105,31 @@ describe("settling", () => {
 
   it("names a real side rule for each ambiguous example", () => {
     const ambiguous = examples.filter((e) => e.category === "ambiguous");
-    expect(ambiguous.filter((e) => !e.rule || !sideRules.has(e.rule)).map((e) => e.id)).toEqual([]);
+    expect(ambiguous.filter((e) => !e.rule).map((e) => e.id)).toEqual([]);
+    const named = examples.filter((e) => e.rule && !sideRules.has(e.rule));
+    expect(named.map((e) => `${e.id} ${e.rule}`)).toEqual([]);
+  });
+
+  it("holds every side rule by a settlement, a warning, an example, the oracle or the judge", () => {
+    const held = new Set([
+      ...Object.keys(EVERYWHERE),
+      ...Object.values(SETTLED).flatMap((rules) => Object.keys(rules)),
+      ...Object.values(WARNED),
+      ...examples.map((e) => e.rule),
+      ...ORACLE,
+      ...JUDGED,
+    ]);
+    expect([...sideRules].filter((r) => !held.has(r))).toEqual([]);
+  });
+
+  it("holds by the oracle only the rules of CommonMark and GFM", () => {
+    const owner = (r: string) => CONSTRUCTS.find((c) => r in c.rules);
+    const other = [...ORACLE].filter((r) => {
+      const origin = owner(r)?.origin;
+      return origin !== undefined && origin !== "CommonMark" && origin !== "GFM";
+    });
+    expect(other).toEqual([]);
+    expect([...ORACLE, ...JUDGED].filter((r) => !sideRules.has(r))).toEqual([]);
   });
 });
 

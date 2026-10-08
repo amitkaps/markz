@@ -90,7 +90,8 @@ export interface Example {
   html: string;
   /** For markz's own: the source text each warning covers, in order. */
   warnings: string[];
-  /** For markz's own: the edge it tries (`cases.ts`), and for an ambiguous one, the side rule. */
+  /** For markz's own: the edge it tries (`cases.ts`), and the side rule it holds, which an
+   * ambiguous one must name. */
   category: Category | null;
   rule: string | null;
 }
@@ -338,9 +339,10 @@ function markz(): Example[] {
     const file = /([\w-]+)\.md$/.exec(path)![1]!;
     return readFences(text).examples.map((f): Example => {
       if (f.number === null) throw new Error(`${file}: an example without a number`);
-      if (f.category && !CATEGORIES.includes(f.category as Category)) {
-        throw new Error(`${file}: "${f.category}" is not a category`);
-      }
+      // After the number, a category and then a side rule, or a side rule alone.
+      const [category, rule] = CATEGORIES.includes(f.category as Category)
+        ? [f.category as Category, f.rule]
+        : [null, f.category];
       return {
         source: "markz",
         id: `markz:${f.number}`,
@@ -350,8 +352,8 @@ function markz(): Example[] {
         html: f.expected,
         checks: "expected",
         warnings: f.warnings,
-        category: f.category as Category | null,
-        rule: f.rule,
+        category,
+        rule,
         ...filed(file === "not-supported" ? f.section : file, null),
         kind: "expected",
       };

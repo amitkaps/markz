@@ -168,7 +168,7 @@ Body
 A name that isn't an element leaves the whole element as text, nothing in it read as other
 syntax.
 
-```example 114
+```example 114 element-name
 [Sales]{@chart type=bar /}
 .
 <p>[Sales]{@chart type=bar /}</p>
@@ -492,7 +492,7 @@ x[1]{.a}{.b}
 
 ## math-delimiter
 
-```example 145
+```example 145 math-dollars
 The energy is $$E = mc^2$$ here.
 .
 <p>The energy is $$E = mc^2$$ here.</p>

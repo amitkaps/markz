@@ -7,9 +7,10 @@
  * (`harness/sound.ts`). Where the grammar writes only CommonMark and GFM constructs, from plain
  * letters, markz must also match the oracle, unless it raised a Not supported warning: the side
  * rules often turn a generated document into a form the dialect cuts (a lazy line, `*` emphasis),
- * which markz reads differently on purpose and reports. The one rule that differs without a
- * warning is that emphasis runs never split, and a document that needs one is left out, as the
- * spec examples that need one differ.
+ * which markz reads differently on purpose and reports. Two rules differ without a warning.
+ * Emphasis runs never split, and a document that needs one is left out, as the spec examples
+ * that need one differ. A `*` run between digits is text (`star-digits`), so the oracle's
+ * alphabet holds a digit, and a document with one is left out.
  *
  * The upstream sweeps curation leaves off the Conformance page (`examples/upstream/stress/`) are
  * held to the same floor: markz finishes in well under a second, doesn't throw, and builds a
@@ -59,7 +60,7 @@ describe("the oracle", () => {
   it(
     "agrees on CommonMark and GFM documents from the grammar",
     () => {
-      const shared = grammarDocument({ origins: ["CommonMark", "GFM"], alphabet: "ab " });
+      const shared = grammarDocument({ origins: ["CommonMark", "GFM"], alphabet: "ab 1" });
       fc.assert(
         fc.property(shared, (markdown) => {
           // `\ ` is markz's non-breaking space, from djot, and a `\` before a line's trailing
@@ -68,6 +69,8 @@ describe("the oracle", () => {
           const doc = parse(markdown);
           // A cut form holds by its warning: markz reads it differently on purpose, and says so.
           if (doc.warnings.some((w) => row(w.code))) return;
+          // A `*` run between two digits is text (grammar: `star-digits`), with no warning.
+          if (/\d\*+\d/.test(markdown)) return;
           // micromark writes each line ending as it found it, so a CR ending one line and a LF
           // ending an empty next one become one CRLF on the page. Every line ending ends a line
           // the same way, so the oracle reads the document with LFs.
