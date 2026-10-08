@@ -9,4 +9,10 @@ minimumReleaseAgeExclude:
 # Collapse every `vite` in the tree onto Vite+'s core build.
 # Bump this alongside the `vite-plus` devDependency.
 overrides:
-  "vite@*": "npm:@voidzero-dev/vite-plus-core@1.0.0"
+  "vite@*": "npm:@voidzero-dev/vite-plus-core@1.1.0"
+
+# Vite+'s Vite implementation is exposed through an npm alias, so
+# pnpm cannot validate it against normal `vite` peer ranges.
+peerDependencyRules:
+  allowAny:
+    - vite

@@ -18,7 +18,7 @@ export const WARNINGS = {
   "setext-heading": ["setext heading underline", "`# Title`"],
   "indented-code": ["indented code block", "fenced code"],
   "tilde-fence": ["`~~~` fence", "a longer backtick fence"],
-  "rule-marker": ["`***`, `___` or `* * *` rule", "`---`"],
+  "rule-marker": ["`___` or `* * *` rule", "`---`"],
   "trailing-heading-attributes": ["trailing heading attributes", "`{#id}` on the line above"],
   "multiline-attributes": ["multi-line attributes", "one line"],
   directive: ["a colon directive", "`{@name}` … `{/name}`, `[label]{@name /}` or `[text]{@name}`"],
@@ -78,13 +78,12 @@ export const WARNINGS = {
     "end the comment on a line of its own",
   ],
   "metadata-unclosed": ["metadata block with no closing `---`", "a `---` line after the metadata"],
-  "metadata-indented": [
-    "indented metadata line: nested values, lists and multi-line strings are not supported",
-    "a one-line value, or a `[a, b]` list",
+  "metadata-line": [
+    "not a `key: value` line: nested values, `- item` lists and multi-line strings are not supported",
+    "`key: value`, with a one-line value or a `[a, b]` list",
   ],
-  "metadata-line": ["not a `key: value` line", "`key: value`"],
   "metadata-duplicate-key": ["duplicate metadata key; the first one wins", "each key once"],
-  "metadata-value": ["a value YAML reads differently", "the canonical form, or quote the value"],
+  "metadata-value": ["a value YAML reads differently", "quote the value"],
 } as const satisfies Record<string, readonly [message: string, instead: string]>;
 
 /** A warning's stable code, one of the keys of `WARNINGS`. */

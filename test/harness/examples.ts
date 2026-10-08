@@ -22,7 +22,6 @@ import { html, parse, type Document, type NodeId, type Warning } from "../../src
 import {
   collapse,
   mathOracle,
-  flatten,
   metadataOracle,
   normalize,
   reference,
@@ -183,8 +182,8 @@ export const listed: Record<string, string> = {
   // github-slugger's character class is Unicode 13's; markz's properties are the runtime's, where
   // `𐗋` and others have since been assigned as letters.
   "slugger:73": "heading",
-  // Content after the block: a `***` rule and indented code, both cut.
-  "frontmatter:4": "rule-marker",
+  // Content after the block: a `***` rule, and indented code, which is cut.
+  "frontmatter:4": "indented-code",
   // micromark-extension-math pairs dollar runs as code spans pair backticks. markz's inline math
   // is pandoc's single `$`, whose TeX holds no `$` and has no space inside either end, and a run
   // of dollars around math in a line, or a `$$$` fence, is text that warns.
@@ -202,6 +201,7 @@ export const listed: Record<string, string> = {
 export const oracleDiffers: Record<string, string> = {
   "gfm:279": "cmark-gfm orders task-item input attributes differently and omits the void slash",
   "gfm:280": "cmark-gfm orders task-item input attributes differently and omits the void slash",
+  "gfm-table:53": "the suite's HTML ends with a stray `</div>` from the fixture it was cut from",
   "gfm-table:58":
     "GitHub reads an escaped backslash before a pipe as escaping the pipe (cmark-gfm#277)",
   "yaml:9": "`yaml` reads `!!binary` as bytes, where the suite writes the base64 string",
@@ -500,8 +500,8 @@ type Range = { start: number; end: number };
 /** @prose
  * ## Metadata against YAML
  *
- * A yaml-test-suite example is held to the `yaml` package, key by key: every key markz keeps,
- * with its nesting undone (`flatten`), must have the value YAML gives it, and a block YAML rejects
+ * A yaml-test-suite example is held to the `yaml` package, key by key: every key markz keeps
+ * must have the value YAML gives it, and a block YAML rejects
  * must raise a metadata warning. A key markz skipped is fine when it warned about the line, and
  * such an example warns rather than matches. A block markz doesn't read as metadata at all
  * differs, by the metadata rule.
@@ -526,7 +526,7 @@ function againstYaml(e: Example, doc: Document): Result {
     return codes.length ? holds() : result("fail", "accepted a block YAML rejects");
   }
   const value = oracle.value as Record<string, unknown>;
-  const kept = Object.entries(flatten(mine));
+  const kept = Object.entries(mine);
   for (const [key, v] of kept) {
     if (JSON.stringify(v) !== JSON.stringify(value[key]))
       return result("fail", `\`${key}\` differs from YAML`);

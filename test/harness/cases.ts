@@ -26,8 +26,7 @@ import { choices, grammarBuilt } from "./generate";
  * with nothing reported. An inline construct sits between words on a line (`a … a`), and markz
  * reads it when a node of its kind covers exactly its text, again with nothing reported. A
  * construct that makes no node of its own is read by what it leaves: metadata by the document's
- * metadata, attributes by the block after them, and an escape or smart punctuation by the one
- * character it becomes.
+ * metadata, attributes by the block after them, and an escape by the one character it becomes.
  */
 interface Reading {
   /** Where the case sits in the document it is read in. */
@@ -119,7 +118,7 @@ function covering(doc: Document, expect: Expect, s: string, start: number, end: 
 const between = (s: string) => `a ${s} a\n`;
 /**
  * The paragraph's text is `a`, the one character the case became, and `a`. An escape starts with
- * `\\` or `&`, and smart punctuation with the mark it curls or joins.
+ * `\\` or `&`.
  */
 const becomesOne = (starts: RegExp) => (doc: Document, s: string) => {
   const text = textContent(doc);
@@ -172,8 +171,7 @@ export function reading(id: string): Reading {
       },
     };
   }
-  const starts = id === "escape" ? /^[\\&]/ : /^["'.-]/;
-  return { wrap: between, grammar: "$", made: becomesOne(starts) };
+  return { wrap: between, grammar: "$", made: becomesOne(/^[\\&]/) };
 }
 
 /** @prose
@@ -382,7 +380,6 @@ export const WARNED: Record<string, string> = {
   "comment-trailing-text": "comment-close",
   "duplicate-id": "heading-id",
   "metadata-unclosed": "metadata-start",
-  "metadata-indented": "metadata-continuation",
   "metadata-line": "metadata-start",
   "metadata-duplicate-key": "metadata-keys",
   "metadata-value": "plain-value",
@@ -676,7 +673,4 @@ export const EDGES: Record<string, Partial<Record<"ambiguous" | "unclosed", stri
   table: { unclosed: "A table has no closing mark: it ends at a line that is not a row." },
   "thematic-break": { unclosed: "A thematic break is one line, with nothing to close." },
   "line-break": { unclosed: "A line break is one mark, with nothing to close." },
-  "smart-punctuation": {
-    unclosed: "A quote curls by the side it sits on, not by pairing, so nothing is left open.",
-  },
 };

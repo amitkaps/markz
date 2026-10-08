@@ -136,16 +136,13 @@ This keeps what should shape the next change.
 - **Simplify, so a writer can learn markz from one page.** Each step updates its own docs.
   1. Done: the silent cases warn or stay text (`star-digits`, `element-lazy-line`,
      `expression-bracket`), and `element-name` suggests the writer's own name.
-  2. Make the breaking changes in one release, with one migration note. Smart punctuation leaves
-     the dialect, since `--force`, `'90s` and `5'10"` come out wrong with no warning. A dot in
-     a metadata key becomes an ordinary character, as YAML reads it, with no nesting. Metadata
-     drops the checks for rare YAML (`~`, `0x1F`, `1e3`). It keeps the checks
-     for everyday mistakes, and widens them to ` #` in a value, `yes` and `no` words, and
-     numbers that would change (`1.10`). `vite-plus` moves to 1.1.0.
-  3. `***` becomes a rule in that release. oxfmt 0.72.0, in `vite-plus` 1.1.0, writes it on a
-     document's first line, where `---` would open metadata. It is accepted anywhere, since
-     "only on the first line" is one more rule to learn. `___` and `* * *` stay out, since no
-     formatter writes them.
+  2. Done: smart punctuation left the dialect, since `--force`, `'90s` and `5'10"` came out wrong
+     with no warning. Metadata keys are flat, with `.` an ordinary character, as YAML reads it.
+     Metadata warns on everyday mistakes (` #` in a value, `no`, `1.10`) and reads rare YAML
+     (`1e3`, `0x1F`) as strings.
+  3. Done: `***` is a rule, since oxfmt 0.72.0 writes it on a document's first line, where `---`
+     opens metadata. It is read anywhere, so the rule fits a line, and `___` and `* * *` stay
+     out. `vite-plus` is 1.1.0.
   4. `syntax.md` opens with the whole language on one page.
 - **Items.** A pending text string, or writing nodes during the scan, remain open, though
   merging items showed no gain.

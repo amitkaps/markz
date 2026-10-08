@@ -41,7 +41,7 @@ export function walk(doc: Document, visitor: Visitor, from: NodeId = doc.root): 
  * ## Text content
  *
  * The text `html()` writes for a node, as a browser's `textContent` would read it back: escapes
- * decoded, punctuation curled, code, math and expressions as written, a hard break as a line
+ * decoded, code, math and expressions as written, a hard break as a line
  * ending. Images, comments, metadata and raw
  * blocks add nothing. Blocks are joined with nothing between them, as in the DOM.
  */

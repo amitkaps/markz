@@ -30,7 +30,7 @@ doesn't recurse, so any nesting depth is safe.
 
 ### `textContent(doc, node?): string`
 
-The text of a node as a reader sees it on the rendered page: escapes decoded, punctuation curled,
+The text of a node as a reader sees it on the rendered page: escapes decoded,
 code and math as written, images left out. The node is the root by default. For the source text of
 a node, use `doc.source.slice(doc.start(node), doc.end(node))`.
 
@@ -79,7 +79,7 @@ what `doc.data(node, type)` reads, and a type with none has nothing to read.
 | Type            | Kind   | Data                                                                                        |
 | --------------- | ------ | ------------------------------------------------------------------------------------------- |
 | `document`      | root   |                                                                                             |
-| `metadata`      | block  | `value` (the object, dotted keys nested), `range` (the lines between the fences)            |
+| `metadata`      | block  | `value` (the object, with flat keys), `range` (the lines between the fences)                |
 | `comment`       | block  |                                                                                             |
 | `heading`       | block  | `depth` (1 to 6), `id`, `idExplicit` (whether `{#id}` set it)                               |
 | `paragraph`     | block  |                                                                                             |
