@@ -18,7 +18,7 @@
 import { type Attributes, type Builder, type NodeData, type NodeType, type Range } from "./ast";
 import { bareOnly, braceEnd, parseAttributes, parseElement } from "./attributes";
 import { NAMED, unescape } from "./chars";
-import { element, insteadOf } from "./elements";
+import { element, notElement } from "./elements";
 import { memo, scanExpression, unclosedBracket, type Memo } from "./expression";
 import { type WarningCode } from "./warnings";
 
@@ -49,7 +49,7 @@ export function inline(
   }
   const pass = new InlinePass(b, source, lines, cell);
   const list = pass.scan(0, pass.text.length);
-  pass.emit(list);
+  pass.emit(list.first);
   for (const [start, end] of pass.urls) b.warn("bare-url", start, end);
   return heading ? plainText(list.first, false) : "";
 }
@@ -894,13 +894,7 @@ class InlinePass {
     const closer = this.textItem(this.at(t), this.to(t + 1), "]");
     this.add(list, closer);
     if (name !== null && !element(name, true)) {
-      this.report(
-        "element-name",
-        bracket.at!,
-        e,
-        `\`${name}\` is not an element name`,
-        insteadOf(name, true),
-      );
+      this.report("element-name", bracket.at!, e, ...notElement(name, true));
       this.literal(list, bracket, e);
       return e;
     }
@@ -1097,11 +1091,7 @@ class InlinePass {
    * paragraph without a prefix between its lines is usually one node. An image's description
    * becomes its `alt` and has no child nodes.
    */
-  emit(list: List): void {
-    this.emitFrom(list.first);
-  }
-
-  emitFrom(first: Item | null): void {
+  emit(first: Item | null): void {
     let pending: { start: number; end: number; value: string } | null = null;
     const flush = () => {
       if (pending && pending.value)
@@ -1126,7 +1116,7 @@ class InlinePass {
         item.data,
       );
       if (item.attributes) this.b.setAttributes(node, item.attributes);
-      if (item.node !== "image") this.emitFrom(item.first ?? null);
+      if (item.node !== "image") this.emit(item.first ?? null);
       this.b.close(item.end);
     }
     flush();
