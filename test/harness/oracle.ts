@@ -19,7 +19,6 @@ import { frontmatter, frontmatterHtml } from "micromark-extension-frontmatter";
 import { math } from "micromark-extension-math";
 import GithubSlugger from "github-slugger";
 import YAML from "yaml";
-import type { MetadataObject } from "../../src/index";
 
 const extensions = [gfm(), frontmatter()];
 
@@ -36,23 +35,11 @@ export function reference(markdown: string): string {
  *
  * What counts as the same output. Whitespace runs outside `<pre>` collapse to one space, and a
  * space next to a block-level tag goes, so line layout never fails a test. A space between inline
- * tags (`<em>a</em> <em>b</em>`) is content and stays. Smart punctuation goes back to straight
- * characters, since micromark doesn't do it and markz always does; a double quote goes back to
- * `&quot;`, as micromark escapes it. An empty attribute value goes (`open=""` is `open`), since
+ * tags (`<em>a</em> <em>b</em>`) is content and stays. An empty attribute value goes (`open=""` is `open`), since
  * micromark can't tell a bare key from an empty one. Heading ids go too, since
  * micromark writes none; markz's are tested on their own. `<pre>` content is compared exactly,
  * except that a CR or CRLF is a LF, as the HTML parser reads it before building the page.
  */
-const SMART: Record<string, string> = {
-  "‘": "'",
-  "’": "'",
-  "“": "&quot;",
-  "”": "&quot;",
-  "–": "--",
-  "—": "---",
-  "…": "...",
-};
-
 const BLOCK_TAG =
   / ?(<\/?(?:p|li|ul|ol|blockquote|h[1-6]|pre|table|thead|tbody|tr|th|td|hr|div|section|article|aside|header|footer|nav|main|address|hgroup|search|details|summary|figure|figcaption|dl|dt|dd)\b[^>]*>) ?/g;
 
@@ -70,7 +57,6 @@ export function normalize(html: string): string {
     })
     .join("")
     .replace(/(<h[1-6])((?: [\w-]+="[^"]*")*?) id="[^"]*"/g, "$1$2")
-    .replace(/[‘’“”–—…]/g, (c) => SMART[c]!)
     .replace(/<[a-z][^<>]*>/g, (tag) => tag.replace(/ ([\w:-]+)=""/g, " $1"))
     .trim();
 }
@@ -157,20 +143,6 @@ export function metadataOracle(body: string): { value: unknown } | { error: stri
   } catch (error) {
     return { error: (error as Error).message.split("\n")[0]! };
   }
-}
-
-/**
- * A metadata object as YAML would hold it: each leaf under its dotted path, which is how markz's
- * nesting is undone (a key has no `.` of its own, so no two paths collide).
- */
-export function flatten(object: MetadataObject, prefix = ""): Record<string, unknown> {
-  const flat: Record<string, unknown> = {};
-  for (const [key, v] of Object.entries(object)) {
-    if (typeof v === "object" && v !== null && !Array.isArray(v)) {
-      Object.assign(flat, flatten(v as MetadataObject, `${prefix}${key}.`));
-    } else flat[`${prefix}${key}`] = v;
-  }
-  return flat;
 }
 
 /** @prose

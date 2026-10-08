@@ -11,8 +11,7 @@ cards, then every construct with its examples.
 
 **Conformance** counts the examples markz is held to, and gives each one a status. An upstream
 example is checked against an oracle. [micromark](https://github.com/micromark/micromark) is the
-oracle for CommonMark, GFM and frontmatter, after whitespace and smart punctuation are
-normalized. [yaml](https://eemeli.org/yaml/) is the oracle for metadata values, and
+oracle for CommonMark, GFM and frontmatter, after whitespace is normalized. [yaml](https://eemeli.org/yaml/) is the oracle for metadata values, and
 [github-slugger](https://github.com/Flet/github-slugger) for heading ids. markz's own examples
 carry their expected output.
 
@@ -50,8 +49,7 @@ in [Design](design.md#performance-and-size).
   productions, or the test names the ones they missed. Each construct also has a hand-written ambiguous and
   unclosed example, or a reason it can't.
 - **Differential against micromark + GFM:** every CommonMark and GFM spec example in a shared
-  construct must give identical `html()` output, compared with smart punctuation normalized back
-  to straight characters. So must documents the fuzzer generates from the CommonMark and GFM
+  construct must give identical `html()` output. So must documents the fuzzer generates from the CommonMark and GFM
   productions of the grammar, unless markz reported a cut form. An example where markz keeps a
   construct under its own rule (no run splitting) is filed as differing, under that construct, and
   a generated document that needs one is left out with its reason, as are the few where micromark
@@ -63,8 +61,8 @@ in [Design](design.md#performance-and-size).
   - elements and spans, by markz's own examples, and colon directives, from
     `micromark-extension-directive`'s suite, each reported
   - metadata: every row of the value table in `syntax.md`, each checked against the `yaml`
-    package once dotted keys are expanded back out, and every YAML look-alike (`~`, `True`,
-    `1e3`, …) giving a warning, not a string
+    package, every look-alike (`True`, `no`, `1.10`, …) and ` #` in a value giving a warning,
+    and rare YAML forms (`1e3`, `0x1F`) read as the strings they are written as
   - math, including `$` used as currency
   - expressions: nesting, strings, comments, escapes, and emphasis inside `${…}`; malformed
     JavaScript that still closes; the regex-literal limit

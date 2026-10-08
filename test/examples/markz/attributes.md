@@ -36,7 +36,7 @@ After a link, image or `[text]`, a `{…}` that doesn't parse stays text and is 
 ```example 52
 [x]{@kbd type='bar'}
 .
-<p>[x]{@kbd type=’bar’}</p>
+<p>[x]{@kbd type='bar'}</p>
 .
 {@kbd type='bar'}
 ```
@@ -44,7 +44,7 @@ After a link, image or `[text]`, a `{…}` that doesn't parse stays text and is 
 ```example 53
 [docs](/d){target='_blank'}
 .
-<p><a href="/d">docs</a>{target=’_blank’}</p>
+<p><a href="/d">docs</a>{target='_blank'}</p>
 .
 {target='_blank'}
 ```
@@ -103,7 +103,7 @@ para</p>
 ```example 59
 {a, b} and {"json": 1}
 .
-<p>{a, b} and {“json”: 1}</p>
+<p>{a, b} and {&quot;json&quot;: 1}</p>
 ```
 
 ```example 60

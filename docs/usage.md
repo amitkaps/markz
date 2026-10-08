@@ -62,7 +62,7 @@ converted by fixing what this lists.
 ```ts
 const doc = parse(markdown);
 doc.metadata?.title; // the `title: …` line, or undefined
-doc.metadata?.deploy; // `deploy.name: …` lines nest: { name: "…" }
+doc.metadata?.["deploy.name"]; // a `.` is part of the key, as YAML reads it
 ```
 
 ## Build a table of contents

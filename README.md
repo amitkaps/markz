@@ -43,8 +43,7 @@ A page with no build step imports it from a CDN, which serves it minified:
 markz reads the Markdown people already write: `#` headings, `**strong**`, `_emphasis_`, `-`
 lists, fenced code, links, images, tables, task items and `~~strikethrough~~`. On top of that:
 
-- **A metadata block** of `key: value` lines at the top of the document, where a dotted key
-  (`deploy.name`) nests.
+- **A metadata block** of `key: value` lines at the top of the document.
 - **`{…}`, one extension syntax.** `#id`, `.class` and `key=value` decorate what Markdown makes,
   and `@name` makes an element Markdown has no syntax for:
 

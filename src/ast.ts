@@ -69,7 +69,7 @@ export interface Range {
  * everything else is a range, so the source stays the one copy of the text.
  */
 export interface NodeData {
-  /** The object (dotted keys nested), and the range of the lines between the `---` fences. */
+  /** The object, and the range of the lines between the `---` fences. */
   metadata: { value: MetadataObject; range: Range };
   heading: { depth: 1 | 2 | 3 | 4 | 5 | 6; id: string; idExplicit: boolean };
   /** Decoded text; the node's range covers the raw characters. */
@@ -99,9 +99,9 @@ export interface NodeData {
 
 /** A metadata value YAML can hold on one line. */
 export type MetadataScalar = string | number | boolean | null;
-/** A metadata value: a scalar, a list of scalars, or a nested object. */
-export type MetadataValue = MetadataScalar | readonly MetadataScalar[] | MetadataObject;
-/** The metadata block's keys and values, with dotted keys nested. */
+/** A metadata value: a scalar, or a list of scalars. */
+export type MetadataValue = MetadataScalar | readonly MetadataScalar[];
+/** The metadata block's keys and values. Keys are flat, and may hold a `.`. */
 export interface MetadataObject {
   readonly [key: string]: MetadataValue;
 }

@@ -80,7 +80,7 @@ Rules:
 - **Content ranges** are exposed as extra fields where consumers need them: a code block's body,
   a link's destination, the metadata block, and every attribute block.
 - **Text nodes map to source, not just to their value.** `value` is the rendered text: decoded
-  (`&#169;` → `©`, `\*` → `*`) and with smart punctuation (`"` → `“`). `start`/`end` cover the raw
+  (`&#169;` → `©`, `\*` → `*`). `start`/`end` cover the raw
   characters. A soft line break is a `\n` in the text before it, whose range covers the line
   ending, never the next line's container prefix, so one text node spans lines only where the
   source has nothing between them. A consumer scanning for syntax of its own reads
@@ -110,8 +110,8 @@ flat AST + warnings
 html()
 ```
 
-**Everything is built in.** Elements, expressions, math, attributes, raw blocks, metadata,
-smart punctuation and heading ids are cases in the same two scanners. They aren't plug-ins
+**Everything is built in.** Elements, expressions, math, attributes, raw blocks, metadata
+and heading ids are cases in the same two scanners. They aren't plug-ins
 layered on a CommonMark core, because a fixed dialect needs no extension points. That also keeps
 precedence in one place: `${…}` binding tighter than emphasis is just the order of the inline
 scanner's cases.
@@ -211,8 +211,6 @@ and the browser, because it builds a string and never touches the DOM.
   ones that are dropped).
 - **` ```=html ` raw blocks are written verbatim.** Raw blocks in other formats are skipped. Everywhere
   else, `&`, `<`, `>` and `"` are escaped, and comments are dropped.
-- **Smart punctuation** is already in the text values, so `html()` writes curly quotes and dashes
-  without a pass of its own.
 - **Math, expressions and elements** are written in the shapes [`syntax.md`](syntax.md)
   gives for each. An expression is `<code>`, not `<output>`. markz never evaluates, so it has
   only the code, and `<output>` would present that code as a result. `<output>` is also a form

@@ -17,16 +17,15 @@ its warning code.
 
 ## Metadata
 
-Kept to what YAML 1.2, GitHub and formatters read the same way, with dotted keys expanded into
-nested objects.
+A few `key: value` lines that GitHub, YAML and formatters all read without an error.
 
 A document can open with a metadata block: key/value pairs between `---` lines, starting at
 offset 0 (what other tools call frontmatter). Opening a document with `---` asks for metadata.
 When a closing `---` line follows, everything between is the block, and a line the rule below
 can't read is a warning, never a reason to read the block as Markdown. So a document can't open
-with a thematic break. Without a closing line, the
-first `---` is a thematic break, and if the next line is a `key:` line it gets the warning
-`metadata-unclosed`. markz parses the block into `doc.metadata`, an object, and keeps its range.
+with a `---` rule, and a formatter writes `***` there instead. Without a closing line, the first `---` is a thematic break, and if the next
+line is a `key: value` line it gets the warning `metadata-unclosed`. markz parses the block into
+`doc.metadata`, an object, and keeps its range.
 
 The rule is JSON-like, with quotes optional: one `key: value` per line, where a value that doesn't
 look like anything else is a string as written.
@@ -41,55 +40,44 @@ draft: false
 date: 2026-09-26
 image:
 tags: [svelte, vite]
+deploy.name: my-site
 ---
 ```
 
-| Value              | Result                                                       |
-| ------------------ | ------------------------------------------------------------ |
-| nothing, or `null` | `null`                                                       |
-| `true`, `false`    | boolean                                                      |
-| `42`, `-3`, `1.5`  | number                                                       |
-| `"text"`           | string, with JSON's escapes                                  |
-| `'text'`           | string, with `''` for a quote and no other escapes           |
-| `[a, 2, "b, c"]`   | a list of values by these same rules, one line, no nesting   |
-| anything else      | string, as written: `Sales Report`, `2026-09-26`, `C# notes` |
+| Value              | Result                                                              |
+| ------------------ | ------------------------------------------------------------------- |
+| nothing, or `null` | `null`                                                              |
+| `true`, `false`    | boolean                                                             |
+| `42`, `-3`, `1.5`  | number                                                              |
+| `"text"`           | string, with JSON's escapes                                         |
+| `'text'`           | string, with `''` for a quote and no other escapes                  |
+| `[a, 2, "b, c"]`   | a list of values by these same rules, one line, no nesting          |
+| anything else      | string, as written: `Sales Report`, `2026-09-26`, `C# notes`, `1e3` |
 
-- **Keys** are made of segments, each `[A-Za-z_][A-Za-z0-9_-]*`. A key appears once, and of two
-  duplicate keys the first wins and the second gets the warning `metadata-duplicate-key`.
-- **A dotted key** is a path into a nested object, at any depth, so a block reads as a small
-  JSON-shaped tree of scalars and lists. Keys that start the same share the object, in the order
-  each first appears. A segment has no `.` of its own, can't start with a digit and can't be
-  `__proto__`. A path that doesn't fit (`a..b`, `.a`, `a.`, `a.0`) gets `metadata-line` and is
-  skipped. A path is a value or an object, never both: of `a` and `a.b`, in either order, the
-  first wins and the second gets `metadata-duplicate-key`. Lists hold scalars, with no lists of
-  objects, because metadata describes the document, and repeated records belong in its body,
-  as a list or a table.
+- **Keys** start with a letter or `_`, and hold letters, digits, `_`, `-` and `.`. A `.` is an
+  ordinary character, as YAML reads it, so `deploy.name` is one key and nothing nests. A key
+  appears once, and of two duplicate keys the first wins and the second gets the warning
+  `metadata-duplicate-key`.
+- **Comments** are lines that start with `#`.
+- **Quote a value that YAML would read another way**, or the line gets the warning
+  `metadata-value` and its key is skipped:
+  - a value that holds `: `, or starts with one of `{ & * ! | > % @ , # ] }`, a backtick or `- `,
+    which GitHub shows as a YAML error
+  - a value that holds ` #`, since YAML drops the rest as a comment (`Issue #42`)
+  - a yes or no word other than `true`, `false` and `null`, in any case (`True`, `no`, `off`,
+    `~`), which code would read as a string that is true
+  - a number written so that it would change (`01234`, `1.10`, `+1`, `.5`)
 
-  ```yaml
-  title: My Site
-  deploy.provider: cloudflare
-  deploy.name: my-site
-  ```
+  In a list, also quote an item that contains `,`, `[` or `]`.
 
-  is `{ title: "My Site", deploy: { provider: "cloudflare", name: "my-site" } }`.
-
-- **Comments:** a line starting with `#`, or ` #` after a value, as in YAML.
-- **Both quote styles** are accepted because formatters pick one by configuration (oxfmt writes
-  single quotes in this repo and double quotes by default). Quote a value that would otherwise
-  read as something else (`"true"`, `"42"`), that contains `: `, or that starts with a
-  character YAML reserves (`{ & * ! | > % @`, a backtick, or `- `). In a list, also quote an item
-  that contains `,`, `[` or `]`.
-- **YAML look-alikes are errors, not strings.** The block is still YAML to GitHub, editors,
-  formatters and any YAML parser, and every block markz accepts has the same value under YAML
-  1.2, once its dotted keys are expanded back out. So a plain value YAML would read differently
-  gets the warning `metadata-value`, not a silent string:
-  `True`, `FALSE`, `~`, `Null`, `+1`, `.5`, `1e3`, `0x1F`, `.inf`. Write the canonical form or
-  quote it.
+- **Both quote styles** are accepted, since a formatter writes the one its configuration picks.
+- **Rare YAML forms are strings.** `1e3`, `0x1F` and `.inf` are written by no one in metadata, so
+  markz reads them as written, with no warning. A YAML parser may read them as numbers, which is a
+  difference, not damage.
 - **Everything else in YAML is out:** indented lines (nested maps, `- item` lists, multi-line
-  strings), `|` and `>`, `{a: b}`, anchors, aliases and tags. Each gets a warning
-  (`metadata-indented`, `metadata-line` or `metadata-value`), and its key is skipped. A line that
-  isn't a key line belongs to the value before it (`tags:` over `- a`), so that key is skipped too,
-  and so are the lines inside brackets a rejected line leaves open.
+  strings), `|` and `>`, `{a: b}`, anchors, aliases and tags. Each gets the warning
+  `metadata-line` or `metadata-value`, and its key is skipped. A line that isn't a key line
+  belongs to the value before it (`tags:` over `  - a`), so that key is skipped too.
 
 ## Block
 
@@ -123,7 +111,7 @@ none changes once it is written, which keeps streaming simple:
 The algorithm:
 
 1. Take the heading's plain text: text and inline-code values, with escapes and numeric
-   references decoded, punctuation curled, and `\ ` as a space. Link text counts, and URLs, image
+   references decoded, and `\ ` as a space. Link text counts, and URLs, image
    alt text, math and expressions don't.
 2. Lowercase it.
 3. Remove every character that isn't alphabetic, a mark, a decimal digit, a connector such as
@@ -143,7 +131,7 @@ These cases are the contract, and the tests hold to them:
 | `## Foo`                             | `foo-1`          |
 | `## Foo 1`                           | `foo-1-1`        |
 | `## Café au lait`                    | `café-au-lait`   |
-| `## शुरुआत करें`                     | `शुरुआत-करें`    |
+| `## शुरुआत करें`                         | `शुरुआत-करें`        |
 | `## 日本語の見出し`                  | `日本語の見出し` |
 | `## 1. Rename`                       | `1-rename`       |
 | `## See [docs](https://example.com)` | `see-docs`       |
@@ -231,7 +219,12 @@ The outer pipes are optional, and a delimiter row with no pipe needs a colon, so
 
 ### Thematic breaks
 
-The marker is `---` only.
+The marker is `---`, and `***` is read too.
+
+- A formatter writes `***` for a rule on a document's first line, since `---` there would open
+  metadata. markz reads what formatters write, so `***` is a rule wherever it is.
+- `***` is three or more `*` with no spaces between. `___` and `* * *` are not rules, since no
+  formatter writes them.
 
 {#attributes}
 
@@ -527,31 +520,6 @@ There are no named character references, and `\ ` is a non-breaking space.
 - `\` followed by a space is a non-breaking space (U+00A0), as in `10\ km` and `Dr.\ Smith`. In a
   heading id it counts as a space.
 
-{#smart-punctuation}
-
-### Smart punctuation
-
-Built in, and applied to text only, never to code, math, expressions, URLs or attribute values.
-
-| Source              | Text value                                                           |
-| ------------------- | -------------------------------------------------------------------- |
-| `"quoted"`          | `“quoted”`                                                           |
-| `'quoted'`, `don't` | `‘quoted’`, `don’t`                                                  |
-| `--`                | `–` (en dash)                                                        |
-| `---`               | `—` (em dash). A line holding only `---` is still a horizontal rule. |
-| `...`               | `…`                                                                  |
-
-- A quote reads past the quotes and emphasis markers just before it. It opens after the start of
-  text, whitespace, an opening bracket or a dash, and closes after anything else. So `"'word'"`
-  nests, and `_"word"_` is curled as `"word"` would be.
-- A run of more than three hyphens is split into em and en dashes with the same count.
-- `\"`, `\'`, `\-` and `\.` keep the straight character.
-- The text node's `value` holds the typographic character, and its range still covers the
-  source characters. What the author typed is always `source.slice(start, end)`
-  ([Design](design.md#source-locations)).
-- Heading ids are made from the typographic text. Quotes and dashes are punctuation, so they
-  drop out, and `Don't` and `Don’t` give the same id.
-
 ## Not supported
 
 Each of these stays literal text and adds a warning over exactly its characters. The warning's
@@ -579,7 +547,7 @@ and a bare `{…}`.
 | `setext-heading`              | Setext headings (`Title` over `===` or `---`)                                                | `# Title`                                                                                               | A paragraph would turn into a heading when the next line is read.                                                                         |
 | `indented-code`               | Indented code blocks                                                                         | fenced code                                                                                             | Indentation meaning code is what makes list indentation hard. The indented line is paragraph text, and never a heading or list inside it. |
 | `tilde-fence`                 | `~~~` fences                                                                                 | a longer backtick fence                                                                                 | One fence character.                                                                                                                      |
-| `rule-marker`                 | `***`, `___`, `* * *` rules                                                                  | `---`                                                                                                   | One marker.                                                                                                                               |
+| `rule-marker`                 | `___`, `* * *` rules                                                                         | `---`                                                                                                   | One marker.                                                                                                                               |
 | `trailing-heading-attributes` | Trailing heading attributes (`## Title {#id}`)                                               | `{#id}` on the line above                                                                               | Under djot's rule this `{…}` belongs to the word "Title".                                                                                 |
 | `multiline-attributes`        | Multi-line attributes                                                                        | one line                                                                                                | Keeps the block pass free of lookahead.                                                                                                   |
 | `directive`                   | Colon directives (`:::name` … `:::`, `::name[label]`, `:name[text]`)                         | `{@name}` … `{/name}`, `[label]{@name /}` or `[text]{@name}`                                            | One extension syntax. `{…}` already holds the attributes, and `@name` in it makes the element, so colons were a second way.               |
@@ -616,7 +584,7 @@ formats with it. We checked by running `vp fmt` over every alternate form:
 | `~one~`                            | `~~one~~`                          |
 | `* item` (for a first list)        | `- item`                           |
 | `1)` in a first list               | `1.`                               |
-| `***`, `___`                       | `---`                              |
+| `***` after the first line, `___`  | `---`                              |
 | `~~~` fences                       | ` ``` ` fences                     |
 | `## Title ##`                      | `## Title`                         |
 

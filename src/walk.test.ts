@@ -64,7 +64,7 @@ describe("textContent", () => {
 
   it("reads text as the rendered page does", () => {
     const [doc, heading] = first('# "Hi" \\*there\\* `a<b` $x^2$ ![img](i.png)\n');
-    expect(textContent(doc, heading)).toBe("“Hi” *there* a<b x^2 ");
+    expect(textContent(doc, heading)).toBe('"Hi" *there* a<b x^2 ');
   });
 
   it("keeps line breaks and expressions", () => {

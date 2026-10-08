@@ -15,7 +15,7 @@ ${a and \${b}
 ```example 170 ambiguous expression-bracket
 ${s.replace(/}/g, "")}
 .
-<p><code class="language-js expression">s.replace(/</code>/g, ““)}</p>
+<p><code class="language-js expression">s.replace(/</code>/g, &quot;&quot;)}</p>
 .
 ${s.replace(/}
 ```

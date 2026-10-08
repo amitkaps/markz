@@ -27,7 +27,7 @@ import { type WarningCode } from "./warnings";
  * is made from; every other leaf skips building it.
  *
  * A one-line leaf with no character that starts a construct is one text node, written without
- * the pass. Bare URLs, quotes and dashes all start on such a character, so this skips nothing.
+ * the pass. A bare URL starts on such a character, so this skips nothing.
  */
 export function inline(
   b: Builder,
@@ -140,9 +140,6 @@ class InlinePass {
   found: Map<string, { from: number; at: number }> | null = null;
   /** The last `braceEnd` search: from where, on which line, and what it found. */
   lastBrace = { from: -1, lineEnd: -1, close: -1 };
-  /** Where the last quote ended, and the side it took. */
-  quoteEnd = -1;
-  quoteOpens = false;
   /** Openers waiting for a closer, by kind, and link brackets. */
   stacks: Record<string, Item[]> = {};
   brackets: Item[] = [];
@@ -283,8 +280,6 @@ class InlinePass {
       else if (c === ":" && this.colonDirective(list, t, to)) t = this.directiveEnd;
       else if (c === ":" || c === "." || c === "@") t = this.url(list, t, from, to);
       else if (c === "{") t = this.brace(list, t);
-      else if (c === '"' || c === "'") t = this.quote(list, t, from);
-      else if (c === "-") t = this.dashes(list, t, to);
       else {
         PLAIN.lastIndex = t + 1;
         PLAIN.test(text);
@@ -1033,7 +1028,6 @@ class InlinePass {
       }
     }
     if (start < 0) {
-      if (c === ".") return this.dashes(list, t, to);
       this.plain(list, t, t + 1);
       return t + 1;
     }
@@ -1071,52 +1065,6 @@ class InlinePass {
     this.report("inline-attributes", t, e);
     this.plain(list, t, e);
     return e;
-  }
-
-  /** @prose
-   * ## Smart punctuation
-   *
-   * Straight quotes curl by the character before them, and hyphen runs become dashes (grammar:
-   * smart-punctuation; `quote-side`, `dash-runs`). The text value holds the
-   * typographic character, and the range still covers what was typed.
-   *
-   * A quote reads past the quotes and emphasis markers just before it, so `'fine'"` and `_hi_"`
-   * close where `"'Hi` and `"_hi` open. Each quote steps back only over the markers since the
-   * last quote, and takes that quote's side, so a run is read once and the pass stays linear.
-   */
-  quote(list: List, t: number, from: number): number {
-    const { text } = this;
-    const c = text[t]!;
-    let i = t;
-    while (i > from && /[_*~]/.test(text[i - 1]!)) i--;
-    let opens: boolean;
-    if (i > from && i === this.quoteEnd) opens = this.quoteOpens;
-    else {
-      const before = i > from ? text[i - 1] : undefined;
-      opens = isSpace(before) || /[([{\-–—]/.test(before!);
-    }
-    this.quoteEnd = t + 1;
-    this.quoteOpens = opens;
-    const value = c === '"' ? (opens ? "“" : "”") : opens ? "‘" : "’";
-    this.plain(list, t, t + 1, value);
-    return t + 1;
-  }
-
-  dashes(list: List, t: number, to: number): number {
-    const { text } = this;
-    const c = text[t]!;
-    let n = 1;
-    while (t + n < to && text[t + n] === c) n++;
-    let value: string;
-    if (c === ".") value = "…".repeat(Math.floor(n / 3)) + ".".repeat(n % 3);
-    else if (n === 1) value = "-";
-    else {
-      let em = Math.floor(n / 3);
-      while ((n - 3 * em) % 2 !== 0) em--;
-      value = "—".repeat(em) + "–".repeat((n - 3 * em) / 2);
-    }
-    this.plain(list, t, t + n, value);
-    return t + n;
   }
 
   /**
@@ -1186,9 +1134,9 @@ class InlinePass {
 }
 
 /** A run of characters that start no case in `scan`: plain text, matched in one step. */
-const PLAIN = /[^\n\\`$<&[\]!_*~:"'\-.@{]*/y;
+const PLAIN = /[^\n\\`$<&[\]!_*~:.@{]*/y;
 /** `PLAIN` that also stops at `|`, so a table cell's test ends at its own pipe, not the row's end. */
-const LEAF = /[^\n\\`$<&[\]!_*~:"'\-.@{|]*/y;
+const LEAF = /[^\n\\`$<&[\]!_*~:.@{|]*/y;
 const ENTITY = /^&(?:#(\d{1,7})|#[xX]([\da-fA-F]{1,6})|([A-Za-z][A-Za-z\d]{1,31}));/;
 const NAME = /[A-Za-z][\w-]*/y;
 /** An email's domain: ASCII segments, a `.` counting only before a letter or digit. */

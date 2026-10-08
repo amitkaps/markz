@@ -413,7 +413,8 @@ class BlockParser {
     if (c === "<" && src.startsWith("<!--", next) && this.comment(next)) return false;
     const rule = this.rule(next);
     if (rule) {
-      if (rule === "-") {
+      // `***` is read because a formatter writes it on a first line, where `---` opens metadata.
+      if (rule === "-" || (rule === "*" && /^\*+[ \t]*$/.test(src.slice(next, this.lineEnd)))) {
         const attributes = this.enter(false);
         this.leafNode(this.b.leaf("thematicBreak", next, end), end, attributes);
       } else {
