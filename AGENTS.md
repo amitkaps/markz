@@ -56,4 +56,4 @@ The site (markz.amitkaps.com) is the repository read by `prose build`, plus the 
 
 ## Workflow
 
-A change a user of the package would notice gets a line under Unreleased in `CHANGELOG.md`, and a breaking one gets a row in its migration table. `main` is protected: a pull request is required and the `ci` check must pass. Never commit or push to `main`. Branch, commit, push, `gh pr create`, then `gh pr merge --auto --squash`. Run `pnpm check` and `pnpm test` first, and `pnpm build` too after a dependency bump.
+Each pull request gets one label, which files it in the release notes (`.github/release.yml`): `breaking`, `added`, `fixed`, `improved`, `docs`, or `internal` for tests, tooling, site and lessons. Its title is what the notes show, so a user-facing one is written for a reader of the package. `main` is protected: a pull request is required and the `ci` check must pass. Never commit or push to `main`. Branch, commit, push, `gh pr create`, then `gh pr merge --auto --squash`. Run `pnpm check` and `pnpm test` first, and `pnpm build` too after a dependency bump.
