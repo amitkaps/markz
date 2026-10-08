@@ -35,3 +35,16 @@ export function custom(name: string): boolean {
 export function element(name: string, inline: boolean): boolean {
   return (inline ? INLINE : BLOCK).has(name) || custom(name);
 }
+
+/** @prose
+ * What a name that isn't an element should be instead, in the writer's own words: a class of
+ * that name, or a custom element made from it. A name a hyphen would fix gets `my-` in front, so
+ * `{@note}` suggests `{@div .note}` or `{@my-note}`. The suggestion is the warning's `instead`.
+ */
+export function insteadOf(name: string, inline: boolean): string {
+  const word = name.toLowerCase();
+  const tag = custom(word) ? word : `my-${word}`;
+  return inline
+    ? `a span with a class (\`[text]{.${name}}\`), or a custom element (\`[text]{@${tag}}\`)`
+    : `a \`div\` with a class (\`{@div .${name}}\`), or a custom element (\`{@${tag}}\`)`;
+}

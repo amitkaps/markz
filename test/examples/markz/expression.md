@@ -11,3 +11,11 @@ ${a and \${b}
 .
 <p>${a and ${b}</p>
 ```
+
+```example 170 ambiguous expression-bracket
+${s.replace(/}/g, "")}
+.
+<p><code class="language-js expression">s.replace(/</code>/g, ““)}</p>
+.
+${s.replace(/}
+```

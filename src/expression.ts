@@ -101,6 +101,36 @@ function scan(source: string, from: number, end: number, braces: number[], recor
   return -1;
 }
 
+/** @prose
+ * ## A `}` that closed too early
+ *
+ * The usual reason a `${…}` closes early is a `}` that markz can't see is inside something, such
+ * as a regex (`${s.replace(/}/g, '')}`). The code then ends with a `(` or `[` still open, which
+ * finished code never does. So a closed expression whose code leaves one open is reported
+ * (grammar: `expression-bracket`). Strings, template literals and comments are skipped, as
+ * the scan skips them, so a bracket inside one doesn't count. This runs once, on the code of a
+ * closed expression, so it adds a constant per character.
+ */
+export function unclosedBracket(code: string): boolean {
+  let depth = 0;
+  for (let i = 0; i < code.length; i++) {
+    const c = code.charCodeAt(i);
+    if (c === QUOTE || c === APOSTROPHE || c === BACKTICK) {
+      // Skip to the matching quote. A template literal's own `${…}` is skipped with it.
+      for (i++; i < code.length && code.charCodeAt(i) !== c; i++) {
+        if (code.charCodeAt(i) === BACKSLASH) i++;
+      }
+    } else if (c === SLASH && code.charCodeAt(i + 1) === SLASH) {
+      i = lineEnd(code, i, code.length);
+    } else if (c === SLASH && code.charCodeAt(i + 1) === STAR) {
+      const close = code.indexOf("*/", i + 2);
+      i = close < 0 ? code.length : close + 1;
+    } else if (c === PAREN || c === BRACKET) depth++;
+    else if ((c === PAREN_CLOSE || c === BRACKET_CLOSE) && depth > 0) depth--;
+  }
+  return depth > 0;
+}
+
 function skipString(source: string, at: number, end: number, record: Memo): number {
   const quote = source.charCodeAt(at);
   const failed = record.strings.get(quote);
@@ -128,9 +158,13 @@ const RETURN = 13;
 const QUOTE = 34;
 const DOLLAR = 36;
 const APOSTROPHE = 39;
+const PAREN = 40;
+const PAREN_CLOSE = 41;
 const STAR = 42;
 const SLASH = 47;
+const BRACKET = 91;
 const BACKSLASH = 92;
+const BRACKET_CLOSE = 93;
 const BACKTICK = 96;
 const OPEN = 123;
 const CLOSE = 125;

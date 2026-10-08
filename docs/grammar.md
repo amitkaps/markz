@@ -272,6 +272,7 @@ custom-element ::= [a-z] [a-z0-9]* '-' [a-z0-9-]*
 - `element-line`: An opening line is one line, so an expression in a value can't hold a line ending. A line that needs one is a paragraph.
 - `element-interrupts`: An opening line can't interrupt a paragraph or a table. A leaf or a closing line can.
 - `element-close`: A closing line closes the innermost element open in its container when the names match. Otherwise it is text, and a warning. When a `{#name}` line came before it, the warning says the element opens with `{@name}`.
+- `element-lazy-line`: An element line straight after a table row, or after a paragraph in a blockquote or list item that the line leaves, is read as written, with a warning. A formatter would read it as a lazy line and move it in.
 - `unclosed-element`: Unclosed, an element runs to the end of its container, with a warning at its opening line.
 
 {#comment}
@@ -306,6 +307,7 @@ strikethrough ::= '~~' inline '~~'
 - `nearest-opener`: A closer takes the nearest open run of its own kind and length. Runs never split, so `***`, `____` and `~~~` are text.
 - `emphasis-brackets`: A run opened before a `[` can't close before its `]`.
 - `star-places`: `*` emphasis only inside `_…_`, or touching a letter or digit. Anywhere else a `*…*` pair is the `star-emphasis` cut.
+- `star-digits`: A `*` or `**` run with a digit on each side is text, so `2*3*4` and `2**10` are arithmetic.
 
 {#inline-code}
 
@@ -386,6 +388,7 @@ expression ::= '${' (char | line-end)* '}'
 
 - `brace-depth`: The closing `}` is the one that brings brace depth back to zero, with strings, template literals and comments skipped. Regex literals are not recognised.
 - `expression-places`: Also in link destinations and attribute values. Inert in code, math and autolinks.
+- `expression-bracket`: An inline expression whose code leaves a `(` or `[` open, outside strings, template literals and comments, is read as it closed, with a warning. A `}` inside it, as in a regex, closed it early.
 
 {#line-break}
 

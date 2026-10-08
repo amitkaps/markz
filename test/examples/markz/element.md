@@ -152,3 +152,33 @@ x}}
 <p>{@div title=<code class="language-js expression">
 x</code>}</p>
 ```
+
+```example 168 ambiguous element-lazy-line
+- a
+[x]{@sum-mary /}
+.
+<ul>
+<li>a</li>
+</ul>
+<sum-mary>x</sum-mary>
+.
+[x]{@sum-mary /}
+```
+
+```example 169 ambiguous element-lazy-line
+{@call-out}
+| a |
+| - |
+{/call-out}
+.
+<call-out><table>
+<thead>
+<tr>
+<th>a</th>
+</tr>
+</thead>
+</table>
+</call-out>
+.
+{/call-out}
+```

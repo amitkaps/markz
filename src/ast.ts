@@ -321,9 +321,9 @@ export class Builder {
   }
 
   /** A warning by its code; the message defaults to the code's, and `instead` is always its. */
-  warn(code: WarningCode, start: number, end: number, message?: string): void {
-    const [text, instead] = WARNINGS[code];
-    this.#warnings.push({ code, start, end, message: message ?? text, instead });
+  warn(code: WarningCode, start: number, end: number, message?: string, instead?: string): void {
+    const [text, fix] = WARNINGS[code];
+    this.#warnings.push({ code, start, end, message: message ?? text, instead: instead ?? fix });
   }
 
   finish(): Document {
