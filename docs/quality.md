@@ -71,7 +71,7 @@ in [Design](design.md#performance-and-size).
 - **No backtracking:** every adversarial pattern (unclosed openers, deep nesting, long repeats)
   takes less than eight times as long at four times the size, where quadratic work would take
   sixteen.
-- **Heading ids:** `syntax.md`'s contract cases, verbatim, plus apostrophes and quotes, which
+- **Heading ids:** a case for each step of the grammar's `heading-id` rule, plus apostrophes and quotes, which
   slug the same straight or curled (`Don't` and `Don’t` both give `dont`), and a reused explicit
   id producing a warning.
 - **Offsets** are asserted against known source, never against rendered output. This includes

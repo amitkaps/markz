@@ -11,15 +11,15 @@ damage it.
 
 ### Breaking
 
-| Before                                                    | Now                                 | What to do                                                                       |
-| --------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------- |
-| `"quotes"`, `--` and `...` became `“”`, `–` and `…`       | Text is kept as typed               | Type the character you want, or curl text in your own pass over the tree.        |
-| `deploy.name: x` gave `{ deploy: { name: "x" } }`         | `{ "deploy.name": "x" }`            | Read `metadata["deploy.name"]`, or keep nested config in the site's own files.   |
-| `title: Hi # note` dropped the comment                    | `metadata-value`, and the key skipped | Put the comment on its own `#` line, or quote the value.                       |
+| Before                                                     | Now                                   | What to do                                                                     |
+| ---------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------ |
+| `"quotes"`, `--` and `...` became `“”`, `–` and `…`        | Text is kept as typed                 | Type the character you want, or curl text in your own pass over the tree.      |
+| `deploy.name: x` gave `{ deploy: { name: "x" } }`          | `{ "deploy.name": "x" }`              | Read `metadata["deploy.name"]`, or keep nested config in the site's own files. |
+| `title: Hi # note` dropped the comment                     | `metadata-value`, and the key skipped | Put the comment on its own `#` line, or quote the value.                       |
 | `draft: no`, `on` and `off` were strings, `1.10` was `1.1` | `metadata-value`, and the key skipped | Write `true` or `false`, or quote the value.                                   |
-| `1e3`, `0x1F` and `.inf` warned                           | Strings, as written                 | Nothing, or write the number in decimal.                                         |
-| The `metadata-indented` code                              | `metadata-line`                     | Match the new code.                                                              |
-| `MetadataValue` could be a nested object                  | A scalar, or a list of scalars      | Drop the object case.                                                            |
+| `1e3`, `0x1F` and `.inf` warned                            | Strings, as written                   | Nothing, or write the number in decimal.                                       |
+| The `metadata-indented` code                               | `metadata-line`                       | Match the new code.                                                            |
+| `MetadataValue` could be a nested object                   | A scalar, or a list of scalars        | Drop the object case.                                                          |
 
 ### Added
 
@@ -39,18 +39,52 @@ damage it.
   arrays are sized to its nodes.
 - One-line leaves with no syntax skip the inline pass, which makes headings and tables faster.
 
-## 0.3.0
+## 0.3.0 (2026-10-06)
 
-[Release notes](https://github.com/amitkaps/markz/releases/tag/v0.3.0)
+### Added
 
-## 0.2.0
+- `unclosed-block` warns on a code, raw or math block, or a comment, with no closing line.
+- `attribute-syntax` warns on a `{` after a link, image or span with no `}` left on its line.
+- `element-close` after a `{#name}` line says to open the element with `{@name}`.
 
-[Release notes](https://github.com/amitkaps/markz/releases/tag/v0.2.0)
+### Changed
 
-## 0.1.1
+- The package ships without its source comments, under a license banner. Every export keeps
+  its documentation in the types.
 
-[Release notes](https://github.com/amitkaps/markz/releases/tag/v0.1.1)
+### Fixed
 
-## 0.1.0
+- A quote straight after a closing quote or emphasis closes, as `'fine'"` does.
 
-[Release notes](https://github.com/amitkaps/markz/releases/tag/v0.1.0)
+## 0.2.0 (2026-10-02)
+
+### Added
+
+- `headings(doc)` lists every heading in source order, with its depth, id and text.
+- Dotted metadata keys nest into objects, as `deploy.name` into `{ deploy: { name } }`. The
+  release after 0.3.0 reads them flat again.
+
+### Changed
+
+- markz runs on the current Node and the previous LTS, and in Baseline browsers.
+
+## 0.1.1 (2026-09-29)
+
+### Changed
+
+- Published to npm as `@amitkaps/markz`.
+
+## 0.1.0 (2026-09-29)
+
+The first release, as a GitHub tarball.
+
+- `parse` reads the dialect into a flat, read-only tree with exact source offsets, and `html`
+  writes it.
+- `walk`, `textContent` and `position` read the tree.
+- `{…}` is the one extension syntax: attributes decorate what Markdown makes, and `@name` makes an
+  element.
+- Metadata, math as `$x$` and `$$` blocks, `${…}` expressions and ` ```=html ` raw blocks.
+- Heading ids as GitHub makes them.
+- Every form the dialect cuts stays text, with a warning that has a stable code and says what to
+  write instead.
+- Linear time on any input, and at most 20 KB gzip.

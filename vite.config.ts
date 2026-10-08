@@ -39,7 +39,7 @@ export default defineConfig({
 
   // Oxfmt — `vp fmt` / `vp check`.
   fmt: {
-    ignorePatterns: [...generated, ...vendored, ...site, "pnpm-lock.yaml", "CHANGELOG.md"],
+    ignorePatterns: [...generated, ...vendored, ...site],
   },
 
   // Oxlint — `vp lint` / `vp check`.

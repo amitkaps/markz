@@ -132,23 +132,8 @@ is kept by both, and the later one gets the warning `duplicate-id`.
 | 5    | If nothing is left, use `section`.                                                                                                                                                                                                                                                                           |
 | 6    | If the id is taken, explicit or generated, try `-1`, `-2`, … until one is free.                                                                                                                                                                                                                              |
 
-These cases are the contract, and the tests hold to them. A heading whose text looks like a suffix
-keeps it, and a later repeat goes past it: `# foo-1`, `# foo`, `# foo` give `foo-1`, `foo` and
-`foo-2`.
-
-| Heading                              | id               |
-| ------------------------------------ | ---------------- |
-| `## Foo`                             | `foo`            |
-| `## Foo`                             | `foo-1`          |
-| `## Foo 1`                           | `foo-1-1`        |
-| `## Café au lait`                    | `café-au-lait`   |
-| `## शुरुआत करें`                         | `शुरुआत-करें`        |
-| `## 日本語の見出し`                  | `日本語の見出し` |
-| `## 1. Rename`                       | `1-rename`       |
-| `## See [docs](https://example.com)` | `see-docs`       |
-| `## a - b`                           | `a---b`          |
-| `## 😄 Smile`                        | `-smile`         |
-| `## ???`                             | `section`        |
+A heading whose text looks like a suffix keeps it, and a later repeat goes past it: `# foo-1`,
+`# foo`, `# foo` give `foo-1`, `foo` and `foo-2`.
 
 {#blockquote}
 
