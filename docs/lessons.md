@@ -27,6 +27,18 @@ This keeps what should shape the next change.
   GitHub writes them. `\ ` at the end of a line is a hard break, since the space is invisible and
   formatters strip it. Heading ids are GitHub's, which four Unicode properties give, not an 8 KB
   character class.
+- **Other tools may differ, but must not damage.** The first aim was that GitHub, YAML and oxfmt
+  read a document the same way as markz. That aim added rules a writer had to learn. The aim now
+  is weaker. GitHub may show `{@call-out}` as text, but it must not hide content, show a metadata
+  error or break a heading link. A formatter may rewrite the source, but markz must read the
+  result the same way.
+- **A second marker comes in only when a formatter writes it.** `*` emphasis and the `*`, `+` and
+  `1)` list markers are read because oxfmt writes them. `~~~` fences stay out, since oxfmt
+  rewrites them to backticks. Their case was Markdown inside a JavaScript template literal, where
+  a backtick ends the string. Tildes don't solve it, since inline code and `${` still need
+  escaping there. A `.md` file read by the code needs none.
+- **Footnotes stay out.** No proposal says where a note's body goes. A span holds inline text, and
+  a body placed elsewhere needs the whole document before a note can be resolved.
 
 ## Testing
 
@@ -121,15 +133,21 @@ This keeps what should shape the next change.
 
 - **djot's inline raw, `{=format}`.** It stays literal text with no warning. Raw blocks are the
   least used construct so far, so a warning for the inline form waits until they are used more.
-- **The second markers, `***` and `~~~`.** markz takes one marker for a rule (`---`) and one for
-  a fence (backticks). Accepting either second marker breaks that rule, though `*` emphasis is a
-  precedent, read where oxfmt writes it. Each has a case of its own.
-  - `***`: oxfmt writes it for a rule on a document's first line, since `---` there opens
-    metadata. Prettier writes `---`, so a rule, a `key: value` line and a rule become metadata
-    and vanish. A narrower option accepts `***` only on the first line, where `---` has two
-    meanings.
-  - `~~~`: a tilde fence needs no escaping where Markdown sits in a JavaScript template literal,
-    such as a test or a prompt. oxfmt rewrites it to backticks.
+- **Simplify, so a writer can learn markz from one page.** Each step updates its own docs.
+  1. Fix the silent cases. `*` and `**` between two digits stay text (`2*3*4`). An element line
+     straight after a list, quote or table warns, since a formatter moves it into them. An
+     unclosed `(` or `[` in `${…}` warns, since a `}` in a regex ends it early. The
+     `element-name` warning suggests the writer's own name (`{@div .note}`).
+  2. Make the breaking changes in one release, with one migration note. Smart punctuation leaves
+     the dialect, since `--force`, `'90s` and `5'10"` come out wrong with no warning. Metadata
+     loses dotted keys and the checks for rare YAML (`~`, `0x1F`, `1e3`). It keeps the checks
+     for everyday mistakes, and widens them to ` #` in a value, `yes` and `no` words, and
+     numbers that would change (`1.10`). `vite-plus` moves to 1.1.0.
+  3. `***` becomes a rule in that release. oxfmt 0.72.0, in `vite-plus` 1.1.0, writes it on a
+     document's first line, where `---` would open metadata. It is accepted anywhere, since
+     "only on the first line" is one more rule to learn. `___` and `* * *` stay out, since no
+     formatter writes them.
+  4. `syntax.md` opens with the whole language on one page.
 - **Items.** A pending text string, or writing nodes during the scan, remain open, though
   merging items showed no gain.
 - **Streaming.** Healing an unfinished document at one point, without changing `parse`

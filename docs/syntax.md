@@ -115,7 +115,8 @@ none changes once it is written, which keeps streaming simple:
 
 - **`{#id}` on the line above sets it exactly**, giving an anchor that survives renaming the
   heading. If an earlier heading already has that id, both keep it, the browser uses the first,
-  and the later one gets the warning `duplicate-id`.
+  and the later one gets the warning `duplicate-id`. A suffix would also need a warning, and the
+  id the writer typed is the smaller surprise.
 - **Otherwise it is generated** with GitHub's algorithm, and numbered `-1`, `-2`, … past any id
   already used, explicit or generated.
 

@@ -78,7 +78,11 @@ stated formally in [Grammar](docs/grammar.md).
   that build something new.
 - **Safe HTML by construction.** Outside ` ```=html ` blocks, nothing a document says can put
   script on the page.
-- **Rejected syntax is reported, never reinterpreted.**
+- **No footguns.** Every input does what it looks like, or gets a warning that says what to write.
+  Rejected syntax is never reinterpreted, and prose that only looks like syntax stays prose.
+- **Other tools may differ, but must not damage.** GitHub may show an element as text, but it
+  hides nothing, and links to headings work there too. markz reads what formatters write, so
+  formatting never changes what a document means.
 
 ## Not a drop-in Markdown parser
 
