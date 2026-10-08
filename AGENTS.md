@@ -56,4 +56,4 @@ The site (markz.amitkaps.com) is the repository read by `prose build`, plus the 
 
 ## Workflow
 
-`main` is protected: a pull request is required and the `ci` check must pass. Never commit or push to `main`. Branch, commit, push, `gh pr create`, then `gh pr merge --auto --squash`. Run `pnpm check` and `pnpm test` first, and `pnpm build` too after a dependency bump.
+A change a user of the package would notice gets a line under Unreleased in `CHANGELOG.md`, and a breaking one gets a row in its migration table. `main` is protected: a pull request is required and the `ci` check must pass. Never commit or push to `main`. Branch, commit, push, `gh pr create`, then `gh pr merge --auto --squash`. Run `pnpm check` and `pnpm test` first, and `pnpm build` too after a dependency bump.
