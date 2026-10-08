@@ -338,6 +338,10 @@ Where a container opens and closes:
 - **An unclosed element runs to the end of its container or the document**, as an unclosed code
   fence does, and gets the warning `unclosed-element` at its opener. A leaf that lost its `/` is
   this case.
+- **An element line straight after a table row, or after a paragraph in a blockquote or list
+  item, is read as written, with the warning `element-lazy-line`.** A formatter reads that line as
+  part of the paragraph or row above, and moves it in ([Canonical form](#canonical-form)). A
+  blank line before it keeps it where it is. A line indented into the item is already inside it.
 
 `html()` writes the name as the element, with the attributes as they are for any element. An
 element has no label of its own: what HTML puts in a child element is written as one.
@@ -402,6 +406,8 @@ close follows CommonMark's flanking rules, without the rest of its 17.
   touching a letter or digit (`a*b*c`). markz accepts `*` in exactly those two, so it never
   rejects formatted output. Anywhere else a `*…*` pair stays text and is reported, like `__…__`
   and `~…~`.
+- **A `*` or `**` between two digits is text**, with no warning, so `2*3*4` and `2**10` stay
+  arithmetic.
 
 {#inline-code}
 
@@ -490,7 +496,8 @@ the code and its range. markz never evaluates it.
   expression.
 - Regex literals aren't recognised, because telling `/` as division from `/` opening a regex
   needs a JavaScript parser. A `}` inside a regex (`${s.replace(/}/g, '')}`) closes the
-  expression early. Write it as `}`, or move the regex out of the document.
+  expression early. Its code then leaves a `(` or `[` open, which gets the warning
+  `expression-bracket`. Write the `}` as `\u007d`, or move the regex out of the document.
 - The node's code is what is between the braces, its lines joined by line endings and each
   trimmed, as inline math keeps its TeX, so a container's prefix (`> `) never reaches it.
 - `html()` writes `<code class="language-js expression">` holding the code, escaped, the way it
@@ -624,7 +631,8 @@ oxfmt keeps the attribute syntax, with two quirks the rules above absorb:
 It knows nothing of elements, so it reads a `{/name}` or leaf line as paragraph text. Straight
 after a list, a blockquote or a table, that text is a lazy continuation line to oxfmt, which
 indents it into the item, prefixes it with `>` or makes it a table row. So write a blank line
-before an element line that follows one of those. An indented closing line still closes its
+before an element line that follows one of those, and markz warns (`element-lazy-line`) when it
+is missing. An indented closing line still closes its
 element, since markz reads it at the element's own level, but a leaf moves into the item, and a
 closer behind `>` or in a row closes nothing and is reported (`element-close`). oxfmt did the
 same to `:::` fences.

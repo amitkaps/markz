@@ -15,7 +15,7 @@
 import { type Attributes, type Builder, type NodeId, type Range, type Align } from "./ast";
 import { bareOnly, braceEnd, parseAttributes, parseElement } from "./attributes";
 import { isSpace, NAMED } from "./chars";
-import { element } from "./elements";
+import { element, insteadOf } from "./elements";
 import { decode, inline } from "./inline";
 import { parseMetadata } from "./metadata";
 import { type WarningCode } from "./warnings";
@@ -131,6 +131,8 @@ class BlockParser {
   // The line being read, and a cursor into it. `tab` is how many columns of the tab at `pos` are
   // still unread, when a container prefix ended in the middle of one.
   lineEnd = 0;
+  /** This line left a quoted or listed paragraph, so an element here is reported (`lazyBefore`). */
+  lazy = false;
   pos = 0;
   col = 0;
   tab = 0;
@@ -222,6 +224,7 @@ class BlockParser {
     this.col = 0;
     this.tab = 0;
     this.lineEnd = end;
+    this.lazy = false;
     const { stack, src } = this;
 
     let matched = 1;
@@ -248,6 +251,9 @@ class BlockParser {
       } else if (c.kind === "element") {
         matched = c.run.end;
         if (this.closingLine() !== stack[matched]!.name) continue;
+        if (this.lazyBefore()) {
+          this.report("element-lazy-line", this.indent().next, this.trimmedEnd());
+        }
         const closed = stack[matched]!;
         closed.closed = true;
         this.closeLeaf();
@@ -266,7 +272,9 @@ class BlockParser {
     }
     const blank = this.blank();
     if (matched < stack.length) {
-      if (leaf?.kind === "paragraph" && !blank && !this.startsBlock()) {
+      if (!blank && ELEMENT_LINE.test(this.src.slice(this.indent().next, this.lineEnd))) {
+        this.lazy = this.lazyBefore();
+      } else if (leaf?.kind === "paragraph" && !blank && !this.startsBlock()) {
         this.report("lazy-line", this.indent().next, this.trimmedEnd());
       }
       this.closeLeaf();
@@ -417,10 +425,20 @@ class BlockParser {
     const item = this.listItem(cols, next);
     if (item !== NONE_OPENED) return item === OPENED;
     if (c === ":" && COLON_LINE.test(src.slice(next, end))) this.report("directive", next, end);
+    // Reported only once the line is an element: see `lazyBefore`.
+    const table = this.leaf?.kind === "table";
+    const lazy = this.lazy || table;
+    this.lazy = false;
     if (c === "{" && (src[next + 1] === "@" || src[next + 1] === "/")) {
-      if (this.element(next, end, paragraph || this.leaf?.kind === "table")) return false;
+      if (this.element(next, end, paragraph || table)) {
+        if (lazy) this.report("element-lazy-line", next, end);
+        return false;
+      }
     } else if (c === "[" && src[end - 1] === "}" && src[end - 2] === "/") {
-      if (this.leafElement(next, end)) return false;
+      if (this.leafElement(next, end)) {
+        if (lazy) this.report("element-lazy-line", next, end);
+        return false;
+      }
     }
     if (c === "{" && !paragraph && this.leaf?.kind !== "table") {
       if (this.attributeLine(next, end)) return false;
@@ -764,7 +782,13 @@ class BlockParser {
       const name = CLOSE.exec(src.slice(at, end))?.[1];
       if (name) {
         if (!element(name, false))
-          this.report("element-name", at, end, `\`${name}\` is not an element name`);
+          this.report(
+            "element-name",
+            at,
+            end,
+            `\`${name}\` is not an element name`,
+            insteadOf(name, false),
+          );
         else if (this.idLines?.has(name))
           this.report(
             "element-close",
@@ -787,7 +811,13 @@ class BlockParser {
     }
     if (head.attributes.end !== end) return false;
     if (!element(head.name, false)) {
-      this.report("element-name", at, end, `\`${head.name}\` is not an element name`);
+      this.report(
+        "element-name",
+        at,
+        end,
+        `\`${head.name}\` is not an element name`,
+        insteadOf(head.name, false),
+      );
       return false;
     }
     if (!head.slash && interrupting) return false;
@@ -815,7 +845,13 @@ class BlockParser {
     const head = parseElement(src, close + 1, end);
     if (!head?.slash || head.attributes.end !== end) return false;
     if (!element(head.name, false)) {
-      this.report("element-name", at, end, `\`${head.name}\` is not an element name`);
+      this.report(
+        "element-name",
+        at,
+        end,
+        `\`${head.name}\` is not an element name`,
+        insteadOf(head.name, false),
+      );
       return false;
     }
     const attributes = merge(this.enter(false), own(head.attributes));
@@ -832,6 +868,23 @@ class BlockParser {
     const { cols, next } = this.indent();
     if (cols > 3 || this.src[next] !== "{" || this.src[next + 1] !== "/") return null;
     return CLOSE.exec(this.src.slice(next, this.lineEnd))?.[1] ?? null;
+  }
+
+  /** @prose
+   * An element line straight after a table row, or after a paragraph in a blockquote or list
+   * item, is read here as it is written. A formatter doesn't know elements, so it reads the line
+   * as a lazy continuation and moves it into the row, quote or item. markz warns before that
+   * happens, so the writer adds the blank line that keeps it out (grammar: `element-lazy-line`).
+   * This asks before the line closes the open leaf, which is what tells the case, and the line is
+   * reported once it proves to be an element. A line indented into the item stays there when
+   * formatted, so it isn't one of these.
+   */
+  lazyBefore(): boolean {
+    const { leaf, top } = this;
+    if (leaf?.kind === "table") return true;
+    if (leaf?.kind !== "paragraph") return false;
+    if (top.kind === "blockquote") return true;
+    return top.kind === "listItem" && this.indent(top.indent).cols < top.indent;
   }
 
   /** @prose
@@ -1210,8 +1263,8 @@ class BlockParser {
     return end;
   }
 
-  report(code: WarningCode, start: number, end: number, message?: string): void {
-    this.b.warn(code, start, end, message);
+  report(code: WarningCode, start: number, end: number, message?: string, instead?: string): void {
+    this.b.warn(code, start, end, message, instead);
   }
 }
 
@@ -1249,6 +1302,8 @@ const own = (a: Attributes) => (a.items.length > 0 ? a : undefined);
 
 /** A `{/name}` line, trailing whitespace allowed. */
 const CLOSE = /^\{\/([A-Za-z][\w-]*)\}[ \t]*$/;
+/** An element's opening, closing or leaf line, as far as a formatter could move it. */
+const ELEMENT_LINE = /^(?:\{[@/]|\[.*\]\{@.*\/\}[ \t]*$)/;
 
 /**
  * A colon container's own line (`:::name`, VitePress's `::: tip Title`, a closing `:::`) or a

@@ -191,3 +191,17 @@ describe("warnings", () => {
     ]);
   });
 });
+
+describe("element names", () => {
+  it("suggests the writer's own name instead", () => {
+    const instead = (source: string) => parsed(source).warnings.map((w) => w.instead);
+    expect(instead("{@note}\n")).toEqual([
+      "a `div` with a class (`{@div .note}`), or a custom element (`{@my-note}`)",
+    ]);
+    expect(instead("[x]{@note}")).toEqual([
+      "a span with a class (`[text]{.note}`), or a custom element (`[text]{@my-note}`)",
+    ]);
+    // A name lowercasing would fix is suggested as it should be written.
+    expect(instead("{@Call-Out /}\n")[0]).toContain("`{@call-out}`");
+  });
+});

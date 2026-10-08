@@ -29,3 +29,9 @@ _a and **b
 .
 <p>_a and **b</p>
 ```
+
+```example 171 ambiguous star-digits
+2*3*4 and 2**10 and 3**4
+.
+<p>2*3*4 and 2**10 and 3**4</p>
+```

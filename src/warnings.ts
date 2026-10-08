@@ -52,10 +52,18 @@ export const WARNINGS = {
     "a closing line with no open element of that name in its container",
     "close the innermost open element, at its own level",
   ],
+  "element-lazy-line": [
+    "an element line straight after a list, quote or table, which a formatter moves into it",
+    "a blank line before it",
+  ],
   "unclosed-element": ["an element with no closing line", "a `{/name}` line, or `/}` for a leaf"],
   "unclosed-block": [
     "a block with no closing line",
     "a closing fence, a `$$` line or `-->`, before its container ends",
+  ],
+  "expression-bracket": [
+    "an expression that ends with a `(` or `[` still open, so a `}` inside it closed it early",
+    "close every bracket inside `${…}`, or move the code out of the document",
   ],
   "attribute-syntax": [
     "attributes markz does not read",

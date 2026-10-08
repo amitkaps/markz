@@ -18,8 +18,8 @@
 import { type Attributes, type Builder, type NodeData, type NodeType, type Range } from "./ast";
 import { bareOnly, braceEnd, parseAttributes, parseElement } from "./attributes";
 import { NAMED, unescape } from "./chars";
-import { element } from "./elements";
-import { memo, scanExpression, type Memo } from "./expression";
+import { element, insteadOf } from "./elements";
+import { memo, scanExpression, unclosedBracket, type Memo } from "./expression";
 import { type WarningCode } from "./warnings";
 
 /**
@@ -107,6 +107,7 @@ const REJECTED: Record<string, WarningCode> = {
 };
 
 const isSpace = (c: string | undefined) => c === undefined || /\s/.test(c);
+const isDigit = (c: string | undefined) => c !== undefined && c >= "0" && c <= "9";
 const isWord = (c: string | undefined) => c !== undefined && /[\p{L}\p{N}]/u.test(c);
 const isPunct = (c: string | undefined) => c !== undefined && /[!-/:-@[-`{-~]/.test(c);
 /** Unicode punctuation and symbols, which flanking treats alike. */
@@ -508,6 +509,7 @@ class InlinePass {
       code: this.text.slice(t + 2, e - 1),
       range: { start: this.at(t + 2), end: this.to(e - 1) },
     };
+    if (unclosedBracket(data.code)) this.report("expression-bracket", t, e);
     this.add(list, this.nodeItem("expression", this.at(t), this.to(e), data));
     return e;
   }
@@ -589,7 +591,8 @@ class InlinePass {
    *
    * Whether a run can open or close is `flanking`, and which opener a closer takes is
    * `nearest-opener` (grammar: emphasis): openers of other kinds between them are left as text,
-   * so nothing is read twice. `*` is kept only in `star-places`, where formatters write it.
+   * so nothing is read twice. `*` is kept only in `star-places`, where formatters write it, and
+   * never between two digits (`star-digits`).
    * Anywhere else a `*` pair, like a `__` or `~` pair, stays text and is reported.
    */
   delimiter(list: List, t: number, from: number, to: number): number {
@@ -604,6 +607,8 @@ class InlinePass {
     if (!KINDS[kind] && !REJECTED[kind]) return t + n;
     const before = t > from ? text[t - 1] : undefined;
     const after = t + n < to ? text[t + n] : undefined;
+    // `2*3*4` and `2**10` are arithmetic: a `*` run between digits neither opens nor closes.
+    if (ch === "*" && isDigit(before) && isDigit(after)) return t + n;
     // CommonMark's flanking: a run can't open before whitespace, or before punctuation that
     // follows a letter, and the mirror image for closing. `_` also can't open or close
     // inside a word.
@@ -894,7 +899,13 @@ class InlinePass {
     const closer = this.textItem(this.at(t), this.to(t + 1), "]");
     this.add(list, closer);
     if (name !== null && !element(name, true)) {
-      this.report("element-name", bracket.at!, e, `\`${name}\` is not an element name`);
+      this.report(
+        "element-name",
+        bracket.at!,
+        e,
+        `\`${name}\` is not an element name`,
+        insteadOf(name, true),
+      );
       this.literal(list, bracket, e);
       return e;
     }
@@ -1126,8 +1137,8 @@ class InlinePass {
     else this.b.warn("attribute-syntax", at, lineEnd, "`{` is never closed on its line");
   }
 
-  report(code: WarningCode, t: number, e: number, message?: string): void {
-    this.b.warn(code, this.at(t), this.to(e), message);
+  report(code: WarningCode, t: number, e: number, message?: string, instead?: string): void {
+    this.b.warn(code, this.at(t), this.to(e), message, instead);
   }
 
   /** @prose

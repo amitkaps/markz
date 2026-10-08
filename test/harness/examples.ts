@@ -169,6 +169,8 @@ export const listed: Record<string, string> = {
   ),
   // A run opened before a `[` can't close inside the brackets, even when they make no link.
   "commonmark:523": "emphasis",
+  // A `*` between two digits is arithmetic, not emphasis (`5*6*78`).
+  "commonmark:356": "emphasis",
   // A paragraph continuing without its `>` or its item's indentation.
   ...Object.fromEntries(
     [93, 232, 233, 238, 247, 250, 251, 291, 292, 293, 312].map((n) => [

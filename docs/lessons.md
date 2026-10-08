@@ -134,13 +134,12 @@ This keeps what should shape the next change.
 - **djot's inline raw, `{=format}`.** It stays literal text with no warning. Raw blocks are the
   least used construct so far, so a warning for the inline form waits until they are used more.
 - **Simplify, so a writer can learn markz from one page.** Each step updates its own docs.
-  1. Fix the silent cases. `*` and `**` between two digits stay text (`2*3*4`). An element line
-     straight after a list, quote or table warns, since a formatter moves it into them. An
-     unclosed `(` or `[` in `${…}` warns, since a `}` in a regex ends it early. The
-     `element-name` warning suggests the writer's own name (`{@div .note}`).
+  1. Done: the silent cases warn or stay text (`star-digits`, `element-lazy-line`,
+     `expression-bracket`), and `element-name` suggests the writer's own name.
   2. Make the breaking changes in one release, with one migration note. Smart punctuation leaves
-     the dialect, since `--force`, `'90s` and `5'10"` come out wrong with no warning. Metadata
-     loses dotted keys and the checks for rare YAML (`~`, `0x1F`, `1e3`). It keeps the checks
+     the dialect, since `--force`, `'90s` and `5'10"` come out wrong with no warning. A dot in
+     a metadata key becomes an ordinary character, as YAML reads it, with no nesting. Metadata
+     drops the checks for rare YAML (`~`, `0x1F`, `1e3`). It keeps the checks
      for everyday mistakes, and widens them to ` #` in a value, `yes` and `no` words, and
      numbers that would change (`1.10`). `vite-plus` moves to 1.1.0.
   3. `***` becomes a rule in that release. oxfmt 0.72.0, in `vite-plus` 1.1.0, writes it on a
