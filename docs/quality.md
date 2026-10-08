@@ -61,8 +61,8 @@ in [Design](design.md#performance-and-size).
   - elements and spans, by markz's own examples, and colon directives, from
     `micromark-extension-directive`'s suite, each reported
   - metadata: every row of the value table in `syntax.md`, each checked against the `yaml`
-    package, every look-alike (`True`, `no`, `1.10`, …) and ` #` in a value giving a warning,
-    and rare YAML forms (`1e3`, `0x1F`) read as the strings they are written as
+    package, every look-alike (`True`, `no`, `1.10`, `1e3`, …) giving a warning, and a value
+    holding ` #` kept as written with one
   - math, including `$` used as currency
   - expressions: nesting, strings, comments, escapes, and emphasis inside `${…}`; malformed
     JavaScript that still closes; the regex-literal limit

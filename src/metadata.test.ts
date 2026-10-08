@@ -1,7 +1,7 @@
 /** @prose
  * The metadata rule, held to the `yaml` package: every block markz accepts without a warning gives
  * the object YAML 1.2 gives. The checks catch what writers get wrong (`no`, `1.10`, `Issue #42`),
- * and rare YAML forms (`1e3`, `0x1F`) are strings as written (syntax.md: Metadata).
+ * and every number form YAML reads (`1e3`, `0x1F`) is one of them (syntax.md: Metadata).
  */
 import { describe, expect, it } from "vite-plus/test";
 import { parse as yaml } from "yaml";
@@ -44,18 +44,24 @@ describe("metadata", () => {
     "1.",
     "1.10",
     "1.0",
+    "1e3",
+    "0x1F",
+    "0o7",
+    ".inf",
+    ".nan",
+    "-.Inf",
   ])("rejects the look-alike %s", (value) => {
     const doc = parse(block(`a: ${value}\nb: 1`));
     expect(doc.metadata).toEqual({ b: 1 });
     expect(doc.warnings.map((w) => w.code)).toEqual(["metadata-value"]);
   });
 
-  it.each(["1e3", "0x1F", "0o7", ".inf", ".nan", "-.Inf"])(
-    "reads the rare YAML form %s as the string it is written as",
+  it.each(["Issue #42", "a: b", "note:", "[Issue #42, x]"])(
+    "keeps %s as written, with a warning, where YAML would cut it short or reject it",
     (value) => {
       const doc = parse(block(`a: ${value}`));
-      expect(doc.warnings).toEqual([]);
-      expect(doc.metadata).toEqual({ a: value });
+      expect(doc.metadata).toEqual({ a: value.startsWith("[") ? ["Issue #42", "x"] : value });
+      expect(doc.warnings.map((w) => w.code)).toEqual(["metadata-value"]);
     },
   );
 
@@ -65,8 +71,6 @@ describe("metadata", () => {
     ["a block scalar", "a: |"],
     ["a flow map", "a: {b: 1}"],
     ["an anchor", "a: &x 1"],
-    ["a colon in a plain value", "a: b: c"],
-    ["a comment after a value", "a: Issue #42"],
     ["a comment after a quoted value", 'a: "x" # note'],
     ["a nested list", "a: [[1]]"],
     ["an unclosed quote", 'a: "open'],

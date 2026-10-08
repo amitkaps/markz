@@ -9,34 +9,34 @@ rules, with every edge case, are in the [grammar](grammar.md).
 
 ## At a glance
 
-| To write                 | Write                                                                 |
-| ------------------------ | --------------------------------------------------------------------- |
-| Metadata                 | `key: value` lines between `---` lines, at the very top               |
-| A heading                | `#` to `######` and a space: `## Title`                               |
-| A heading's id           | `{#id}` on the line above the heading                                 |
-| A paragraph              | lines of text, with a blank line between paragraphs                   |
-| Emphasis, strong, struck | `_emphasis_`, `**strong**`, `~~struck~~`                              |
-| Inline code              | `` `code` ``                                                          |
-| A link                   | `[text](url "title")`                                                 |
-| A link to a URL or email | `<https://example.com>`, `<me@example.com>`                           |
-| An image                 | `![alt](image.png "title")`                                           |
-| A list                   | `- item`, or `1. item` for a numbered one                             |
-| A task                   | `- [ ] to do`, `- [x] done`                                           |
-| A quote                  | `>` at the start of every line                                        |
-| A code block             | a ` ``` ` fence, with the language after it                           |
-| A table                  | pipes, with a `---` row under the header, and `:---:` to align        |
-| A rule                   | `---`                                                                 |
-| A line break             | `\` at the end of the line                                            |
-| Math                     | `$x$` in a line, and `$$` fences or `$$x$$` for a block               |
-| A value from code        | `${name}`                                                             |
-| A class, id or attribute | `{.class #id key=value open}` above a block, or after a link or image |
-| A styled word            | `[text]{.class}`                                                      |
-| An inline element        | `[Ctrl]{@kbd}`                                                        |
-| A block element          | `{@call-out}` … `{/call-out}`, or `[label]{@name /}` on one line      |
-| HTML                     | a ` ```=html ` fence                                                  |
-| A comment                | `<!-- … -->` on lines of its own                                      |
-| A symbol as itself       | `\` before it (`\*`, `\$`), or a number (`&#169;`)                    |
-| A non-breaking space     | `\ `, a backslash and a space                                         |
+| To write                 | Write                                                                   |
+| ------------------------ | ----------------------------------------------------------------------- |
+| Metadata                 | `key: value` lines between `---` lines, at the very top                 |
+| A heading                | `#` to `######` and a space: `## Title`                                 |
+| A heading's id           | `{#id}` on the line above the heading                                   |
+| A paragraph              | lines of text, with a blank line between paragraphs                     |
+| Emphasis, strong, struck | `_emphasis_`, `**strong**`, `~~struck~~`                                |
+| Inline code              | `` `code` ``                                                            |
+| A link                   | `[text](url "title")`                                                   |
+| A link to a URL or email | `<https://example.com>`, `<me@example.com>`                             |
+| An image                 | `![alt](image.png "title")`                                             |
+| A list                   | `- item`, or `1. item` for a numbered one                               |
+| A task                   | `- [ ] to do`, `- [x] done`                                             |
+| A quote                  | `>` at the start of every line                                          |
+| A code block             | a ` ``` ` fence, with the language after it                             |
+| A table                  | pipes, with a `---` row under the header, and `:---:` to align          |
+| A rule                   | `---`                                                                   |
+| A line break             | `\` at the end of the line                                              |
+| Math                     | `$x$` in a line, and `$$` fences or `$$x$$` alone on a line for a block |
+| A value from code        | `${name}`                                                               |
+| A class, id or attribute | `{.class #id key=value open}` above a block, or after a link or image   |
+| A styled word            | `[text]{.class}`                                                        |
+| An inline element        | `[Ctrl]{@kbd}`                                                          |
+| A block element          | `{@call-out}` … `{/call-out}`, or `[label]{@name /}` on one line        |
+| HTML                     | a ` ```=html ` fence                                                    |
+| A comment                | `<!-- … -->` on lines of its own                                        |
+| A symbol as itself       | `\` before it (`\*`, `\$`), or a number (`&#169;`)                      |
+| A non-breaking space     | `\ `, a backslash and a space                                           |
 
 ## Writing safely
 
@@ -45,7 +45,7 @@ Three rules keep a document safe. markz warns when one is broken, so none needs 
 - **Leave a blank line between a list, quote or table and an element line after it.** A formatter
   would otherwise move the line into the list, quote or table (`element-lazy-line`).
 - **Quote a metadata value that YAML would read another way.** That is a value holding `: ` or
-  ` #`, one starting with a symbol, a yes or no word, or a number written so that it would change
+  ` #`, one starting with a symbol, a yes or no word, or a number YAML would read differently
   (`metadata-value`).
 - **Give a custom element a hyphen in its name,** as `call-out`, not `callout` (`element-name`).
 
@@ -54,8 +54,8 @@ Three rules keep a document safe. markz warns when one is broken, so none needs 
 Some Markdown forms aren't part of the language. Each stays literal text, with a warning that
 names the form to write. The common ones are setext headings, indented code, reference links,
 footnotes, raw HTML, bare URLs, two trailing spaces as a line break, `*emphasis*`, `__strong__`,
-`~~~` fences and `___` rules. [Not supported](#not-supported) lists them all, with their warning
-codes.
+`~~~` fences and `___` rules. [Not supported](#not-supported) lists every cut form, with its
+warning code. The other warnings are named with the rule they guard.
 
 {#metadata}
 
@@ -83,27 +83,29 @@ deploy.name: my-site
 ---
 ```
 
-| Value              | Result                                                              |
-| ------------------ | ------------------------------------------------------------------- |
-| nothing, or `null` | `null`                                                              |
-| `true`, `false`    | boolean                                                             |
-| `42`, `-3`, `1.5`  | number                                                              |
-| `"text"`           | string, with JSON's escapes                                         |
-| `'text'`           | string, with `''` for a quote                                       |
-| `[a, 2, "b, c"]`   | a list of values by these same rules, on one line                   |
-| anything else      | string, as written: `Sales Report`, `2026-09-26`, `C# notes`, `1e3` |
+| Value              | Result                                                             |
+| ------------------ | ------------------------------------------------------------------ |
+| nothing, or `null` | `null`                                                             |
+| `true`, `false`    | boolean                                                            |
+| `42`, `-3`, `1.5`  | number                                                             |
+| `"text"`           | string, with JSON's escapes                                        |
+| `'text'`           | string, with `''` for a quote                                      |
+| `[a, 2, "b, c"]`   | a list of values by these same rules, on one line                  |
+| anything else      | string, as written: `Sales Report`, `2026-09-26`, `C# notes`, `v2` |
 
 - **Keys** start with a letter or `_`, and hold letters, digits, `_`, `-` and `.`. A `.` is part
   of the key, as YAML reads it, so `deploy.name` is one key. A repeated key gets the warning
   `metadata-duplicate-key`, and the first one wins.
 - **Comments** are lines that start with `#`.
 - **Quote a value that YAML would read another way.** Otherwise the line gets the warning
-  `metadata-value`, and its key is skipped. That is a value holding `: ` or ` #`, one starting
-  with a symbol such as `*`, `@` or `{`, a yes or no word in any case (`True`, `no`, `off`), or a
-  number that would change (`01234`, `1.10`). In a list, also quote an item that holds `,`, `[`
-  or `]`.
-- **The rest of YAML is out.** Indented lines, `- item` lists, multi-line strings and `{a: b}`
-  get the warning `metadata-line`, and the key they belong to is skipped.
+  `metadata-value`. That is a value starting with a symbol such as `*`, `@` or `{`, a yes or no
+  word in any case (`True`, `no`, `off`), or a number YAML would read differently (`01234`,
+  `1.10`, `1e3`). Its key is skipped, since any guess could be wrong. In a list, also quote an
+  item that holds `,`, `[` or `]`.
+- **A value holding `: ` or ` #` is kept as written,** with the same warning. YAML would reject
+  the first and cut the second short, so `title: Issue #42` would lose `#42` elsewhere.
+- **The rest of YAML is out.** Indented lines, `- item` lists and multi-line strings get the
+  warning `metadata-line`, and the key they belong to is skipped.
 
 ## Block
 
@@ -309,7 +311,8 @@ their props, in its own pass over the tree.
 
 `<!-- … -->` on lines of its own is a note that stays in the source. `html()` never writes it.
 It may span lines, and ends on the line with `-->`. Text after `-->` on that line gets the
-warning `comment-trailing-text`. A `<!--` after other text on its line is text.
+warning `comment-trailing-text`. A `<!--` after other text on its line is text, with the
+warning `raw-html`.
 
 ## Inline
 
@@ -436,12 +439,12 @@ warning: a lone `[x]` and a bare `{…}`.
 | Code                          | Syntax                                                                                       | Write instead                                                                                           | Why                                                                                                                                       |
 | ----------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `raw-html`                    | Raw HTML blocks and inline tags                                                              | a ` ```=html ` raw block, or elements and attributes                                                    | Seven HTML-block kinds and a tag grammar. HTML stays possible, but only where it's marked.                                                |
-| `setext-heading`              | Setext headings (`Title` over `===` or `---`)                                                | `# Title`                                                                                               | A paragraph would turn into a heading when the next line is read.                                                                         |
+| `setext-heading`              | Setext headings (`Title` over `===` or `---`)                                                | `# Title`                                                                                               | A second heading form.                                                                                                                    |
 | `indented-code`               | Indented code blocks                                                                         | fenced code                                                                                             | Indentation meaning code is what makes list indentation hard. The indented line is paragraph text, and never a heading or list inside it. |
 | `tilde-fence`                 | `~~~` fences                                                                                 | a longer backtick fence                                                                                 | One fence character.                                                                                                                      |
 | `rule-marker`                 | `___`, `* * *` rules                                                                         | `---`                                                                                                   | One marker.                                                                                                                               |
 | `trailing-heading-attributes` | Trailing heading attributes (`## Title {#id}`)                                               | `{#id}` on the line above                                                                               | A `{` after a word is text, so this `{…}` would belong to the word "Title".                                                               |
-| `multiline-attributes`        | Multi-line attributes                                                                        | one line                                                                                                | Keeps the block pass free of lookahead.                                                                                                   |
+| `multiline-attributes`        | Multi-line attributes                                                                        | one line                                                                                                | One line keeps a `{…}` plain to see.                                                                                                      |
 | `directive`                   | Colon directives (`:::name` … `:::`, `::name[label]`, `:name[text]`)                         | `{@name}` … `{/name}`, `[label]{@name /}` or `[text]{@name}`                                            | One extension syntax. `{…}` already holds the attributes, and `@name` in it makes the element, so colons were a second way.               |
 | `element-name`                | Element names that aren't elements (`{@chart /}`, `{@note}`, `[x]{@note}`)                   | a `div` or span with a class (`{@div .chart /}`, `[x]{.note}`), or a custom element (`{@chart-view /}`) | The name is the element it writes, so there is one way to add a class and a name can never be `script`.                                   |
 | `lazy-line`                   | Lazy continuation lines (a quoted or listed paragraph continuing without `>` or indentation) | `>` on every line, or indent to the item's content column                                               | Lazy lines are the main reason CommonMark's block structure depends on context. Formatters already write them out in full.                |

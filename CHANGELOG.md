@@ -11,15 +11,14 @@ damage it.
 
 ### Breaking
 
-| Before                                                     | Now                                   | What to do                                                                     |
-| ---------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------ |
-| `"quotes"`, `--` and `...` became `“”`, `–` and `…`        | Text is kept as typed                 | Type the character you want, or curl text in your own pass over the tree.      |
-| `deploy.name: x` gave `{ deploy: { name: "x" } }`          | `{ "deploy.name": "x" }`              | Read `metadata["deploy.name"]`, or keep nested config in the site's own files. |
-| `title: Hi # note` dropped the comment                     | `metadata-value`, and the key skipped | Put the comment on its own `#` line, or quote the value.                       |
-| `draft: no`, `on` and `off` were strings, `1.10` was `1.1` | `metadata-value`, and the key skipped | Write `true` or `false`, or quote the value.                                   |
-| `1e3`, `0x1F` and `.inf` warned                            | Strings, as written                   | Nothing, or write the number in decimal.                                       |
-| The `metadata-indented` code                               | `metadata-line`                       | Match the new code.                                                            |
-| `MetadataValue` could be a nested object                   | A scalar, or a list of scalars        | Drop the object case.                                                          |
+| Before                                                     | Now                                       | What to do                                                                              |
+| ---------------------------------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------- |
+| `"quotes"`, `--` and `...` became `“”`, `–` and `…`        | Text is kept as typed                     | Type the character you want, or curl text in your own pass over the tree.               |
+| `deploy.name: x` gave `{ deploy: { name: "x" } }`          | `{ "deploy.name": "x" }`, with no warning | Read `metadata["deploy.name"]`. `metadata.deploy` is now `undefined`, so search for it. |
+| `title: Hi # note` dropped the comment                     | Kept as written, with `metadata-value`    | Quote the value, or put the comment on its own `#` line.                                |
+| `draft: no`, `on` and `off` were strings, `1.10` was `1.1` | `metadata-value`, and the key skipped     | Write `true` or `false`, or quote the value.                                            |
+| The `metadata-indented` code                               | `metadata-line`                           | Match the new code.                                                                     |
+| `MetadataValue` could be a nested object                   | A scalar, or a list of scalars            | Drop the object case.                                                                   |
 
 ### Added
 

@@ -41,9 +41,13 @@ This keeps what should shape the next change.
 - **Smart punctuation is presentation.** It curled `--force`, `'90s` and `5'10"` wrong with no
   warning, and its rules didn't fit in a line a writer could hold. Text is kept as typed, and a
   site that wants curly quotes adds them in its own pass over the tree.
-- **Metadata checks what writers get wrong.** Warnings for rare YAML (`1e3`, `0x1F`) guarded no
-  one, while ` #` in a value, `draft: no` and `version: 1.10` lost data with no warning. The
-  checks now cover the everyday mistakes, and keys are flat, with a `.` read as YAML reads it.
+- **Metadata checks what writers get wrong.** ` #` in a value, `draft: no` and `version: 1.10`
+  once lost data with no warning. The checks now cover the everyday mistakes, and keys are flat,
+  with a `.` read as YAML reads it. Any number form YAML reads warns, since a hash like `1e3456`
+  would be Infinity elsewhere.
+- **A warning doesn't always skip.** A guessed type could be wrong either way, so its key is
+  skipped. A value holding ` #` is plainly what the writer meant, so markz keeps it as written.
+  Skipping it would lose a whole title like `Issue #42`.
 - **Footnotes stay out.** No proposal says where a note's body goes. A span holds inline text, and
   a body placed elsewhere needs the whole document before a note can be resolved.
 

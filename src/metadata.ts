@@ -5,9 +5,11 @@
  * where a value is null, a boolean, a number, a quoted string, a one-line `[…]` list, or
  * otherwise a string as written. Keys are flat, and a `.` in one is an ordinary character, as YAML
  * reads it. The rule warns on the mistakes writers make, not on every corner of YAML. A value
- * YAML would break on (`: `, a leading `*`), cut short (` #`) or read as another type (`no`,
- * `1.10`) is a warning, and so is a line that isn't `key: value`. A line in error skips its key,
- * and the rest of the block is still read.
+ * YAML would read as another type (`no`, `1.10`, `1e3`) or as structure (a leading `*` or `{`) is
+ * a warning, and its key is skipped, since any guess could be wrong. A value holding `: ` or ` #`
+ * is a warning too, but markz keeps it as written. Skipping it would lose a title like
+ * `Issue #42`, which YAML cuts short. A line that isn't `key: value` skips its key, and the rest
+ * of the block is still read.
  */
 import { type Builder, type MetadataObject, type MetadataScalar } from "./ast";
 
@@ -43,7 +45,10 @@ export function parseMetadata(
         } else {
           const result = parseValue(line.slice(match[0].length).trim());
           if (typeof result === "string") b.warn("metadata-value", at, lineEnd, result);
-          else value[key] = result.value;
+          else {
+            value[key] = result.value;
+            if (result.warn) b.warn("metadata-value", at, lineEnd, result.warn);
+          }
         }
       }
       last = match ? match[1]! : null;
@@ -55,13 +60,16 @@ export function parseMetadata(
   return value;
 }
 
-/** A value, or the message when it is rejected. */
-function parseValue(text: string): { value: MetadataScalar | MetadataScalar[] } | string {
+/** A value, kept with a message or not; or the message when it is rejected. */
+type Parsed<T> = { value: T; warn?: string } | string;
+
+function parseValue(text: string): Parsed<MetadataScalar | MetadataScalar[]> {
   if (!text.startsWith("[")) return parseScalar(text);
   if (!text.endsWith("]")) return "a list must close on its line";
   const inner = text.slice(1, -1).trim();
   if (inner === "") return { value: [] };
   const items: MetadataScalar[] = [];
+  let warn: string | undefined;
   for (const item of splitList(inner)) {
     if (item === null) return "unbalanced quotes in a list";
     const trimmed = item.trim();
@@ -72,11 +80,12 @@ function parseValue(text: string): { value: MetadataScalar | MetadataScalar[] } 
     const scalar = parseScalar(trimmed);
     if (typeof scalar === "string") return scalar;
     items.push(scalar.value);
+    warn ??= scalar.warn;
   }
-  return { value: items };
+  return { value: items, warn };
 }
 
-function parseScalar(text: string): { value: MetadataScalar } | string {
+function parseScalar(text: string): Parsed<MetadataScalar> {
   if (text === "" || text === "null") return { value: null };
   if (text === "true") return { value: true };
   if (text === "false") return { value: false };
@@ -97,15 +106,25 @@ function parseScalar(text: string): { value: MetadataScalar } | string {
   if (/^(?:true|false|null|yes|no|on|off|~)$/i.test(text)) {
     return `\`${text}\` reads as true, false or null in YAML: quote it, or write \`true\`, \`false\` or \`null\``;
   }
-  if (/^[-+]?(?:\d+\.?\d*|\.\d+)$/.test(text)) {
-    return `\`${text}\` would lose a digit or sign as a number: quote it, or write it as \`${Number(text)}\``;
+  // Every number form YAML 1.2 reads, so a hash like `1e3456` isn't quietly Infinity elsewhere.
+  if (
+    /^[-+]?(?:(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?|\.inf|\.nan)$|^0x[\da-f]+$|^0o[0-7]+$/i.test(text)
+  ) {
+    const n = Number(text);
+    return `\`${text}\` reads as a number in YAML: quote it${Number.isNaN(n) ? "" : `, or write it as \`${n}\``}`;
   }
   if (/^[{&*!|>%@`,#\]}]|^[-?:](?:[ \t]|$)/.test(text)) {
     return `\`${text[0]}\` at the start of a value is YAML syntax: quote the value`;
   }
-  if (/:(?:[ \t]|$)/.test(text)) return "`: ` inside a value is YAML syntax: quote the value";
-  if (/[ \t]#/.test(text))
-    return "` #` starts a comment in YAML, which drops the rest: quote the value";
+  if (/:(?:[ \t]|$)/.test(text)) {
+    return { value: text, warn: "`: ` inside a value is YAML syntax: quote the value" };
+  }
+  if (/[ \t]#/.test(text)) {
+    return {
+      value: text,
+      warn: "` #` starts a comment in YAML, which drops the rest: quote the value",
+    };
+  }
   return { value: text };
 }
 

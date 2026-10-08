@@ -501,8 +501,8 @@ type Range = { start: number; end: number };
  * ## Metadata against YAML
  *
  * A yaml-test-suite example is held to the `yaml` package, key by key: every key markz keeps
- * must have the value YAML gives it, and a block YAML rejects
- * must raise a metadata warning. A key markz skipped is fine when it warned about the line, and
+ * must have the value YAML gives it, unless a warning covers its line (a value holding ` #` is
+ * kept as written). A block YAML rejects must raise a metadata warning. A key markz skipped is fine when it warned about the line, and
  * such an example warns rather than matches. A block markz doesn't read as metadata at all
  * differs, by the metadata rule.
  */
@@ -528,7 +528,9 @@ function againstYaml(e: Example, doc: Document): Result {
   const value = oracle.value as Record<string, unknown>;
   const kept = Object.entries(mine);
   for (const [key, v] of kept) {
-    if (JSON.stringify(v) !== JSON.stringify(value[key]))
+    if (JSON.stringify(v) === JSON.stringify(value[key])) continue;
+    const line = e.markdown.indexOf(`\n${key}:`) + 1;
+    if (!doc.warnings.some((w) => w.start <= line && line < w.end))
       return result("fail", `\`${key}\` differs from YAML`);
   }
   if (!codes.length && Object.keys(value).length !== kept.length) {
