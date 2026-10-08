@@ -57,7 +57,7 @@ After a link, image or `[text]`, a `{…}` that doesn't parse stays text and is 
 <h2 id="pricing" class="center">Pricing</h2>
 ```
 
-```example 55
+```example 55 attribute-merge
 {.a key=1}
 {.b key=2}
 | x |
@@ -100,7 +100,7 @@ para
 para</p>
 ```
 
-```example 59
+```example 59 attribute-places
 {a, b} and {"json": 1}
 .
 <p>{a, b} and {&quot;json&quot;: 1}</p>

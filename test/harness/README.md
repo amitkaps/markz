@@ -16,7 +16,8 @@ live here, so one change to how an example is filed or judged reaches both at on
   metadata, github-slugger for heading ids and the math extension's spans.
 - [`cases.ts`](cases.ts): every construct at its edges. Cases written from its productions, and
   their one-character neighbours, must be read as the grammar reads them, or be settled by a named
-  side rule or a Not supported row.
+  side rule or a Not supported row. It also lists the side rules the oracle or the judge holds, so
+  every side rule is held by something.
 - [`generate.ts`](generate.ts): fast-check arbitraries. Documents written from the grammar's
   productions, optionally only those of chosen origins; noise from Markdown's characters and the
   ones that trouble offsets; known examples with a few random edits; and how far a search goes.

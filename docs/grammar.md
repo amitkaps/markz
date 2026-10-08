@@ -25,7 +25,9 @@ production here: it is a Not supported row in `syntax.md`, keyed by its warning 
   row says otherwise, and only those are compared with it.
 - **Side rules.** Listed by name under the productions. An example that tries an ambiguous edge
   names the rule that settles it (`example 17 ambiguous closing-hashes`), and so does
-  [`test/harness/cases.ts`](../test/harness/cases.ts) where markz and the productions part.
+  [`test/harness/cases.ts`](../test/harness/cases.ts) where markz and the productions part. Every
+  side rule is held by a test: a settlement there, a warning, an example labelled with it, or,
+  for a CommonMark or GFM rule that decides the HTML, the oracle.
 - **Checked.** Every name is defined, every production is reachable from `document`, and each
   side rule is named once.
 

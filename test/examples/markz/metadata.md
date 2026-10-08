@@ -127,3 +127,17 @@ title: x
 .
   - a
 ```
+
+A list's plain items hold no `,`, brackets or braces, so a quoted item can hold a comma. A list
+with a nested list is reported, and its key skipped.
+
+```example 175 list-items
+---
+tags: [svelte, "a, b", c]
+bad: [x[1]]
+---
+.
+
+.
+bad: [x[1]]
+```

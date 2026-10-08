@@ -6,7 +6,7 @@
 <p><span class="y">x</span> and <badge-count n="3"></badge-count></p>
 ```
 
-```example 84
+```example 84 span-content
 H[2]{@sub}O and x[2]{@sup} and [HTML]{@abbr title="HyperText"}
 .
 <p>H<sub>2</sub>O and x<sup>2</sup> and <abbr title="HyperText">HTML</abbr></p>

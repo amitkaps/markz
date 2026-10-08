@@ -654,6 +654,29 @@ export const constructIds = CONSTRUCTS.map((c) => c.id);
 export const sideRules = new Set([DOCUMENT, ...CONSTRUCTS].flatMap((c) => Object.keys(c.rules)));
 
 /** @prose
+ * ## Side rules held elsewhere
+ *
+ * Every side rule names what holds it: a settlement above, a warning in `WARNED`, an example
+ * labelled with it, or one of these lists. The edges judge only whether a construct is read. So a
+ * CommonMark or GFM rule that decides the HTML instead, such as a list's start or whether it is
+ * loose, is held by the oracle. That is the upstream suites against micromark, and the documents
+ * the grammar writes (`robustness.test.ts`). A rule the judge applies to every case is held by
+ * the judge.
+ */
+export const ORACLE = new Set([
+  "text",
+  "item-content",
+  "ordinal",
+  "loose",
+  "fence-indent",
+  "emphasis-brackets",
+  "scheme-length",
+  "destination",
+  "reference-digits",
+]);
+export const JUDGED = new Set(["last-line"]);
+
+/** @prose
  * ## Edges a construct can't have
  *
  * A construct with no closing mark can't be left unclosed, and one the productions alone tell
