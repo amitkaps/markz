@@ -164,8 +164,8 @@ ambiguous. The parser isn't generated from it. It is written by hand, to four ru
 **Heading ids are settled in the pass.** CommonMark defines headings but not ids, so every
 renderer adds them its own way or not at all. markz uses GitHub's algorithm, so a link to a
 heading works on GitHub and on the site. A `{#id}` line sets one by hand. An id is settled as its
-heading is parsed, against the ids used so far, so it never depends on a later heading. The rules and the contract
-cases are in [`syntax.md`](syntax.md#heading).
+heading is parsed, against the ids used so far, so it never depends on a later heading. The steps
+are in [`grammar.md`](grammar.md#heading).
 
 **micromark is the test oracle, not a dependency.** markz must match GFM on the constructs they
 share, not all of GFM, and micromark checks exactly that ([Quality](quality.md#how-markz-is-tested)).
