@@ -85,12 +85,13 @@ The deploy command uses `pnpm dlx`, not `npx`, because `npx` refuses to run in a
 
 ## Release
 
-Run `pnpm fuzz`, bump `version` in `package.json` and merge to `main`. Then tag the release and
-push the tag.
+Run the `fuzz` workflow on `main` (`gh workflow run fuzz`). Bump `version` in `package.json`,
+rename `CHANGELOG.md`'s Unreleased section to the version and date, and merge to `main`. Then tag
+the release and push the tag.
 
 ```sh
-git tag v0.3.0 && git push origin v0.3.0
+git tag v0.4.0 && git push origin v0.4.0
 ```
 
 The `release` workflow checks, tests and packs it, then stages it on npm for a maintainer to
-approve. How and why is in [Design](design.md#package).
+approve. The GitHub release's notes are the version's section of `CHANGELOG.md`. How and why is in [Design](design.md#package).
