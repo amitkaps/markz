@@ -24,7 +24,7 @@
     "access": "public"
   },
   "scripts": {
-    "prepack": "vp pack",
+    "prepack": "pnpm run build",
     "dev": "vp pack --watch",
     "build": "vp pack",
     "check": "vp check",
