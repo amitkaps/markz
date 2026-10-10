@@ -1,8 +1,17 @@
+# @prose
+# # Release
+#
+# Pushing a `vX.Y.Z` tag checks the package, stages it on npm and publishes a GitHub Release with
+# the tarball. The tag must match `package.json`'s version. This file is the same in every
+# package, copied from ship's `package/` folder, so it names no package and reads everything from
+# `package.json`.
+#
+# npm uses trusted publishing, with OIDC and provenance, so there's no token to store. The
+# publisher may only stage. The new version waits on npmjs.com until a maintainer approves it
+# with 2FA, so a tag push alone can't put a version in front of users.
+
 name: release
 
-# Push a `vX.Y.Z` tag → build, verify, stage the tarball on npm and attach it to a GitHub
-# Release. npm trusts this workflow to stage (OIDC), so there is no npm token; a maintainer
-# approves the staged version with 2FA to publish it. The same exchange signs the provenance.
 on:
   push:
     tags: ["v*"]
@@ -10,6 +19,7 @@ on:
 permissions:
   contents: write
   id-token: write
+  pull-requests: read
 
 jobs:
   release:
@@ -19,7 +29,7 @@ jobs:
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
-          node-version: 26
+          node-version-file: package.json
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
@@ -29,35 +39,36 @@ jobs:
           v="$(node -p 'require("./package.json").version')"
           test "v$v" = "$GITHUB_REF_NAME" || { echo "tag $GITHUB_REF_NAME != package.json v$v"; exit 1; }
 
-      - run: pnpm run check
-      - run: pnpm test
-      - run: pnpm build
-      - run: pnpm size
+      # The same script CI and Cloudflare run. A package's own checks, like a size budget, go in
+      # `verify`, and publint runs inside `vp pack`.
+      - run: pnpm run verify
 
-      # `pnpm pack` runs `prepack` (the build) first, so the tarball never ships a stale dist/.
+      # `pnpm pack` runs `prepack` first, so the tarball never ships a stale `dist/`.
       - run: pnpm pack
 
-      # Staged, not published: the version waits on npm until a maintainer approves it with 2FA
-      # (`npm stage approve`), so a tag push alone can't put a version in front of users. The
-      # tarball is the one just packed and checked, not a second build. A version with a
-      # pre-release part (`-rc.0`) goes to the `next` dist-tag so it never becomes `latest`.
+      # A version with a pre-release part (`-rc.0`) goes to the `next` dist-tag, so it never
+      # becomes `latest`. A version already on npm is skipped, so a failed run can be rerun. The
+      # tag is a detached checkout, which pnpm's git checks refuse.
       - name: Stage on npm
         run: |
-          tag=latest; case "$GITHUB_REF_NAME" in *-*) tag=next;; esac
-          # The tag is a detached checkout holding the tarball, which pnpm's git checks refuse.
-          pnpm stage publish ./amitkaps-markz-*.tgz --no-git-checks --provenance --access public --tag "$tag"
+          name="$(node -p 'require("./package.json").name')"
+          v="$(node -p 'require("./package.json").version')"
+          if curl -sf "https://registry.npmjs.org/$name/$v" >/dev/null; then
+            echo "$name@$v is already on npm"
+          else
+            tag=latest; case "$v" in *-*) tag=next;; esac
+            pnpm stage publish ./*.tgz --no-git-checks --provenance --access public --tag "$tag"
+          fi
 
-      # The notes are generated from the pull requests' labels (`.github/release.yml`). An annotated
-      # tag's message, such as a breaking release's migration notes, goes above them. The checkout
-      # keeps only the commit, so the tag is fetched again to read its message.
+      # The notes are generated from the pull requests' labels (`.github/release.yml`). The pull
+      # request that bumped the version is titled `vX.Y.Z`, and its description, down to the
+      # first `---` line, goes above them, like what to change in a breaking release.
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          git fetch --force origin "refs/tags/$GITHUB_REF_NAME:refs/tags/$GITHUB_REF_NAME"
-          notes=""
-          if [ "$(git cat-file -t "$GITHUB_REF_NAME")" = tag ]; then
-            notes="$(git tag -l --format='%(contents)' "$GITHUB_REF_NAME")"
-          fi
-          gh release create "$GITHUB_REF_NAME" ./amitkaps-markz-*.tgz --title "$GITHUB_REF_NAME" \
-            --generate-notes --notes "$notes"
+          body="$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '.[0].body // ""')"
+          notes="$(printf '%s\n' "$body" | sed '/^---[[:space:]]*$/,$d')"
+          pre=""; case "$GITHUB_REF_NAME" in *-*) pre=--prerelease;; esac
+          gh release create "$GITHUB_REF_NAME" ./*.tgz --title "$GITHUB_REF_NAME" --verify-tag \
+            $pre --generate-notes --notes "$notes"

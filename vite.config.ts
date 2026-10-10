@@ -1,7 +1,7 @@
 /** @prose
  * # Build config
  *
- * One [`vite-plus`](https://vite-plus.dev) config drives build, format, lint and test —
+ * One [`vite-plus`](https://viteplus.dev) config drives build, format, lint and test —
  * `vp <script>` in `package.json` reads whichever section its command needs. `pack` bundles the
  * library with tsdown. `@amitkaps/prose` is a CLI now (`pnpm prose`), not a plugin, so it has no
  * place here.
@@ -27,6 +27,7 @@ export default defineConfig({
   // tsdown — `vp pack`. ESM only, with declarations. The code ships readable but without its
   // comments, keeping license comments and `@__PURE__` annotations, and with no sourcemaps
   // (design: Package). The `/*!` banner keeps the license with the code when a consumer bundles it.
+  // publint checks the package's `exports`, `files` and types, and fails the build on a problem.
   pack: {
     entry: ["src/index.ts"],
     format: ["esm"],
@@ -35,6 +36,7 @@ export default defineConfig({
     fixedExtension: false,
     banner: { js: "/*! @amitkaps/markz · MIT License · https://github.com/amitkaps/markz */" },
     outputOptions: { comments: { legal: true, annotation: true, jsdoc: false } },
+    publint: { strict: true },
   },
 
   // Oxfmt — `vp fmt` / `vp check`.

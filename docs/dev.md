@@ -6,9 +6,9 @@ changing it, including the prose rules it follows, are in [AGENTS.md](../AGENTS.
 ## Toolchain
 
 `package.json` says what the repository needs. `devEngines` names the Node and pnpm to develop
-with, and `engines` names the Node range the package runs on. markz supports the current Node and
-the previous LTS, which today are 26 and 24. Development asks for 26, so the tests, the timings and the
-Quality report all run on one Node, and pnpm stops with an error on any other. `vp` is a dev dependency, so run it through the
+with, and `engines` names the Node range the package runs on. Both ask for Node 26 or
+newer, so the package supports the Node it's built and tested on, and the tests, the timings and the
+Quality report all run on one Node. pnpm stops with an error on any other. `vp` is a dev dependency, so run it through the
 `pnpm` scripts, not a global install.
 
 ## Build and test
@@ -90,20 +90,16 @@ its own, which a script by that name can't replace.
 
 ## Release
 
-Run the `fuzz` workflow on `main` (`gh workflow run fuzz`). Bump `version` in `package.json` and
-merge to `main`. Then tag the release and push the tag.
+markz releases the way every package does, as [ship's standard](https://github.com/amitkaps/ship/blob/main/docs/standard.md#releases)
+sets out. First run the `fuzz` workflow on `main` (`gh workflow run fuzz`). Then open a pull
+request that bumps `version`, from a branch named `release-X.Y.Z`, titled `vX.Y.Z` and labelled
+`internal`. Its description, down to the first `---` line, goes above the generated notes, like
+what to change in a breaking release. Once it's merged, tag that commit and push the tag.
 
 ```sh
-git tag v0.5.0 && git push origin v0.5.0
+git switch main && git pull && git tag v0.5.0 && git push origin v0.5.0
 ```
 
-A release with breaking changes says what to change in an annotated tag, which goes above the
-generated notes.
-
-```sh
-git tag -a v0.5.0 -m "What to change when you upgrade …" && git push origin v0.5.0
-```
-
-The `release` workflow checks, tests and packs it, then stages it on npm for a maintainer to
+The `release` workflow runs `verify` and packs it, then stages it on npm for a maintainer to
 approve. The GitHub release's notes are generated from the pull requests' labels
 (`.github/release.yml`), so there is no changelog file to keep. How and why is in [Design](design.md#package).
