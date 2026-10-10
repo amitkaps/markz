@@ -16,6 +16,7 @@ Quality report all run on one Node, and pnpm stops with an error on any other. `
 ```sh
 pnpm install
 pnpm check             # format, lint and types
+pnpm fix               # writes the format and lint fixes
 pnpm test
 pnpm fuzz              # random constructs and robustness, a new seed each run
 pnpm build             # the package, into dist/
