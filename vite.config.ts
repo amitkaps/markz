@@ -31,7 +31,7 @@ export default defineConfig({
   pack: {
     entry: ["src/index.ts"],
     format: ["esm"],
-    dts: true,
+    dts: { generator: "oxc" },
     clean: true,
     fixedExtension: false,
     banner: { js: "/*! @amitkaps/markz · MIT License · https://github.com/amitkaps/markz */" },
