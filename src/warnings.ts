@@ -84,7 +84,11 @@ export const WARNINGS = {
   ],
   "metadata-duplicate-key": ["duplicate metadata key; the first one wins", "each key once"],
   "metadata-value": ["a value YAML reads differently", "quote the value"],
-} as const satisfies Record<string, readonly [message: string, instead: string]>;
+} as const;
+
+// Each warning is a message and what to write instead. The check is on the type, since Oxc writes
+// the declarations and can't read a `satisfies` on the value.
+type Pairs<T extends Record<string, readonly [message: string, instead: string]>> = T;
 
 /** A warning's stable code, one of the keys of `WARNINGS`. */
-export type WarningCode = keyof typeof WARNINGS;
+export type WarningCode = keyof Pairs<typeof WARNINGS>;
