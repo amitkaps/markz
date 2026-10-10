@@ -16,3 +16,8 @@ overrides:
 peerDependencyRules:
   allowAny:
     - vite
+
+# Dependencies allowed to run install scripts: wrangler's native binaries.
+allowBuilds:
+  esbuild: true
+  workerd: true

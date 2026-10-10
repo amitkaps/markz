@@ -36,7 +36,9 @@
     "compare": "node test/speed.ts --compare",
     "vendor": "node test/vendor.ts",
     "quality": "node test/quality/quality.ts",
-    "prose": "prose"
+    "prose": "prose",
+    "verify": "pnpm check && pnpm test && pnpm build && pnpm prose build && pnpm quality",
+    "ship": "wrangler deploy"
   },
   "devDependencies": {
     "@amitkaps/prose": "^0.4.0",
@@ -51,13 +53,14 @@
     "micromark-extension-math": "^3.1.0",
     "typescript": "^7.0.2",
     "vite-plus": "1.1.0",
+    "wrangler": "^4.149.0",
     "yaml": "^2.9.1"
   },
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
       "version": "12.9.1",
-      "onFail": "error"
+      "onFail": "download"
     },
     "runtime": {
       "name": "node",
