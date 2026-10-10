@@ -91,15 +91,14 @@ its own, which a script by that name can't replace.
 ## Release
 
 markz releases the way every package does, as [ship's standard](https://github.com/amitkaps/ship/blob/main/docs/standard.md#releases)
-sets out. First run the `fuzz` workflow on `main` (`gh workflow run fuzz`). Then open a pull
-request that bumps `version`, from a branch named `release-X.Y.Z`, titled `vX.Y.Z` and labelled
-`internal`. Its description, down to the first `---` line, goes above the generated notes, like
-what to change in a breaking release. Once it's merged, tag that commit and push the tag.
+sets out. First run the `fuzz` workflow on `main` (`gh workflow run fuzz`). Then, from ship, open
+the pull request that bumps `version`. Its description goes above the generated notes, like what
+to change in a breaking release.
 
 ```sh
-git switch main && git pull && git tag v0.5.0 && git push origin v0.5.0
+pnpm release markz 0.5.0 --notes "What to change when you upgrade …"
 ```
 
-The `release` workflow runs `verify` and packs it, then stages it on npm for a maintainer to
-approve. The GitHub release's notes are generated from the pull requests' labels
+Merging it is the release. The `release` workflow runs `verify` and packs it, stages it on npm
+for a maintainer to approve, then tags the commit and publishes the GitHub release. The GitHub release's notes are generated from the pull requests' labels
 (`.github/release.yml`), so there is no changelog file to keep. How and why is in [Design](design.md#package).
