@@ -32,6 +32,8 @@ exports[`markz/docs-grammar.md > warns as before 1`] = `
 
 exports[`markz/docs-lessons.md > warns as before 1`] = `[]`;
 
+exports[`markz/docs-plan.md > warns as before 1`] = `[]`;
+
 exports[`markz/docs-quality.md > warns as before 1`] = `[]`;
 
 exports[`markz/docs-reference.md > warns as before 1`] = `[]`;

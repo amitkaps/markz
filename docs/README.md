@@ -1,6 +1,16 @@
 ---
 nav:
-  [usage.md, syntax.md, reference.md, grammar.md, design.md, quality.md, lessons.md, development.md]
+  [
+    usage.md,
+    syntax.md,
+    reference.md,
+    grammar.md,
+    design.md,
+    quality.md,
+    plan.md,
+    lessons.md,
+    development.md,
+  ]
 ---
 
 # Docs
@@ -15,5 +25,6 @@ order.
 4. [Grammar](grammar.md): the same language, with every exact rule.
 5. [Design](design.md): how it is built, and what it leaves out.
 6. [Quality](quality.md): what it is held to, and how to read the report.
-7. [Lessons](lessons.md): what building it taught.
-8. [Development](development.md): build, test, release and deploy the site.
+7. [Plan](plan.md): what's done and what's next.
+8. [Lessons](lessons.md): what building it taught.
+9. [Development](development.md): build, test, release and deploy the site.
