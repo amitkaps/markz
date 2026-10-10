@@ -139,14 +139,3 @@ This keeps what should shape the next change.
   block's lines made raw blocks 13% slower, since `html()` writes them as they are. Matching each
   text node against its source made documents 3–5% slower. One check per leaf costs nothing
   measurable, so the copies are only made where the source can't be used.
-
-## Ideas to improve
-
-- **djot's inline raw, `{=format}`.** It stays literal text with no warning. Raw blocks are the
-  least used construct so far, so a warning for the inline form waits until they are used more.
-- **Items.** A pending text string, or writing nodes during the scan, remain open, though
-  merging items showed no gain.
-- **Streaming.** Healing an unfinished document at one point, without changing `parse`
-  ([Design](design.md#streaming)).
-- **The Quality page.** Robustness, the real-document corpus, formatter agreement and HTML
-  safety could join conformance, size and speed.

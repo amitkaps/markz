@@ -313,4 +313,4 @@ document, and is the only timing CI gates on.
   against the budget, the memory held by one document's tree, and parse + HTML time on documents
   a reader can picture, each a range, with the machine named.
 
-Open questions are kept with the ideas to improve, in [Lessons](lessons.md#ideas-to-improve).
+Open questions are kept with the ideas for later, in [Plan](plan.md#later).
