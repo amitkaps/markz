@@ -42,7 +42,7 @@
     "ship": "wrangler deploy"
   },
   "devDependencies": {
-    "@amitkaps/prose": "^0.4.0",
+    "@amitkaps/prose": "^0.4.1",
     "@types/node": "^26.6.4",
     "fast-check": "^4.10.2",
     "github-slugger": "^2.0.0",
