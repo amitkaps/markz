@@ -20,6 +20,13 @@ describe("metadata", () => {
     ["single quotes", "summary: 'Make it yours: it''s done'"],
     ["quoted look-alikes", 'a: "true"\nb: \'42\'\nc: "no"\nd: "1.10"'],
     ["lists", 'tags: [svelte, vite]\nmixed: [a, 2, "b, c", true, null]\nnone: []'],
+    // oxfmt's output for a list too long for one line.
+    [
+      "a list wrapped by the formatter",
+      "nav:\n  [\n    usage.md,\n    syntax.md,\n    development.md,\n  ]\ntitle: Docs",
+    ],
+    ["a list wrapped after its first item", 'tags: [a,\n  "b, c",\n  3]'],
+    ["a comma after the last item", "tags: [a, b,]"],
     ["comment lines", "# a comment\ntitle: Hi"],
     ["blank lines", "a: 1\n\nb: 2"],
     ["dots in keys", "deploy.name: my-site\na..b: 1\nx.y.z: true"],
@@ -73,6 +80,8 @@ describe("metadata", () => {
     ["an anchor", "a: &x 1"],
     ["a comment after a quoted value", 'a: "x" # note'],
     ["a nested list", "a: [[1]]"],
+    ["a wrapped list that never closes", "a: [x,\n  y"],
+    ["indented lines that aren't a list", "a:\n  x, y"],
     ["an unclosed quote", 'a: "open'],
   ])("rejects %s and skips its key", (_, body) => {
     const doc = parse(block(`${body}\nkeep: 1`));

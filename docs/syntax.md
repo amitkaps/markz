@@ -90,7 +90,7 @@ deploy.name: my-site
 | `42`, `-3`, `1.5`  | number                                                             |
 | `"text"`           | string, with JSON's escapes                                        |
 | `'text'`           | string, with `''` for a quote                                      |
-| `[a, 2, "b, c"]`   | a list of values by these same rules, on one line                  |
+| `[a, 2, "b, c"]`   | a list of values by these same rules                               |
 | anything else      | string, as written: `Sales Report`, `2026-09-26`, `C# notes`, `v2` |
 
 - **Keys** start with a letter or `_`, and hold letters, digits, `_`, `-` and `.`. A `.` is part
@@ -104,8 +104,10 @@ deploy.name: my-site
   item that holds `,`, `[` or `]`.
 - **A value holding `: ` or ` #` is kept as written,** with the same warning. YAML would reject
   the first and cut the second short, so `title: Issue #42` would lose `#42` elsewhere.
-- **The rest of YAML is out.** Indented lines, `- item` lists and multi-line strings get the
-  warning `metadata-line`, and the key they belong to is skipped.
+- **A long list can wrap** onto indented lines after its key, as a formatter writes it, and
+  may end with a comma.
+- **The rest of YAML is out.** Other indented lines, `- item` lists and multi-line strings get
+  the warning `metadata-line`, and the key they belong to is skipped.
 
 ## Block
 

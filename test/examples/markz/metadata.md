@@ -141,3 +141,21 @@ bad: [x[1]]
 .
 bad: [x[1]]
 ```
+
+A list too long for one line wraps onto the indented lines after its key, the way a formatter
+writes it, and may end with a comma. It reads as the same list on one line.
+
+```example 653 metadata-wrap
+---
+nav:
+  [
+    usage.md,
+    syntax.md,
+    development.md,
+  ]
+title: Docs
+---
+.
+
+.
+```

@@ -87,7 +87,8 @@ plain ::= ([^ #x9#xA#xD"'{}#x5B#x5D&*!|>%@`,#?:-] | [?:-] [^ #x9#xA#xD]) char*
 ```
 
 - `metadata-start`: Only at offset 0, and only when a closing `---` follows. Whatever is between is metadata, and a line this grammar does not match is a warning. Without the closing line, the first `---` is a thematic break.
-- `metadata-continuation`: A line that is not a key line belongs to the value before it, which is skipped.
+- `metadata-wrap`: A list may continue on the indented lines after its key line, up to its `]`, as a formatter wraps a long one. The lines read as one, joined by spaces, and the list may end with a `,`.
+- `metadata-continuation`: Any other line that is not a key line belongs to the value before it, which is skipped.
 - `metadata-keys`: A key appears once. The first wins.
 - `plain-value`: A plain value is not a yes or no word (`True`, `no`, `off`, `~`) or a number YAML reads (`01234`, `1.10`, `+1`, `.5`, `1e3`, `0x1F`, `.inf`). Such a value is a warning, and its key is skipped. A plain value holding `: ` or ` #` is kept as written, with a warning.
 - `list-items`: A plain list item contains no `,`, `[` or `]`, and no `{` or `}`.

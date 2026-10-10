@@ -2,8 +2,9 @@
  * # Metadata
  *
  * The `---` block at the top of a document, read by syntax.md's rule: one `key: value` per line,
- * where a value is null, a boolean, a number, a quoted string, a one-line `[…]` list, or
- * otherwise a string as written. Keys are flat, and a `.` in one is an ordinary character, as YAML
+ * where a value is null, a boolean, a number, a quoted string, a `[…]` list, or otherwise a
+ * string as written. A list may wrap onto the indented lines after its key, the way a formatter
+ * writes a long one. Keys are flat, and a `.` in one is an ordinary character, as YAML
  * reads it. The rule warns on the mistakes writers make, not on every corner of YAML. A value
  * YAML would read as another type (`no`, `1.10`, `1e3`) or as structure (a leading `*` or `{`) is
  * a warning, and its key is skipped, since any guess could be wrong. A value holding `: ` or ` #`
@@ -43,7 +44,16 @@ export function parseMetadata(
         } else if (Object.hasOwn(value, key)) {
           b.warn("metadata-duplicate-key", at, lineEnd);
         } else {
-          const result = parseValue(line.slice(match[0].length).trim());
+          let text = line.slice(match[0].length).trim();
+          // A long list wraps, as oxfmt writes it: `nav:`, then `  [`, an item a line, `  ]`.
+          if (text === "" || (text.startsWith("[") && !text.endsWith("]"))) {
+            const wrapped = indented(source, lineEnd, end);
+            if (wrapped && `${text}${wrapped.text}`.startsWith("[")) {
+              text = `${text} ${wrapped.text}`.trim();
+              lineEnd = wrapped.end;
+            }
+          }
+          const result = parseValue(text);
           if (typeof result === "string") b.warn("metadata-value", at, lineEnd, result);
           else {
             value[key] = result.value;
@@ -60,17 +70,40 @@ export function parseMetadata(
   return value;
 }
 
+/** The indented lines after `from`, joined, and where the last one ends; `null` when there are none. */
+function indented(source: string, from: number, end: number): { text: string; end: number } | null {
+  const parts: string[] = [];
+  let last = from;
+  let at = from;
+  for (;;) {
+    if (source[at] === "\r") at++;
+    if (source[at] === "\n") at++;
+    if (at >= end || (source[at] !== " " && source[at] !== "\t")) break;
+    let lineEnd = at;
+    while (lineEnd < end && source[lineEnd] !== "\n" && source[lineEnd] !== "\r") lineEnd++;
+    const part = source.slice(at, lineEnd).trim();
+    if (part === "") break;
+    parts.push(part);
+    last = lineEnd;
+    at = lineEnd;
+  }
+  return parts.length ? { text: parts.join(" "), end: last } : null;
+}
+
 /** A value, kept with a message or not; or the message when it is rejected. */
 type Parsed<T> = { value: T; warn?: string } | string;
 
 function parseValue(text: string): Parsed<MetadataScalar | MetadataScalar[]> {
   if (!text.startsWith("[")) return parseScalar(text);
-  if (!text.endsWith("]")) return "a list must close on its line";
+  if (!text.endsWith("]")) return "a list must close with `]`";
   const inner = text.slice(1, -1).trim();
   if (inner === "") return { value: [] };
   const items: MetadataScalar[] = [];
   let warn: string | undefined;
-  for (const item of splitList(inner)) {
+  const parts = splitList(inner);
+  // A comma after the last item, which a formatter adds to a wrapped list.
+  if (parts.length > 1 && parts.at(-1)?.trim() === "") parts.pop();
+  for (const item of parts) {
     if (item === null) return "unbalanced quotes in a list";
     const trimmed = item.trim();
     if (trimmed === "") return "empty list item";
