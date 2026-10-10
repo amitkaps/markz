@@ -170,8 +170,8 @@ importers:
   .:
     devDependencies:
       '@amitkaps/prose':
-        specifier: ^0.4.0
-        version: 0.4.0
+        specifier: ^0.4.1
+        version: 0.4.1
       '@types/node':
         specifier: ^26.6.4
         version: 26.6.4
@@ -214,9 +214,9 @@ importers:
 
 packages:
 
-  '@amitkaps/prose@0.4.0':
-    resolution: {integrity: sha512-J6RBofy1qbnFG4EtpvRu22lR7JHeuue5FQqUy8JZdla/lkvFiDOZW4zHqC+RII4l6aUlRsEjEW2kH+YezfsWwA==}
-    engines: {node: '>=24'}
+  '@amitkaps/prose@0.4.1':
+    resolution: {integrity: sha512-CxPLnZpR+b6Bd6JVVzA3KDEnuLKv8SZoY5RAS7nLq1MSo1lFPvsJcNSl3e0b5lO9O1vbRL7TJp1yT47IYxBhXQ==}
+    engines: {node: '>=26'}
     hasBin: true
 
   '@babel/code-frame@7.29.7':
@@ -1986,7 +1986,7 @@ packages:
 
 snapshots:
 
-  '@amitkaps/prose@0.4.0': {}
+  '@amitkaps/prose@0.4.1': {}
 
   '@babel/code-frame@7.29.7':
     dependencies:

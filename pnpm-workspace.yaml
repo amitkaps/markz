@@ -4,7 +4,7 @@
 # pnpm holds back a version for a while after it's published. prose is ours, so a new release of
 # it can come in straight away. Drop the entry once that wait has passed.
 minimumReleaseAgeExclude:
-  - "@amitkaps/prose@0.4.0"
+  - "@amitkaps/prose@0.4.1"
 
 # Collapse every `vite` in the tree onto Vite+'s core build.
 # Bump this alongside the `vite-plus` devDependency.
