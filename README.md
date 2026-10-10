@@ -24,8 +24,8 @@ pnpm add @amitkaps/markz
 ```
 
 Each release's package is also attached to its
-[GitHub release](https://github.com/amitkaps/markz/releases). markz runs on the current Node and
-the previous LTS, which today are 26 and 24. In the browser, it needs
+[GitHub release](https://github.com/amitkaps/markz/releases). In Node, markz needs 26 or newer,
+the Node it's built and tested on. In the browser, it needs
 [Baseline Widely Available](https://developer.mozilla.org/en-US/docs/Glossary/Baseline/Compatibility).
 It is one ES module with no dependencies and no Node APIs, so the same file runs in Node, browsers
 and workers.

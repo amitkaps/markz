@@ -277,10 +277,10 @@ banner names the license so it survives a consumer's bundle. There are no source
 `dist/index.d.ts` keeps the comment above each export, `@prose` included, as that export's
 documentation on hover. Nothing strips it, so each export carries a comment written for that,
 and a section's `@prose` sits on the declaration it describes. `exports` is the only entry, with
-no `main` or `types`, which nothing on Node 24 reads. CI runs publint on the packed tarball.
+no `main` or `types`, which nothing on Node 26 reads. `vp pack` runs publint on the package, and fails the build on a problem.
 
-A release is a `vX.Y.Z` tag matching `package.json`'s version. `.github/workflows/release.yml`
-checks, tests and packs it, stages that tarball on npm with provenance, and attaches it to a
+A release is a `vX.Y.Z` tag matching `package.json`'s version. `.github/workflows/release.yml`, the same in
+every package, runs `verify` and packs it, stages that tarball on npm with provenance, and attaches it to a
 GitHub release. npm trusts the workflow to stage, so no npm token is stored anywhere. Nothing
 reaches users until a maintainer approves the staged version with 2FA (`npm stage approve`), so a
 tag push alone can't publish. A pre-release (`vX.Y.Z-rc.N`) goes to the `next` dist-tag and
