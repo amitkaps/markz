@@ -1,6 +1,19 @@
 # Agents
 
-How to work in this repository: what markz is, the prose rules it follows, then its commands and workflow. Read [README.md](README.md) and [docs/design.md](docs/design.md) first.
+How to work in this repository: the standard and prose rules every repository shares, then what markz is, its commands and its workflow. Read [README.md](README.md) and [docs/design.md](docs/design.md) first.
+
+## Standard
+
+This repository follows the standard at [ship](https://ship.amitkaps.com), which sets how every repository builds, checks and deploys. Read [ship's docs/standard.md](https://github.com/amitkaps/ship/blob/main/docs/standard.md) before changing any of that.
+
+- Change the toolchain, scripts, versions or deploys in ship first, then bring each repository in line. Don't change them in one repository alone.
+- Work on a branch and open a pull request. CI runs `pnpm run verify`, which must pass, and the pull request is squash-merged. Nobody pushes to `main`.
+- Run tools through `pnpm run …` and `pnpm exec`, not global installs.
+- A held check on ship's page is a tool's limit, not a choice. Leave it until its reason goes away.
+
+## Prose
+
+Explanations go in `@prose` comments, written to the rules in [prose's usage](https://prose.amitkaps.com/docs/usage.md#for-agents). Read them before writing prose. They live there and aren't copied here, so every repository writes to the same rules.
 
 ## Markz
 
@@ -15,21 +28,8 @@ markz is one package. It holds the parser, the AST utilities and `html()`. The d
 - `test/harness/cases.ts` holds every construct to its edges, with the grammar as the judge. When it and markz read a case differently, fix whichever is wrong. Or name the side rule that decides it and give that rule a test as narrow as its text. Never widen a settle test to quiet a failure.
 - No comparison with other parsers is published, on the site or in `docs/`. The Quality page shows markz's own conformance, size and speed.
 
-## Prose
-
-The same rules as the snippet in [prose's docs](https://github.com/amitkaps/prose/blob/main/docs/usage.md#for-agents), which we follow ourselves. `docs/` is the lasting record of what the dialect is, how markz is built and what building it taught. Decisions and lessons go there, and a `@prose` comment stays local to its code.
-
-- Every source file opens with a `@prose` comment, its summary. Add more wherever the reader needs the why, like a design choice or an edge that's easy to get wrong. Trivial declarations, types, constants and mechanical helpers don't need one. A paragraph written only to satisfy this rule is noise the human has to read. Folders have a `README.md`.
-- Every prose comment, README and doc begins with a short first paragraph, its summary for the human, in about three lines. It says what the file or section means, not what its code does. Detail goes below it. When a change alters a file's role, rewrite that paragraph in the same change.
-- Write plain sentences. Each one holds one idea, in about 25 words at most, in the active voice with a named subject. If a point doesn't fit, give it its own sentence or cut it. Don't join ideas with semicolons or colons, and keep parentheses for links and examples. Use one term for each concept, the one the docs already use.
-- Prose goes in `@prose` comments, written in [markz's Markdown](https://markz.amitkaps.com/docs/syntax.md). Write `_emphasis_`, never `*emphasis*`, and no raw HTML. Ordinary comments stay for code-level notes.
-- Prose says what the code can't. That's why it exists, what it promises, what was decided and what was ruled out. It doesn't retell what reading the code shows, and it doesn't replace ordinary comments.
-- A library ships the comment above each export in its types, as that export's documentation. So give every export a comment, and a one-line JSDoc is enough. Put a section's prose above the declaration it describes.
-- Keep prose current in the same change as the code. Rewrite it where it has drifted, and don't append. A change that only tunes code, with the same behaviour and the same stated costs, needn't touch prose.
-- State a rule once. If a doc or a tested file owns it, link to it by repo path and keep only how and why this code does it. A construct's rules live in `docs/grammar.md`, cited as ``(grammar: id; `side-rule`)``.
-- Decisions made in the chat go into the prose in the same change. One that spans files goes into the doc it changes, and one about a single spot goes into the `@prose` there. Write docs for a reader who wasn't in the chat, since they may be published as they are. When something is ruled out, write down that it's out and why, so it isn't rebuilt.
-- If the project keeps a plan, keep it current, with what's done in one line each and what's next in order.
-- To find your way, `grep -rn -A4 "@prose" src` is the map, and `grep -rL "@prose" src --include="*.ts"` lists files with no prose yet. Add an `--include` for each other language the project writes.
+- `docs/` is the lasting record of what the dialect is, how markz is built and what building it taught. Decisions and lessons go there, and a `@prose` comment stays local to its code.
+- A construct's rules live in `docs/grammar.md`. Prose cites them as ``(grammar: id; `side-rule`)``, and doesn't restate them.
 
 ## Commands
 
@@ -56,4 +56,4 @@ The site (markz.amitkaps.com) is the repository read by `prose build`, plus the 
 
 ## Workflow
 
-Each pull request gets one label, which files it in the release notes (`.github/release.yml`): `breaking`, `added`, `fixed`, `improved`, `docs`, or `internal` for tests, tooling, site and lessons. Its title is what the notes show, so a user-facing one is written for a reader of the package. `main` is protected: a pull request is required and the `ci` check must pass. Never commit or push to `main`. Branch, commit, push, `gh pr create`, then `gh pr merge --auto --squash`. Run `pnpm check` and `pnpm test` first, and `pnpm build` too after a dependency bump.
+Each pull request gets one label, which files it in the release notes (`.github/release.yml`): `breaking`, `added`, `fixed`, `improved`, `docs`, or `internal` for tests, tooling, site and lessons. Its title is what the notes show, so a user-facing one is written for a reader of the package. Branch, commit, push, `gh pr create`, then `gh pr merge --auto --squash`. Run `pnpm check` and `pnpm test` first, and `pnpm build` too after a dependency bump.
