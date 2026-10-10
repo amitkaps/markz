@@ -26,14 +26,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Check (format, lint, typecheck)
-        run: pnpm run check
-
-      - name: Unit tests
-        run: pnpm test
-
-      - name: Build
-        run: pnpm build
+      # The same script Cloudflare runs before each deploy: check, test, build, then the site.
+      - name: Verify (check, test, build, site)
+        run: pnpm run verify
 
       # The package's `exports`, `files` and types, checked by publint against the packed tarball.
       # It's fetched for this step, not a dependency. arethetypeswrong was ruled out, since it
@@ -43,8 +38,3 @@ jobs:
 
       - name: Bundle size (20 KB gzip budget)
         run: pnpm size
-
-      - name: Site (prose build, then the Quality page)
-        run: |
-          pnpm prose build
-          pnpm quality

@@ -67,21 +67,25 @@ the site has no code of its own.
 
 `pnpm prose build` writes the repository's pages, and `pnpm quality` then writes the Quality
 report beside them. The root `README.md` is the home page. The bar links the docs in `docs/`, in the order of the
-`nav` list in [docs/README.md](README.md). CI builds both on every pull request, so a change
-that breaks the site can't merge.
+`nav` list in [docs/README.md](README.md). `pnpm verify` runs the checks, the tests and the
+build, then builds both. CI runs it on every pull request, so a change that breaks the site can't
+merge.
 
 Cloudflare builds the site from `main` and serves it from a Worker with static assets, set up in
 [wrangler.toml](../wrangler.toml). Every merge deploys it. In Cloudflare, connect the `markz`
 Worker to the repository with these settings.
 
 - **Production branch:** `main`
-- **Build command:** `pnpm install && pnpm prose build && pnpm quality`
+- **Build command:** `pnpm run verify`
+- **Deploy command:** `pnpm run ship`
 - **Build variable:** `NODE_VERSION` set to `26`. Cloudflare reads pnpm's version from the
   repository but not Node's, and `devEngines` stops the build on any other Node.
-- **Deploy command:** `pnpm dlx wrangler deploy`
+- **Build cache:** on.
 
-The deploy command uses `pnpm dlx`, not `npx`, because `npx` refuses to run in a repository whose
-`devEngines` names pnpm. Wrangler isn't a dependency, since only the deploy runs it.
+The two commands are the same in every project, and `package.json` says what they run. `verify`
+stops on a failing check, so a merge that breaks one doesn't deploy. `ship` runs `wrangler deploy`
+on what `verify` built. It's `ship` and not `deploy` because `pnpm deploy` is a pnpm command of
+its own, which a script by that name can't replace.
 
 ## Release
 
