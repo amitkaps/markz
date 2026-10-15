@@ -43,18 +43,18 @@
   },
   "devDependencies": {
     "@amitkaps/prose": "^0.4.1",
-    "@types/node": "^26.6.4",
+    "@types/node": "^26.6.5",
     "fast-check": "^4.10.2",
     "github-slugger": "^2.0.0",
     "markdown-exit": "^1.3.0",
-    "marked": "^18.0.14",
+    "marked": "^18.1.1",
     "micromark": "^4.0.3",
     "micromark-extension-frontmatter": "^2.0.0",
     "micromark-extension-gfm": "^3.0.0",
     "micromark-extension-math": "^3.1.0",
     "publint": "^0.3.25",
-    "vite-plus": "1.1.0",
-    "wrangler": "^4.149.0",
+    "vite-plus": "1.2.0",
+    "wrangler": "^4.151.0",
     "yaml": "^2.9.1"
   },
   "devEngines": {
