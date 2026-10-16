@@ -61,7 +61,8 @@ build, then builds both. CI runs it on every pull request, so a change that brea
 merge.
 
 Cloudflare builds the site from `main` and serves it from a Worker with static assets, set up in
-[wrangler.toml](../wrangler.toml). The `markz` Worker has the build settings every Worker has, in
+[cloudflare.config.ts](../cloudflare.config.ts). `verify` ends with `vp build`, which hands
+`.prose` to Cloudflare, and `ship` runs `cf deploy --prebuilt` on it. The `markz` Worker has the build settings every Worker has, in
 [ship's standard](https://ship.amitkaps.com/docs/standard.md#cloudflare), so every merge deploys it.
 
 ## Release

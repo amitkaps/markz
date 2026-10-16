@@ -7,6 +7,7 @@
  * place here.
  */
 import { defineConfig } from "vite-plus";
+import { cloudflare } from "@cloudflare/vite-plugin";
 
 const generated = ["dist/**"];
 const vendored = ["test/examples/upstream/**/*.md", "test/documents/**"];
@@ -24,6 +25,11 @@ if (process.env["SEED"] === "random")
   console.log(`SEARCH=${process.env["SEARCH"] ?? 1} SEED=${seed}`);
 
 export default defineConfig({
+  // The site: `vp build` hands the folder `prose build` writes to Cloudflare, assets only, for
+  // `cf deploy --prebuilt`. It's ship's prose site: https://ship.amitkaps.com/docs/standard.md
+  publicDir: ".prose",
+  plugins: [cloudflare({ assetsOnly: true })],
+
   // tsdown — `vp pack`. ESM only, with declarations. The code ships readable but without its
   // comments, keeping license comments and `@__PURE__` annotations, and with no sourcemaps
   // (design: Package). The `/*!` banner keeps the license with the code when a consumer bundles it.
