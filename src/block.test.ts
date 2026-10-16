@@ -1,4 +1,6 @@
 /** @prose
+ * # The block pass
+ *
  * The block pass on what an example's HTML can't show: exact source ranges, node data (heading
  * ids, code bodies, element nesting, list tightness, table cells) and the order of warnings.
  * What the block constructs write is in `test/examples/markz/`. Every parsed document is also

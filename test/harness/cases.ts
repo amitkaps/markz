@@ -20,7 +20,7 @@ import { row } from "./syntax";
 import { choices, grammarBuilt } from "./generate";
 
 /** @prose
- * ## Reading a case
+ * # Reading a case
  *
  * A block construct is its own document, and markz reads it when that document is the one block,
  * with nothing reported. An inline construct sits between words on a line (`a … a`), and markz
@@ -37,7 +37,7 @@ interface Reading {
 }
 
 /** @prose
- * ### What a case makes
+ * ## What a case makes
  *
  * Each construct's node, and the data its own delimiters decide: a heading's depth is its count
  * of `#`s, `**` makes strong and `~~` delete, `!` an image, a closing `/` a leaf element. These
@@ -175,7 +175,7 @@ export function reading(id: string): Reading {
 }
 
 /** @prose
- * ## Judging
+ * # Judging
  *
  * The grammar judges the case, wrapped in what its reading allows around it (blank lines around
  * a block). markz reads it when it makes the construct and reports nothing: a construct made with
@@ -222,7 +222,7 @@ export function judge(id: string, s: string): Verdict {
 }
 
 /** @prose
- * ## Settled by a side rule
+ * # Settled by a side rule
  *
  * Each test recognizes the one thing its rule decides and nothing wider, so a case it claims is
  * one the rule's text explains. Most are about lines, which the productions read one at a time:
@@ -485,7 +485,7 @@ export const SETTLED: Record<string, Record<string, Test>> = {
 };
 
 /** @prose
- * ## Edges
+ * # Edges
  *
  * A valid case and its neighbours: every one-character deletion, and every insertion of a
  * character the construct's own productions use (its literals, and one of each range of its
@@ -570,7 +570,7 @@ export interface Reached {
 }
 
 /** @prose
- * ## Found by a longer search
+ * # Found by a longer search
  *
  * A case `pnpm fuzz` once found unsettled stays here once it's settled, and is judged on every
  * run. A longer search finds what the fixed one misses, and this keeps it found.
@@ -654,7 +654,7 @@ export const constructIds = CONSTRUCTS.map((c) => c.id);
 export const sideRules = new Set([DOCUMENT, ...CONSTRUCTS].flatMap((c) => Object.keys(c.rules)));
 
 /** @prose
- * ## Side rules held elsewhere
+ * # Side rules held elsewhere
  *
  * Every side rule names what holds it: a settlement above, a warning in `WARNED`, an example
  * labelled with it, or one of these lists. The edges judge only whether a construct is read. So a
@@ -677,7 +677,7 @@ export const ORACLE = new Set([
 export const JUDGED = new Set(["last-line"]);
 
 /** @prose
- * ## Edges a construct can't have
+ * # Edges a construct can't have
  *
  * A construct with no closing mark can't be left unclosed, and one the productions alone tell
  * from every other reading has no ambiguous case. Each says so here instead of having an example.

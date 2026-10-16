@@ -1,4 +1,6 @@
 /** @prose
+ * # Metadata, held to YAML
+ *
  * The metadata rule, held to the `yaml` package: every block markz accepts without a warning gives
  * the object YAML 1.2 gives. The checks catch what writers get wrong (`no`, `1.10`, `Issue #42`),
  * and every number form YAML reads (`1e3`, `0x1F`) is one of them (syntax.md: Metadata).

@@ -1,5 +1,8 @@
 name: fuzz
 
+# @prose
+# # Fuzz
+#
 # A longer search than CI's, run by hand: `gh workflow run fuzz` or the Actions tab. It isn't a
 # check, since a new seed can fail on a case no pull request caused. Every run's summary records
 # the commit, settings and result, so the Actions history is the log of what was searched. A

@@ -97,7 +97,7 @@ export interface Example {
 }
 
 /** @prose
- * ## Upstream sections
+ * # Upstream sections
  *
  * Where each upstream section's examples are filed, by `source:section`, by the group an
  * extension suite's section starts with (its fixture file or `test()` group), or by the source
@@ -153,7 +153,7 @@ export const sections: Record<string, string> = {
 };
 
 /** @prose
- * ## Listed by hand
+ * # Listed by hand
  *
  * What the oracle's tokens can't show, keyed `source:example`: a rule with no token of its own.
  */
@@ -214,7 +214,7 @@ export const oracleDiffers: Record<string, string> = {
 };
 
 /** @prose
- * ## Cut forms
+ * # Cut forms
  *
  * Each rule names the oracle token that shows a form markz reads differently, and where the
  * example goes: a Not supported row, or a construct markz keeps under its own rule. The first
@@ -297,7 +297,7 @@ function upstreamExample(
 }
 
 /** @prose
- * ## Loading
+ * # Loading
  *
  * Every example is read from its file by `fences.ts`. An upstream suite's metadata names what it
  * is checked by, and its examples keep the suite's numbers. markz's own, in `examples/markz/`,
@@ -378,7 +378,7 @@ export const examples: Example[] = [
 ];
 
 /** @prose
- * ## Checking an example
+ * # Checking an example
  *
  * One function decides every status, for the tests and for the Quality page. An example holds in one of
  * three ways and fails in the fourth:
@@ -457,7 +457,7 @@ export function check(e: Example): Result {
 }
 
 /** @prose
- * ## One warning for each
+ * # One warning for each
  *
  * A document can hold many bare URLs or footnotes, so one warning isn't enough: each URL GFM
  * links, and each footnote call or definition it reads, must have its own warning, or a reader
@@ -500,7 +500,7 @@ export function unwarned(
 type Range = { start: number; end: number };
 
 /** @prose
- * ## Metadata against YAML
+ * # Metadata against YAML
  *
  * A yaml-test-suite example is held to the `yaml` package, key by key: every key markz keeps
  * must have the value YAML gives it, unless a warning covers its line (a value holding ` #` is
@@ -542,7 +542,7 @@ function againstYaml(e: Example, doc: Document): Result {
 }
 
 /** @prose
- * ## Heading ids against github-slugger
+ * # Heading ids against github-slugger
  *
  * A github-slugger example is a document of headings, and what is checked is the last one's id:
  * it must be the one github-slugger gives the same texts in the same order.
@@ -570,7 +570,7 @@ function againstSlugger(e: Example, doc: Document): Result {
 }
 
 /** @prose
- * ## Math against micromark-extension-math
+ * # Math against micromark-extension-math
  *
  * The extension writes KaTeX's HTML, so a math example is held to structure instead: markz must
  * find the same math spans, inline or display, starting at the same place and holding the same TeX.

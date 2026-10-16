@@ -1,7 +1,7 @@
 /** @prose
  * # The grammar
  *
- * The dialect as data, read from [`docs/grammar.md`](../docs/grammar.md): every construct of
+ * The dialect as data, read from [`docs/grammar.md`](../../docs/grammar.md): every construct of
  * `syntax.md`, by its id, with its part, its origin, its productions and the side rules EBNF can't
  * state. The page is the only copy, so there is nothing to drift: it is read with markz itself, a
  * `###` heading's explicit id naming the construct, the `##` above it the part, an `ebnf` code
@@ -19,7 +19,7 @@ import { parse, textContent } from "../../src/index";
 import { productions, references, type Production } from "./ebnf";
 
 /** @prose
- * ## Origins
+ * # Origins
  *
  * Where a construct's rule comes from: the earliest layer that defines it. CommonMark, then GFM,
  * which extends it, then djot; math's delimiters are pandoc's and GitHub's; what no layer defines

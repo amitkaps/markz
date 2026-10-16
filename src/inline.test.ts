@@ -1,4 +1,6 @@
 /** @prose
+ * # The inline pass
+ *
  * The inline pass on what an example's HTML can't show: node data (math and expression values,
  * link expressions, text values), exact ranges, and heading ids. What the inline constructs write
  * is in `test/examples/markz/`. Every parsed document is also held to the tree invariants.

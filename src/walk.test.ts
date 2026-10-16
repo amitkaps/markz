@@ -1,4 +1,6 @@
 /** @prose
+ * # Walking a tree
+ *
  * `walk`, `textContent`, `headings` and `position`: the order `walk` visits in and what skipping
  * does, that it survives nesting too deep to recurse, what text a node reads as, which headings
  * the outline lists and with what ids, and how offsets become lines and columns across every line

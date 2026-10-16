@@ -55,7 +55,7 @@ export function inline(
 }
 
 /** @prose
- * ## Items
+ * # Items
  *
  * What a scan produces, in a doubly linked list: text with its decoded value, delimiter runs and
  * brackets that may still become nodes (and are text if they don't), and finished nodes with
@@ -88,7 +88,7 @@ interface List {
 }
 
 /** @prose
- * ## Emphasis kinds
+ * # Emphasis kinds
  *
  * A delimiter run's kind is its character and length. `_`, `**` and `~~` are the dialect's;
  * `*` is accepted where formatters write it (grammar: `star-places`); `__` and `~` are rejected
@@ -210,7 +210,7 @@ class InlinePass {
   }
 
   /** @prose
-   * ## Positions
+   * # Positions
    *
    * A position in the joined text maps to the source through its line. A `\n` between lines
    * stands for the line's trailing whitespace and line ending, which `eol` finds, so a soft
@@ -249,7 +249,7 @@ class InlinePass {
   }
 
   /** @prose
-   * ## Scanning
+   * # Scanning
    *
    * One loop over a range of the joined text, with a case per character that can open a
    * construct. Everything else is gathered into text.
@@ -355,7 +355,7 @@ class InlinePass {
   }
 
   /** @prose
-   * ## Escapes, breaks and references
+   * # Escapes, breaks and references
    *
    * A `\` escapes, breaks the line or makes a non-breaking space (grammar: escape, line-break).
    * `\ ⏎` is a hard break because it is what the author sees, and what it becomes once a
@@ -409,7 +409,7 @@ class InlinePass {
   }
 
   /** @prose
-   * ## Code, math and expressions
+   * # Code, math and expressions
    *
    * These bind tightest (grammar: `inline-order`), each read to its closer: inline-code
    * (`code-run`), inline-math (`math-end`, `math-dollars`) and expression (`brace-depth`). A code
@@ -510,7 +510,7 @@ class InlinePass {
   }
 
   /** @prose
-   * ## Angle brackets
+   * # Angle brackets
    *
    * `<scheme:…>` and `<address@host>` are autolinks (grammar: link, `scheme-length`). Anything
    * shaped like an HTML tag, comment or declaration is raw HTML, which the dialect cuts: the
@@ -582,7 +582,7 @@ class InlinePass {
   }
 
   /** @prose
-   * ## Emphasis
+   * # Emphasis
    *
    * Whether a run can open or close is `flanking`, and which opener a closer takes is
    * `nearest-opener` (grammar: emphasis): openers of other kinds between them are left as text,
@@ -664,7 +664,7 @@ class InlinePass {
   }
 
   /** @prose
-   * ## Links, images and spans
+   * # Links, images and spans
    *
    * `[` and `![` wait on the bracket stack, and at `]` become a link, an image or a span
    * (grammar: link, span; `brackets`, `emphasis-brackets`). Once a link closes, the brackets
@@ -851,7 +851,7 @@ class InlinePass {
   }
 
   /** @prose
-   * ## Spans
+   * # Spans
    *
    * `[text]{…}` wraps the text in a `span`, and `[text]{@name …}` in the inline element it names
    * (grammar: span). `![text]{…}` is a `!` and a span. A name that isn't an inline element leaves
@@ -938,7 +938,7 @@ class InlinePass {
   }
 
   /** @prose
-   * ## Colon directives
+   * # Colon directives
    *
    * `:name[label]`, `:name{…}` and their two- and three-colon forms are colon directives, which
    * markz cuts: the whole `:name[…]{…}` stays text, nothing in it read as other syntax (so its
@@ -980,7 +980,7 @@ class InlinePass {
   }
 
   /** @prose
-   * ## Bare URLs and stray attributes
+   * # Bare URLs and stray attributes
    *
    * GFM links `https://…`, `www.…` and `me@example.com` in running text; markz keeps them as
    * text and reports each one GFM would link, so a reader never loses a link silently. Each is
@@ -1084,7 +1084,7 @@ class InlinePass {
   }
 
   /** @prose
-   * ## Emitting
+   * # Emitting
    *
    * The finished list becomes nodes under the builder's current node. Unmatched openers are
    * text, and neighbouring text that touches in the source merges into one text node, so a

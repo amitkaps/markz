@@ -75,7 +75,7 @@ function own(): Map<string, string> {
 }
 
 /** @prose
- * ## The common variant
+ * # The common variant
  *
  * A top-level block is kept when nothing in it is markz's alone (metadata, comments, elements,
  * math, raw blocks, expressions, attributes, an explicit heading id, a task item) and no warning
@@ -126,7 +126,7 @@ export function format(docs: Map<string, string>): Map<string, string> {
 }
 
 /** @prose
- * ## Repeating without repeating titles
+ * # Repeating without repeating titles
  *
  * A document repeated to a size is a benchmark's workload, and a real document doesn't hold the
  * same heading hundreds of times. Every copy after the first puts its number at the start of each

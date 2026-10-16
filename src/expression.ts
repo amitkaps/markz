@@ -9,7 +9,7 @@
  */
 
 /** @prose
- * ## Remembering a scan
+ * # Remembering a scan
  *
  * A scan that fails costs the rest of the range, so a paragraph of unclosed `${` would be
  * quadratic if each one scanned again. It needn't be: a later `${` that the scan read as code
@@ -102,7 +102,7 @@ function scan(source: string, from: number, end: number, braces: number[], recor
 }
 
 /** @prose
- * ## A `}` that closed too early
+ * # A `}` that closed too early
  *
  * The usual reason a `${…}` closes early is a `}` that markz can't see is inside something, such
  * as a regex (`${s.replace(/}/g, '')}`). The code then ends with a `(` or `[` still open, which

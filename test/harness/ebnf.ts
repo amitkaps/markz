@@ -144,7 +144,7 @@ function parse(source: string, name: string): Expr {
 }
 
 /** @prose
- * ## Recognizing
+ * # Recognizing
  *
  * Whether a string is a production, so the grammar can judge a case on its own rather than only
  * write one. Every way to read each part is kept, as a set of where it may end, so an ambiguous

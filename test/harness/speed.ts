@@ -38,7 +38,7 @@ export function warm(run: (text: string) => unknown, texts: string[], ms: number
 }
 
 /** @prose
- * ## Groups in turns
+ * # Groups in turns
  *
  * Several groups of texts are timed in rounds, one pass of each per round, rather than one group
  * after another. A busy stretch on the machine then slows every group alike, so their figures
@@ -75,7 +75,7 @@ export function time(
 }
 
 /** @prose
- * ## One version against another
+ * # One version against another
  *
  * Two versions of markz timed in one process, a pass of each in turn, with the order swapped
  * every pair. Whatever the machine does then slows both alike. Two separate runs promise no such
@@ -127,7 +127,7 @@ export function versus(
 }
 
 /** @prose
- * ## Retained memory
+ * # Retained memory
  *
  * What holding one parsed document keeps alive: the source is parsed `HELD` times with every
  * result held, and the memory after a full collection, less the memory before, divided by `HELD`,

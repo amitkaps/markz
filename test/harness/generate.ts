@@ -44,7 +44,7 @@ export function grammarDocument(options: Options, start = "document"): fc.Arbitr
 }
 
 /** @prose
- * ## Recursion
+ * # Recursion
  *
  * Recursion stops at a fixed depth by taking an alternative's first option, which the grammar
  * lists first because it is the plainest (`paragraph` for a block, `text` for an inline). Each
@@ -128,7 +128,7 @@ export function grammarBuilt(options: Options, start = "document"): fc.Arbitrary
 }
 
 /** @prose
- * ## Choices a construct's cases must reach
+ * # Choices a construct's cases must reach
  *
  * Every option of each alternative in the construct's own productions, and both sides of each
  * `?` and `*`, so a search can say what it never wrote. Two kinds are left out. A list of
@@ -193,7 +193,7 @@ function members(expr: Extract<Expr, { kind: "class" }>, alphabet: string): stri
 }
 
 /** @prose
- * ## Noise
+ * # Noise
  *
  * Strings of the characters Markdown gives meaning to, and the ones that trouble offsets: every
  * line ending, tabs, a byte order mark, a lone surrogate and an astral-plane character. Most of
@@ -214,7 +214,7 @@ export const noise = fc
   .map((p) => p.join(""));
 
 /** @prose
- * ## Mutations
+ * # Mutations
  *
  * A known document with a few edits: a character inserted, deleted or doubled at random places.
  * Starting from real examples reaches states noise rarely does, such as a table with one cell
@@ -241,7 +241,7 @@ export function mutated(documents: readonly string[]): fc.Arbitrary<string> {
 }
 
 /** @prose
- * ## How far a search goes
+ * # How far a search goes
  *
  * The fuzzer and the edge cases search from one fixed seed, so `pnpm test` is deterministic and a
  * red run replays. `SEARCH` in the environment multiplies every search's runs, and `SEED` moves
