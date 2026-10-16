@@ -4,9 +4,10 @@
  * markz is linear in its input, and these tests hold it there. Each adversarial pattern is
  * parsed and rendered at a size and at four times that size, and the larger must take less than
  * eight times as long: linear work takes about four, and quadratic work sixteen, so the check
- * sits between them with room for a noisy machine. Each size is timed at its best of three after
- * a warm-up, so a garbage collection or a cold JIT doesn't decide it, and a few milliseconds of
- * slack keeps a fast pattern from failing on timer noise alone.
+ * sits between them with room for a noisy machine. Each size is warmed up and then timed at its
+ * best of five, so a garbage collection or a cold JIT doesn't decide it. The patterns start at
+ * 5,000 repetitions, so the smaller input takes about 6 ms rather than 2, and a busy machine's
+ * noise is a smaller part of it. A few milliseconds of slack covers the rest.
  *
  * The corpus's scaling tier, markz's own docs and the public documents repeated to megabytes, guards
  * the ordinary path the same way.
@@ -18,7 +19,7 @@ import { mix, repeat } from "./harness/corpus";
 
 const time = (input: string): number => {
   let best = Infinity;
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 5; i++) {
     const start = performance.now();
     html(parse(input));
     best = Math.min(best, performance.now() - start);
@@ -31,16 +32,18 @@ const RATIO = 8;
 const SLACK_MS = 10;
 
 function expectLinear(make: (n: number) => string, n: number): void {
-  time(make(n));
-  const small = time(make(n));
-  const large = time(make(4 * n));
+  const [smallInput, largeInput] = [make(n), make(4 * n)];
+  time(smallInput);
+  time(largeInput);
+  const small = time(smallInput);
+  const large = time(largeInput);
   expect(large, `${small.toFixed(1)} ms, then ${large.toFixed(1)} ms`).toBeLessThan(
     RATIO * small + SLACK_MS,
   );
 }
 
 describe("adversarial input", () => {
-  it.each(Object.entries(PATTERNS))("%s", (_, make) => expectLinear(make, 2000), 30_000);
+  it.each(Object.entries(PATTERNS))("%s", (_, make) => expectLinear(make, 5000), 30_000);
 });
 
 describe("a large document", () => {
