@@ -9,6 +9,9 @@ node_modules
 # Vite+
 /.vite
 
+# Cloudflare's Vite plugin (`vp build`), which `pnpm ship` uploads
+/.cloudflare
+
 # OS
 .DS_Store
 Thumbs.db

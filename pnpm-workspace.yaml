@@ -19,7 +19,8 @@ peerDependencyRules:
   allowAny:
     - vite
 
-# Dependencies allowed to run install scripts: wrangler's native binaries.
+# Dependencies allowed to run install scripts: esbuild for the build, and workerd for the local
+# Cloudflare runtime.
 allowBuilds:
   esbuild: true
   workerd: true

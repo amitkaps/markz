@@ -19,5 +19,5 @@
     // Node runs the tools in `test/` directly, and needs the extension.
     "allowImportingTsExtensions": true
   },
-  "include": ["src", "test", "vite.config.ts"]
+  "include": ["src", "test", "vite.config.ts", "cloudflare.config.ts"]
 }
