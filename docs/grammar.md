@@ -120,11 +120,11 @@ heading-marker ::= '#' '#'? '#'? '#'? '#'? '#'?
 
 - `heading-line`: A heading's content is one line.
 - `closing-hashes`: A run of `#`s ends the heading only after a space and at the end of the line, so `# b#` keeps its `#`, as does an escaped `\#`.
-- `heading-id`: Every heading gets an id as it closes: the `id` of its block attributes, or else the slug of its plain text numbered past the ids already used.
+- `heading-id`: Every heading gets an id as it closes: the `id` of its block attributes, or else the slug of its plain text numbered past the ids already used, a heading's, an element's or a span's.
 
-The slug is GitHub's, so a link to a heading works on GitHub too. No id depends on a later
-heading, so none changes once it is written. An explicit id that an earlier heading already has
-is kept by both, and the later one gets the warning `duplicate-id`.
+The slug is GitHub's, so a link to a heading works on GitHub too. No id depends on a later one,
+so none changes once it is written. An explicit id that is already taken is kept by both, and the
+later one gets the warning `duplicate-id` (`attribute-id`).
 
 | Step | What happens                                                                                                                                                                                                                                                                                                 |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -262,6 +262,7 @@ block-attributes ::= indent? attributes space* line-end
 - `attribute-places`: Attributes stand alone on a line before a block, follow a link or image's `)` or a span's `]` with no space, or follow an element's name. Anywhere else a `{` is text.
 - `attribute-line`: A block-attribute line decorates the next block in its container, across blank lines. Consecutive lines merge, and a line above an element merges into the element's own. It cannot interrupt a paragraph or a table. Its attributes end on the line, so an expression in a value can't hold a line ending.
 - `attribute-merge`: Classes accumulate. For any other key, the later value wins.
+- `attribute-id`: Every id in a document is one id, a heading's, an element's or a span's, claimed in the order of the source, a block's before the spans inside it. An id holding `${…}` claims nothing. An id that is already taken is kept by both, and the later one gets the warning `duplicate-id`.
 - `attribute-boolean`: A block of only boolean keys counts only after a link, image or span's `]`, or an element's name. On a line of its own or after a word, `{year}` is text.
 - `attribute-syntax`: A `{…}` after a link, image or span, or on a line starting `{@` or `{/`, that does not parse is text, and a warning. On such a line, the warning needs the `}` on the same line. After a link, image or span, a `{` with no `}` left on its line is warned too.
 

@@ -266,6 +266,12 @@ export class Builder {
   readonly #attributes: (Attributes | undefined)[] = [];
   readonly #warnings: Warning[] = [];
   readonly #open: NodeId[] = [];
+  /**
+   * Every id so far, a heading's, an element's or a span's, with the last number given to it as
+   * a generated heading id's base, so numbering resumes rather than restarts. One table, so a new
+   * id is hashed and stored once.
+   */
+  readonly ids: Map<string, number> = new Map();
 
   /** The root starts at `start`, which is 1 when the source begins with a BOM. */
   constructor(source: string, start = 0) {
@@ -309,9 +315,20 @@ export class Builder {
     this.#data[node] = data;
   }
 
-  /** Named character references in the values stay as written, and are reported, as elsewhere. */
+  /**
+   * Named character references in the values stay as written, and are reported, as elsewhere.
+   * The id, the last one written, is claimed here, so the ids are claimed in source order
+   * (grammar: attributes; `attribute-id`). An id holding `${…}` is known only as it renders, so it
+   * claims nothing.
+   */
   setAttributes(node: NodeId, attributes: Attributes): void {
     this.#attributes[node] = attributes;
+    const id = attributes.items.findLast((a) => a.key === "id");
+    if (id && !this.#source.slice(id.start, id.end).includes("${")) {
+      if (this.ids.has(id.value)) {
+        this.warn("duplicate-id", id.start, id.end, `id \`${id.value}\` is already used earlier`);
+      } else this.ids.set(id.value, 0);
+    }
     for (const item of attributes.items) {
       for (const m of this.#source.slice(item.start, item.end).matchAll(NAMED)) {
         const at = item.start + m.index;

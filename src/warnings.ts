@@ -47,7 +47,7 @@ export const WARNINGS = {
   "inline-attributes": ["attributes after inline text", "`[text]{.x}`"],
   jsx: ["JSX", "`{@name}` elements, `${…}`"],
   // A construct's own.
-  "duplicate-id": ["id already used by an earlier heading", "a different id"],
+  "duplicate-id": ["id already used earlier", "a different id"],
   "element-close": [
     "a closing line with no open element of that name in its container",
     "close the innermost open element, at its own level",
