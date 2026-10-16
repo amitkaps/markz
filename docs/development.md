@@ -1,15 +1,9 @@
 # Development
 
-How to work on markz itself: build it, test it, release it and deploy its site. The rules for
-changing it, including the prose rules it follows, are in [AGENTS.md](../AGENTS.md).
-
-## Toolchain
-
-`package.json` says what the repository needs. `devEngines` names the Node and pnpm to develop
-with, and `engines` names the Node range the package runs on. Both ask for Node 26 or
-newer, so the package supports the Node it's built and tested on, and the tests, the timings and the
-Quality report all run on one Node. pnpm stops with an error on any other. `vp` is a dev dependency, so run it through the
-`pnpm` scripts, not a global install.
+How to work on markz itself: build it, test it, release it and deploy its site. What every
+repository shares, like the toolchain, CI, the Worker's settings and releases, is in
+[ship's standard](https://ship.amitkaps.com/docs/standard.md), and isn't repeated here. The rules for changing it are in
+[AGENTS.md](../AGENTS.md).
 
 ## Build and test
 
@@ -54,12 +48,6 @@ again.
 When it finds a case, settle it as any other, then add its shortest form to `FOUND` in
 `test/harness/cases.ts`, so `pnpm test` judges it on every run.
 
-## Workflow
-
-`main` is protected. A pull request is required, and the `ci` check must pass. Branch, commit,
-push and open a pull request, then merge it with `gh pr merge --auto --squash`. Run `pnpm check`
-and `pnpm test` first, and `pnpm build` too after a dependency bump.
-
 ## The site
 
 [markz.amitkaps.com](https://markz.amitkaps.com) is this repository read by
@@ -73,24 +61,12 @@ build, then builds both. CI runs it on every pull request, so a change that brea
 merge.
 
 Cloudflare builds the site from `main` and serves it from a Worker with static assets, set up in
-[wrangler.toml](../wrangler.toml). Every merge deploys it. In Cloudflare, connect the `markz`
-Worker to the repository with these settings.
-
-- **Production branch:** `main`
-- **Build command:** `pnpm run verify`
-- **Deploy command:** `pnpm run ship`
-- **Build variable:** `NODE_VERSION` set to `26`. Cloudflare reads pnpm's version from the
-  repository but not Node's, and `devEngines` stops the build on any other Node.
-- **Build cache:** on.
-
-The two commands are the same in every project, and `package.json` says what they run. `verify`
-stops on a failing check, so a merge that breaks one doesn't deploy. `ship` runs `wrangler deploy`
-on what `verify` built. It's `ship` and not `deploy` because `pnpm deploy` is a pnpm command of
-its own, which a script by that name can't replace.
+[wrangler.toml](../wrangler.toml). The `markz` Worker has the build settings every Worker has, in
+[ship's standard](https://ship.amitkaps.com/docs/standard.md#cloudflare), so every merge deploys it.
 
 ## Release
 
-markz releases the way every package does, as [ship's standard](https://github.com/amitkaps/ship/blob/main/docs/standard.md#releases)
+markz releases the way every package does, as [ship's standard](https://ship.amitkaps.com/docs/standard.md#releases)
 sets out. First run the `fuzz` workflow on `main` (`gh workflow run fuzz`). Then, from ship, open
 the pull request that bumps `version`. Its description goes above the generated notes, like what
 to change in a breaking release.
