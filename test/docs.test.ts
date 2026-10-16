@@ -6,7 +6,8 @@
  * (`duplicate-id` excepted in the grammar, which repeats a heading's id by design: a construct
  * and its side rules), and each relative link in its text goes to a file that exists. The
  * Reference page names every export, `Document` member and node type the package has, so a new one can't
- * ship undocumented.
+ * ship undocumented. A CDN link is pinned to this version's major and minor, so the pull request that
+ * bumps the version updates them too.
  */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -16,6 +17,10 @@ import * as markz from "../src/index";
 import { parse, type Document, type NodeId } from "../src/index";
 
 const root = join(import.meta.dirname, "..");
+const { version } = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
+  version: string;
+};
+const pinned = version.split(".").slice(0, 2).join(".");
 const folder = join(root, "docs");
 const files = [
   "README.md",
@@ -44,6 +49,11 @@ describe.each(files)("%s", (name) => {
     const relative = links.filter((href) => href && !/^(?:[a-z][a-z0-9+.-]*:|\/)/i.test(href));
     const missing = relative.filter((href) => !existsSync(join(dirname(join(root, name)), href)));
     expect(missing).toEqual([]);
+  });
+
+  it("pins a CDN link to this version", () => {
+    const pins = [...text.matchAll(/@amitkaps\/markz@([^/"'\s]+)/g)].map((m) => m[1]);
+    expect(pins.filter((pin) => pin !== pinned)).toEqual([]);
   });
 });
 
