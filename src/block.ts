@@ -157,7 +157,7 @@ class BlockParser {
   }
 
   /** @prose
-   * ## Metadata
+   * # Metadata
    *
    * The metadata block (grammar: metadata). The closing line is found by
    * one forward scan before any line inside is read, so a line the rule can't read is a warning,
@@ -200,7 +200,7 @@ class BlockParser {
   }
 
   /** @prose
-   * ## A line
+   * # A line
    *
    * Containers match first, each consuming its prefix: `>` for a blockquote, the content
    * indentation for a list item. A list always matches, and ends when a line inside it isn't an
@@ -295,7 +295,7 @@ class BlockParser {
   }
 
   /** @prose
-   * ## Opening containers
+   * # Opening containers
    *
    * Every container is pushed here, stamped with the clock. Directly nested elements form a run
    * that consumes no prefix, and only the innermost can take a closing line, so a line tests the
@@ -316,7 +316,7 @@ class BlockParser {
   }
 
   /** @prose
-   * ## Block starts
+   * # Block starts
    *
    * What the rest of a line opens, tried in the grammar's order (`block-order`). Returns true after a
    * container, because the same line can open more (`- > # a`). Rejected forms are tried in the
@@ -521,7 +521,7 @@ class BlockParser {
   }
 
   /** @prose
-   * ## Headings
+   * # Headings
    *
    * One line of content, with its closing hashes stripped (grammar: heading, `closing-hashes`).
    * The id is settled as the heading closes, against the ids used so far, a heading's, an
@@ -570,7 +570,7 @@ class BlockParser {
   }
 
   /** @prose
-   * ## Fences
+   * # Fences
    *
    * Code, raw and math blocks share one leaf: an opening line, content lines and a closing line
    * (grammar: code-block, raw-block, math-block; `fence-length`, `fence-indent`, `math-close`).
@@ -646,7 +646,7 @@ class BlockParser {
   }
 
   /** @prose
-   * ## Comments
+   * # Comments
    *
    * A block comment (grammar: comment, `comment-close`). One that shares its first line with
    * other text is left to the inline pass. It takes no attributes: an attribute line above it is
@@ -685,7 +685,7 @@ class BlockParser {
   }
 
   /** @prose
-   * ## List items
+   * # List items
    *
    * An item is settled from its marker line alone (grammar: list): its content column
    * (`item-content`), whether it continues the list (`same-marker`, `ordinal`), and whether it
@@ -750,7 +750,7 @@ class BlockParser {
   }
 
   /** @prose
-   * ## Elements
+   * # Elements
    *
    * A `{@name …}` line opens a container, and `{@name … /}` or `[label]{@name … /}` is a leaf
    * (grammar: element; `element-name`, `leaf-label`, `leaf-slash`). An opening line can't
@@ -852,7 +852,7 @@ class BlockParser {
   }
 
   /** @prose
-   * ## Block attributes
+   * # Block attributes
    *
    * A line holding only `{…}` decorates the next block (grammar: attributes, `attribute-line`).
    * If no block follows before the container ends, the lines are kept as a paragraph and
@@ -935,7 +935,7 @@ class BlockParser {
   }
 
   /** @prose
-   * ## Paragraphs and tables
+   * # Paragraphs and tables
    *
    * Text that opens no block continues the open paragraph or table, or starts a paragraph
    * (grammar: paragraph, table). A delimiter row turns the paragraph's last line into a table
@@ -993,7 +993,7 @@ class BlockParser {
   }
 
   /** @prose
-   * ## Closing
+   * # Closing
    *
    * A leaf becomes nodes when it closes: a paragraph (with a task item's `[ ]` taken off its
    * first line), a code, raw or math node, a comment, or the end of a table. A closing container
@@ -1130,7 +1130,7 @@ class BlockParser {
   }
 
   /** @prose
-   * ## Cursor
+   * # Cursor
    *
    * Columns follow tab stops of 4 (grammar: `indentation`). A prefix can end inside a tab (`>\tcode`); the
    * cursor then stays on the tab and `tab` counts its unread columns, which content reads as
@@ -1299,7 +1299,7 @@ function trailing(src: string, at: number, end: number): boolean {
 const KEY = /^[A-Za-z_][\w.-]*:(?:\s|$)/;
 
 /** @prose
- * ## Table rows
+ * # Table rows
  *
  * A row's cells are split on `|`s that aren't escaped, after an optional leading and trailing
  * pipe, and each is trimmed (grammar: table, `table-columns`). The delimiter row's pipe or
@@ -1347,7 +1347,7 @@ function delimiterRow(src: string, start: number, end: number): Align[] | null {
 }
 
 /** @prose
- * ## Heading ids
+ * # Heading ids
  *
  * The slug of `heading-id`, held to the vendored github-slugger fixtures, on the heading's plain
  * text: lowercased, with every character removed that

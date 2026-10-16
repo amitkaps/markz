@@ -82,7 +82,7 @@ export interface Vendored {
 const SYNTAX_OPTIONS = /\bdisable\b|singleTilde|frontmatter\([^)]/;
 
 /** @prose
- * ## Fixtures
+ * # Fixtures
  *
  * A fixture is a whole document of headed sections, rendered by GitHub. Each section becomes an
  * example, heading included, with the matching slice of the HTML. Large `*.offline.md` stress
@@ -159,7 +159,7 @@ function htmlSections(html: string, md: [string, string][]): string[] {
 }
 
 /** @prose
- * ## Inline tests
+ * # Inline tests
  *
  * `test/index.js` asserts `micromark(input, options)` against an expected string. oxc's parser (`parseSync`, which comes with vite-plus) reads the file, so a case is found by its shape, not by a regex over the source, and a
  * string input is taken as the engine would see it, escapes and concatenation resolved. The
@@ -292,7 +292,7 @@ function expected(call: Node, parents: Node[]): string {
 }
 
 /** @prose
- * ## yaml-test-suite
+ * # yaml-test-suite
  *
  * Each test in `src/*.yaml`, with its variants, becomes a metadata block: the test's YAML between
  * `---` fences. What markz is held to is the `yaml` package's reading, so the suite is kept to
@@ -365,7 +365,7 @@ function visible(text: string): string {
 }
 
 /** @prose
- * ## github-slugger
+ * # github-slugger
  *
  * `test/fixtures.json` is one run of a slugger over plain strings, so a repeat is numbered from the
  * ones before it. markz slugs a heading's text, so each fixture becomes a heading, with ASCII
@@ -392,7 +392,7 @@ function sluggerSuite(dir: string, dropped: string[]): Vendored[] {
 }
 
 /** @prose
- * ## Curation
+ * # Curation
  *
  * A suite is vendored for the decisions markz makes, not for its size. Most of an extension's
  * suite exercises a form markz supports and is kept whole; where a suite enumerates variants of a

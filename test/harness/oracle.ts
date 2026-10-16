@@ -31,7 +31,7 @@ export function reference(markdown: string): string {
 }
 
 /** @prose
- * ## Normalization
+ * # Normalization
  *
  * What counts as the same output. Whitespace runs outside `<pre>` collapse to one space, and a
  * space next to a block-level tag goes, so line layout never fails a test. A space between inline
@@ -62,7 +62,7 @@ export function normalize(html: string): string {
 }
 
 /** @prose
- * ## Tokens
+ * # Tokens
  *
  * What the oracle recognised in an example: each token it opened, with its source text and range. The
  * example list reads these to tell which examples use syntax the dialect cuts, and which have no
@@ -89,7 +89,7 @@ export function tokens(markdown: string): Token[] {
 }
 
 /** @prose
- * ## Math
+ * # Math
  *
  * micromark-extension-math writes KaTeX's HTML, so what is compared is structure: each math span
  * it finds, display or inline, where it starts (so `$$b$$` isn't taken for `$` and `$b$`), and
@@ -132,7 +132,7 @@ export function mathOracle(markdown: string): MathSpan[] {
 export const collapse = (tex: string) => tex.replace(/\s+/g, " ").trim();
 
 /** @prose
- * ## Metadata
+ * # Metadata
  *
  * The oracle for a metadata block's body is the `yaml` package, as the metadata rule says: what
  * YAML 1.2 reads, or why it refuses.
@@ -146,7 +146,7 @@ export function metadataOracle(body: string): { value: unknown } | { error: stri
 }
 
 /** @prose
- * ## Heading ids
+ * # Heading ids
  *
  * GitHub's ids, as github-slugger computes them: each text slugged in order, a repeat numbered past
  * the ids already taken.
@@ -157,7 +157,7 @@ export function slugOracle(texts: string[]): string[] {
 }
 
 /** @prose
- * ## Where they part by design or by the oracle
+ * # Where they part by design or by the oracle
  *
  * Input the comparison with micromark leaves out, each with its reason: one rule of the dialect,
  * and the places micromark parts from CommonMark's reference implementation, commonmark.js, which

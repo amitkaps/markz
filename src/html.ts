@@ -32,7 +32,7 @@ interface State {
 }
 
 /** @prose
- * ## Nodes
+ * # Nodes
  *
  * One case per node type, split in two: `open` writes what comes before a node's children and
  * `close` what comes after, and `walk` calls them in document order. Rendering never recurses, so
@@ -228,7 +228,7 @@ function tight(doc: Document, paragraph: NodeId): boolean {
 }
 
 /** @prose
- * ## Tables
+ * # Tables
  *
  * The first row is the header. Body rows are padded with empty cells to the header's width, and
  * every cell carries its column's alignment.
@@ -249,7 +249,7 @@ function alignment(doc: Document, node: NodeId, column: number): string {
 }
 
 /** @prose
- * ## Elements
+ * # Elements
  *
  * The name is the tag: the parser only makes elements whose name is on an allowlist or a custom
  * element ([`elements.ts`](elements.ts)). A document built by hand could hold any name, so one off
@@ -260,7 +260,7 @@ const tag = (name: string, inline: boolean) =>
   element(name, inline) ? name : inline ? "span" : "div";
 
 /** @prose
- * ## Attributes
+ * # Attributes
  *
  * Classes accumulate, and for any other key the later value wins, in the order keys first
  * appear. `class` is written first, and a bare key is written bare (`open`, not `open=""`), since
@@ -286,7 +286,7 @@ function attributes(a: Attributes | undefined, skipId = false): string {
 }
 
 /** @prose
- * ## URLs
+ * # URLs
  *
  * A destination is written percent-encoded, as micromark writes it: ASCII that is safe in a URL
  * stays, an existing `%XX` stays, and everything else is UTF-8 encoded. An unsafe scheme writes

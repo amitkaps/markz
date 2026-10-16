@@ -10,7 +10,7 @@ import { NAMED } from "./chars";
 import { WARNINGS, type WarningCode } from "./warnings";
 
 /** @prose
- * ## Node types
+ * # Node types
  *
  * `T` is the one list of node types. Its keys are the public string names and its values the
  * internal numeric codes stored in the `type` array, in the same order, so the name table below is
@@ -61,7 +61,7 @@ export interface Range {
 }
 
 /** @prose
- * ## Node data
+ * # Node data
  *
  * What each node type carries beyond its range and links. Strings that a node may lack are `null`
  * rather than empty, because the output distinguishes them (`[a](b "")` has a title). Values that
@@ -122,7 +122,7 @@ export type Align = "left" | "center" | "right" | null;
 export type DataType = keyof NodeData;
 
 /** @prose
- * ## Attributes
+ * # Attributes
  *
  * A `{…}` block, wherever it is allowed, becomes an `Attributes` in a second side table, so the
  * common case costs one empty slot. `#id` and `.class` are stored under the keys `id` and `class`,
@@ -140,7 +140,7 @@ export interface Attribute extends Range {
 }
 
 /** @prose
- * ## Warnings
+ * # Warnings
  *
  * A warning is syntax markz kept as text or read in its own way: a stable code from
  * `warnings.ts`, its range, what was wrong, and the supported form to write instead.
@@ -152,7 +152,7 @@ export interface Warning extends Range {
 }
 
 /** @prose
- * ## Document
+ * # Document
  *
  * The read-only view consumers get from `parse`. Accessors take a node and read one array slot, so
  * a walk allocates nothing but the generator `children` returns. Node ids are only meaningful for
@@ -239,7 +239,7 @@ export interface Store {
 }
 
 /** @prose
- * ## Builder
+ * # Builder
  *
  * How the parser writes the tree. It keeps a stack of open nodes: `open` starts a child of the
  * innermost one and makes it innermost, `close` sets its end and pops it, and `leaf` adds a

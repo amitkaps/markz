@@ -1,4 +1,6 @@
 /** @prose
+ * # The entry point
+ *
  * The public entry point: what `import … from '@amitkaps/markz'` exposes, and the BOM rule for the root.
  */
 import { describe, expect, it } from "vite-plus/test";

@@ -38,7 +38,7 @@ export function walk(doc: Document, visitor: Visitor, from: NodeId = doc.root): 
 }
 
 /** @prose
- * ## Text content
+ * # Text content
  *
  * The text `html()` writes for a node, as a browser's `textContent` would read it back: escapes
  * decoded, code, math and expressions as written, a hard break as a line
@@ -90,7 +90,7 @@ export interface Heading {
 }
 
 /** @prose
- * ## Headings
+ * # Headings
  *
  * The outline of a document, for a table of contents or a "jump to" list: every heading in source
  * order, wherever it sits (a heading in a blockquote, list item or element counts), with the id

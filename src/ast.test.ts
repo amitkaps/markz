@@ -1,4 +1,6 @@
 /** @prose
+ * # Hand-built trees
+ *
  * Hand-built trees, since the parser doesn't exist yet: the builder's links and ranges, the
  * document's accessors, and the type check on `data`.
  */

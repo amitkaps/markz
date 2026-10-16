@@ -1,5 +1,9 @@
-/* The Quality page's stylesheet, inlined by quality.ts. Its palette is the one prose's pages use,
-   with the four statuses added. */
+/** @prose
+ * # The Quality page's style
+ *
+ * The Quality page's stylesheet, inlined by [quality.ts](quality.ts). Its palette is the one
+ * prose's pages use, with the four statuses added.
+ */
 :root {
   --bg: #fdfcfa;
   --surface: #f4f2ee;
