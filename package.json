@@ -39,7 +39,9 @@
     "quality": "node test/quality/quality.ts",
     "prose": "prose",
     "verify": "pnpm check && pnpm prose check && pnpm test && pnpm build && pnpm size && pnpm prose build && pnpm quality && vp build",
-    "ship": "cf deploy --prebuilt"
+    "ship": "cf deploy --prebuilt",
+    "pr": "node scripts/pr.ts",
+    "gone": "node scripts/gone.ts"
   },
   "devDependencies": {
     "@amitkaps/prose": "^0.7.0",
