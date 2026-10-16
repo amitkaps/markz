@@ -1,0 +1,3 @@
+# Other projects' docs and examples, read as tests, which prose doesn't check.
+test/documents/** linguist-vendored
+test/examples/upstream/** linguist-vendored

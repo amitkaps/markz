@@ -65,6 +65,8 @@ hex ::= [0-9A-Fa-f]
 - `unclosed-block`: A code, raw or math block, or a comment, with no closing line runs to the end of its container, with a warning at its opening line.
 - `brackets`: The brackets in a link's or a span's text, or a leaf element's label, balance, unless a `\` escapes one.
 
+{#metadata-part}
+
 ## Metadata
 
 {#metadata}
