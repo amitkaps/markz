@@ -378,7 +378,7 @@ export const WARNED: Record<string, string> = {
   "attribute-syntax": "attribute-syntax",
   "orphan-attributes": "attribute-line",
   "comment-trailing-text": "comment-close",
-  "duplicate-id": "heading-id",
+  "duplicate-id": "attribute-id",
   "metadata-unclosed": "metadata-start",
   "metadata-line": "metadata-start",
   "metadata-duplicate-key": "metadata-keys",

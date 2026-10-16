@@ -127,12 +127,12 @@ carries its `>` or its indentation.
 Every heading gets an id, so a link can point at it.
 
 - **`{#id}` on the line above sets it.** The id then survives renaming the heading. If an
-  earlier heading has the same id, both keep it, and the later one gets the warning
-  `duplicate-id`.
+  earlier heading, element or span has the same id, both keep it, and the later one gets the
+  warning `duplicate-id`.
 - **Otherwise it is made from the text, as GitHub makes it.** Lowercase, punctuation removed, and
   each space a `-`: `## Café au lait` is `café-au-lait`. A repeat is numbered: `foo`, `foo-1`,
-  `foo-2`. So a link to a heading works on GitHub and on the site. The exact steps are in the
-  [grammar](grammar.md#heading).
+  `foo-2`, past any id an element or span took first. So a link to a heading works on GitHub
+  and on the site. The exact steps are in the [grammar](grammar.md#heading).
 
 {#blockquote}
 
@@ -233,6 +233,8 @@ them makes an [element](#element) Markdown has no syntax for.
 - **Inside the braces:** `#id`, `.class` and `key=value`, with `key="a value"` for spaces. A
   bare `key` is an HTML attribute that is on or off, as `open`, `hidden` or `download`. Classes
   add up. For any other key, the later value wins. A value may hold `${…}`.
+- **An id is used once in a document,** whether a heading, an element or a span holds it. A
+  later one that is already taken keeps it, with the warning `duplicate-id`.
 - **Bare keys alone count only on an element, a span, a link or an image:** `{@details open}`,
   `[x]{hidden}`, `[file](/a.pdf){download}`. On a line of its own, `{open}` stays text, since
   `{year}` there reads as a placeholder. Add a class or an id to use one above a block:

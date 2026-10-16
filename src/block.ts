@@ -108,12 +108,6 @@ class BlockParser {
   clock = 0;
   blankAt = -1;
   contentAt = -1;
-  /**
-   * Every heading id so far, explicit or generated, with the last number given to it as a
-   * generated id's base, so numbering resumes rather than restarts. One table, so a new id is
-   * hashed and stored once.
-   */
-  readonly ids = new Map<string, number>();
   /** The ids of `{#id}` lines so far, for a `{/name}` that meant `{@name}`. */
   idLines: Set<string> | null = null;
   /** The whitespace `blank` last found: on which line, and from where to where. */
@@ -530,9 +524,10 @@ class BlockParser {
    * ## Headings
    *
    * One line of content, with its closing hashes stripped (grammar: heading, `closing-hashes`).
-   * The id is settled as the heading closes, against the ids used so far (`heading-id`): a
-   * `{#id}` line above gives it exactly, reported if an earlier heading has it. No id depends on
-   * a later heading, so none changes once written. A trailing `{#id}` stays part of the text and
+   * The id is settled as the heading closes, against the ids used so far, a heading's, an
+   * element's or a span's (`heading-id`): a `{#id}` line above gives it exactly, reported if an
+   * earlier id is the same (`attribute-id`). No id depends on a later one, so none changes once
+   * written. A trailing `{#id}` stays part of the text and
    * is reported.
    */
   heading(at: number, depth: number, end: number): void {
@@ -554,30 +549,24 @@ class BlockParser {
     const explicit = attributes?.items.findLast((a) => a.key === "id");
     const data = { depth: depth as 1 | 2 | 3 | 4 | 5 | 6, id: "", idExplicit: !!explicit };
     const node = this.b.open("heading", at, data);
+    // Before the text, so the heading claims its id ahead of any span inside it.
+    if (attributes) this.b.setAttributes(node, attributes);
     const text = inline(this.b, this.src, [{ start: from, end: to }], false, true);
     this.b.close(end);
-    if (explicit) {
-      data.id = explicit.value;
-      if (this.ids.has(data.id)) {
-        this.report(
-          "duplicate-id",
-          explicit.start,
-          explicit.end,
-          `id \`${data.id}\` is already used by an earlier heading`,
-        );
-      } else this.ids.set(data.id, 0);
-    } else {
+    if (explicit) data.id = explicit.value;
+    else {
+      const { ids } = this.b;
       const base = slug(text);
       data.id = base;
-      let n = this.ids.get(base);
-      if (n === undefined) this.ids.set(base, 0);
+      let n = ids.get(base);
+      if (n === undefined) ids.set(base, 0);
       else {
-        while (this.ids.has(data.id)) data.id = `${base}-${++n}`;
-        this.ids.set(base, n);
-        this.ids.set(data.id, 0);
+        while (ids.has(data.id)) data.id = `${base}-${++n}`;
+        ids.set(base, n);
+        ids.set(data.id, 0);
       }
     }
-    this.leafNode(node, end, attributes);
+    this.leafNode(node, end, undefined);
   }
 
   /** @prose
@@ -1031,9 +1020,11 @@ class BlockParser {
         }
         const end = lines.at(-1)!.end;
         const node = b.open("paragraph", lines[0]!.start);
+        // Before the text, so the paragraph claims its id ahead of any span inside it.
+        if (leaf.attributes) b.setAttributes(node, leaf.attributes);
         inline(b, src, lines);
         b.close(end);
-        this.leafNode(node, end, leaf.attributes);
+        this.leafNode(node, end, undefined);
         return;
       }
       case "fence":

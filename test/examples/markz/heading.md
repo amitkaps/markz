@@ -30,6 +30,17 @@ Every heading gets an id: `{#id}` on the line above, or GitHub's slug numbered p
 #pricing
 ```
 
+An element or a span takes its id first, and a heading's slug is numbered past it.
+
+```example 654 heading-id
+{@section #checks /}
+
+## Checks
+.
+<section id="checks"></section>
+<h2 id="checks-1">Checks</h2>
+```
+
 ```example 11
 ## Hello _world_ #
 .
