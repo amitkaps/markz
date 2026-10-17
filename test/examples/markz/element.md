@@ -47,7 +47,7 @@ A leaf can interrupt a paragraph, since a line ending in `/}` can't be prose.
 </figure>
 ```
 
-An opening line can't: there it is text, and so its closing line has nothing to close.
+An opening line can't. There it is text, and so its closing line has nothing to close.
 
 ```example 149 ambiguous element-interrupts
 para

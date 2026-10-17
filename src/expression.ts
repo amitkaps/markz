@@ -1,10 +1,12 @@
 /** @prose
  * # Expressions
  *
- * Where a `${…}` ends. markz never evaluates or validates the JavaScript inside; it only finds the
- * `}` that matches the opening brace, skipping strings, template literals (with their own nested
- * `${}`) and comments, so a brace inside any of them doesn't count (grammar: `brace-depth`).
- * Regex literals aren't recognised, which is the documented limit. The same scanner serves inline
+ * Where a `${…}` ends. markz never evaluates or validates the JavaScript inside. It only finds the
+ * `}` that matches the opening brace.
+ *
+ * It skips strings, template literals and comments, so a brace inside any of them doesn't count
+ * (grammar: `brace-depth`). A template literal's own nested `${}` is skipped with it. Regex
+ * literals aren't recognised, which is the documented limit. The same scanner serves inline
  * expressions, link destinations and attribute values.
  */
 
@@ -12,15 +14,18 @@
  * # Remembering a scan
  *
  * A scan that fails costs the rest of the range, so a paragraph of unclosed `${` would be
- * quadratic if each one scanned again. It needn't be: a later `${` that the scan read as code
- * starts in the state the scan was in there, so it closes exactly where the scan's depth first
- * fell back below that brace, and fails if it never did. Every scan records, for each `{` it
- * counted, where that brace closed or that it didn't. Two failures carry over the same way: with
- * no end of a block comment before the range's end, no later comment closes, and a string that ran to its line's end
- * without a closing quote swallowed every later quote of its kind before that as an escape, so a
- * string opened at one of them reads the same pairs and fails too. The caller keeps the record,
- * one per text and range, for as long as those hold. A `${` the scan saw inside a string or
- * comment, or never reached, scans afresh.
+ * quadratic if each one scanned again. It needn't be, since every scan records what it learned.
+ *
+ * A later `${` that the scan read as code starts in the state the scan was in there. So it closes
+ * exactly where the scan's depth first fell back below that brace, and fails if it never did.
+ * Every scan records, for each `{` it counted, where that brace closed or that it didn't. A `${`
+ * the scan saw inside a string or comment, or never reached, scans afresh.
+ *
+ * Two failures carry over the same way. With no end of a block comment before the range's end, no
+ * later comment closes. And a string that ran to its line's end without a closing quote swallowed
+ * every later quote of its kind before that as an escape. So a string opened at one of them reads
+ * the same pairs and fails too. The caller keeps the record, one per text and range, for as long
+ * as those hold.
  */
 export interface Memo {
   /** Where each counted `{` closed, just past its `}`, or -1. */
@@ -106,7 +111,9 @@ function scan(source: string, from: number, end: number, braces: number[], recor
  *
  * The usual reason a `${…}` closes early is a `}` that markz can't see is inside something, such
  * as a regex (`${s.replace(/}/g, '')}`). The code then ends with a `(` or `[` still open, which
- * finished code never does. So a closed expression whose code leaves one open is reported
+ * finished code never does.
+ *
+ * So a closed expression whose code leaves one open is reported
  * (grammar: `expression-bracket`). Strings, template literals and comments are skipped, as
  * the scan skips them, so a bracket inside one doesn't count. This runs once, on the code of a
  * closed expression, so it adds a constant per character.

@@ -1,12 +1,13 @@
 /** @prose
  * # Attributes
  *
- * The `{…}` block, markz's one extension syntax, wherever syntax.md allows one: `#id`, `.class`,
- * `key=value`, with `key="a quoted value"` for spaces, and a bare `key` for a boolean attribute,
- * on one line. An element's block starts with `@name`, and a block element's may end in `/`.
- * Items are kept verbatim and in source order, each with its range; merging (classes accumulate,
- * a later value wins) is the renderer's job. Anything that doesn't parse returns `null`, and the
- * caller keeps the braces as text (syntax.md: Attributes).
+ * The `{…}` block, markz's one extension syntax, wherever syntax.md allows one. Anything that
+ * doesn't parse returns `null`, and the caller keeps the braces as text (syntax.md: Attributes).
+ *
+ * A block holds `#id`, `.class`, `key=value`, with `key="a quoted value"` for spaces, and a bare
+ * `key` for a boolean attribute, on one line. An element's block starts with `@name`, and a block
+ * element's may end in `/`. Items are kept verbatim and in source order, each with its range.
+ * Merging them is the renderer's job, as classes accumulate and a later value wins.
  */
 import { type Attribute, type Attributes } from "./ast";
 import { isSpace, unescape } from "./chars";

@@ -1,14 +1,16 @@
 /** @prose
  * # Constructs, checked
  *
- * Each construct in its own `describe`, by its id, held to everything that tries it: its upstream
- * examples against their oracle, its own examples to their expected output, labelled with the
- * edge each tries, and the cases generated at its edges from the grammar. A Not supported row is
- * held the same way to its examples. A red run names the construct first, whatever caught it.
+ * Each construct in its own `describe`, by its id, held to everything that tries it. A red run
+ * names the construct first, whatever caught it.
+ *
+ * That's its upstream examples against their oracle, and its own examples to their expected
+ * output, labelled with the edge each tries. And it's the cases generated at its edges from the
+ * grammar. A Not supported row is held the same way to its examples.
  *
  * At its edges, a construct's generated cases and their one-character neighbours must each be
- * read as the grammar reads them, or be settled by a named side rule or a Not supported row, and
- * between them they must reach all three generated edges: a valid case markz reads, a boundary
+ * read as the grammar reads them. Or they're settled by a named side rule or a Not supported row.
+ * Between them they must reach all three generated edges: a valid case markz reads, a boundary
  * neighbour it still reads, and a near miss it doesn't. The two edges the grammar can't write,
  * ambiguous and unclosed, are its own hand-written examples, and it has one of each or says why
  * it can't (`EDGES`).

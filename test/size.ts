@@ -1,9 +1,11 @@
 /** @prose
  * # Size gate
  *
- * `pnpm size`: what markz costs. The 20 KB budget is measured the way a consumer pays for it:
+ * `pnpm size`: what markz costs. The 20 KB budget is measured the way a consumer pays for it, as
  * everything `src/index.ts` pulls in, bundled and minified, then gzipped (design: Performance and
- * size). Run as a script, it fails the build above the budget, so growth shows up in the PR that
+ * size).
+ *
+ * Run as a script, it fails the build above the budget, so growth shows up in the PR that
  * causes it rather than at the end. Brotli is printed for reference only. It also prints what
  * holding the CommonMark spec's tree costs, as a multiple of its source. The Quality page measures
  * both the same way.

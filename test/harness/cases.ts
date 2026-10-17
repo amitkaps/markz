@@ -1,16 +1,19 @@
 /** @prose
  * # Cases by construct
  *
- * Every construct held to its edges, with the grammar as the judge. A construct's own productions
- * write valid cases, and one-character edits of them write their neighbours: an edit the grammar
- * still accepts is a boundary case, and one it rejects is a near miss. For each, markz must read
- * the construct exactly when the grammar accepts the text. Where they part, a side rule decides,
- * and the case is settled by that rule's name here, so every gap between the productions and the
- * parser is either closed in the grammar or named.
+ * Every construct held to its edges, with the grammar as the judge. For each case, markz must read
+ * the construct exactly when the grammar accepts the text.
  *
- * The grammar is never the parser: it recognizes a string, with no side rules, and markz is held
- * to it only where the productions can speak. What they can't (which of two readings wins, where
- * an unclosed construct ends) is written by hand, as dialect examples filed with their category.
+ * A construct's own productions write valid cases, and one-character edits of them write their
+ * neighbours. An edit the grammar still accepts is a boundary case, and one it rejects is a near
+ * miss. Where markz and the grammar part, a side rule decides, and the case is settled by that
+ * rule's name here. So every gap between the productions and the parser is either closed in the
+ * grammar or named.
+ *
+ * The grammar is never the parser. It recognizes a string, with no side rules, and markz is held
+ * to it only where the productions can speak. They can't say which of two readings wins, or where
+ * an unclosed construct ends. Those are written by hand, as dialect examples filed with their
+ * category.
  */
 import fc from "fast-check";
 import { parse, textContent, type Document, type NodeId, type NodeType } from "../../src/index";
@@ -23,10 +26,12 @@ import { choices, grammarBuilt } from "./generate";
  * # Reading a case
  *
  * A block construct is its own document, and markz reads it when that document is the one block,
- * with nothing reported. An inline construct sits between words on a line (`a … a`), and markz
- * reads it when a node of its kind covers exactly its text, again with nothing reported. A
- * construct that makes no node of its own is read by what it leaves: metadata by the document's
- * metadata, attributes by the block after them, and an escape by the one character it becomes.
+ * with nothing reported. An inline construct sits between words on a line (`a … a`). markz reads
+ * it when a node of its kind covers exactly its text, again with nothing reported.
+ *
+ * A construct that makes no node of its own is read by what it leaves. Metadata is read by the
+ * document's metadata, attributes by the block after them, and an escape by the one character it
+ * becomes.
  */
 interface Reading {
   /** Where the case sits in the document it is read in. */
@@ -39,7 +44,7 @@ interface Reading {
 /** @prose
  * ## What a case makes
  *
- * Each construct's node, and the data its own delimiters decide: a heading's depth is its count
+ * Each construct's node, and the data its own delimiters decide. A heading's depth is its count
  * of `#`s, `**` makes strong and `~~` delete, `!` an image, a closing `/` a leaf element. These
  * come from the case's text by the construct's literals alone, never from markz's reading.
  */
@@ -177,9 +182,9 @@ export function reading(id: string): Reading {
 /** @prose
  * # Judging
  *
- * The grammar judges the case, wrapped in what its reading allows around it (blank lines around
- * a block). markz reads it when it makes the construct and reports nothing: a construct made with
- * a warning is markz saying the text was not quite it, as the grammar does by rejecting it.
+ * The grammar judges the case, wrapped in what its reading allows around it, like blank lines
+ * around a block. markz reads it when it makes the construct and reports nothing. A construct made
+ * with a warning is markz saying the text was not quite it, as the grammar does by rejecting it.
  *
  * Where the two part, the case is settled, never skipped. A Not supported warning settles it by
  * its row: the text holds a form the dialect cuts, which the productions have no word for, and
@@ -225,9 +230,10 @@ export function judge(id: string, s: string): Verdict {
  * # Settled by a side rule
  *
  * Each test recognizes the one thing its rule decides and nothing wider, so a case it claims is
- * one the rule's text explains. Most are about lines, which the productions read one at a time:
- * a construct whose content runs onto a second line, a fence that closes before the last line, a
- * container whose later lines carry a prefix.
+ * one the rule's text explains.
+ *
+ * Most are about lines, which the productions read one at a time. That's a construct whose content runs onto a second line, a fence that closes before the last
+ * line, or a container whose later lines carry a prefix.
  */
 const LINE_END = /\r\n|\r|\n/;
 const isBlank = (line: string) => /^[ \t]*$/.test(line);
@@ -350,9 +356,9 @@ const closesBefore = (s: string) =>
   expressions(s).some((e) => e.code.includes("}") || s.slice(e.end + 1).split("}").length > 2);
 
 /** @prose
- * The document's rules can decide a case of any construct: a blank line inside it ends it, a
- * line that opens another block ends the paragraph an inline construct sits in, and deep
- * indentation opens nothing.
+ * The document's rules can decide a case of any construct. A blank line inside it ends it. A line
+ * that opens another block ends the paragraph an inline construct sits in. And deep indentation
+ * opens nothing.
  */
 export const EVERYWHERE: Record<string, Test> = {
   "blank-lines": (s, id) => {
@@ -487,12 +493,14 @@ export const SETTLED: Record<string, Record<string, Test>> = {
 /** @prose
  * # Edges
  *
- * A valid case and its neighbours: every one-character deletion, and every insertion of a
- * character the construct's own productions use (its literals, and one of each range of its
- * character classes), a letter, a space or a line ending. Most neighbours cross a boundary the
- * grammar draws (a seventh `#`, a missing space, a fence one backtick short), which is what makes
- * them worth reading. The valid cases are kept plain (letters, one repeat, shallow nesting), so
- * an edit, not the generator's noise, decides each neighbour.
+ * A valid case and its neighbours, from every one-character deletion and insertion. Most
+ * neighbours cross a boundary the grammar draws (a seventh `#`, a missing space, a fence one
+ * backtick short), which is what makes them worth reading.
+ *
+ * An insertion is a character the construct's own productions use, a letter, a space or a line
+ * ending. The productions' characters are its literals, and one of each range of its character
+ * classes. The valid cases are kept plain (letters, one repeat, shallow nesting), so an edit, not
+ * the generator's noise, decides each neighbour.
  */
 export function neighbours(id: string, s: string): string[] {
   const chars = [...new Set([...literals(id), "a", " ", "\n"])];
@@ -522,9 +530,11 @@ function literals(id: string): string[] {
 
 /** @prose
  * A construct's valid cases are the first `count` its search draws, then each later draw that
- * reaches a choice none before it did. The search draws a few thousand, which costs little, since
- * judging a case and its neighbours is where the time goes. A choice still unreached is reported
- * as missed, so a part of the grammar the cases never write fails the test instead of hiding.
+ * reaches a choice none before it did. A choice still unreached is reported as missed.
+ *
+ * So a part of the grammar the cases never write fails the test instead of hiding. The search
+ * draws a few thousand, which costs little, since judging a case and its neighbours is where the
+ * time goes.
  */
 const DRAWS = 2000;
 
@@ -656,8 +666,10 @@ export const sideRules = new Set([DOCUMENT, ...CONSTRUCTS].flatMap((c) => Object
 /** @prose
  * # Side rules held elsewhere
  *
- * Every side rule names what holds it: a settlement above, a warning in `WARNED`, an example
- * labelled with it, or one of these lists. The edges judge only whether a construct is read. So a
+ * Every side rule names what holds it. That's a settlement above, a warning in `WARNED`, an
+ * example labelled with it, or one of these lists.
+ *
+ * The edges judge only whether a construct is read. So a
  * CommonMark or GFM rule that decides the HTML instead, such as a list's start or whether it is
  * loose, is held by the oracle. That is the upstream suites against micromark, and the documents
  * the grammar writes (`robustness.test.ts`). A rule the judge applies to every case is held by

@@ -1,14 +1,14 @@
 /** @prose
  * # Quality data
  *
- * What the Quality page reports, computed when it is generated: every example markz is held to
- * with its status, each construct's generated edges, and markz's size and speed on this commit.
+ * What the Quality page reports, computed when it is generated. It's every example markz is held
+ * to with its status, each construct's generated edges, and markz's size and speed on this commit.
  *
  * Conformance is the test harness's own `check`, so the page files each example under
  * `syntax.md`'s constructs and compares as `pnpm test` does, and can't disagree with the tests
  * because it runs their code. Each construct's edges come from the same search
- * `constructs.test.ts` runs, from the same seed: how many generated cases reached each edge, one
- * case of each, and why a construct has no ambiguous or unclosed example where it can't.
+ * `constructs.test.ts` runs, from the same seed. They're how many generated cases reached each
+ * edge, one case of each, and why a construct has no ambiguous or unclosed example where it can't.
  *
  * Size is the gzip the size gate measures against its budget, and what the tree for the CommonMark
  * spec holds beside its source. Speed is parse + HTML on documents a reader can picture. The

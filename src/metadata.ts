@@ -1,11 +1,15 @@
 /** @prose
  * # Metadata
  *
- * The `---` block at the top of a document, read by syntax.md's rule: one `key: value` per line,
- * where a value is null, a boolean, a number, a quoted string, a `[…]` list, or otherwise a
- * string as written. A list may wrap onto the indented lines after its key, the way a formatter
- * writes a long one. Keys are flat, and a `.` in one is an ordinary character, as YAML
- * reads it. The rule warns on the mistakes writers make, not on every corner of YAML. A value
+ * The `---` block at the top of a document, read by syntax.md's rule. The rule warns on the
+ * mistakes writers make, not on every corner of YAML.
+ *
+ * It's one `key: value` per line. A value is null, a boolean, a number, a quoted string, a `[…]`
+ * list, or otherwise a string as written. A list may wrap onto the indented lines after its key,
+ * the way a formatter writes a long one. Keys are flat, and a `.` in one is an ordinary
+ * character, as YAML reads it.
+ *
+ * A value
  * YAML would read as another type (`no`, `1.10`, `1e3`) or as structure (a leading `*` or `{`) is
  * a warning, and its key is skipped, since any guess could be wrong. A value holding `: ` or ` #`
  * is a warning too, but markz keeps it as written. Skipping it would lose a title like

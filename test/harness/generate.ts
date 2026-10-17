@@ -2,9 +2,11 @@
  * # Generated documents
  *
  * Documents built from the dialect's own grammar, so the fuzzer writes what an author could, not
- * only noise. Each production in `grammar.ts` becomes a fast-check arbitrary: a literal is itself,
- * a sequence joins its parts, an alternative picks one, and a repeat takes up to three (or
- * `repeats`). fast-check shrinks a failing document along the same structure, so a failure comes
+ * only noise.
+ *
+ * Each production in `grammar.ts` becomes a fast-check arbitrary. A literal is itself, a sequence
+ * joins its parts, an alternative picks one, and a repeat takes up to three, or `repeats`.
+ * fast-check shrinks a failing document along the same structure, so a failure comes
  * back as the smallest document the grammar can write that still fails.
  *
  * The productions describe what markz accepts and leave the choices to side rules, so a generated
@@ -46,8 +48,10 @@ export function grammarDocument(options: Options, start = "document"): fc.Arbitr
 /** @prose
  * # Recursion
  *
- * Recursion stops at a fixed depth by taking an alternative's first option, which the grammar
- * lists first because it is the plainest (`paragraph` for a block, `text` for an inline). Each
+ * Recursion stops at a fixed depth by taking an alternative's first option. The grammar lists it
+ * first because it is the plainest (`paragraph` for a block, `text` for an inline).
+ *
+ * Each
  * cycle of productions counts its own depth, and only an alternative that leads back into its
  * cycle counts at all. With one count for every alternative, a choice nested under another was
  * always its first option. The edge cases then wrote only `{@div`, and every link's destination
@@ -131,7 +135,9 @@ export function grammarBuilt(options: Options, start = "document"): fc.Arbitrary
  * # Choices a construct's cases must reach
  *
  * Every option of each alternative in the construct's own productions, and both sides of each
- * `?` and `*`, so a search can say what it never wrote. Two kinds are left out. A list of
+ * `?` and `*`, so a search can say what it never wrote.
+ *
+ * Two kinds are left out. A list of
  * literals, such as the element names, is one choice, since each name is read the same way. A
  * recursive alternative promises only its first option, which is all it takes once it is deep.
  */
@@ -244,8 +250,10 @@ export function mutated(documents: readonly string[]): fc.Arbitrary<string> {
  * # How far a search goes
  *
  * The fuzzer and the edge cases search from one fixed seed, so `pnpm test` is deterministic and a
- * red run replays. `SEARCH` in the environment multiplies every search's runs, and `SEED` moves
- * it elsewhere: `pnpm fuzz` runs fifty times as far, and `SEED=random` draws one new seed for the
+ * red run replays.
+ *
+ * `SEARCH` in the environment multiplies every search's runs, and `SEED` moves it elsewhere.
+ * `pnpm fuzz` runs fifty times as far, and `SEED=random` draws one new seed for the
  * run (`vite.config.ts`), which it prints first. fast-check prints the seed of any failure, and an
  * edge test prints both settings with its shortest unsettled cases.
  */

@@ -1,10 +1,11 @@
 /** @prose
  * # Element names
  *
- * An element's `@name` is the element it writes ([Design](../docs/design.md#element-names)): an HTML
- * element on the allowlist for its kind, or a custom element. The lists leave out what Markdown
- * already writes (`em`, `a`, `pre`, …) and `span`, which `[text]{.x}` writes, so each element has
- * one way in, and anything active
+ * An element's `@name` is the element it writes ([Design](../docs/design.md#element-names)). It's
+ * an HTML element on the allowlist for its kind, or a custom element.
+ *
+ * The lists leave out what Markdown already writes (`em`, `a`, `pre`, …) and `span`, which
+ * `[text]{.x}` writes, so each element has one way in. They leave out anything active too
  * (`script`, `iframe`, form controls, media), so a name can never run code. Inline and block are
  * separate, so a block element never lands inside a paragraph.
  *
