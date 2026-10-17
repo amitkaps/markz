@@ -3,5 +3,5 @@
 #
 # Other projects' docs and examples, read as tests, which prose doesn't check
 # ([usage](https://prose.amitkaps.com/docs/usage.md#warnings)).
-test/documents/** linguist-vendored
-test/examples/upstream/** linguist-vendored
+test/documents/** prose-unchecked
+test/examples/upstream/** prose-unchecked
