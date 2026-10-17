@@ -5,15 +5,16 @@
  * (design: Parser foundation). The block pass hands it the lines as source ranges with container
  * prefixes and outer whitespace already cut, so it never sees a `> ` or an item's indentation.
  *
- * The lines are joined into one flat string with `\n` between them (with `join`: a string built
- * with `+=` is a rope V8 walks on every character read), and every position in it maps back to
- * the source, so a node may span lines while its range stays exact. When the joined lines are
- * the source as it is, the pass reads the source's slice instead. Text values are slices of this
- * string, and a slice of a fresh copy would keep the whole leaf alive in the tree. Atomic constructs
- * (code, math, expressions, autolinks, escapes, references) are consumed where they start, which
- * is how they bind tighter than emphasis. Emphasis and brackets, for links and spans, are openers
- * that either close or stay text: the pass builds a linked list of items, and a match wraps the
- * items between opener and closer into one node, so nothing is read twice.
+ * The lines are joined into one flat string with `\n` between them. That's done with `join`,
+ * since a string built with `+=` is a rope V8 walks on every character read. Every position in it
+ * maps back to the source, so a node may span lines while its range stays exact. When the joined
+ * lines are the source as it is, the pass reads the source's slice instead. Text values are slices
+ * of this string, and a slice of a fresh copy would keep the whole leaf alive in the tree.
+ *
+ * Atomic constructs (code, math, expressions, autolinks, escapes, references) are consumed where
+ * they start. That is how they bind tighter than emphasis. Emphasis and brackets, for links and
+ * spans, are openers that either close or stay text. The pass builds a linked list of items, and a
+ * match wraps the items between opener and closer into one node, so nothing is read twice.
  */
 import { type Attributes, type Builder, type NodeData, type NodeType, type Range } from "./ast";
 import { bareOnly, braceEnd, parseAttributes, parseElement } from "./attributes";
@@ -58,8 +59,8 @@ export function inline(
  * # Items
  *
  * What a scan produces, in a doubly linked list: text with its decoded value, delimiter runs and
- * brackets that may still become nodes (and are text if they don't), and finished nodes with
- * their children. Ranges are source offsets.
+ * brackets that may still become nodes, and finished nodes with their children. A run or bracket
+ * that doesn't become a node is text. Ranges are source offsets.
  */
 interface Item {
   prev: Item | null;
@@ -358,10 +359,12 @@ class InlinePass {
    * # Escapes, breaks and references
    *
    * A `\` escapes, breaks the line or makes a non-breaking space (grammar: escape, line-break).
+   * Anywhere else a `\` is itself.
+   *
    * `\ ⏎` is a hard break because it is what the author sees, and what it becomes once a
-   * formatter strips the space (`trailing-backslash`). Anywhere else a `\` is itself. Numeric
-   * references decode, with U+FFFD for any code point HTML can't hold (`character`). A named one
-   * stays text and is reported, since markz has no entity table.
+   * formatter strips the space (`trailing-backslash`). Numeric references decode, with U+FFFD for
+   * any code point HTML can't hold (`character`). A named one stays text and is reported, since
+   * markz has no entity table.
    */
   backslash(list: List, t: number, to: number): number {
     const next = this.text[t + 1];
@@ -512,11 +515,13 @@ class InlinePass {
   /** @prose
    * # Angle brackets
    *
-   * `<scheme:…>` and `<address@host>` are autolinks (grammar: link, `scheme-length`). Anything
-   * shaped like an HTML tag, comment or declaration is raw HTML, which the dialect cuts: the
-   * whole tag stays text, so nothing inside it is read as Markdown, and it is reported. A
+   * `<scheme:…>` and `<address@host>` are autolinks (grammar: link, `scheme-length`). Any other
+   * `<` is text.
+   *
+   * Anything shaped like an HTML tag, comment or declaration is raw HTML, which the dialect cuts.
+   * The whole tag stays text, so nothing inside it is read as Markdown, and it is reported. A
    * capitalised tag is reported as JSX, and a relative autolink (`</docs/a>`), which has no
-   * scheme, as itself. Any other `<` is text.
+   * scheme, as itself.
    */
   angle(list: List, t: number, to: number): number {
     const { text } = this;
@@ -585,10 +590,11 @@ class InlinePass {
    * # Emphasis
    *
    * Whether a run can open or close is `flanking`, and which opener a closer takes is
-   * `nearest-opener` (grammar: emphasis): openers of other kinds between them are left as text,
-   * so nothing is read twice. `*` is kept only in `star-places`, where formatters write it, and
-   * never between two digits (`star-digits`).
-   * Anywhere else a `*` pair, like a `__` or `~` pair, stays text and is reported.
+   * `nearest-opener` (grammar: emphasis). Openers of other kinds between them are left as text,
+   * so nothing is read twice.
+   *
+   * `*` is kept only in `star-places`, where formatters write it, and never between two digits
+   * (`star-digits`). Anywhere else a `*` pair, like a `__` or `~` pair, stays text and is reported.
    */
   delimiter(list: List, t: number, from: number, to: number): number {
     const { text } = this;
@@ -669,10 +675,11 @@ class InlinePass {
    * `[` and `![` wait on the bracket stack, and at `]` become a link, an image or a span
    * (grammar: link, span; `brackets`, `emphasis-brackets`). Once a link closes, the brackets
    * around it can't make links (`link-text`), but they can still make a span, which may hold
-   * one. `[x][y]` and `[x][]`
-   * are reference links and `[^x]` is a footnote, which the dialect cuts: they stay text and are
-   * reported. `[x]` alone is just text, since `[sic]` is prose; its definition, if it has one, is
-   * what gets reported.
+   * one.
+   *
+   * `[x][y]` and `[x][]` are reference links and `[^x]` is a footnote, which the dialect cuts. They
+   * stay text and are reported. `[x]` alone is just text, since `[sic]` is prose. Its definition,
+   * if it has one, is what gets reported.
    */
   open(list: List, t: number): number {
     const n = this.text[t] === "!" ? 2 : 1;
@@ -854,11 +861,12 @@ class InlinePass {
    * # Spans
    *
    * `[text]{…}` wraps the text in a `span`, and `[text]{@name …}` in the inline element it names
-   * (grammar: span). `![text]{…}` is a `!` and a span. A name that isn't an inline element leaves
-   * the whole `[…]{…}` as text (`inline-element-name`), so what the scan made inside goes back to
-   * the text it was. A `{…}` there that doesn't parse, or that ends in `/` as only
-   * a block element may, is text and reported. Returns where the span ends, or -1 when the `{`
-   * is left to be text.
+   * (grammar: span). `![text]{…}` is a `!` and a span. It returns where the span ends, or -1 when
+   * the `{` is left to be text.
+   *
+   * A name that isn't an inline element leaves the whole `[…]{…}` as text (`inline-element-name`).
+   * What the scan made inside then goes back to the text it was. A `{…}` there that doesn't parse,
+   * or that ends in `/` as only a block element may, is text and reported.
    */
   span(list: List, t: number): number {
     const { src } = this;
@@ -941,8 +949,8 @@ class InlinePass {
    * # Colon directives
    *
    * `:name[label]`, `:name{…}` and their two- and three-colon forms are colon directives, which
-   * markz cuts: the whole `:name[…]{…}` stays text, nothing in it read as other syntax (so its
-   * `[…]{…}` never becomes a span), and it is reported once. It needs a label or attributes and
+   * markz cuts. The whole `:name[…]{…}` stays text and is reported once. Nothing in it is read as
+   * other syntax, so its `[…]{…}` never becomes a span. A directive needs a label or attributes and
    * can't start straight after another `:`, so a colon in prose is never one.
    */
   directiveEnd = 0;
@@ -982,16 +990,22 @@ class InlinePass {
   /** @prose
    * # Bare URLs and stray attributes
    *
-   * GFM links `https://…`, `www.…` and `me@example.com` in running text; markz keeps them as
-   * text and reports each one GFM would link, so a reader never loses a link silently. Each is
-   * found at its `:`, `.` or `@`, looking back at text already scanned, and taken whole as text so
-   * nothing inside it is read as emphasis or punctuation. Which ones count is GFM's rule, held to
-   * micromark-extension-gfm-autolink-literal's suite: the character before (`www.` only after
-   * space, `(`, `*`, `_`, `[`, `]` or `~`; a protocol after anything but a letter), a domain with
-   * no `_` in its last two segments, an email domain ending in a letter, and nothing after a `[`
-   * that hasn't closed. The report's end is approximate: where GFM trims a URL's tail is the part
-   * of its rule the dialect cuts. The reports wait until the leaf is done, and a link that closes
-   * drops the ones inside it.
+   * GFM links `https://…`, `www.…` and `me@example.com` in running text. markz keeps them as text
+   * and reports each one GFM would link, so a reader never loses a link silently.
+   *
+   * Each is found at its `:`, `.` or `@`, looking back at text already scanned. It's taken whole
+   * as text, so nothing inside it is read as emphasis or punctuation. Which ones count is GFM's
+   * rule, held to micromark-extension-gfm-autolink-literal's suite.
+   *
+   * - The character before. `www.` comes only after a space, `(`, `*`, `_`, `[`, `]` or `~`, and a
+   *   protocol after anything but a letter.
+   * - A domain with no `_` in its last two segments.
+   * - An email domain ending in a letter.
+   * - Nothing after a `[` that hasn't closed.
+   *
+   * The report's end is approximate, since where GFM trims a URL's tail is the part of its rule
+   * the dialect cuts. The reports wait until the leaf is done, and a link that closes drops the
+   * ones inside it.
    *
    * A `{…}` that parses as attributes but sits outside `attribute-places` (after a word, code or
    * emphasis) stays text and is reported. Any other brace is prose.

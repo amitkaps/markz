@@ -18,15 +18,15 @@ harness that reads and judges them, the checks, and the tools that measure markz
 The checks:
 
 - [`dialect.test.ts`](dialect.test.ts): what the others stand on. The grammar is well formed and
-  is `syntax.md`'s, every warning is named there, the filing names real examples and numbers
-  markz's own once, each vendored file is as `fences.ts` writes it, and the oracles match the
+  is `syntax.md`'s, and every warning is named there. The filing names real examples and numbers
+  markz's own once. Each vendored file is as `fences.ts` writes it, and the oracles match the
   suites' own answers.
 - [`constructs.test.ts`](constructs.test.ts): each construct in its own `describe`, held to its
-  upstream examples, its own examples by edge, and the cases generated at its edges; each Not
-  supported row to its examples.
+  upstream examples, its own examples by edge, and the cases generated at its edges. Each Not
+  supported row is held to its examples.
 - [`robustness.test.ts`](robustness.test.ts): noise, mutated examples and documents written from
-  the grammar, each held to being sound, and the CommonMark and GFM ones to the oracle; and the
-  upstream sweeps, held to finishing, a valid tree and a warning for every bare URL GFM links.
+  the grammar, each held to being sound, and the CommonMark and GFM ones to the oracle. The
+  upstream sweeps are held to finishing, a valid tree and a warning for every bare URL GFM links.
 - [`documents.test.ts`](documents.test.ts): each real document, sound as written and formatted,
   its common blocks as micromark reads them, meaning the same after oxfmt, and warning as its
   snapshot in [`__snapshots__/`](__snapshots__/) says.

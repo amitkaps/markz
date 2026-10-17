@@ -176,7 +176,7 @@ syntax.
 [Sales]{@chart type=bar /}
 ```
 
-For a container, only the opening and closing lines are text; the body is still Markdown.
+For a container, only the opening and closing lines are text, and the body is still Markdown.
 
 ```example 115
 {@note}

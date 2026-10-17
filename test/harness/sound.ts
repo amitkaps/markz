@@ -1,12 +1,13 @@
 /** @prose
  * # Sound
  *
- * What every document must satisfy, whatever the input: the properties the fuzzer holds each
- * generated document to. markz never throws, and it builds a valid tree whose every warning lies
+ * What every document must satisfy, whatever the input, as the properties the fuzzer holds each
+ * generated document to.
+ *
+ * markz never throws, and it builds a valid tree whose every warning lies
  * inside the source under a known code. `html()` gives the same string for the same input, and
- * the same page whichever line endings the source uses. `walk`
- * reaches every node, `textContent` and `position` answer for any node and offset, and the HTML
- * is safe: no element that runs script, no event-handler attribute, and no `javascript:` URL,
+ * the same page whichever line endings the source uses. `walk` reaches every node, and
+ * `textContent` and `position` answer for any node and offset. And the HTML is safe: no element that runs script, no event-handler attribute, and no `javascript:` URL,
  * unless the author wrote a ` ```=html ` raw block, which is theirs to write.
  */
 import { expect } from "vite-plus/test";

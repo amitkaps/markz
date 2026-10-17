@@ -1,13 +1,17 @@
 /** @prose
  * # Robustness
  *
- * Input no example chose, held to what must always be true of any document. Three generated
- * sources feed the same properties: noise drawn from Markdown's characters, known examples with
- * a few random edits, and documents written from the dialect's own grammar. Each must be sound
- * (`harness/sound.ts`). Where the grammar writes only CommonMark and GFM constructs, from plain
- * letters, markz must also match the oracle, unless it raised a Not supported warning: the side
- * rules often turn a generated document into a form the dialect cuts (a lazy line, `*` emphasis),
- * which markz reads differently on purpose and reports. Two rules differ without a warning.
+ * Input no example chose, held to what must always be true of any document. Each must be sound
+ * (`harness/sound.ts`).
+ *
+ * Three generated sources feed the same properties. They're noise drawn from Markdown's
+ * characters, known examples with a few random edits, and documents written from the dialect's
+ * own grammar.
+ *
+ * Where the grammar writes only CommonMark and GFM constructs, from plain letters, markz must also
+ * match the oracle. The exception is where it raised a Not supported warning. The side rules often
+ * turn a generated document into a form the dialect cuts (a lazy line, `*` emphasis). markz reads
+ * that differently on purpose and reports it. Two rules differ without a warning.
  * Emphasis runs never split, and a document that needs one is left out, as the spec examples
  * that need one differ. A `*` run between digits is text (`star-digits`), so the oracle's
  * alphabet holds a digit, and a document with one is left out.

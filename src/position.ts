@@ -1,8 +1,10 @@
 /** @prose
  * # Positions
  *
- * Offsets are what the AST stores; editors and error messages want lines and columns. `position`
- * builds a table of line starts once, then converts each offset by binary search. Lines are
+ * Offsets are what the AST stores, but editors and error messages want lines and columns.
+ * `position` builds a table of line starts once, then converts each offset by binary search.
+ *
+ * Lines are
  * 1-based and columns 0-based in UTF-16 code units, visdown's convention and source-map v3's.
  * CRLF, LF and a lone CR each end a line, as they do for the parser. An offset past the end is
  * clamped to the end.

@@ -9,16 +9,16 @@ The productions describe what markz accepts, not how it reads it. On their own t
 ambiguous, as every Markdown grammar is, and the side rules settle each choice: which block a line
 opens, what closes a run, how far a container's prefix reaches. The parser is written by hand as
 the one reading of both ([Design](design.md#parser-foundation)). A form the dialect cuts has no
-production here: it is a Not supported row in `syntax.md`, keyed by its warning code.
+production here. It is a Not supported row in `syntax.md`, keyed by its warning code.
 
 ## Reading it
 
-- **Notation.** The W3C EBNF of the XML spec, kept small: `name ::= expression`, `|` for
-  alternatives, juxtaposition for sequence, `?`, `*` and `+`, parentheses, `'literal'` or
-  `"literal"`, `#xA` for a character by code point, and `[a-z]` or `[^…]` for a character
-  class, which may hold `#x…` too.
-- **Constructs.** Each has the id `syntax.md` gives it (`{#id}` above its heading), under the
-  same part, in the same order. Its first production is named by its id.
+- **Notation.** The W3C EBNF of the XML spec, kept small. It has `name ::= expression`, `|` for
+  alternatives, juxtaposition for sequence, `?`, `*` and `+`, and parentheses. A literal is
+  `'literal'` or `"literal"`, and `#xA` is a character by code point. `[a-z]` or `[^…]` is a
+  character class, which may hold `#x…` too.
+- **Constructs.** Each has the id `syntax.md` gives it, as `{#id}` above its heading. It's under
+  the same part, in the same order. Its first production is named by its id.
 - **Origins.** The line under each heading names the earliest layer that defines the construct:
   CommonMark, GFM (which extends it), djot, pandoc, GitHub, or markz's own. A construct from
   CommonMark or GFM reads as micromark with GFM does, except where a side rule or a Not supported
@@ -56,8 +56,8 @@ hex ::= [0-9A-Fa-f]
 ```
 
 - `last-line`: The last line may end at the end of the document instead of at a line ending.
-- `block-order`: At the start of a line, after up to three spaces, the block openings are tried in a fixed order (blockquote, heading, code or raw fence, `$$`, comment, thematic break, list item, element line, attribute line) and the first that matches wins. A line that opens none is paragraph text.
-- `indentation`: Four or more columns of indentation, past the enclosing container's, open no block: the line is paragraph text. A tab advances to the next multiple of four columns.
+- `block-order`: At the start of a line, after up to three spaces, the block openings are tried in a fixed order, and the first that matches wins. The order is blockquote, heading, code or raw fence, `$$`, comment, thematic break, list item, element line, attribute line. A line that opens none is paragraph text.
+- `indentation`: Four or more columns of indentation, past the enclosing container's, open no block. The line is paragraph text. A tab advances to the next multiple of four columns.
 - `container-prefix`: A container's content is written with its prefix removed from every line: `>` and one space for a blockquote, the item's content column for a list item. What is left is read as blocks by these same productions.
 - `inline-order`: Inline code, math and expressions bind tightest, then autolinks, links and spans, then emphasis. An opener either closes or stays text, and the input is never read again.
 - `text`: Text is any run of characters that opens no other inline construct, or whose construct does not close.
@@ -107,7 +107,7 @@ Origin: CommonMark.
 paragraph ::= indent? inline line-end
 ```
 
-- `paragraph-lines`: A paragraph's lines run until a blank line or a line that opens a block. Inside a container, every line carries the container's prefix: there are no lazy lines.
+- `paragraph-lines`: A paragraph's lines run until a blank line or a line that opens a block. Inside a container, every line carries the container's prefix. There are no lazy lines.
 
 {#heading}
 
@@ -122,7 +122,7 @@ heading-marker ::= '#' '#'? '#'? '#'? '#'? '#'?
 
 - `heading-line`: A heading's content is one line.
 - `closing-hashes`: A run of `#`s ends the heading only after a space and at the end of the line, so `# b#` keeps its `#`, as does an escaped `\#`.
-- `heading-id`: Every heading gets an id as it closes: the `id` of its block attributes, or else the slug of its plain text numbered past the ids already used, a heading's, an element's or a span's.
+- `heading-id`: Every heading gets an id as it closes. It's the `id` of its block attributes, or else the slug of its plain text. A slug is numbered past the ids already used, a heading's, an element's or a span's.
 
 The slug is GitHub's, so a link to a heading works on GitHub too. No id depends on a later one,
 so none changes once it is written. An explicit id that is already taken is kept by both, and the

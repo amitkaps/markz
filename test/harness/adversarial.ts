@@ -1,12 +1,16 @@
 /** @prose
  * # Adversarial input
  *
- * Patterns that make a careless parser quadratic, one per way it can go wrong: an opener that
- * never closes and so scans to the end each time (`${`, `<!--`, `:span[`, `` ` ``), a structure
- * nested deeper on every line (`>`, list items, `:::`), and a repeat whose bookkeeping grows with
- * the count (heading ids, attribute lines). Each takes a count and returns input that grows in
- * proportion to it, so the test can hold the time to the same proportion. Every pattern here once
- * failed, or guards a scan that would.
+ * Patterns that make a careless parser quadratic, one per way it can go wrong. Every pattern here
+ * once failed, or guards a scan that would.
+ *
+ * - An opener that never closes, and so scans to the end each time (`${`, `<!--`, `:span[`,
+ *   `` ` ``).
+ * - A structure nested deeper on every line (`>`, list items, `:::`).
+ * - A repeat whose bookkeeping grows with the count (heading ids, attribute lines).
+ *
+ * Each takes a count and returns input that grows in
+ * proportion to it, so the test can hold the time to the same proportion.
  */
 export const PATTERNS: Record<string, (n: number) => string> = {
   // Openers that never close.

@@ -52,8 +52,8 @@ doc.data(doc.root, "heading"); // throws a TypeError: the root is not a heading
 Iteration follows `firstChild`/`nextSibling` and allocates no arrays. Public type names are
 strings (`NodeType`), and the numeric codes stay internal. `doc.data(node, type)` reads a node's
 side-table entry and throws if the node is of another type, so a wrong guess fails loudly. A
-value that is decoded (a text node's) or stripped of container prefixes (a code block inside a
-blockquote loses its `> `) is stored as a string. Everything else is a range into the source.
+decoded value, like a text node's, or one stripped of container prefixes is stored as a string.
+A code block inside a blockquote loses its `> `, for one. Everything else is a range into the source.
 
 ## Node types
 
@@ -81,8 +81,8 @@ Rules:
   a link's destination, the metadata block, and every attribute block.
 - **Text nodes map to source, not just to their value.** `value` is the rendered text: decoded
   (`&#169;` → `©`, `\*` → `*`). `start`/`end` cover the raw
-  characters. A soft line break is a `\n` in the text before it, whose range covers the line
-  ending, never the next line's container prefix, so one text node spans lines only where the
+  characters. A soft line break is a `\n` in the text before it. Its range covers the line
+  ending, never the next line's container prefix. So one text node spans lines only where the
   source has nothing between them. A consumer scanning for syntax of its own reads
   `source.slice(start, end)`, so a decoded escape can't shift its columns.
 - **Containers with prefixed lines** (blockquotes, list items) span from their first
@@ -93,8 +93,8 @@ Rules:
 
 `position(source)` builds a line-start table once and converts offsets to `{ line, column }` by
 binary search. Lines are 1-based and columns are 0-based, as in source-map v3. A consumer that
-parses an extracted string (a comment body with its `*` gutters stripped) maps lines back to the
-file itself. markz only promises offsets into what it was given.
+parses an extracted string maps lines back to the file itself, like a comment body with its `*`
+gutters stripped. markz only promises offsets into what it was given.
 
 ## Parser foundation
 
@@ -135,7 +135,7 @@ openers (`[`, `![`, `_`, `**`, `~~`, `` ` ``, `$`, `${`, and `{` after a `)` or 
 close or turn out to be text.
 
 - **Openers go on a stack.** The inline pass keeps what it has read as a linked list of items. A
-  closer wraps the items since its opener into one node; an opener still unmatched at the end of
+  closer wraps the items since its opener into one node. An opener still unmatched at the end of
   its block is text. The input is never read again.
 - **A scan that fails settles the ones after it.** An opener that never closes (`${`, `[` in a
   label, `<!--`, a `` ` `` run, `{`) scans to the end of its range. That scan records what it
@@ -158,7 +158,7 @@ ambiguous. The parser isn't generated from it. It is written by hand, to four ru
 - **Grammar-directed:** every case in the two scanners is a construct of the grammar or a Not
   supported form, and every construct is a case.
 - **Bounded local lookahead:** a scan ahead either stays within the line (a fence, an attribute
-  line, a table's delimiter row) or records where it failed, so no character is scanned more than
+  line, a table's delimiter row) or records where it failed. So no character is scanned more than
   a constant number of times.
 
 **Heading ids are settled in the pass.** CommonMark defines headings but not ids, so every
@@ -251,8 +251,8 @@ nesting.
 - **Everything else is safe by construction.** Outside raw blocks, unsafe values can reach the
   output only through URLs and attributes, and `html()` handles both:
   - It drops event-handler attributes (`on*`).
-  - A URL with an unsafe scheme (`javascript:`, `vbscript:`, and `data:` other than a raster
-    image) is written empty, and an attribute value with one is dropped.
+  - A URL with an unsafe scheme is written empty, and an attribute value with one is dropped.
+    The unsafe schemes are `javascript:`, `vbscript:`, and `data:` other than a raster image.
   - `style` and other attributes pass through, since limited styling is the point of attributes.
 - The AST keeps everything verbatim and makes no safety promise. A consumer building its own
   output owns its policy.
@@ -262,7 +262,7 @@ nesting.
 
 ## Package
 
-The package is `@amitkaps/markz` (npm refuses the bare `markz` as too close to `marked`), and it
+The package is `@amitkaps/markz`, since npm refuses the bare `markz` as too close to `marked`. It
 belongs to no application. There is one package, with no `markz-*` companions. It is ESM only, built by `vp pack`
 into `dist/index.js` and its types, with one entry, `src/index.ts`: anything it doesn't
 re-export is private. It has no runtime dependencies and `sideEffects: false`, so a consumer
@@ -309,8 +309,8 @@ document, and is the only timing CI gates on.
 - `pnpm compare` times markz beside markdown-exit, marked and micromark on the blocks
   they all read alike, each in a fresh process. It is for our own insight. The parsers make
   different trade-offs, so nothing from it is published.
-- [The Quality report](quality.md) measures this commit when it is generated (`pnpm quality`): the gzip size
-  against the budget, the memory held by one document's tree, and parse + HTML time on documents
+- [The Quality report](quality.md) measures this commit when it is generated (`pnpm quality`). It shows the
+  gzip size against the budget, the memory held by one document's tree, and parse + HTML time on documents
   a reader can picture, each a range, with the machine named.
 
 Open questions are kept with the ideas for later, in [Plan](plan.md#later).

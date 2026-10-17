@@ -2,10 +2,13 @@
  * # Walking
  *
  * The one traversal consumers need, since every transformation of a markz document is a fold
- * (design: Read-only, and transformations are folds). `walk` visits a subtree depth-first, calling
+ * (design: Read-only, and transformations are folds).
+ *
+ * `walk` visits a subtree depth-first, calling
  * `enter` before a node's children and `exit` after them. It follows the parent and sibling
  * columns rather than recursing, so a deeply nested document can't overflow the stack, and it
- * allocates nothing. `enter` returning `false` skips that node's children; its `exit` still runs.
+ * allocates nothing. `enter` returning `false` skips that node's children, but its `exit` still
+ * runs.
  */
 import { NONE, type Document, type NodeId } from "./ast";
 
@@ -92,10 +95,11 @@ export interface Heading {
 /** @prose
  * # Headings
  *
- * The outline of a document, for a table of contents or a "jump to" list: every heading in source
- * order, wherever it sits (a heading in a blockquote, list item or element counts), with the id
- * `html()` writes for it, so a link to `#id` lands on it. It is a flat list, not a tree: depth is
- * data, and how to nest, number or filter by it is the consumer's choice, which is why it isn't
+ * The outline of a document, for a table of contents or a "jump to" list. It has every heading in
+ * source order, with the id `html()` writes for it, so a link to `#id` lands on it.
+ *
+ * A heading counts wherever it sits, in a blockquote, list item or element. It is a flat list,
+ * not a tree. Depth is data, and how to nest, number or filter by it is the consumer's choice, which is why it isn't
  * part of `html()`. `node` gives the source range through `doc.start` and `doc.end`.
  */
 export function headings(doc: Document): Heading[] {

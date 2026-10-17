@@ -251,10 +251,12 @@ function alignment(doc: Document, node: NodeId, column: number): string {
 /** @prose
  * # Elements
  *
- * The name is the tag: the parser only makes elements whose name is on an allowlist or a custom
- * element ([`elements.ts`](elements.ts)). A document built by hand could hold any name, so one off
- * the allowlists is written as a `div` or `span`, and a name can never become `script`. A plain
- * span is named `span`, which is on no list, so it is written by the same rule.
+ * The name is the tag, since the parser only makes elements whose name is on an allowlist or a
+ * custom element ([`elements.ts`](elements.ts)). A plain span is named `span`, which is on no
+ * list, so it is written by the same rule.
+ *
+ * A document built by hand could hold any name. So one off the allowlists is written as a `div`
+ * or `span`, and a name can never become `script`.
  */
 const tag = (name: string, inline: boolean) =>
   element(name, inline) ? name : inline ? "span" : "div";
@@ -263,9 +265,11 @@ const tag = (name: string, inline: boolean) =>
  * # Attributes
  *
  * Classes accumulate, and for any other key the later value wins, in the order keys first
- * appear. `class` is written first, and a bare key is written bare (`open`, not `open=""`), since
- * a boolean attribute is on whenever it is present. Event handlers (`on*`) are dropped, and so is any value with
- * an unsafe scheme: `javascript:`, `vbscript:`, and `data:` other than a raster image (design:
+ * appear. `class` is written first.
+ *
+ * A bare key is written bare (`open`, not `open=""`), since a boolean attribute is on whenever it
+ * is present. Event handlers (`on*`) are dropped, and so is any value with an unsafe scheme. The
+ * unsafe schemes are `javascript:`, `vbscript:`, and `data:` other than a raster image (design:
  * Security). A heading's id comes from its data, so an `id` item is skipped there.
  */
 function attributes(a: Attributes | undefined, skipId = false): string {

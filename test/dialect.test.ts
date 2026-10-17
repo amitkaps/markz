@@ -4,9 +4,9 @@
  * What every other check stands on, checked before anything is held to it: the statement, the
  * filing and the judges.
  *
- * - **The grammar** is well formed (every name defined, every production reachable from
- *   `document`, every name used once) and it is `syntax.md`'s: the same constructs in the same
- *   order, under the same parts, each from an origin. The element names it lists are the ones
+ * - **The grammar** is well formed, with every name defined, every production reachable from
+ *   `document`, and every name used once. And it is `syntax.md`'s, with the same constructs in the
+ *   same order, under the same parts, each from an origin. The element names it lists are the ones
  *   markz writes, from `src/elements.ts`.
  * - **The warnings** are each named in `syntax.md`, and each Not supported row's "Write instead" is
  *   its code's. Every warning that is not a row settles a case by the side rule it enforces, and

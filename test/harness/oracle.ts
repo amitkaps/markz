@@ -10,8 +10,9 @@
  *   instead drops a short blocklist (design: Security). markz's own tests cover the blocklist, so
  *   the oracle writes every URL.
  *
- * There is no directive extension: colon directives are a form markz cuts, so micromark leaves
- * them as the literal text markz keeps. Raw HTML stays disallowed, as it is in markz. Examples that use it are excluded anyway.
+ * There is no directive extension. Colon directives are a form markz cuts, so micromark leaves
+ * them as the literal text markz keeps. Raw HTML stays disallowed, as it is in markz. Examples
+ * that use it are excluded anyway.
  */
 import { micromark, parse, postprocess, preprocess } from "micromark";
 import { gfm, gfmHtml } from "micromark-extension-gfm";
@@ -34,10 +35,11 @@ export function reference(markdown: string): string {
  * # Normalization
  *
  * What counts as the same output. Whitespace runs outside `<pre>` collapse to one space, and a
- * space next to a block-level tag goes, so line layout never fails a test. A space between inline
- * tags (`<em>a</em> <em>b</em>`) is content and stays. An empty attribute value goes (`open=""` is `open`), since
- * micromark can't tell a bare key from an empty one. Heading ids go too, since
- * micromark writes none; markz's are tested on their own. `<pre>` content is compared exactly,
+ * space next to a block-level tag goes, so line layout never fails a test.
+ *
+ * A space between inline tags (`<em>a</em> <em>b</em>`) is content and stays. An empty attribute
+ * value goes (`open=""` is `open`), since micromark can't tell a bare key from an empty one.
+ * Heading ids go too, since micromark writes none. markz's are tested on their own. `<pre>` content is compared exactly,
  * except that a CR or CRLF is a LF, as the HTML parser reads it before building the page.
  */
 const BLOCK_TAG =
@@ -91,9 +93,9 @@ export function tokens(markdown: string): Token[] {
 /** @prose
  * # Math
  *
- * micromark-extension-math writes KaTeX's HTML, so what is compared is structure: each math span
- * it finds, display or inline, where it starts (so `$$b$$` isn't taken for `$` and `$b$`), and
- * the TeX inside, read from its tokens with whitespace collapsed.
+ * micromark-extension-math writes KaTeX's HTML, so what is compared is structure. That's each math
+ * span it finds, display or inline, where it starts, and the TeX inside. The TeX is read from its
+ * tokens with whitespace collapsed. Where a span starts tells `$$b$$` apart from `$` and `$b$`.
  */
 export interface MathSpan {
   block: boolean;

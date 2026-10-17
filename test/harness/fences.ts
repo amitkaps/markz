@@ -2,10 +2,12 @@
  * # Example fences
  *
  * The one format every example is kept in, upstream or markz's own: the CommonMark spec's, in the
- * fence oxfmt writes. A file may start with a metadata block, and each `##` heading names the
- * section the examples under it belong to. An example is a backtick fence with the info string
- * `example`, long enough for what it holds, then the Markdown, a `.` line, the expected output,
- * and optionally a second `.` line and the text each warning covers, one per line. Without a `.`,
+ * fence oxfmt writes.
+ *
+ * A file may start with a metadata block, and each `##` heading names the section the examples
+ * under it belong to. An example is a backtick fence with the info string
+ * `example`, long enough for what it holds. It holds the Markdown, a `.` line and the expected
+ * output. A second `.` line may follow, with the text each warning covers, one per line. Without a `.`,
  * the expected output is empty.
  *
  * A part is its lines joined by line endings, exactly, so one that ends with a line ending shows

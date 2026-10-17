@@ -3,8 +3,10 @@
  *
  * markz is linear in its input, and these tests hold it there. Each adversarial pattern is
  * parsed and rendered at a size and at four times that size, and the larger must take less than
- * eight times as long: linear work takes about four, and quadratic work sixteen, so the check
- * sits between them with room for a noisy machine. Each size is warmed up and then timed at its
+ * eight times as long.
+ *
+ * Linear work takes about four times as long, and quadratic work sixteen. So the check sits
+ * between them, with room for a noisy machine. Each size is warmed up and then timed at its
  * best of five, so a garbage collection or a cold JIT doesn't decide it. The patterns start at
  * 5,000 repetitions, so the smaller input takes about 6 ms rather than 2, and a busy machine's
  * noise is a smaller part of it. A few milliseconds of slack covers the rest.

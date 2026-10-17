@@ -2,12 +2,14 @@
  * # The Quality page's browser half
  *
  * One custom element, `<markz-quality>`, that turns the generated page into a browser for the
- * examples. The page arrives complete: the cards, and every construct as a closed row with its
- * counts. The element adds what needs the data: the status filters and the search, and a
+ * examples.
+ *
+ * The page arrives complete, with the cards, and every construct as a closed row with its counts.
+ * The element adds what needs the data: the status filters and the search, and a
  * construct's examples, built when it is opened rather than all 1,300 up front, fifty at a time.
  *
  * It reads the rows from a JSON script tag and builds everything with `textContent`, so an
- * example's Markdown and HTML are shown as text, never parsed. It has no dependencies; the
+ * example's Markdown and HTML are shown as text, never parsed. It has no dependencies, and the
  * generator strips its types and inlines it, so the page is one file.
  */
 /// <reference lib="dom" />

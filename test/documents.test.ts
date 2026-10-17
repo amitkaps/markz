@@ -2,12 +2,15 @@
  * # Documents, checked
  *
  * Every real document in the corpus (`harness/corpus.ts`), in its own `describe`, held to what an
- * example can't show: whole documents as people and agents write them. Each must be sound as written and after
- * oxfmt. The blocks of its common variant, which every parser reads alike, must each read as
- * micromark reads them, unless the oracle can't judge one (`APART`). Formatting must not change
- * what it means: the common variant always, and the whole document when markz cut nothing in it,
- * compared as HTML with the code inside fences and runs of spaces set aside, which oxfmt rewrites
- * and HTML ignores. A document with cut forms is left out of that last check whole, since oxfmt
+ * example can't show. That's whole documents as people and agents write them.
+ *
+ * Each must be sound as written and after oxfmt. The blocks of its common variant, which every
+ * parser reads alike, must each read as micromark reads them. The exception is a block the oracle
+ * can't judge (`APART`).
+ *
+ * Formatting must not change what it means. That holds for the common variant always, and for the
+ * whole document when markz cut nothing in it. They're compared as HTML with the code inside
+ * fences and runs of spaces set aside, which oxfmt rewrites and HTML ignores. A document with cut forms is left out of that last check whole, since oxfmt
  * rewrites some of them into what the dialect keeps (`*a*` to `_a_`), which is the point of the
  * cut.
  *
