@@ -14,8 +14,10 @@ import { defineConfig } from "cf/config";
 export default defineConfig({
   worker: {
     name: "markz",
-    compatibilityDate: "2026-09-09",
+    compatibilityDate: "2026-10-12",
     domains: ["markz.amitkaps.com"],
+    workersDev: false,
+    previewUrls: false,
     assets: {
       // Serve the site's own 404.html for any missing address.
       notFoundHandling: "404-page",
