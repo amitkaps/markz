@@ -3,9 +3,11 @@
  *
  * Every warning markz can raise, by a stable code, with its default message and the supported
  * form to write instead. The code is what editors, tests and `syntax.md` refer to, so the wording
- * can change without breaking anything that keys on it. Each form `syntax.md` cuts has one code,
- * named in the Code column of its Not supported table; the rest belong to a construct (a reused
- * heading id, a malformed metadata line) and are named in that construct's section.
+ * can change without breaking anything that keys on it.
+ *
+ * Each form `syntax.md` cuts has one code, named in the Code column of its Not supported table.
+ * The rest belong to a construct, like a reused heading id or a malformed metadata line, and are
+ * named in that construct's section.
  *
  * Codes are names, not numbers like `MD001`. A name reads without a lookup and matches its row in
  * `syntax.md`, and editors take any string as a diagnostic's code.

@@ -1,18 +1,19 @@
 /** @prose
  * # The grammar
  *
- * The dialect as data, read from [`docs/grammar.md`](../../docs/grammar.md): every construct of
- * `syntax.md`, by its id, with its part, its origin, its productions and the side rules EBNF can't
- * state. The page is the only copy, so there is nothing to drift: it is read with markz itself, a
- * `###` heading's explicit id naming the construct, the `##` above it the part, an `ebnf` code
- * block its productions and the list after it its side rules, `` `name`: text `` each. What comes
- * before the first part, under Document, is the document's own. The line under a construct's
- * heading, `Origin: X.`, is its origin.
+ * The dialect as data, read from [`docs/grammar.md`](../../docs/grammar.md). It holds every
+ * construct of `syntax.md` by its id, with its part, its origin, its productions and the side
+ * rules EBNF can't state. The page is the only copy, so there is nothing to drift.
  *
- * The tests hold it to `syntax.md`, the fuzzer generates documents from it (step 16), and
- * `cases.ts` holds markz to it at every construct's edges: where the two read a case differently,
- * a side rule here must say why (step 18). A misreading of the page by markz would show there as
- * a grammar that isn't well formed or doesn't match `syntax.md`.
+ * The page is read with markz itself. A `###` heading's explicit id names the construct, and the
+ * `##` above it the part. An `ebnf` code block holds its productions, and the list after it its
+ * side rules, `` `name`: text `` each. The line under a construct's heading, `Origin: X.`, is
+ * its origin. What comes before the first part, under Document, is the document's own.
+ *
+ * The tests hold it to `syntax.md`, and the fuzzer generates documents from it (step 16).
+ * `cases.ts` holds markz to it at every construct's edges. Where the two read a case
+ * differently, a side rule here must say why (step 18). A misreading of the page by markz would
+ * show there as a grammar that isn't well formed or doesn't match `syntax.md`.
  */
 import grammar from "../../docs/grammar.md?raw";
 import { parse, textContent } from "../../src/index";

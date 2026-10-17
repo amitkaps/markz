@@ -47,7 +47,7 @@ An element or a span takes its id first, and a heading's slug is numbered past i
 <h2 id="hello-world">Hello <em>world</em></h2>
 ```
 
-A closing run of `#`s needs a space before it; otherwise, or escaped, it is content.
+A closing run of `#`s needs a space before it. Without one, or escaped, it is content.
 
 ```example 12 ambiguous closing-hashes
 # a #

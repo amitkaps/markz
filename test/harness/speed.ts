@@ -1,11 +1,11 @@
 /** @prose
  * # Timing
  *
- * How markz's speed and memory are measured, shared by `pnpm speed` (`test/speed.ts`), `pnpm size`
- * and the Quality page, which times this commit when the page is generated. It is given the functions to
- * time rather than importing markz, so each caller says what it times.
+ * How markz's speed and memory are measured. It is shared by `pnpm speed` (`test/speed.ts`),
+ * `pnpm size` and the Quality page, which times this commit when the page is generated. It is
+ * given the functions to time rather than importing markz, so each caller says what it times.
  *
- * Every figure is warm: the parser has run over the documents for a while before anything is
+ * Every figure is warm. The parser has run over the documents for a while before anything is
  * timed, which is what a server or a watch build pays for each document. A figure is the median
  * of repeated passes, with the middle half of the passes as its range, so one pass slowed by a
  * collection doesn't widen it.
@@ -129,12 +129,14 @@ export function versus(
 /** @prose
  * # Retained memory
  *
- * What holding one parsed document keeps alive: the source is parsed `HELD` times with every
- * result held, and the memory after a full collection, less the memory before, divided by `HELD`,
- * is the figure. Memory is the heap plus array buffers. V8 stores a typed array's contents outside
- * the heap, so the heap alone misses the tree's arrays. Every parse gets the same string, so a
- * tree that keeps a reference to its source pays nothing for it. The collector is reached through V8's flags, so no one has to start Node
- * with `--expose-gc`.
+ * What holding one parsed document keeps alive. The source is parsed `HELD` times with every
+ * result held. The figure is the memory after a full collection, less the memory before, divided
+ * by `HELD`.
+ *
+ * Memory is the heap plus array buffers. V8 stores a typed array's contents outside the heap, so
+ * the heap alone misses the tree's arrays. Every parse gets the same string, so a tree that keeps
+ * a reference to its source pays nothing for it. The collector is reached through V8's flags, so
+ * no one has to start Node with `--expose-gc`.
  */
 const HELD = 20;
 

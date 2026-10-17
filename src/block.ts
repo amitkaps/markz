@@ -1,16 +1,18 @@
 /** @prose
  * # Block pass
  *
- * Source lines to containers and leaves, in one pass over the lines (design: Parser foundation). It
- * keeps a stack of open containers (blockquotes, lists, list items, container elements) and at
- * most one open leaf. Each line first walks the stack, letting each container consume its prefix;
- * whatever is left either continues the open leaf or starts new blocks. Every block construct in
- * `syntax.md` is a case here, and so is every rejected one: a setext underline, indented code, a
- * `~~~` fence or a lazy line is recognised where it is met, stays text, and adds a warning.
+ * Source lines to containers and leaves, in one pass over the lines (design: Parser foundation).
+ * Every block construct in `syntax.md` is a case here, and so is every rejected one.
+ *
+ * The pass keeps a stack of open containers, like blockquotes, lists, list items and container
+ * elements, and at most one open leaf. Each line first walks the stack, and each container
+ * consumes its prefix. Whatever is left either continues the open leaf or starts new blocks. A
+ * rejected form, like a setext underline, indented code, a `~~~` fence or a lazy line, is
+ * recognised where it is met. It stays text and adds a warning.
  *
  * Leaves with inline content (paragraphs, headings, table cells, leaf-element labels) hand
  * their lines to the inline pass as source ranges. A paragraph's lines are held until it closes,
- * because the next line can still turn its last line into a table header; nothing is read twice.
+ * because the next line can still turn its last line into a table header. Nothing is read twice.
  */
 import { type Attributes, type Builder, type NodeId, type Range, type Align } from "./ast";
 import { bareOnly, braceEnd, parseAttributes, parseElement } from "./attributes";
@@ -159,11 +161,13 @@ class BlockParser {
   /** @prose
    * # Metadata
    *
-   * The metadata block (grammar: metadata). The closing line is found by
-   * one forward scan before any line inside is read, so a line the rule can't read is a warning,
-   * never a reason to read the block as Markdown (`metadata-start`). Unclosed, the first line is a
-   * thematic break, reported when the next line is a `key:` line, since that is a block missing
-   * its end. A closed `+++` block (TOML) stays text and is reported.
+   * The metadata block (grammar: metadata). The closing line is found by one forward scan before
+   * any line inside is read. So a line the rule can't read is a warning, never a reason to read
+   * the block as Markdown (`metadata-start`).
+   *
+   * Unclosed, the first line is a thematic break. It is reported when the next line is a `key:`
+   * line, since that is a block missing its end. A closed `+++` block (TOML) stays text and is
+   * reported.
    */
   metadata(start: number): number {
     const { src } = this;
@@ -202,16 +206,18 @@ class BlockParser {
   /** @prose
    * # A line
    *
-   * Containers match first, each consuming its prefix: `>` for a blockquote, the content
+   * Containers match first, each consuming its prefix, like `>` for a blockquote or the content
    * indentation for a list item. A list always matches, and ends when a line inside it isn't an
-   * item. A container element matches every line but a closing line, which is read at its own
-   * level before the containers inside it take their prefixes: `{/name}` closes the innermost
-   * element of the run it meets when the names match (`element-close`), and is otherwise left to
+   * item.
+   *
+   * A container element matches every line but a closing line. That line is read at its own
+   * level, before the containers inside it take their prefixes. `{/name}` closes the innermost
+   * element of the run it meets when the names match (`element-close`). Otherwise it is left to
    * be reported.
    *
    * A fence, math block or comment that is still open takes the rest of the line. Otherwise,
    * when a container didn't match, it closes (grammar: `container-prefix`). There are no lazy
-   * lines (`paragraph-lines`): a paragraph line there starts a new paragraph and is reported.
+   * lines (`paragraph-lines`). A paragraph line there starts a new paragraph and is reported.
    */
   line(start: number, end: number): void {
     this.pos = start;
@@ -298,8 +304,8 @@ class BlockParser {
    * # Opening containers
    *
    * Every container is pushed here, stamped with the clock. Directly nested elements form a run
-   * that consumes no prefix, and only the innermost can take a closing line, so a line tests the
-   * run once, not once per element: checking them one by one would cost the nesting depth on
+   * that consumes no prefix, and only the innermost can take a closing line. So a line tests the
+   * run once, not once per element. Checking them one by one would cost the nesting depth on
    * every line.
    */
   push(c: Container): void {
@@ -318,11 +324,12 @@ class BlockParser {
   /** @prose
    * # Block starts
    *
-   * What the rest of a line opens, tried in the grammar's order (`block-order`). Returns true after a
-   * container, because the same line can open more (`- > # a`). Rejected forms are tried in the
-   * same order as the forms they imitate, so `* * *` is a rejected rule and never a list inside a
-   * list, and `Title` over `---` is a rejected setext heading and never a paragraph followed by a
-   * rule.
+   * What the rest of a line opens, tried in the grammar's order (`block-order`). Returns true
+   * after a container, because the same line can open more (`- > # a`).
+   *
+   * Rejected forms are tried in the same order as the forms they imitate. So `* * *` is a
+   * rejected rule and never a list inside a list. And `Title` over `---` is a rejected setext
+   * heading, never a paragraph followed by a rule.
    */
   start(): boolean {
     const { src } = this;
@@ -524,11 +531,12 @@ class BlockParser {
    * # Headings
    *
    * One line of content, with its closing hashes stripped (grammar: heading, `closing-hashes`).
-   * The id is settled as the heading closes, against the ids used so far, a heading's, an
-   * element's or a span's (`heading-id`): a `{#id}` line above gives it exactly, reported if an
+   * A trailing `{#id}` stays part of the text and is reported.
+   *
+   * The id is settled as the heading closes, against every id a heading, element or span has
+   * used so far (`heading-id`). A `{#id}` line above gives the id exactly, and is reported if an
    * earlier id is the same (`attribute-id`). No id depends on a later one, so none changes once
-   * written. A trailing `{#id}` stays part of the text and
-   * is reported.
+   * written.
    */
   heading(at: number, depth: number, end: number): void {
     const attributes = this.enter(false);
@@ -572,8 +580,10 @@ class BlockParser {
   /** @prose
    * # Fences
    *
-   * Code, raw and math blocks share one leaf: an opening line, content lines and a closing line
-   * (grammar: code-block, raw-block, math-block; `fence-length`, `fence-indent`, `math-close`).
+   * Code, raw and math blocks share one leaf, with an opening line, content lines and a closing
+   * line (grammar: code-block, raw-block, math-block; `fence-length`, `fence-indent`,
+   * `math-close`).
+   *
    * The body range points at the source. The value is one slice of the source when the content
    * lines are the source as it is, one after another and split by `\n`. Otherwise a container
    * prefix, an indent, a tab or another line ending sits inside, and the lines are joined once.
@@ -836,12 +846,13 @@ class BlockParser {
 
   /** @prose
    * An element line straight after a table row, or after a paragraph in a blockquote or list
-   * item, is read here as it is written. A formatter doesn't know elements, so it reads the line
-   * as a lazy continuation and moves it into the row, quote or item. markz warns before that
-   * happens, so the writer adds the blank line that keeps it out (grammar: `element-lazy-line`).
-   * This asks before the line closes the open leaf, which is what tells the case, and the line is
-   * reported once it proves to be an element. A line indented into the item stays there when
-   * formatted, so it isn't one of these.
+   * item, is read here as written and reported. A formatter would move it into the row, quote or
+   * item, so markz asks for the blank line that keeps it out (grammar: `element-lazy-line`).
+   *
+   * A formatter doesn't know elements, so it reads the line as a lazy continuation. This asks
+   * before the line closes the open leaf, which is what tells the case. The line is reported once
+   * it proves to be an element. A line indented into the item stays there when formatted, so it
+   * isn't one of these.
    */
   lazyBefore(): boolean {
     const { leaf, top } = this;
@@ -940,7 +951,7 @@ class BlockParser {
    * Text that opens no block continues the open paragraph or table, or starts a paragraph
    * (grammar: paragraph, table). A delimiter row turns the paragraph's last line into a table
    * header (`table-header`, `table-columns`), which is why a paragraph's lines are held until it
-   * closes; the lines before it stay a paragraph. Rows then run to `table-end`.
+   * closes. The lines before it stay a paragraph. Rows then run to `table-end`.
    */
   text(start: number, end: number): void {
     const leaf = this.leaf;
@@ -995,9 +1006,9 @@ class BlockParser {
   /** @prose
    * # Closing
    *
-   * A leaf becomes nodes when it closes: a paragraph (with a task item's `[ ]` taken off its
-   * first line), a code, raw or math node, a comment, or the end of a table. A closing container
-   * records a list's tightness and moves its parent's end.
+   * A leaf becomes nodes when it closes. It may be a paragraph, a code, raw or math node, a
+   * comment, or the end of a table. A task item's `[ ]` is taken off its paragraph's first line
+   * here. A closing container records a list's tightness and moves its parent's end.
    */
   closeLeaf(): void {
     const leaf = this.leaf;
@@ -1073,9 +1084,10 @@ class BlockParser {
 
   /** @prose
    * A code, raw or math block, or a comment, that ends with its container or the document instead
-   * of a closing line is reported at its opening line (grammar: `unclosed-block`). The block is
-   * still read to the end, as CommonMark reads an unclosed fence. What follows the opening line
-   * reads as code, math or nothing, which is rarely what the author meant.
+   * of a closing line is reported at its opening line (grammar: `unclosed-block`).
+   *
+   * The block is still read to the end, as CommonMark reads an unclosed fence. What follows the
+   * opening line reads as code, math or nothing, which is rarely what the author meant.
    */
   unclosed(leaf: Exclude<Leaf, { kind: "paragraph" | "table" }>): void {
     const what =
@@ -1132,9 +1144,9 @@ class BlockParser {
   /** @prose
    * # Cursor
    *
-   * Columns follow tab stops of 4 (grammar: `indentation`). A prefix can end inside a tab (`>\tcode`); the
-   * cursor then stays on the tab and `tab` counts its unread columns, which content reads as
-   * spaces.
+   * Columns follow tab stops of 4 (grammar: `indentation`). A prefix can end inside a tab, as in
+   * `>\tcode`. The cursor then stays on the tab, and `tab` counts its unread columns, which
+   * content reads as spaces.
    */
   /** The columns of whitespace at the cursor, counting no further than `limit`, and where it ends. */
   indent(limit = Infinity): { cols: number; next: number } {
@@ -1349,12 +1361,13 @@ function delimiterRow(src: string, start: number, end: number): Align[] | null {
 /** @prose
  * # Heading ids
  *
- * The slug of `heading-id`, held to the vendored github-slugger fixtures, on the heading's plain
- * text: lowercased, with every character removed that
- * isn't alphabetic (any script's letters, and symbols such as `Ⓐ`), a mark, a decimal digit, a
- * connector such as `_`, `-` or a space, and then each space turned into `-`, one for one. That is
- * github-slugger's 8 KB character class, in four Unicode properties. A heading with nothing left
- * is `section`.
+ * The slug of `heading-id`, made from the heading's plain text and held to the vendored
+ * github-slugger fixtures. A heading with nothing left is `section`.
+ *
+ * The text is lowercased, and every character is removed but four kinds. What stays is
+ * alphabetic characters, marks, decimal digits and connectors such as `_`, `-` or a space.
+ * Alphabetic takes in any script's letters, and symbols such as `Ⓐ`. Then each space turns into
+ * `-`, one for one. That is github-slugger's 8 KB character class, in four Unicode properties.
  */
 function slug(text: string): string {
   return (

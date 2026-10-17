@@ -1,12 +1,13 @@
 /** @prose
  * # Examples
  *
- * Every example markz is held to, in one shape and filed by the dialect: under a construct, by its
- * id in `grammar.ts` (Metadata, Block, Inline), or under the Not supported row it exercises, by
- * its warning code. Where an
- * example comes from is a label, not a category. The upstream suites are checked against an
- * oracle (micromark for the Markdown, `yaml` for metadata); markz's own examples, in
- * `examples/markz/`, carry their expected output.
+ * Every example markz is held to, in one shape and filed by the dialect. An example is filed
+ * under a construct, by its id in `grammar.ts` (Metadata, Block, Inline), or under the Not
+ * supported row it exercises, by its warning code. Where an example comes from is a label, not a
+ * category.
+ *
+ * The upstream suites are checked against an oracle (micromark for the Markdown, `yaml` for
+ * metadata). markz's own examples, in `examples/markz/`, carry their expected output.
  *
  * An example is one of four kinds:
  *
@@ -99,12 +100,14 @@ export interface Example {
 /** @prose
  * # Upstream sections
  *
- * Where each upstream section's examples are filed, by `source:section`, by the group an
- * extension suite's section starts with (its fixture file or `test()` group), or by the source
- * alone for a suite that tests one construct. micromark-extension-directive's suite tests a form
- * markz cuts: an example markz reports under `directive` is filed there, and one it doesn't, whose
- * colons are no directive to either parser, is paragraph text compared with the oracle. An
- * example that uses a cut form goes to that form's row instead, whatever its section.
+ * Where each upstream section's examples are filed. A section is found by `source:section`, or
+ * by the group an extension suite's section starts with (its fixture file or `test()` group). A
+ * suite that tests one construct is found by its source alone. An example that uses a cut form
+ * goes to that form's row instead, whatever its section.
+ *
+ * micromark-extension-directive's suite tests a form markz cuts. An example markz reports under
+ * `directive` is filed there. One it doesn't report has colons that are no directive to either
+ * parser, so it is paragraph text compared with the oracle.
  */
 const DIRECTIVE = "by directive warning";
 const MATH = "by math kind";
@@ -196,7 +199,7 @@ export const listed: Record<string, string> = {
 
 /** @prose
  * Where the oracle and the spec's own HTML disagree on an example compared with it, and why.
- * markz is still compared with the oracle there; this list explains the oracle's self-check, and
+ * markz is still compared with the oracle there. This list explains the oracle's self-check, and
  * for bare URLs lets markz warn where GitHub links and the oracle doesn't.
  */
 export const oracleDiffers: Record<string, string> = {
@@ -217,11 +220,13 @@ export const oracleDiffers: Record<string, string> = {
  * # Cut forms
  *
  * Each rule names the oracle token that shows a form markz reads differently, and where the
- * example goes: a Not supported row, or a construct markz keeps under its own rule. The first
- * matching rule wins. A token only suggests the form: a row's rule matches only when markz raised
- * that row's warning, since otherwise it read the input as supported (`*` touching a word, or
- * `http:example` that micromark takes for a bare `:example`). An example no rule matches stays in
- * its construct and is compared with the oracle.
+ * example goes. That is a Not supported row, or a construct markz keeps under its own rule. The
+ * first matching rule wins.
+ *
+ * A token only suggests the form. A row's rule matches only when markz raised that row's warning,
+ * since otherwise it read the input as supported. That happens with `*` touching a word, or with
+ * `http:example`, which micromark takes for a bare `:example`. An example no rule matches stays
+ * in its construct and is compared with the oracle.
  */
 const first = (t: Token) => t.text.trimStart()[0];
 
@@ -300,11 +305,12 @@ function upstreamExample(
  * # Loading
  *
  * Every example is read from its file by `fences.ts`. An upstream suite's metadata names what it
- * is checked by, and its examples keep the suite's numbers. markz's own, in `examples/markz/`,
- * are filed by their file, one per construct id, or in `not-supported.md` by the `##` warning code
- * above them. Each is numbered in its fence from one sequence, in the order the ids are listed, so
- * moving an example never renames it. They must give their expected HTML and warn over exactly
- * the text listed, or about nothing if none is.
+ * is checked by, and its examples keep the suite's numbers.
+ *
+ * markz's own, in `examples/markz/`, are filed by their file, one per construct id, or in
+ * `not-supported.md` by the `##` warning code above them. Each is numbered in its fence from one
+ * sequence, in the order the ids are listed, so moving an example never renames it. They must
+ * give their expected HTML and warn over exactly the text listed, or about nothing if none is.
  */
 function upstream(source: Upstream, text: string): Example[] {
   const { meta, examples: fences } = readFences(text);
@@ -459,16 +465,18 @@ export function check(e: Example): Result {
 /** @prose
  * # One warning for each
  *
- * A document can hold many bare URLs or footnotes, so one warning isn't enough: each URL GFM
- * links, and each footnote call or definition it reads, must have its own warning, or a reader
- * loses one with no signal. They pair by overlap, not by exact text: where GFM trims a URL's tail
- * (a `;`, a `]`, an `&amp;`) is its autolink rule, the one the dialect cuts, and a warning a
- * character longer still points at the right URL.
+ * A document can hold many bare URLs or footnotes, so one warning isn't enough. Each URL GFM
+ * links, and each footnote call or definition it reads, must have its own warning. Otherwise a
+ * reader loses one with no signal.
+ *
+ * They pair by overlap, not by exact text. Where GFM trims a URL's tail, at a `;`, a `]` or an
+ * `&amp;`, is its autolink rule, the one the dialect cuts. So a warning a character longer still
+ * points at the right URL.
  *
  * A bare-URL warning where GFM links nothing fails too, except where GitHub links more than the
- * oracle (`oracleDiffers`). A footnote warning never does: GFM makes `[^x]` a footnote only when
- * the document defines `x`, which markz, reading a paragraph at a time, doesn't look for, so it
- * reports all footnote syntax.
+ * oracle (`oracleDiffers`). A footnote warning never does. GFM makes `[^x]` a footnote only when
+ * the document defines `x`. markz reads a paragraph at a time and doesn't look for the
+ * definition, so it reports all footnote syntax.
  */
 const EACH: Record<string, string[]> = {
   "bare-url": ["literalAutolink"],
@@ -502,11 +510,13 @@ type Range = { start: number; end: number };
 /** @prose
  * # Metadata against YAML
  *
- * A yaml-test-suite example is held to the `yaml` package, key by key: every key markz keeps
- * must have the value YAML gives it, unless a warning covers its line (a value holding ` #` is
- * kept as written). A block YAML rejects must raise a metadata warning. A key markz skipped is fine when it warned about the line, and
- * such an example warns rather than matches. A block markz doesn't read as metadata at all
- * differs, by the metadata rule.
+ * A yaml-test-suite example is held to the `yaml` package, key by key. Every key markz keeps must
+ * have the value YAML gives it, unless a warning covers its line. That covers a value holding
+ * ` #`, which markz keeps as written.
+ *
+ * A block YAML rejects must raise a metadata warning. A key markz skipped is fine when it warned
+ * about the line, and such an example warns rather than matches. A block markz doesn't read as
+ * metadata at all differs, by the metadata rule.
  */
 function againstYaml(e: Example, doc: Document): Result {
   const oracle = metadataOracle(e.markdown.slice(4, -4));
@@ -544,8 +554,8 @@ function againstYaml(e: Example, doc: Document): Result {
 /** @prose
  * # Heading ids against github-slugger
  *
- * A github-slugger example is a document of headings, and what is checked is the last one's id:
- * it must be the one github-slugger gives the same texts in the same order.
+ * A github-slugger example is a document of headings, and what is checked is the last one's id.
+ * It must be the one github-slugger gives the same texts in the same order.
  */
 function againstSlugger(e: Example, doc: Document): Result {
   const ids = [...doc.children(doc.root)]
@@ -572,11 +582,13 @@ function againstSlugger(e: Example, doc: Document): Result {
 /** @prose
  * # Math against micromark-extension-math
  *
- * The extension writes KaTeX's HTML, so a math example is held to structure instead: markz must
- * find the same math spans, inline or display, starting at the same place and holding the same TeX.
- * One that uses a math delimiter markz cuts holds when its warning fires. Where pandoc's rule, which
- * markz follows, and the extension's code-span-like dollar runs disagree, the example is filed as
- * differ under the construct.
+ * The extension writes KaTeX's HTML, so a math example is held to structure instead. markz must
+ * find the same math spans, inline or display, starting at the same place and holding the same
+ * TeX.
+ *
+ * One that uses a math delimiter markz cuts holds when its warning fires. markz follows pandoc's
+ * rule, and the extension's dollar runs act like code spans. Where the two disagree, the example
+ * is filed as differ under the construct.
  */
 function againstMath(e: Example, doc: Document, markz: string): Result {
   const spans: MathSpan[] = [];

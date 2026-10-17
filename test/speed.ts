@@ -2,10 +2,12 @@
  * # Speed
  *
  * `pnpm speed`: markz alone, this working tree's `src/` against `origin/main`'s, in seconds. It
- * answers one question while you work: did this change move it? Each cell is parse + HTML over
- * some text, in MB/s: each document tier read whole, and each construct over its own examples,
- * repeated to a size (`examples/markz/<id>.md`), so a slower construct shows by name. What a tree
- * holds in memory is a cost, so `pnpm size` prints it.
+ * answers one question while you work: did this change move it?
+ *
+ * Each cell is parse + HTML over some text, in MB/s. The text is each document tier read whole,
+ * and each construct over its own examples, repeated to a size (`examples/markz/<id>.md`), so a
+ * slower construct shows by name. What a tree holds in memory is a cost, so `pnpm size` prints
+ * it.
  *
  * Both versions run in one process, a pass of each in turn (`harness/speed.ts`), and that is
  * repeated in three fresh processes (`--versus`). A cell shows the median change and the range
@@ -13,13 +15,14 @@
  * saved baseline from an earlier run was ruled out, since the machine drifts between runs by more
  * than any change worth finding. `--against <ref>` times against another commit.
  *
- * `pnpm compare` (`--compare`) times markz beside the parsers in `harness/parsers.ts` on each tier's common
- * variant, each parser in a fresh process of its own (`--parser <name>`), so no parser's heap or
- * JIT state colours another's numbers. It is for our own insight: nothing here is published.
+ * `pnpm compare` (`--compare`) times markz beside the parsers in `harness/parsers.ts` on each
+ * tier's common variant. Each parser runs in a fresh process of its own (`--parser <name>`), so
+ * no parser's heap or JIT state colours another's numbers. It is for our own insight, and nothing
+ * here is published.
  *
- * `pnpm hotspots` (`--profile`) shows where the time goes rather than how much there is (`harness/profile.ts`). It
- * profiles every tier, or one tier or construct by name (`pnpm hotspots heading`), and writes the
- * profile to `node_modules/.cache/` for DevTools.
+ * `pnpm hotspots` (`--profile`) shows where the time goes rather than how much there is
+ * (`harness/profile.ts`). It profiles every tier, or one tier or construct by name
+ * (`pnpm hotspots heading`), and writes the profile to `node_modules/.cache/` for DevTools.
  */
 import "./harness/node.ts";
 import { spawnSync } from "node:child_process";

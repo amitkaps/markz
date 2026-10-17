@@ -1,11 +1,12 @@
 /** @prose
  * # markz
  *
- * Small, opinionated Markdown: one fixed dialect (GFM's everyday syntax without the parts that
- * need backtracking, plus `{…}` attributes and elements, math, `${…}` expressions and YAML
- * metadata), one compact source-mapped AST, and `html()` output,
- * with no options. This is the package entry point: the public API lives here and nothing else is
- * importable.
+ * Small, opinionated Markdown, with one fixed dialect, one compact source-mapped AST and `html()`
+ * output, and no options. This is the package entry point. The public API lives here, and nothing
+ * else is importable.
+ *
+ * The dialect is GFM's everyday syntax without the parts that need backtracking. It adds `{…}`
+ * attributes and elements, math, `${…}` expressions and YAML metadata.
  */
 export { parse } from "./parse";
 export { html } from "./html";

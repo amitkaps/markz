@@ -52,11 +52,11 @@ in [Design](design.md#performance-and-size).
   CommonMark or GFM rule the oracle holds. A new rule can't be added without saying what checks
   it.
 - **Differential against micromark + GFM:** every CommonMark and GFM spec example in a shared
-  construct must give identical `html()` output. So must documents the fuzzer generates from the CommonMark and GFM
-  productions of the grammar, unless markz reported a cut form. An example where markz keeps a
-  construct under its own rule (no run splitting) is filed as differing, under that construct, and
-  a generated document that needs one is left out with its reason, as are the few where micromark
-  parts from commonmark.js.
+  construct must give identical `html()` output. So must documents the fuzzer generates from the
+  CommonMark and GFM productions of the grammar, unless markz reported a cut form. An example where
+  markz keeps a construct under its own rule (no run splitting) is filed as differing, under that
+  construct. A generated document that needs one is left out with its reason, as are the few where
+  micromark parts from commonmark.js.
 - **Rejected syntax:** an example that uses a form `syntax.md` cuts must raise that row's warning,
   so the cuts are tested rather than skipped. markz's own examples (`test/examples/markz/`, one file per
   construct, in the CommonMark spec's format) also give their exact HTML and the text each warning covers.
@@ -74,9 +74,9 @@ in [Design](design.md#performance-and-size).
 - **No backtracking:** every adversarial pattern (unclosed openers, deep nesting, long repeats)
   takes less than eight times as long at four times the size, where quadratic work would take
   sixteen.
-- **Heading ids:** a case for each step of the grammar's `heading-id` rule, plus apostrophes and quotes, which
-  slug the same straight or curled (`Don't` and `Don’t` both give `dont`), and a reused explicit
-  id producing a warning.
+- **Heading ids:** a case for each step of the grammar's `heading-id` rule, and a reused explicit
+  id producing a warning. Apostrophes and quotes are tested too, since they slug the same straight
+  or curled (`Don't` and `Don’t` both give `dont`).
 - **Offsets** are asserted against known source, never against rendered output. This includes
   escapes, numeric references, astral characters, CRLF and nested containers.
 - **Tree structure:** parent, child and sibling invariants.
