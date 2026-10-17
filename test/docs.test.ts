@@ -2,12 +2,13 @@
  * # The docs, checked
  *
  * The root `README.md` and the documents in `docs/` are the site's pages, and `prose build` links
- * them by repo path, so two things keep the site from drifting: each is read by this commit's markz without a warning
- * (`duplicate-id` excepted in the grammar, which repeats a heading's id by design: a construct
- * and its side rules), and each relative link in its text goes to a file that exists. The
- * Reference page names every export, `Document` member and node type the package has, so a new one can't
- * ship undocumented. A CDN link is pinned to this version's major and minor, so the pull request that
- * bumps the version updates them too.
+ * them by repo path. Two checks keep the site from drifting. Each page is read by this commit's
+ * markz without a warning, and each relative link in its text goes to a file that exists.
+ *
+ * The grammar is let off `duplicate-id`, since it repeats a heading's id by design, for a
+ * construct and its side rules. The Reference page names every export, `Document` member and node
+ * type the package has, so a new one can't ship undocumented. A CDN link is pinned to this
+ * version's major and minor, so the pull request that bumps the version updates them too.
  */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";

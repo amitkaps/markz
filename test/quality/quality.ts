@@ -1,15 +1,17 @@
 /** @prose
  * # Quality page
  *
- * Writes the Quality page as one HTML file: what markz is held to, what it costs to ship and hold,
- * and how long it takes, all measured on this commit when it is generated. The page is the test
- * suite made browsable, and a standalone reference: it has no dependencies, its stylesheet and
- * script are inlined, and the data it browses is a JSON block in the page.
+ * Writes the Quality page as one HTML file. It shows what markz is held to, what it costs to ship
+ * and hold, and how long it takes, all measured on this commit when it is generated.
  *
- * `prose build` writes the rest of the site and this adds one file to it, so run it after:
- * `pnpm quality [file]`, by default `.prose/quality.html`. The cards and every construct's
- * row are plain HTML; `<markz-quality>` ([element.ts](element.ts)) adds the filters and the examples.
- * The page's own text goes through markz, so the page is a check on this commit's parser too.
+ * The page is the test suite made browsable, and a standalone reference. It has no dependencies,
+ * its stylesheet and script are inlined, and the data it browses is a JSON block in the page.
+ *
+ * `prose build` writes the rest of the site and this adds one file to it, so run it after, as
+ * `pnpm quality [file]`. The default file is `.prose/quality.html`. The cards and every
+ * construct's row are plain HTML, and `<markz-quality>` ([element.ts](element.ts)) adds the
+ * filters and the examples. The page's own text goes through markz, so the page is a check on
+ * this commit's parser too.
  *
  * The page isn't one of prose's, so it keeps its own look. Its header is only a breadcrumb back
  * to the home page. A copy of the docs' links was dropped, because it drifted from prose's bar.
@@ -113,9 +115,9 @@ const EDGE_WHAT = {
 
 /** @prose
  * The Edges card totals every construct's generated cases (`harness/cases.ts`). They aren't
- * examples: they have no HTML to compare, and there are about fifteen times as many. So they are
- * counted on a card of their own, with a case of each edge in every construct's row, and never
- * listed.
+ * examples, since they have no HTML to compare, and there are about fifteen times as many. So
+ * they are counted on a card of their own, with a case of each edge in every construct's row,
+ * and never listed.
  */
 function edgesCard(edges: Edges[]): string {
   const sum = (k: keyof typeof EDGE_WHAT) => edges.reduce((n, e) => n + e[k], 0);

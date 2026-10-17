@@ -13,9 +13,10 @@ This keeps what should shape the next change.
   form as something else in silence. The rule holds only because each cut has a code, a range
   and a replacement, and tests key on codes, never on wording.
 - **Warn when the page can't be what was meant.** Beyond the cut forms, markz warns only where
-  the output is almost certainly a mistake: a block with no closing line that swallows the rest of
-  its container, a `{` after a `]` that never closes, a `{/name}` after a `{#name}` line. Text
-  that could be ordinary prose gets no warning, so a clean document stays clean.
+  the output is almost certainly a mistake. That is a block with no closing line that swallows
+  the rest of its container, a `{` after a `]` that never closes, or a `{/name}` after a
+  `{#name}` line. Text that could be ordinary prose gets no warning, so a clean document stays
+  clean.
 - **One extension syntax.** Colon directives came with fence counting, a label HTML has no place
   for, and a bare `:name` that swallows prose. `{…}` with `@name` does the same work with one
   recognition rule. A closing line that names what it closes turns a mismatch into a warning.

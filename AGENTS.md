@@ -22,8 +22,8 @@ After writing prose, run `pnpm prose style <files>` on the files you changed, an
 
 markz is one package. It holds the parser, the AST utilities and `html()`. The dialect is [docs/syntax.md](docs/syntax.md). There are no framework renderers, no parser options and no unified or remark dependencies. The gzip budget is 20 KB ([docs/design.md](docs/design.md#performance-and-size)).
 
-- The invariant: unsupported syntax stays literal text and produces a warning. It is never silently reinterpreted as a different supported construct.
-- `docs/syntax.md` explains the language and `docs/grammar.md` states it, with a stable id per construct (`{#id}` above its heading). `test/harness/grammar.ts` reads it with markz.
+- The invariant is that unsupported syntax stays literal text and produces a warning. It is never silently reinterpreted as a different supported construct.
+- `docs/syntax.md` explains the language and `docs/grammar.md` states it, with a stable id per construct, as `{#id}` above its heading. `test/harness/grammar.ts` reads it with markz.
 - The docs describe markz as it is, in neutral terms. Inspirations are named once, on the home page (`README.md`). Each construct's origin (CommonMark, GFM, djot, pandoc, GitHub, or markz's own) is the `Origin:` line under its heading in `grammar.md`.
 - micromark is only the oracle for constructs from CommonMark or GFM. Don't let "same as GFM" leak past them.
 - Every example is filed under a construct id or a Not supported row's warning code (`test/harness/examples.ts`). When the oracle disagrees with `syntax.md`, file the example as `differ` under the construct whose rule explains it. Don't bend the parser.

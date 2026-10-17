@@ -1,6 +1,6 @@
 # src
 
-The whole package. [`index.ts`](index.ts) is the only public entry point; everything else is
+The whole package. [`index.ts`](index.ts) is the only public entry point. Everything else is
 internal to the parser.
 
 - [`ast.ts`](ast.ts): the flat document and the builder the passes write into.

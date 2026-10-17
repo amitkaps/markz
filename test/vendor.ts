@@ -2,11 +2,14 @@
  * # Vendoring an upstream suite
  *
  * Turns an upstream project's own tests into examples for `test/examples/upstream/`, in the fence
- * format `test/harness/fences.ts` reads and writes, from a local clone at the
- * commit its README pins: a micromark extension's, the yaml-test-suite or github-slugger's (below). What markz is held to is the input: every example is compared with
- * markz's oracle, not with the HTML the suite expected, so a test that only configures the HTML
- * side (a directive handler, `allowDangerousHtml`) keeps its input. A test whose options change the
- * syntax (`disable`, `singleTilde`, a frontmatter preset or custom matter) is dropped, as is anything whose input isn't a literal.
+ * format `test/harness/fences.ts` reads and writes. It reads a local clone at the commit its
+ * README pins, of a micromark extension, the yaml-test-suite or github-slugger (below).
+ *
+ * What markz is held to is the input. Every example is compared with markz's oracle, not with the
+ * HTML the suite expected. So a test that only configures the HTML side, like a directive handler
+ * or `allowDangerousHtml`, keeps its input. A test whose options change the syntax is dropped, as
+ * is anything whose input isn't a literal. Those options are `disable`, `singleTilde`, and a
+ * frontmatter preset or custom matter.
  *
  * `node test/vendor.ts gfm-table ../micromark-extension-gfm-table` writes
  * `test/examples/upstream/gfm-table.md` and prints what it kept and dropped. Each file's metadata
@@ -161,9 +164,12 @@ function htmlSections(html: string, md: [string, string][]): string[] {
 /** @prose
  * # Inline tests
  *
- * `test/index.js` asserts `micromark(input, options)` against an expected string. oxc's parser (`parseSync`, which comes with vite-plus) reads the file, so a case is found by its shape, not by a regex over the source, and a
- * string input is taken as the engine would see it, escapes and concatenation resolved. The
- * expected HTML is kept only when the options are written out in place: a helper such as the
+ * `test/index.js` asserts `micromark(input, options)` against an expected string. oxc's parser
+ * reads the file, through the `parseSync` that comes with vite-plus. So a case is found by its
+ * shape, not by a regex over the source.
+ *
+ * A string input is taken as the engine would see it, with escapes and concatenation resolved.
+ * The expected HTML is kept only when the options are written out in place. A helper such as the
  * directive suite's `options({'*': h})` installs handlers whose HTML isn't the oracle's.
  */
 function inline(dir: string, dropped: string[]): Vendored[] {
@@ -294,11 +300,13 @@ function expected(call: Node, parents: Node[]): string {
 /** @prose
  * # yaml-test-suite
  *
- * Each test in `src/*.yaml`, with its variants, becomes a metadata block: the test's YAML between
- * `---` fences. What markz is held to is the `yaml` package's reading, so the suite is kept to
- * what that oracle reads as a mapping, or rejects: a top-level sequence or scalar is not metadata
- * in any tool. A document marker, `...` or `%` directive line can't sit inside the fences, so
- * those tests are left out. The suite's own JSON, or its `fail`, checks the oracle.
+ * Each test in `src/*.yaml`, with its variants, becomes a metadata block, with the test's YAML
+ * between `---` fences. What markz is held to is the `yaml` package's reading. So the suite is
+ * kept to what that oracle reads as a mapping, or rejects, since a top-level sequence or scalar
+ * is not metadata in any tool.
+ *
+ * A document marker, `...` or `%` directive line can't sit inside the fences, so those tests are
+ * left out. The suite's own JSON, or its `fail`, checks the oracle.
  */
 function yamlSuite(dir: string, dropped: string[]): Vendored[] {
   const out: Vendored[] = [];
@@ -367,11 +375,13 @@ function visible(text: string): string {
 /** @prose
  * # github-slugger
  *
- * `test/fixtures.json` is one run of a slugger over plain strings, so a repeat is numbered from the
- * ones before it. markz slugs a heading's text, so each fixture becomes a heading, with ASCII
- * punctuation backslash-escaped so the text is the input exactly, and its HTML is the id it should
- * get. The harness puts each after the ones before it, as one document. A heading's text is
- * trimmed, so an input that starts or ends with whitespace can't be written as one.
+ * `test/fixtures.json` is one run of a slugger over plain strings, so a repeat is numbered from
+ * the ones before it. markz slugs a heading's text, so each fixture becomes a heading whose HTML
+ * is the id it should get.
+ *
+ * ASCII punctuation is backslash-escaped, so the text is the input exactly. The harness puts each
+ * heading after the ones before it, as one document. A heading's text is trimmed, so an input
+ * that starts or ends with whitespace can't be written as one.
  */
 function sluggerSuite(dir: string, dropped: string[]): Vendored[] {
   const fixtures = JSON.parse(readFileSync(join(dir, "test/fixtures.json"), "utf8")) as {
@@ -395,24 +405,25 @@ function sluggerSuite(dir: string, dropped: string[]): Vendored[] {
  * # Curation
  *
  * A suite is vendored for the decisions markz makes, not for its size. Most of an extension's
- * suite exercises a form markz supports and is kept whole; where a suite enumerates variants of a
- * form markz cuts or doesn't read, a few of each stand for the rest. What curation leaves out goes
- * to `test/examples/upstream/stress/`, where it is only checked not to hang, throw or lose a link silently, and stays
- * off the Conformance page.
+ * suite exercises a form markz supports and is kept whole. Where a suite enumerates variants of a
+ * form markz cuts or doesn't read, a few of each stand for the rest.
  *
- * - **gfm-autolink-literal:** the fixtures that sweep a character class (`http://` before each
- *   ASCII punctuation, each character before a URL, character references in a domain) go to
- *   stress; the hand-written fixtures and every inline test stay.
+ * What curation leaves out goes to `test/examples/upstream/stress/`, and stays off the
+ * Conformance page. There it is only checked not to hang, throw or lose a link silently.
+ *
+ * - **gfm-autolink-literal:** the fixtures that sweep a character class go to stress. They put
+ *   `http://` before each ASCII punctuation, each character before a URL, or character references
+ *   in a domain. The hand-written fixtures and every inline test stay.
  * - **directive:** the attribute grammar and the name and label rules are shared by all three
  *   kinds, and the suite tests them in each. A test whose title an earlier group already used
- *   stays only the first time, as does one that differs only in the character it names, and the
- *   `content` group's repeats of attribute syntax (line breaks in `{…}`, `.a.b` shortcuts, single
- *   quotes) go too. A directive before or after a block form markz cuts
- *   (setext, indented code, definitions, HTML, `***`) tests that form, which its own row does.
+ *   stays only the first time, as does one that differs only in the character it names. The
+ *   `content` group's repeats of attribute syntax go too, like line breaks in `{…}`, `.a.b`
+ *   shortcuts and single quotes. A directive before or after a block form markz cuts (setext,
+ *   indented code, definitions, HTML, `***`) tests that form, which its own row does.
  * - **gfm-footnote:** footnotes are cut, so what markz decides is that `[^x]` and `[^x]:` warn,
  *   that `[^x]` is told apart from links, images and references, and that `^[x]` is text. The
- *   fixtures on those and the inline tests stay (not the ones for the HTML's options); the ones on
- *   a footnote's own content (blank lines, prefixes, nesting, continuation) go.
+ *   fixtures on those and the inline tests stay, but not the ones for the HTML's options. The
+ *   fixtures on a footnote's own content (blank lines, prefixes, nesting, continuation) go.
  * - **yaml:** valid YAML that looks like plain metadata (`key: value` lines, blanks, comments) stays,
  *   and of the rest, a test stays while one of its feature tags (`anchor`, `flow`, `literal`, …)
  *   has none yet. Tags that say where a test comes from (`spec`, `1.3-err`) or what every

@@ -1,9 +1,11 @@
 /** @prose
  * # AST
  *
- * The flat, read-only document markz parses into. A node is an index; its type, range and tree
- * links live in parallel typed arrays, and the few node types that carry data keep it in a side
- * table. The parser fills a `Builder`, which hands over a `Document` once and is done: there is no
+ * The flat, read-only document markz parses into. A node is an index into parallel typed arrays
+ * that hold its type, range and tree links. The few node types that carry data keep it in a side
+ * table.
+ *
+ * The parser fills a `Builder`, which hands over a `Document` once and is done. There is no
  * mutation API, so offsets can never drift from the source they point into (design: AST).
  */
 import { NAMED } from "./chars";
@@ -63,10 +65,12 @@ export interface Range {
 /** @prose
  * # Node data
  *
- * What each node type carries beyond its range and links. Strings that a node may lack are `null`
- * rather than empty, because the output distinguishes them (`[a](b "")` has a title). Values that
- * are decoded or stripped of container prefixes (`> ` inside a blockquote) are stored as strings;
- * everything else is a range, so the source stays the one copy of the text.
+ * What each node type carries beyond its range and links. A value that is decoded, or stripped of
+ * container prefixes like a blockquote's `> `, is stored as a string. Everything else is a range,
+ * so the source stays the one copy of the text.
+ *
+ * A string that a node may lack is `null` rather than empty, because the output tells them apart.
+ * `[a](b "")` has a title, and `[a](b)` doesn't.
  */
 export interface NodeData {
   /** The object, and the range of the lines between the `---` fences. */
@@ -154,10 +158,12 @@ export interface Warning extends Range {
 /** @prose
  * # Document
  *
- * The read-only view consumers get from `parse`. Accessors take a node and read one array slot, so
- * a walk allocates nothing but the generator `children` returns. Node ids are only meaningful for
- * the document that produced them and are not bounds-checked. `data` checks the type it is asked
- * for, which keeps a wrong guess from reading another type's fields as if they were its own.
+ * The read-only view consumers get from `parse`. Each accessor takes a node and reads one array
+ * slot, so a walk allocates nothing but the generator `children` returns.
+ *
+ * Node ids mean something only for the document that produced them, and aren't bounds-checked.
+ * `data` checks the type it is asked for, so a wrong guess can't read another type's fields as if
+ * they were its own.
  */
 export class Document {
   readonly source: string;
@@ -241,11 +247,14 @@ export interface Store {
 /** @prose
  * # Builder
  *
- * How the parser writes the tree. It keeps a stack of open nodes: `open` starts a child of the
+ * How the parser writes the tree. It keeps a stack of open nodes. `open` starts a child of the
  * innermost one and makes it innermost, `close` sets its end and pops it, and `leaf` adds a
- * finished child. Children are appended through a `lastChild` array that only the builder has, so
- * appending is constant time and the document doesn't carry the extra column. Arrays grow by
- * doubling from a guess based on the source length, which leaves room for dense documents.
+ * finished child.
+ *
+ * Children are appended through a `lastChild` array that only the builder has. So appending is
+ * constant time, and the document doesn't carry the extra column. Arrays grow by doubling from a
+ * guess based on the source length, which leaves room for dense documents.
+ *
  * `finish` closes the root at the end of the source and copies each array down to its nodes. A
  * view would keep the whole guess alive, which on real documents is several times the nodes
  * ([Lessons](../docs/lessons.md#size)).

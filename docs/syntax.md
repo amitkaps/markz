@@ -63,8 +63,8 @@ warning code. The other warnings are named with the rule they guard.
 
 A few `key: value` lines that GitHub, YAML and formatters all read without an error.
 
-A document can open with a metadata block, between `---` lines, starting at the first character
-(what other tools call frontmatter). When a closing `---` line follows, everything between is
+A document can open with a metadata block, between `---` lines, starting at the first character.
+Other tools call it frontmatter. When a closing `---` line follows, everything between is
 metadata, and a line markz can't read is a warning. Without a closing line, the first `---` is a
 rule, and a `key: value` line after it gets the warning `metadata-unclosed`. markz parses the
 block into `doc.metadata`.
@@ -372,10 +372,11 @@ attributes, or the element `@name` names.
 - The name is an inline element from the list below, or a custom element. Any other name, `span`
   included, leaves the whole `[…]{…}` as text, with the warning `element-name`.
 
-The inline elements are those Markdown has no syntax for and that can't run code: `abbr`, `b`,
-`i`, `u`, `s`, `small`, `cite`, `q`, `dfn`, `time`, `data`, `var`, `samp`, `kbd`, `mark`, `sub`,
-`sup`, `ins`, `bdi`, `bdo`, `ruby`, `rt` and `rp`. There is no `@em`, `@strong`, `@code` or
-`@del`, since `_x_`, `**x**`, `` `x` `` and `~~x~~` write them: an edit is `~~old~~ [new]{@ins}`.
+The inline elements are those Markdown has no syntax for and that can't run code. They are
+`abbr`, `b`, `i`, `u`, `s`, `small`, `cite`, `q`, `dfn`, `time`, `data`, `var`, `samp`, `kbd`,
+`mark`, `sub`, `sup`, `ins`, `bdi`, `bdo`, `ruby`, `rt` and `rp`. There is no `@em`, `@strong`,
+`@code` or `@del`, since `_x_`, `**x**`, `` `x` `` and `~~x~~` write them. An edit is
+`~~old~~ [new]{@ins}`.
 
 {#inline-math}
 

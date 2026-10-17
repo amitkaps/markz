@@ -1,10 +1,11 @@
 /** @prose
  * # Tree invariants
  *
- * What every `Document` must satisfy, whatever produced it: one tree rooted at 0 that reaches every
- * node exactly once, parent links that agree with child links, and ranges that nest inside their
- * parent and follow each other in sibling order. The AST tests check hand-built trees with it, and
- * the parser tests check every parsed document with it from step 4 on.
+ * What every `Document` must satisfy, whatever produced it. The AST tests check hand-built trees
+ * with it, and the parser tests check every parsed document with it from step 4 on.
+ *
+ * There must be one tree rooted at 0 that reaches every node exactly once. Parent links agree
+ * with child links, and ranges nest inside their parent and follow each other in sibling order.
  */
 import { expect } from "vite-plus/test";
 import { NONE, type Document, type NodeId } from "../../src/index";

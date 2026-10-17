@@ -1,11 +1,13 @@
 /** @prose
  * # The dialect's outline
  *
- * `syntax.md` read as data: each construct by the id on the `{#id}` line above its heading, and
- * the Not supported rows by warning code. The grammar says which constructs exist and where they
- * belong; this reads what the page says about them, so the tests can hold the two together. Nothing
- * here depends on wording: headings and cells can be reworded as long as the ids and the codes
- * stay.
+ * `syntax.md` read as data, so the tests can hold it and the grammar together. Each construct is
+ * found by the id on the `{#id}` line above its heading, and each Not supported row by its
+ * warning code.
+ *
+ * The grammar says which constructs exist and where they belong, and this reads what the page
+ * says about them. Nothing here depends on wording. Headings and cells can be reworded as long as
+ * the ids and the codes stay.
  */
 import syntax from "../../docs/syntax.md?raw";
 import { type WarningCode } from "../../src/index";

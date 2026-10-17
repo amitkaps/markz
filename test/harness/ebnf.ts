@@ -1,12 +1,14 @@
 /** @prose
  * # EBNF
  *
- * The notation `docs/grammar.md` is written in, read into a tree so the grammar can be checked (every
- * name defined, every production reachable), generate documents (step 16) and judge them (step
- * 18: `recognizer`). It is the W3C
- * notation of the XML spec, kept small: `name ::= expression`, `|` for alternatives, juxtaposition
- * for sequence, `?`, `*` and `+`, parentheses, `'literal'` or `"literal"`, `#xA` for a character by
- * code point, and `[a-z]` or `[^…]` for a character class, which may hold `#x…` too.
+ * The notation `docs/grammar.md` is written in, read into a tree. The tree lets the grammar be
+ * checked (every name defined, every production reachable), generate documents (step 16) and
+ * judge them (step 18: `recognizer`).
+ *
+ * It is the W3C notation of the XML spec, kept small. It has `name ::= expression`, `|` for
+ * alternatives, juxtaposition for sequence, `?`, `*` and `+`, and parentheses. A literal is
+ * `'literal'` or `"literal"`, and `#xA` is a character by code point. `[a-z]` or `[^…]` is a
+ * character class, which may hold `#x…` too.
  */
 
 export type Expr =
@@ -147,9 +149,11 @@ function parse(source: string, name: string): Expr {
  * # Recognizing
  *
  * Whether a string is a production, so the grammar can judge a case on its own rather than only
- * write one. Every way to read each part is kept, as a set of where it may end, so an ambiguous
- * grammar needs no backtracking, and each name's ends are remembered by where it starts. A repeat
- * stops when an item matches nothing, so a `*` over something that may be empty still ends.
+ * write one. A repeat stops when an item matches nothing, so a `*` over something that may be
+ * empty still ends.
+ *
+ * Every way to read each part is kept, as a set of where it may end, so an ambiguous grammar
+ * needs no backtracking. Each name's ends are remembered by where it starts.
  */
 export function recognizer(
   defined: ReadonlyMap<string, { expr: Expr }>,

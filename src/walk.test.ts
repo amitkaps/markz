@@ -1,10 +1,10 @@
 /** @prose
  * # Walking a tree
  *
- * `walk`, `textContent`, `headings` and `position`: the order `walk` visits in and what skipping
- * does, that it survives nesting too deep to recurse, what text a node reads as, which headings
- * the outline lists and with what ids, and how offsets become lines and columns across every line
- * ending.
+ * What `walk`, `textContent`, `headings` and `position` promise. The tests cover the order `walk`
+ * visits in, what skipping does, and that it survives nesting too deep to recurse. They also
+ * cover what text a node reads as, which headings the outline lists with what ids, and how
+ * offsets become lines and columns across every line ending.
  */
 import { describe, expect, it } from "vite-plus/test";
 import { headings, html, parse, position, textContent, walk, type NodeId } from "./index";

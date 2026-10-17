@@ -12,7 +12,7 @@ import { parse, html, walk, textContent, headings, position } from "@amitkaps/ma
 
 ### `parse(source): Document`
 
-Reads a string into a [`Document`](#document). It never throws: syntax markz does not accept stays
+Reads a string into a [`Document`](#document). It never throws. Syntax markz does not accept stays
 literal text and is listed in `doc.warnings`. A leading byte-order mark is skipped.
 
 ### `html(source | Document): string`
@@ -23,10 +23,10 @@ parsed to avoid reading it twice.
 
 ### `walk(doc, visitor, from?): void`
 
-Visits `from` (the root by default) and everything under it, depth first, in source order.
-`visitor` is `{ enter?(node), exit?(node) }`: `enter` runs before a node's children and `exit`
-after them, and `enter` returning `false` skips that node's children (its `exit` still runs). It
-doesn't recurse, so any nesting depth is safe.
+Visits `from` and everything under it, depth first, in source order. `from` is the root by
+default. `visitor` is `{ enter?(node), exit?(node) }`, where `enter` runs before a node's children
+and `exit` after them. When `enter` returns `false`, that node's children are skipped, and its
+`exit` still runs. It doesn't recurse, so any nesting depth is safe.
 
 ### `textContent(doc, node?): string`
 
@@ -48,7 +48,7 @@ call it for each offset.
 
 ## Document
 
-What `parse` returns. It is read-only: a node is a number, and these methods read it.
+What `parse` returns. It is read-only. A node is a number, and these methods read it.
 
 | Member                  | Gives                                                                                 |
 | ----------------------- | ------------------------------------------------------------------------------------- |
@@ -68,7 +68,7 @@ What `parse` returns. It is read-only: a node is a number, and these methods rea
 | `doc.attributes(node)`  | the `{…}` attributes on it, `{ items: [{ key, value, start, end }] }`, or `undefined` |
 
 `NONE` is `-1`. Every node has exact offsets, so any node, and any warning, can be pointed to in
-the source. A `Document` is not constructed by hand; only `parse` makes one.
+the source. A `Document` is not constructed by hand. Only `parse` makes one.
 
 ## Node types
 
@@ -108,7 +108,8 @@ what `doc.data(node, type)` reads, and a type with none has nothing to read.
 `html()` never writes it and its text is in the source.
 
 Each type is a construct in [Syntax](syntax.md), by the ids in the [Grammar](grammar.md). There are
-no `html`, `definition` or footnote nodes: markz has no raw HTML, reference links or footnotes.
+no `html`, `definition` or footnote nodes, since markz has no raw HTML, reference links or
+footnotes.
 
 ## Warnings
 

@@ -11,21 +11,21 @@
  * - **agents**: the instructions open-source projects keep for coding agents (`AGENTS.md`,
  *   `CLAUDE.md`). It is the Markdown agents read and write most, and none of it is markz's.
  *   Its warnings show how much of that writing the dialect cuts.
- * - **public**: documentation written by people, in other styles: Node.js's API reference (dense
- *   links and code), the Rust book (narrative with listings) and Vite's guide (VitePress, with
- *   `:::` containers), so no one voice speaks for Markdown in general.
+ * - **public**: documentation written by people, in other styles, so no one voice speaks for
+ *   Markdown in general. It is Node.js's API reference (dense links and code), the Rust book
+ *   (narrative with listings) and Vite's guide (VitePress, with `:::` containers).
  * - **spec**: the CommonMark spec's own text, which other parsers benchmark on. It is dense with
  *   edge cases, not a typical document.
  *
  * A document comes in three variants. _dialect_ is the document as written. _common_ keeps only
  * the top-level blocks every parser reads alike. _formatted_ is the document after oxfmt, which is
- * how the consumers store it. The scaling tier repeats the markz and public documents to a size. It leaves out the agents tier, whose files read
- * as checklists more than pages.
+ * how the consumers store it. The scaling tier repeats the markz and public documents to a size.
+ * It leaves out the agents tier, whose files read as checklists more than pages.
  *
- * The agents, public and spec documents are vendored in `test/documents/`, pinned and never edited. The
- * markz tier is never vendored. Frozen copies of markz's docs and of the repos that use it (base,
- * prose, visdown) were dropped: they duplicated the live docs and snapshotted repos that keep
- * changing.
+ * The agents, public and spec documents are vendored in `test/documents/`, pinned and never
+ * edited. The markz tier is never vendored. Frozen copies of markz's docs and of the repos that
+ * use it (base, prose, visdown) were dropped. They duplicated the live docs, and snapshotted
+ * repos that keep changing.
  *
  * Nothing here parses at run time: a variant that needs markz's reading is given the parsed
  * document, so the tests and the Quality page both pass `src/`.
@@ -77,10 +77,12 @@ function own(): Map<string, string> {
 /** @prose
  * # The common variant
  *
- * A top-level block is kept when nothing in it is markz's alone (metadata, comments, elements,
- * math, raw blocks, expressions, attributes, an explicit heading id, a task item) and no warning
- * touches it, since a warning marks a form markz cuts and the others read. The kept blocks are
- * joined by blank lines, so each is still read as the block it was.
+ * A top-level block is kept when nothing in it is markz's alone and no warning touches it. A
+ * warning marks a form markz cuts and the others read. The kept blocks are joined by blank lines,
+ * so each is still read as the block it was.
+ *
+ * What is markz's alone is metadata, comments, elements, math, raw blocks, expressions,
+ * attributes, an explicit heading id and a task item.
  */
 const OWN = new Set(["metadata", "comment", "element", "math", "raw", "expression"]);
 
@@ -129,10 +131,12 @@ export function format(docs: Map<string, string>): Map<string, string> {
  * # Repeating without repeating titles
  *
  * A document repeated to a size is a benchmark's workload, and a real document doesn't hold the
- * same heading hundreds of times. Every copy after the first puts its number at the start of each
- * heading's text (`## Setup` becomes `## 2 Setup`), so ids don't pile up as `setup-1` to
- * `setup-300` and time id numbering no author would ask for. The number goes straight after the
- * `#`s, so each heading keeps its level, its closing `#`s and its reading.
+ * same heading hundreds of times. So every copy after the first puts its number at the start of
+ * each heading's text, and `## Setup` becomes `## 2 Setup`.
+ *
+ * Without it, ids would pile up as `setup-1` to `setup-300`, and time id numbering no author
+ * would ask for. The number goes straight after the `#`s, so each heading keeps its level, its
+ * closing `#`s and its reading.
  */
 const ATX = /^( {0,3}#{1,6})(?=[ \t]|$)/gm;
 

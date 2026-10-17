@@ -1,17 +1,18 @@
 /** @prose
  * # Oracle
  *
- * The reference markz's `html()` is held to: micromark with GFM and YAML frontmatter,
- * which are well-tested and dev-only (quality: How markz is tested). Frontmatter writes nothing, as metadata
- * doesn't in `html()`, so every example checks that markz finds the same block. Two settings make it render what markz should, not
- * what micromark's own policy would:
+ * The reference markz's `html()` is held to. It is micromark with GFM and YAML frontmatter,
+ * which are well-tested and dev-only (quality: How markz is tested). Frontmatter writes nothing,
+ * as metadata doesn't in `html()`, so every example checks that markz finds the same block.
  *
- * - `allowDangerousProtocol`: micromark blanks any URL outside its scheme allowlist, and markz
- *   instead drops a short blocklist (design: Security). markz's own tests cover the blocklist, so
- *   the oracle writes every URL.
+ * One setting, `allowDangerousProtocol`, makes it render what markz should, not what
+ * micromark's own policy would. micromark blanks any URL outside its scheme allowlist, and markz
+ * instead drops a short blocklist (design: Security). markz's own tests cover the blocklist, so
+ * the oracle writes every URL.
  *
- * There is no directive extension: colon directives are a form markz cuts, so micromark leaves
- * them as the literal text markz keeps. Raw HTML stays disallowed, as it is in markz. Examples that use it are excluded anyway.
+ * There is no directive extension. Colon directives are a form markz cuts, so micromark leaves
+ * them as the literal text markz keeps. Raw HTML stays disallowed, as it is in markz. Examples
+ * that use it are excluded anyway.
  */
 import { micromark, parse, postprocess, preprocess } from "micromark";
 import { gfm, gfmHtml } from "micromark-extension-gfm";
@@ -34,11 +35,12 @@ export function reference(markdown: string): string {
  * # Normalization
  *
  * What counts as the same output. Whitespace runs outside `<pre>` collapse to one space, and a
- * space next to a block-level tag goes, so line layout never fails a test. A space between inline
- * tags (`<em>a</em> <em>b</em>`) is content and stays. An empty attribute value goes (`open=""` is `open`), since
- * micromark can't tell a bare key from an empty one. Heading ids go too, since
- * micromark writes none; markz's are tested on their own. `<pre>` content is compared exactly,
- * except that a CR or CRLF is a LF, as the HTML parser reads it before building the page.
+ * space next to a block-level tag goes, so line layout never fails a test. `<pre>` content is
+ * compared exactly, except that a CR or CRLF is a LF, as the HTML parser reads it.
+ *
+ * A space between inline tags (`<em>a</em> <em>b</em>`) is content and stays. An empty attribute
+ * value goes (`open=""` is `open`), since micromark can't tell a bare key from an empty one.
+ * Heading ids go too, since micromark writes none. markz's are tested on their own.
  */
 const BLOCK_TAG =
   / ?(<\/?(?:p|li|ul|ol|blockquote|h[1-6]|pre|table|thead|tbody|tr|th|td|hr|div|section|article|aside|header|footer|nav|main|address|hgroup|search|details|summary|figure|figcaption|dl|dt|dd)\b[^>]*>) ?/g;
@@ -91,9 +93,10 @@ export function tokens(markdown: string): Token[] {
 /** @prose
  * # Math
  *
- * micromark-extension-math writes KaTeX's HTML, so what is compared is structure: each math span
- * it finds, display or inline, where it starts (so `$$b$$` isn't taken for `$` and `$b$`), and
- * the TeX inside, read from its tokens with whitespace collapsed.
+ * micromark-extension-math writes KaTeX's HTML, so what is compared is structure. That is each
+ * math span it finds, display or inline, where it starts, and the TeX inside. The TeX is read
+ * from its tokens with whitespace collapsed. The start counts, so `$$b$$` isn't taken for `$`
+ * and `$b$`.
  */
 export interface MathSpan {
   block: boolean;

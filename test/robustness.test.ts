@@ -2,15 +2,18 @@
  * # Robustness
  *
  * Input no example chose, held to what must always be true of any document. Three generated
- * sources feed the same properties: noise drawn from Markdown's characters, known examples with
- * a few random edits, and documents written from the dialect's own grammar. Each must be sound
- * (`harness/sound.ts`). Where the grammar writes only CommonMark and GFM constructs, from plain
- * letters, markz must also match the oracle, unless it raised a Not supported warning: the side
- * rules often turn a generated document into a form the dialect cuts (a lazy line, `*` emphasis),
- * which markz reads differently on purpose and reports. Two rules differ without a warning.
- * Emphasis runs never split, and a document that needs one is left out, as the spec examples
- * that need one differ. A `*` run between digits is text (`star-digits`), so the oracle's
- * alphabet holds a digit, and a document with one is left out.
+ * sources feed the same properties. They are noise drawn from Markdown's characters, known
+ * examples with a few random edits, and documents written from the dialect's own grammar. Each
+ * must be sound (`harness/sound.ts`).
+ *
+ * Where the grammar writes only CommonMark and GFM constructs, from plain letters, markz must also
+ * match the oracle. The exception is a document where it raised a Not supported warning. The side
+ * rules often turn a generated document into a form the dialect cuts, like a lazy line or `*`
+ * emphasis, which markz reads differently on purpose and reports.
+ *
+ * Two rules differ without a warning. Emphasis runs never split, and a document that needs one is
+ * left out, as the spec examples that need one differ. A `*` run between digits is text
+ * (`star-digits`), so the oracle's alphabet holds a digit, and a document with one is left out.
  *
  * The upstream sweeps curation leaves off the Conformance page (`examples/upstream/stress/`) are
  * held to the same floor: markz finishes in well under a second, doesn't throw, and builds a
