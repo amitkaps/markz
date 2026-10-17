@@ -79,8 +79,8 @@ const contents = headings(parse(markdown))
   .join("\n");
 ```
 
-How deep to go, and whether to nest, number or style it, is yours to decide. markz doesn't put a
-contents list in `html()`.
+markz doesn't put a contents list in `html()`. How deep to go, and whether to nest, number or
+style it, is yours to decide.
 
 ## Keep a poem's line breaks
 
