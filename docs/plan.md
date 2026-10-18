@@ -9,6 +9,13 @@ markz parses its dialect to a flat tree and renders it to HTML, with a warning f
 that doesn't do what it looks like. The latest release is 0.4.3, on npm as `@amitkaps/markz`,
 and its docs are at [markz.amitkaps.com](https://markz.amitkaps.com).
 
+### 0.5.0
+
+- **Blank lines around elements.** An element or attribute line beside text gets
+  `element-blank-lines`, which replaces `element-lazy-line`, since a formatter that puts each
+  paragraph on one line would join them. So a repository's docs can use oxfmt's
+  `proseWrap: "never"` ([syntax](syntax.md#element-blank-lines)).
+
 ### 0.4.3
 
 - **The warning codes as a list.** `WARNINGS` gives every code's message and what to write

@@ -292,7 +292,7 @@ custom-element ::= [a-z] [a-z0-9]* '-' [a-z0-9-]*
 - `element-line`: An opening line is one line, so an expression in a value can't hold a line ending. A line that needs one is a paragraph.
 - `element-interrupts`: An opening line can't interrupt a paragraph or a table. A leaf or a closing line can.
 - `element-close`: A closing line closes the innermost element open in its container when the names match. Otherwise it is text, and a warning. When a `{#name}` line came before it, the warning says the element opens with `{@name}`.
-- `element-lazy-line`: An element line straight after a table row, or after a paragraph in a blockquote or list item that the line leaves, is read as written, with a warning. A formatter would read it as a lazy line and move it in.
+- `element-blank-lines`: An element or attribute line next to paragraph text, a table row or another such line is read as written, with a warning. A blank line between, or a quote or list item opening on the second line, keeps them apart. A formatter reads the lines as one paragraph, so it would join them, or move the line into the quote, list item or table.
 - `unclosed-element`: Unclosed, an element runs to the end of its container, with a warning at its opening line.
 
 {#comment}

@@ -91,6 +91,7 @@ On a site, a class and one CSS rule do the same without the `\` on every line:
 
 ```md
 {.verse}
+
 Moko kahan dhundhe re bande
 Main to tere paas mein
 ```

@@ -143,8 +143,8 @@ describe("heading ids", () => {
 
   it("share one table with elements and spans", () => {
     expect(ids("{@section #checks /}\n\n## Checks\n\n## Checks")).toEqual(["checks-1", "checks-2"]);
-    expect(messages("{@section #checks}\n{/section}\n\n## Checks")).toEqual([]);
-    expect(messages("## Checks\n\n{@section #checks}\n{/section}")).toEqual([
+    expect(messages("{@section #checks}\n\n{/section}\n\n## Checks")).toEqual([]);
+    expect(messages("## Checks\n\n{@section #checks}\n\n{/section}")).toEqual([
       "id `checks` is already used earlier",
     ]);
     expect(messages("[a]{#x} and [b]{#x}\n\n{@aside #x /}")).toEqual([
@@ -152,7 +152,7 @@ describe("heading ids", () => {
       "id `x` is already used earlier",
     ]);
     const at = (source: string) => parsed(source).warnings.map((w) => w.start);
-    expect(at("{#p}\nsee [x]{#p}")).toEqual([13]);
+    expect(at("{#p}\n\nsee [x]{#p}")).toEqual([14]);
     expect(messages("{@div id=${a} /}\n\n{@div id=${a} /}")).toEqual([]);
   });
 });

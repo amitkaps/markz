@@ -4,7 +4,9 @@ A bare key is one of HTML's boolean attributes.
 
 ```example 49
 {@details open}
+
 x
+
 {/details}
 .
 <details open><p>x</p>
@@ -59,7 +61,9 @@ After a link, image or `[text]`, a `{…}` that doesn't parse stays text and is 
 
 ```example 55 attribute-merge
 {.a key=1}
+
 {.b key=2}
+
 | x |
 | - |
 .
@@ -108,6 +112,7 @@ para</p>
 
 ```example 60
 {onclick=x href="javascript:alert(1)" src="data:image/png;base64,AA" ok=1}
+
 para
 .
 <p src="data:image/png;base64,AA" ok="1">para</p>

@@ -42,8 +42,9 @@ rules, with every edge case, are in the [grammar](grammar.md).
 
 Three rules keep a document safe. markz warns when one is broken, so none needs remembering.
 
-- **Leave a blank line between a list, quote or table and an element line after it.** A formatter
-  would otherwise move the line into the list, quote or table (`element-lazy-line`).
+- **Put a blank line before and after an element or attribute line,** wherever text, a list, a
+  quote or a table would touch it. A formatter would otherwise join the line to the text, or move
+  it into the list, quote or table (`element-blank-lines`).
 - **Quote a metadata value that YAML would read another way.** That is a value holding `: ` or
   ` #`, one starting with a symbol, a yes or no word, or a number YAML would read differently
   (`metadata-value`).
@@ -259,7 +260,9 @@ are how wrappers and components are written, since a document holds no HTML. Inl
 {@chart-view data="sales" type="bar" /}
 
 {@call-out type="warning"}
+
 Markdown **inside**.
+
 {/call-out}
 ```
 
@@ -273,8 +276,10 @@ Markdown **inside**.
 - **Closing:** `{/name}` closes the innermost open element when the names match. Otherwise it stays
   text, with the warning [`element-close`]{#element-close}. An element never closed runs to the end
   of its container, with the warning [`unclosed-element`]{#unclosed-element}.
-- **After a list, quote or table,** leave a blank line before an element line. Without one, it
-  gets the warning [`element-lazy-line`]{#element-lazy-line}, since a formatter would move it in.
+- **Blank lines** keep an element line, or an attribute line, apart from text and from a list,
+  quote or table. Without one on either side, it gets the warning
+  [`element-blank-lines`]{#element-blank-lines}, since a formatter would join it to the text or
+  move it in. A leaf or closing line straight after text is still read as an element.
 
 The block elements are those Markdown has no syntax for and that can't run code: `div`,
 `section`, `article`, `aside`, `header`, `footer`, `nav`, `main`, `address`, `hgroup`, `search`,
@@ -285,9 +290,11 @@ written as one:
 
 ```md
 {@details .proof}
+
 [Show the proof]{@summary /}
 
 Body **here**.
+
 {/details}
 ```
 
@@ -501,10 +508,11 @@ Formatters leave the cut forms alone (setext headings, indented code, two-space 
 references, bare URLs, reference links and raw HTML). For those, markz's warning is the only
 signal.
 
-A formatter doesn't know elements, so it reads an element line as paragraph text. Straight after
-a list, a quote or a table, that text continues the list item, the quote or the table to the
-formatter, which moves it in. That is why markz warns (`element-lazy-line`) when the blank line
-before it is missing.
+A formatter doesn't know elements, so it reads an element or attribute line as paragraph text.
+Beside other text, a formatter that puts each paragraph on one line joins them, and markz then
+reads the line as text. Straight after a list, a quote or a table, the line continues the list
+item, the quote or the table to the formatter, which moves it in. That is why markz warns
+(`element-blank-lines`) when the blank line on either side is missing.
 
 ## Grammar
 

@@ -14,7 +14,9 @@
 
 ```example 40
 {@call-out .important}
+
 Body
+
 {/call-out}
 .
 <call-out class="important"><p>Body</p>
@@ -25,8 +27,11 @@ What HTML puts in a child element is written as one.
 
 ```example 41
 {@details}
+
 [Show the proof]{@summary /}
+
 Body
+
 {/details}
 .
 <details><summary>Show the proof</summary>
@@ -34,17 +39,22 @@ Body
 </details>
 ```
 
-A leaf can interrupt a paragraph, since a line ending in `/}` can't be prose.
+A leaf can interrupt a paragraph, since a line ending in `/}` can't be prose. It warns, since a
+formatter would join the two lines.
 
 ```example 42
 {@figure}
+
 ![chart](c.png)
 [Sales by month]{@figcaption /}
+
 {/figure}
 .
 <figure><p><img src="c.png" alt="chart" /></p>
 <figcaption>Sales by month</figcaption>
 </figure>
+.
+[Sales by month]{@figcaption /}
 ```
 
 An opening line can't. There it is text, so its closing line has nothing to close.
@@ -65,10 +75,15 @@ x
 
 ```example 45 ambiguous element-close
 {@div}
+
 {@div}
+
 x
+
 {/div}
+
 y
+
 {/div}
 .
 <div><div><p>x</p>
@@ -81,8 +96,10 @@ A closing line with another name closes nothing.
 
 ```example 150 ambiguous element-close
 {@div}
+
 x
 {/aside}
+
 {/div}
 .
 <div><p>x
@@ -92,12 +109,15 @@ x
 {/aside}
 ```
 
-A closing line is read at its element's own level, before a list inside takes the line.
+A closing line is read at its element's own level, before a list inside takes the line. It warns,
+since a formatter would join it to the item's text.
 
 ```example 151 ambiguous element-close
 {@aside}
+
 - a
   {/aside}
+
 b
 .
 <aside><ul>
@@ -105,13 +125,19 @@ b
 </ul>
 </aside>
 <p>b</p>
+.
+{/aside}
 ```
 
 ```example 46 unclosed
 {@div}
+
 {@div}
+
 x
+
 {/div}
+
 y
 .
 <div><div><p>x</p>
@@ -124,8 +150,11 @@ y
 
 ```example 47
 {@dl}
+
 [Term]{@dt /}
+
 [What it means]{@dd /}
+
 {/dl}
 .
 <dl><dt>Term</dt>
@@ -153,7 +182,7 @@ x}}
 x</code>}</p>
 ```
 
-```example 168 ambiguous element-lazy-line
+```example 168 ambiguous element-blank-lines
 - a
 [x]{@sum-mary /}
 .
@@ -165,7 +194,7 @@ x</code>}</p>
 [x]{@sum-mary /}
 ```
 
-```example 169 ambiguous element-lazy-line
+```example 169 ambiguous element-blank-lines
 {@call-out}
 | a |
 | - |
