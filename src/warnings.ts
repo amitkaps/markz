@@ -54,9 +54,9 @@ export const PAIRS = {
     "a closing line with no open element of that name in its container",
     "close the innermost open element, at its own level",
   ],
-  "element-lazy-line": [
-    "an element line straight after a list, quote or table, which a formatter moves into it",
-    "a blank line before it",
+  "element-blank-lines": [
+    "an element or attribute line beside text or a table, which a formatter joins to it",
+    "a blank line between them",
   ],
   "unclosed-element": ["an element with no closing line", "a `{/name}` line, or `/}` for a leaf"],
   "unclosed-block": [

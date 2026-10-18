@@ -129,6 +129,17 @@ class BlockParser {
   lineEnd = 0;
   /** This line left a quoted or listed paragraph, so an element here is reported (`lazyBefore`). */
   lazy = false;
+  /** Where this line starts, whether it opened a quote or item, and its element or attribute line. */
+  lineStart = 0;
+  opened = false;
+  marked: Range | null = null;
+  /** The line before: an element or attribute line, paragraph text, or neither. */
+  before: "mark" | "text" | null = null;
+  beforeMark: Range | null = null;
+  /** A mark the line after it began a paragraph beside, reported unless it becomes a table header. */
+  joined: Range | null = null;
+  /** The last mark reported, so a line beside text on both sides is reported once. */
+  reportedAt = -1;
   pos = 0;
   col = 0;
   tab = 0;
@@ -153,6 +164,7 @@ class BlockParser {
       this.line(at, end);
       at = end < src.length ? end + (src[end] === "\r" && src[end + 1] === "\n" ? 2 : 1) : end;
     }
+    if (this.joined) this.blankLines(this.joined);
     this.closeLeaf();
     while (this.stack.length > 1) this.closeContainer();
     this.flushPending(1);
@@ -220,6 +232,14 @@ class BlockParser {
    * lines (`paragraph-lines`). A paragraph line there starts a new paragraph and is reported.
    */
   line(start: number, end: number): void {
+    this.lineStart = start;
+    this.opened = false;
+    this.marked = null;
+    this.read(start, end);
+    this.spacing();
+  }
+
+  read(start: number, end: number): void {
     this.pos = start;
     this.col = 0;
     this.tab = 0;
@@ -251,9 +271,7 @@ class BlockParser {
       } else if (c.kind === "element") {
         matched = c.run.end;
         if (this.closingLine() !== stack[matched]!.name) continue;
-        if (this.lazyBefore()) {
-          this.report("element-lazy-line", this.indent().next, this.trimmedEnd());
-        }
+        this.mark(this.indent().next, this.trimmedEnd(), this.lazyBefore());
         const closed = stack[matched]!;
         closed.closed = true;
         this.closeLeaf();
@@ -286,7 +304,7 @@ class BlockParser {
       if (this.top.kind !== "blockquote") this.blankAt = ++this.clock;
       return;
     }
-    for (let more = true; more;) more = this.start();
+    while (this.start()) this.opened = true;
     this.settle();
   }
 
@@ -435,11 +453,14 @@ class BlockParser {
       (c === "[" && src[end - 1] === "}" && src[end - 2] === "/" && this.leafElement(next, end))
     ) {
       // Reported only once the line is an element: see `lazyBefore`.
-      if (this.lazy || table) this.report("element-lazy-line", next, end);
+      this.mark(next, end, this.lazy || table);
       return false;
     }
     if (c === "{" && !paragraph && !table) {
-      if (this.attributeLine(next, end)) return false;
+      if (this.attributeLine(next, end)) {
+        this.mark(next, end, false);
+        return false;
+      }
       this.multilineAttributes(next, end);
     }
     this.text(next, end);
@@ -847,7 +868,7 @@ class BlockParser {
   /** @prose
    * An element line straight after a table row, or after a paragraph in a blockquote or list
    * item, is read here as written and reported. A formatter would move it into the row, quote or
-   * item, so markz asks for the blank line that keeps it out (grammar: `element-lazy-line`).
+   * item, so markz asks for the blank line that keeps it out (grammar: `element-blank-lines`).
    *
    * A formatter doesn't know elements, so it reads the line as a lazy continuation. This asks
    * before the line closes the open leaf, which is what tells the case. The line is reported once
@@ -860,6 +881,43 @@ class BlockParser {
     if (leaf?.kind !== "paragraph") return false;
     if (top.kind === "blockquote") return true;
     return top.kind === "listItem" && this.indent(top.indent).cols < top.indent;
+  }
+  /** This line is an element or attribute line, already reported when a formatter moves it in. */
+  mark(start: number, end: number, lazy: boolean): void {
+    this.marked = { start, end };
+    if (lazy) this.blankLines(this.marked);
+  }
+
+  /** @prose
+   * An element or attribute line needs a blank line wherever it meets paragraph text, before or
+   * after it, or another such line (grammar: `element-blank-lines`). A formatter reads the lines as
+   * one paragraph, and one that joins a paragraph's lines puts them on one, where markz reads
+   * them as text.
+   *
+   * Each line is compared with the one before. To a formatter, a line that opens no quote or list
+   * item continues the paragraph, whatever container markz reads it in, and an element is no
+   * container at all. An opening line after text is already text (`element-interrupts`), so it
+   * never counts as a mark. Text after a mark is reported a line later, because a delimiter row
+   * would make it a table header, which a formatter keeps apart.
+   */
+  spacing(): void {
+    const { before, marked, leaf } = this;
+    if (this.joined && leaf?.kind !== "table") this.blankLines(this.joined);
+    this.joined = null;
+    const text =
+      !marked && leaf?.kind === "paragraph" && leaf.lines.at(-1)!.start >= this.lineStart;
+    if (!this.opened) {
+      if (marked && before) this.blankLines(marked);
+      else if (text && before === "mark") this.joined = this.beforeMark;
+    }
+    this.before = marked ? "mark" : text ? "text" : null;
+    this.beforeMark = marked;
+  }
+
+  blankLines(mark: Range): void {
+    if (this.reportedAt === mark.start) return;
+    this.reportedAt = mark.start;
+    this.report("element-blank-lines", mark.start, mark.end);
   }
 
   /** @prose

@@ -168,7 +168,7 @@ export function reading(id: string): Reading {
   }
   if (id === "attributes") {
     return {
-      wrap: (s) => `${s}\na\n`,
+      wrap: (s) => `${s}\n\na\n`,
       grammar: "blank-line* block-attributes blank-line*",
       made: (doc) => {
         const n = one(doc);
@@ -378,7 +378,7 @@ export const EVERYWHERE: Record<string, Test> = {
  */
 export const WARNED: Record<string, string> = {
   "element-close": "element-close",
-  "element-lazy-line": "element-lazy-line",
+  "element-blank-lines": "element-blank-lines",
   "expression-bracket": "expression-bracket",
   "unclosed-element": "unclosed-element",
   "unclosed-block": "unclosed-block",

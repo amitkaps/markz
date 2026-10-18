@@ -127,15 +127,42 @@ describe("elements", () => {
   });
 
   it("report a closing line with nothing to close, and an element left open", () => {
-    const doc = parsed("> {@aside}\n> x\n{/aside}\n");
+    const doc = parsed("> {@aside}\n>\n> x\n{/aside}\n");
     expect(doc.warnings.map((w) => [w.code, doc.source.slice(w.start, w.end)])).toEqual([
       ["unclosed-element", "{@aside}"],
       ["element-close", "{/aside}"],
     ]);
   });
 
+  it("report an element or attribute line a formatter would join to the line beside it", () => {
+    const blank = (source: string) =>
+      parse(source)
+        .warnings.filter((w) => w.code === "element-blank-lines")
+        .map((w) => source.slice(w.start, w.end));
+    expect(blank("{.note}\ntext\n")).toEqual(["{.note}"]);
+    expect(blank("text\n[x]{@a-b /}\n")).toEqual(["[x]{@a-b /}"]);
+    expect(blank("{@div}\n\n{@div}\n\nx\n\n{/div}\n{/div}\n")).toEqual(["{/div}"]);
+    expect(blank("> {@a-b /}\n> text\n")).toEqual(["{@a-b /}"]);
+    expect(blank("{.a}\n{#b}\n\ntext\n")).toEqual(["{#b}"]);
+    // A paragraph on both sides is one warning, at the line.
+    expect(blank("a\n{@a-b /}\nb\n")).toEqual(["{@a-b /}"]);
+  });
+
+  it("leave an element line alone where a formatter keeps it apart", () => {
+    const blank = (source: string) =>
+      parse(source).warnings.filter((w) => w.code === "element-blank-lines");
+    expect(blank("{@div}\n\nx\n\n{/div}\n")).toEqual([]);
+    // A table header, a heading, a fence and a new list item each stand apart from the line.
+    expect(blank("{@div}\n| a |\n| - |\n\n{/div}\n")).toEqual([]);
+    expect(blank("{#a}\n## A\n")).toEqual([]);
+    expect(blank("{@div}\n```\nx\n```\n{/div}\n")).toEqual([]);
+    expect(blank("- a\n- [x]{@a-b /}\n")).toEqual([]);
+    // An opening line after text is text already, so joining changes nothing.
+    expect(blank("text\n{@div}\n")).toEqual([]);
+  });
+
   it("point a closing line after a `{#name}` line to `{@name}`", () => {
-    const doc = parsed("{#aside}\nx\n{/aside}\n");
+    const doc = parsed("{#aside}\n\nx\n{/aside}\n");
     expect(doc.warnings.map((w) => [w.code, w.message])).toEqual([
       ["element-close", "`{#aside}` sets an id: open the element with `{@aside}`"],
     ]);

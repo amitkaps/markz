@@ -2,6 +2,7 @@
 
 ```example 7
 {.verse}
+
 Moko kahan
 Main to
 .
