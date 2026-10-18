@@ -1,7 +1,7 @@
 # Reference
 
-Everything `@amitkaps/markz` exports: six functions, the read-only `Document` they work on, and
-the types of what it holds. None of them takes options. What to do with them is in [Usage](usage.md), and why they are
+Everything `@amitkaps/markz` exports: six functions, the read-only `Document` they work on, the
+list of warning codes and the types of what it holds. None of them takes options. What to do with them is in [Usage](usage.md), and why they are
 shaped this way is in [Design](design.md).
 
 ```ts
@@ -117,6 +117,17 @@ Each entry in `doc.warnings` is `{ code, start, end, message, instead }`: a stab
 on, the source range, what was wrong, and `instead`, the form to write. Each form markz cuts has
 a code, in [Syntax: Not supported](syntax.md#not-supported), and the rest are named in their
 construct's section. `WarningCode` is their type.
+
+`WARNINGS` holds every code's text, as `{ message, instead }`, so a tool can say what a code asks
+for without parsing anything. It's frozen. Each code has an id in Syntax, so
+`syntax.md#reference-link` links to the rule behind it. The codes are stable, and the text can be
+reworded in any release.
+
+```ts
+import { WARNINGS } from "@amitkaps/markz";
+
+WARNINGS["reference-link"]; // { message: "reference link", instead: "inline links" }
+```
 
 ## Types
 

@@ -14,7 +14,8 @@ console.log(doc.warnings); // what it didn't read, and what to write instead
 ```
 
 The whole API is six functions (`parse`, `html`, `walk`, `textContent`,
-`headings` and `position`) and the read-only `Document`, in [Reference](docs/reference.md).
+`headings` and `position`), the read-only `Document` and the frozen list of warning codes, in
+[Reference](docs/reference.md).
 None of them takes options.
 
 ## Install

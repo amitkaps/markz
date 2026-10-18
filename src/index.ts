@@ -13,7 +13,7 @@ export { html } from "./html";
 export { walk, textContent, headings, type Heading, type Visitor } from "./walk";
 export { position, type Position } from "./position";
 export { Document, NONE } from "./ast";
-export type { WarningCode } from "./warnings";
+export { WARNINGS, type WarningCode, type WarningText } from "./warnings";
 export type {
   Align,
   Attribute,

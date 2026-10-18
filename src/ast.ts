@@ -9,7 +9,7 @@
  * mutation API, so offsets can never drift from the source they point into (design: AST).
  */
 import { NAMED } from "./chars";
-import { WARNINGS, type WarningCode } from "./warnings";
+import { PAIRS, type WarningCode } from "./warnings";
 
 /** @prose
  * # Node types
@@ -348,7 +348,7 @@ export class Builder {
 
   /** A warning by its code; the message defaults to the code's, and `instead` is always its. */
   warn(code: WarningCode, start: number, end: number, message?: string, instead?: string): void {
-    const [text, fix] = WARNINGS[code];
+    const [text, fix] = PAIRS[code];
     this.#warnings.push({ code, start, end, message: message ?? text, instead: instead ?? fix });
   }
 
