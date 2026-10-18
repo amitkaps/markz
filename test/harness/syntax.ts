@@ -2,8 +2,9 @@
  * # The dialect's outline
  *
  * `syntax.md` read as data, so the tests can hold it and the grammar together. Each construct is
- * found by the id on the `{#id}` line above its heading, and each Not supported row by its
- * warning code.
+ * found by the id on the `{#id}` line above its heading. Each warning code is a span with its own
+ * id, like `` [`raw-html`]{#raw-html} ``, which opens its Not supported row or sits where its
+ * construct names it.
  *
  * The grammar says which constructs exist and where they belong, and this reads what the page
  * says about them. Nothing here depends on wording. Headings and cells can be reworded as long as
@@ -71,7 +72,7 @@ for (const block of between("Not supported", "Formatters").split(/^### /m).slice
       .split(/ +\| +/)
       .map((c) => c.trim());
     rows.push({
-      code: code!.slice(1, -1) as WarningCode,
+      code: /^\[`([a-z-]+)`\]\{#\1\}$/.exec(code!)![1] as WarningCode,
       syntax: syntax!,
       instead: instead!,
       group,
@@ -81,8 +82,10 @@ for (const block of between("Not supported", "Formatters").split(/^### /m).slice
 
 export const row = (code: string): Row | undefined => rows.find((r) => r.code === code);
 
-/** Every warning code `syntax.md` names in backticks, in a table or a construct's prose. */
-export const named = (code: string): boolean => syntax.includes(`\`${code}\``);
+/** Every code `syntax.md` gives an id, as a span whose text is the id, in source order. */
+export const stated: string[] = [...syntax.matchAll(/\[`([a-z-]+)`\]\{#([a-z-]+)\}/g)].map(
+  ([, text, id]) => (text === id ? id! : `${text} ≠ ${id}`),
+);
 
 /** Where a section belongs: a construct's part, or Not supported for a row's code. */
 export function part(section: string): Part | undefined {

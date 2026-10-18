@@ -12,7 +12,7 @@
  * Codes are names, not numbers like `MD001`. A name reads without a lookup and matches its row in
  * `syntax.md`, and editors take any string as a diagnostic's code.
  */
-export const WARNINGS = {
+export const PAIRS = {
   // Not supported: metadata.
   "toml-metadata": ["TOML metadata", "a `---` metadata block"],
   // Not supported: blocks.
@@ -93,4 +93,29 @@ export const WARNINGS = {
 type Pairs<T extends Record<string, readonly [message: string, instead: string]>> = T;
 
 /** A warning's stable code, one of the keys of `WARNINGS`. */
-export type WarningCode = keyof Pairs<typeof WARNINGS>;
+export type WarningCode = keyof Pairs<typeof PAIRS>;
+
+/** A warning's default message, and the supported form to write instead. */
+export interface WarningText {
+  readonly message: string;
+  readonly instead: string;
+}
+
+/** @prose
+ * # The public list
+ *
+ * `WARNINGS` gives every code's text without parsing anything, so a tool can say what a code asks
+ * for, as `prose rules` does. The code is the promise. The text can be reworded in any release.
+ *
+ * It's built from the pairs and frozen, so no consumer can change the parser's messages for
+ * everyone else. The pairs stay compact in the bundle, and an app that never imports the list
+ * drops it.
+ */
+export const WARNINGS: Readonly<Record<WarningCode, WarningText>> = /* @__PURE__ */ Object.freeze(
+  Object.fromEntries(
+    Object.entries(PAIRS).map(([code, [message, instead]]) => [
+      code,
+      Object.freeze({ message, instead }),
+    ]),
+  ) as Record<WarningCode, WarningText>,
+);

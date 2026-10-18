@@ -8,8 +8,8 @@
  *   `document` and every name used once. And it is `syntax.md`'s, with the same constructs in the
  *   same order, under the same parts, each from an origin. The element names it lists are the
  *   ones markz writes, from `src/elements.ts`.
- * - **The warnings** are each named in `syntax.md`, and each Not supported row's "Write instead" is
- *   its code's. Every warning that is not a row settles a case by the side rule it enforces, and
+ * - **The warnings** each have one span id in `syntax.md`, and every span id there is a code, so
+ *   a link to a code always lands. Each Not supported row's "Write instead" is its code's. Every warning that is not a row settles a case by the side rule it enforces, and
  *   every side rule a settlement names is a real one. Every side rule is held by something: a
  *   settlement, a warning, an example labelled with it, the oracle or the judge.
  * - **The filing** names real examples, numbers markz's own once each, and still compares most
@@ -23,6 +23,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vite-plus/test";
 import { BLOCK, INLINE } from "../src/elements";
+import { parse } from "../src/index";
 import { WARNINGS } from "../src/warnings";
 import { EVERYWHERE, JUDGED, ORACLE, SETTLED, WARNED, sideRules } from "./harness/cases";
 import { references, type Expr } from "./harness/ebnf";
@@ -30,7 +31,7 @@ import { examples, headingTexts, listed, oracleDiffers } from "./harness/example
 import { readFences, writeFences } from "./harness/fences";
 import { CONSTRUCTS, DOCUMENT, PRODUCTIONS, reachable } from "./harness/grammar";
 import { metadataOracle, normalize, reference, slugOracle } from "./harness/oracle";
-import { anchor, anchors, named, row, rows } from "./harness/syntax";
+import { anchor, anchors, row, rows, stated } from "./harness/syntax";
 
 describe("productions", () => {
   it.each([...PRODUCTIONS.values()].map((p) => [p.name, p] as const))(
@@ -79,12 +80,19 @@ describe("element names", () => {
 });
 
 describe("warning codes", () => {
-  it.each(Object.keys(WARNINGS))("%s is named in syntax.md", (code) => {
-    expect(named(code)).toBe(true);
+  it("each have one span id in syntax.md, and every span id is a code", () => {
+    expect([...stated].sort()).toEqual(Object.keys(WARNINGS).sort());
+  });
+
+  it("are frozen, with the text the parser writes", () => {
+    expect(Object.isFrozen(WARNINGS)).toBe(true);
+    expect(Object.values(WARNINGS).every(Object.isFrozen)).toBe(true);
+    const [w] = parse("[a][1]\n\n[1]: b").warnings;
+    expect(WARNINGS[w!.code]).toEqual({ message: w!.message, instead: w!.instead });
   });
 
   it.each(rows)("row $code writes instead what the code does", (r) => {
-    expect(WARNINGS[r.code]?.[1]).toBe(r.instead);
+    expect(WARNINGS[r.code]?.instead).toBe(r.instead);
   });
 });
 
