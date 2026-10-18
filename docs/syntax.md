@@ -64,10 +64,10 @@ warning code. The other warnings are named with the rule they guard.
 A few `key: value` lines that GitHub, YAML and formatters all read without an error.
 
 A document can open with a metadata block, between `---` lines, starting at the first character.
-Other tools call it frontmatter. When a closing `---` line follows, everything between is
-metadata, and a line markz can't read is a warning. Without a closing line, the first `---` is a
-rule, and a `key: value` line after it gets the warning [`metadata-unclosed`]{#metadata-unclosed}. markz parses the
-block into `doc.metadata`.
+Other tools call it frontmatter. When a closing `---` line follows, everything between is metadata,
+and a line markz can't read is a warning. Without a closing line, the first `---` is a rule, and a
+`key: value` line after it gets the warning [`metadata-unclosed`]{#metadata-unclosed}. markz parses
+the block into `doc.metadata`.
 
 ```yaml
 ---
@@ -98,10 +98,10 @@ deploy.name: my-site
   [`metadata-duplicate-key`]{#metadata-duplicate-key}, and the first one wins.
 - **Comments** are lines that start with `#`.
 - **Quote a value that YAML would read another way.** Otherwise the line gets the warning
-  [`metadata-value`]{#metadata-value}. That is a value starting with a symbol such as `*`, `@` or `{`, a yes or no
-  word in any case (`True`, `no`, `off`), or a number YAML would read differently (`01234`,
-  `1.10`, `1e3`). Its key is skipped, since any guess could be wrong. In a list, also quote an
-  item that holds `,`, `[` or `]`.
+  [`metadata-value`]{#metadata-value}. That is a value starting with a symbol such as `*`, `@` or
+  `{`, a yes or no word in any case (`True`, `no`, `off`), or a number YAML would read differently
+  (`01234`, `1.10`, `1e3`). Its key is skipped, since any guess could be wrong. In a list, also
+  quote an item that holds `,`, `[` or `]`.
 - **A value holding `: ` or ` #` is kept as written,** with the same warning. YAML would reject
   the first and cut the second short, so `title: Issue #42` would lose `#42` elsewhere.
 - **A long list can wrap** onto indented lines after its key, as a formatter writes it, and
@@ -156,10 +156,10 @@ Every heading gets an id, so a link can point at it.
 
 ### Code blocks
 
-A fence of three or more backticks, with the language after it. The first word after the fence
-is the language, and the rest is metadata for the host. Use a longer fence to show a fence inside.
-A fence with no closing line runs to the end of its container, with the warning [`unclosed-block`]{#unclosed-block}.
-So does a raw or math block.
+A fence of three or more backticks, with the language after it. The first word after the fence is
+the language, and the rest is metadata for the host. Use a longer fence to show a fence inside. A
+fence with no closing line runs to the end of its container, with the warning
+[`unclosed-block`]{#unclosed-block}. So does a raw or math block.
 
 {#raw-block}
 
@@ -240,8 +240,9 @@ them makes an [element](#element) Markdown has no syntax for.
   `{year}` there reads as a placeholder. Add a class or an id to use one above a block:
   `{.note open}`.
 - **One line.** Attributes start and end on the same line.
-- **A `{…}` line decorates the next block,** across blank lines, since formatters add one before
-  a heading. With no block after it, it stays text with the warning [`orphan-attributes`]{#orphan-attributes}.
+- **A `{…}` line decorates the next block,** across blank lines, since formatters add one before a
+  heading. With no block after it, it stays text with the warning
+  [`orphan-attributes`]{#orphan-attributes}.
 - **Anywhere else a `{` is text,** so `{a, b}` and `{"json": 1}` need no escaping. A `{…}` after a
   link or `[text]`, or on a line starting `{@` or `{/`, that doesn't parse gets the warning
   [`attribute-syntax`]{#attribute-syntax}.
@@ -269,9 +270,9 @@ Markdown **inside**.
 - **The name** is a block element from the list below, or a custom element: lowercase letters,
   digits and `-`, with a `-` in it (`call-out`). Any other name stays text, with the warning
   `element-name`. A class comes only from `.class`, so a note is `{@div .note}`.
-- **Closing:** `{/name}` closes the innermost open element when the names match. Otherwise it
-  stays text, with the warning [`element-close`]{#element-close}. An element never closed runs to the end of its
-  container, with the warning [`unclosed-element`]{#unclosed-element}.
+- **Closing:** `{/name}` closes the innermost open element when the names match. Otherwise it stays
+  text, with the warning [`element-close`]{#element-close}. An element never closed runs to the end
+  of its container, with the warning [`unclosed-element`]{#unclosed-element}.
 - **After a list, quote or table,** leave a blank line before an element line. Without one, it
   gets the warning [`element-lazy-line`]{#element-lazy-line}, since a formatter would move it in.
 
@@ -313,10 +314,10 @@ their props, in its own pass over the tree.
 
 ### Comments
 
-`<!-- … -->` on lines of its own is a note that stays in the source. `html()` never writes it.
-It may span lines, and ends on the line with `-->`. Text after `-->` on that line gets the
-warning [`comment-trailing-text`]{#comment-trailing-text}. A `<!--` after other text on its line is text, with the
-warning `raw-html`.
+`<!-- … -->` on lines of its own is a note that stays in the source. `html()` never writes it. It
+may span lines, and ends on the line with `-->`. Text after `-->` on that line gets the warning
+[`comment-trailing-text`]{#comment-trailing-text}. A `<!--` after other text on its line is text,
+with the warning `raw-html`.
 
 ## Inline
 
@@ -398,7 +399,8 @@ keeps the code and never runs it.
 - It binds tighter than emphasis, so `${a * b * c}` is one expression.
 - Braces, strings and comments inside it are skipped, so `${f({a: 1})}` is whole.
 - A regex isn't recognised. A `}` inside one ends the expression early, with the warning
-  [`expression-bracket`]{#expression-bracket}. Write it as `}`, or move the regex out of the document.
+  [`expression-bracket`]{#expression-bracket}. Write it as `}`, or move the regex out of the
+  document.
 - `\${` is a literal `${`, and an unclosed `${` is text.
 - `html()` writes `<code class="language-js expression">` holding the code. A page evaluates
   expressions from the tree, never from the HTML.

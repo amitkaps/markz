@@ -6,8 +6,21 @@ release notes, the code's `@prose`, the tests and [lessons](lessons.md).
 ## Where it is
 
 markz parses its dialect to a flat tree and renders it to HTML, with a warning for every input
-that doesn't do what it looks like. The latest release is 0.4.1, on npm as `@amitkaps/markz`,
+that doesn't do what it looks like. The latest release is 0.4.3, on npm as `@amitkaps/markz`,
 and its docs are at [markz.amitkaps.com](https://markz.amitkaps.com).
+
+### 0.4.3
+
+- **The warning codes as a list.** `WARNINGS` gives every code's message and what to write
+  instead, frozen, so a tool can say what a code asks for without parsing anything. Each code has
+  an id in Syntax, like `syntax.md#raw-html`, and a test holds the ids to the codes
+  ([reference](reference.md#warnings)).
+
+### 0.4.2
+
+- **One set of ids.** Headings, elements and spans share their ids, so a heading's generated id
+  is numbered past an earlier one, and a `#id` already taken gets `duplicate-id`
+  ([syntax](syntax.md#duplicate-id)).
 
 ### 0.4.1
 
