@@ -36,7 +36,7 @@ A page with no build step imports it from a CDN, which serves it minified:
 
 ```html
 <script type="module">
-  import { html } from "https://cdn.jsdelivr.net/npm/@amitkaps/markz@0.5/+esm";
+  import { html } from "https://cdn.jsdelivr.net/npm/@amitkaps/markz@0.6/+esm";
 </script>
 ```
 

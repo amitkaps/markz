@@ -18,7 +18,7 @@ A page with no build step imports markz from a CDN, pinned to a version:
 
 ```html
 <script type="module">
-  import { html } from "https://cdn.jsdelivr.net/npm/@amitkaps/markz@0.5/+esm";
+  import { html } from "https://cdn.jsdelivr.net/npm/@amitkaps/markz@0.6/+esm";
 
   document.querySelector("main").innerHTML = html(markdown);
 </script>
