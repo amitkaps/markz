@@ -169,6 +169,9 @@ importers:
 
   .:
     devDependencies:
+      '@amitkaps/craftz':
+        specifier: ^0.1.1
+        version: 0.1.1
       '@amitkaps/prose':
         specifier: ^0.8.0
         version: 0.8.0
@@ -216,6 +219,11 @@ importers:
         version: 2.9.1
 
 packages:
+
+  '@amitkaps/craftz@0.1.1':
+    resolution: {integrity: sha512-kfsgb72L4WqDGDUwdBVbETBv3ohYN2NoQhjW6iFMZKmhFHBV3fbh08g92XRGvLBWs7cEdVVHtGNXdsJYBNQT2Q==}
+    engines: {node: '>=26'}
+    hasBin: true
 
   '@amitkaps/prose@0.8.0':
     resolution: {integrity: sha512-aJ5wNeOVcEiTRIBtVLOlZxIxnGufZI6eirPjtLUf6B0joVKZi5h58QoxuIJGsSROvQNYDAdb6f7Ij0nTf1ig5A==}
@@ -1934,6 +1942,8 @@ packages:
     resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
 
 snapshots:
+
+  '@amitkaps/craftz@0.1.1': {}
 
   '@amitkaps/prose@0.8.0': {}
 
