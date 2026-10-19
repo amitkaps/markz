@@ -39,8 +39,7 @@ Body
 </details>
 ```
 
-A leaf can interrupt a paragraph, since a line ending in `/}` can't be prose. It warns, since a
-formatter would join the two lines.
+A leaf can interrupt a paragraph, since a line ending in `/}` can't be prose. It warns, since a formatter would join the two lines.
 
 ```example 42
 {@figure}
@@ -109,8 +108,7 @@ x
 {/aside}
 ```
 
-A closing line is read at its element's own level, before a list inside takes the line. It warns,
-since a formatter would join it to the item's text.
+A closing line is read at its element's own level, before a list inside takes the line. It warns, since a formatter would join it to the item's text.
 
 ```example 151 ambiguous element-close
 {@aside}

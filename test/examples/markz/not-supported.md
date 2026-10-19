@@ -165,8 +165,7 @@ Body
 
 ## element-name
 
-A name that isn't an element leaves the whole element as text, nothing in it read as other
-syntax.
+A name that isn't an element leaves the whole element as text, nothing in it read as other syntax.
 
 ```example 114 element-name
 [Sales]{@chart type=bar /}

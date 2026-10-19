@@ -21,8 +21,7 @@ para
 <p class="x" hidden>para</p>
 ```
 
-Bare keys alone count only after a link, image, span or element's name. On a line or after a
-word they are prose, with no warning.
+Bare keys alone count only after a link, image, span or element's name. On a line or after a word they are prose, with no warning.
 
 ```example 51 ambiguous attribute-boolean
 {year}

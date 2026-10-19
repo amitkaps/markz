@@ -15,9 +15,7 @@ nav:
 
 # Docs
 
-The writing that spans the code. It covers how to use markz, the language it reads, and how it
-is built. What markz is for is on [the home page](../README.md). The docs read best in this
-order.
+The writing that spans the code. It covers how to use markz, the language it reads, and how it is built. What markz is for is on [the home page](../README.md). The docs read best in this order.
 
 1. [Usage](usage.md): install, render, check a document, and what to tell your agents.
 2. [Syntax](syntax.md): the language at a glance, then construct by construct.

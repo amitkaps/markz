@@ -14,8 +14,7 @@ tags: [svelte, vite]
 <h1 id="report">Report</h1>
 ```
 
-A closed block at the start is metadata whatever it holds, so a page can't open with a rule.
-Lines it can't read are reported, but a `#` line is a YAML comment.
+A closed block at the start is metadata whatever it holds, so a page can't open with a rule. Lines it can't read are reported, but a `#` line is a YAML comment.
 
 ```example 2 ambiguous metadata-start
 ---
@@ -72,8 +71,7 @@ author:
   name: A
 ```
 
-`__proto__` is not a key, since it would set the metadata object's prototype rather than add an
-entry. The line is reported and the rest of the block is still read.
+`__proto__` is not a key, since it would set the metadata object's prototype rather than add an entry. The line is reported and the rest of the block is still read.
 
 ```example 157
 ---
@@ -99,8 +97,7 @@ deploy.name: my-site
 <h1 id="hi">Hi</h1>
 ```
 
-A ` #` in a plain value starts a comment to YAML, which drops the rest, so it is reported, and
-quoting the value keeps it whole.
+A ` #` in a plain value starts a comment to YAML, which drops the rest, so it is reported, and quoting the value keeps it whole.
 
 ```example 172
 ---
@@ -112,8 +109,7 @@ title: Issue #42
 title: Issue #42
 ```
 
-A line that isn't a `key:` line belongs to the value above it, so YAML's indented list takes
-`tags` with it. The rest of the block is still read.
+A line that isn't a `key:` line belongs to the value above it, so YAML's indented list takes `tags` with it. The rest of the block is still read.
 
 ```example 174 ambiguous metadata-continuation
 ---
@@ -128,8 +124,7 @@ title: x
   - a
 ```
 
-A list's plain items hold no `,`, brackets or braces, so a quoted item can hold a comma. A list
-with a nested list is reported, and its key skipped.
+A list's plain items hold no `,`, brackets or braces, so a quoted item can hold a comma. A list with a nested list is reported, and its key skipped.
 
 ```example 175 list-items
 ---
@@ -142,8 +137,7 @@ bad: [x[1]]
 bad: [x[1]]
 ```
 
-A list too long for one line wraps onto the indented lines after its key, the way a formatter
-writes it, and may end with a comma. It reads as the same list on one line.
+A list too long for one line wraps onto the indented lines after its key, the way a formatter writes it, and may end with a comma. It reads as the same list on one line.
 
 ```example 653 metadata-wrap
 ---
