@@ -106,7 +106,7 @@ export interface Example {
  * goes to that form's row instead, whatever its section.
  *
  * micromark-extension-directive's suite tests a form markz cuts. An example markz reports under
- * `directive` is filed there. One it doesn't report has colons that are no directive to either
+ * `colon-directive` is filed there. One it doesn't report has colons that are no directive to either
  * parser, so it is paragraph text compared with the oracle.
  */
 const DIRECTIVE = "by directive warning";
@@ -232,12 +232,15 @@ const first = (t: Token) => t.text.trimStart()[0];
 
 export const cuts: [section: string, test: (t: Token) => boolean][] = [
   ["comment", (t) => t.type === "htmlFlow" && t.text.trimStart().startsWith("<!--")],
-  ["jsx", (t) => /^html(?:Flow|Text)$/.test(t.type) && /^<\/?[A-Z][a-z]/.test(t.text.trimStart())],
+  [
+    "jsx-component",
+    (t) => /^html(?:Flow|Text)$/.test(t.type) && /^<\/?[A-Z][a-z]/.test(t.text.trimStart()),
+  ],
   ["raw-html", (t) => t.type === "htmlFlow" || t.type === "htmlText"],
   ["setext-heading", (t) => t.type === "setextHeading"],
   ["indented-code", (t) => t.type === "codeIndented"],
   ["tilde-fence", (t) => t.type === "codeFencedFenceSequence" && t.text[0] === "~"],
-  ["footnote", (t) => t.type === "gfmFootnoteCall" || t.type === "gfmFootnoteDefinition"],
+  ["caret-footnote", (t) => t.type === "gfmFootnoteCall" || t.type === "gfmFootnoteDefinition"],
   ["reference-link", (t) => t.type === "definition" || t.type === "reference"],
   ["bare-url", (t) => t.type === "literalAutolink"],
   ["named-reference", (t) => t.type === "characterReference" && !t.text.startsWith("&#")],
@@ -277,7 +280,7 @@ function upstreamExample(
   // micromark's tokens say nothing about a YAML block or a heading's id.
   const oracleTokens = checks === "oracle" ? tokens(e.markdown) : [];
   const codes = new Set(parse(e.markdown).warnings.map((w) => w.code));
-  if (home === DIRECTIVE) home = codes.has("directive") ? "directive" : "paragraph";
+  if (home === DIRECTIVE) home = codes.has("colon-directive") ? "colon-directive" : "paragraph";
   // Where markz accepts what the token looked like (`*` touching a word), it isn't a cut.
   const token = cuts.find(([section, test]) => {
     const cut = row(section);
@@ -480,7 +483,7 @@ export function check(e: Example): Result {
  */
 const EACH: Record<string, string[]> = {
   "bare-url": ["literalAutolink"],
-  footnote: ["gfmFootnoteCall", "gfmFootnoteDefinitionLabel"],
+  "caret-footnote": ["gfmFootnoteCall", "gfmFootnoteDefinitionLabel"],
 };
 
 export function unwarned(

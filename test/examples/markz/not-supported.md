@@ -128,7 +128,7 @@ ___
 {#id}
 ```
 
-## directive
+## colon-directive
 
 remark-directive's colon forms stay text, all of each, so the `[…]{…}` in one is never a span.
 
@@ -297,7 +297,7 @@ b
 [y]:
 ```
 
-## footnote
+## caret-footnote
 
 ```example 125
 a claim[^1].
@@ -508,7 +508,7 @@ the $`x^2`$ form
 $`x^2`$
 ```
 
-## jsx
+## jsx-component
 
 ```example 147
 <Chart data="x" /> and </Chart>

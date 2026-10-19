@@ -444,7 +444,8 @@ class BlockParser {
     }
     const item = this.listItem(cols, next);
     if (item !== NONE_OPENED) return item === OPENED;
-    if (c === ":" && COLON_LINE.test(src.slice(next, end))) this.report("directive", next, end);
+    if (c === ":" && COLON_LINE.test(src.slice(next, end)))
+      this.report("colon-directive", next, end);
     const table = this.leaf?.kind === "table";
     if (
       (c === "{" &&

@@ -9,6 +9,12 @@ markz parses its dialect to a flat tree and renders it to HTML, with a warning f
 that doesn't do what it looks like. The latest release is 0.5.0, on npm as `@amitkaps/markz`,
 and its docs are at [markz.amitkaps.com](https://markz.amitkaps.com).
 
+### 0.6.0
+
+- **Codes name the form.** `directive`, `footnote` and `jsx` named a whole construct, though
+  markz keeps another form of each. They're `colon-directive`, `caret-footnote` and
+  `jsx-component` now, and a cut form's code names the form ([syntax](syntax.md#not-supported)).
+
 ### 0.5.0
 
 - **Blank lines around elements.** An element or attribute line beside text gets
