@@ -23,7 +23,10 @@ export const PAIRS = {
   "rule-marker": ["`___` or `* * *` rule", "`---`"],
   "trailing-heading-attributes": ["trailing heading attributes", "`{#id}` on the line above"],
   "multiline-attributes": ["multi-line attributes", "one line"],
-  directive: ["a colon directive", "`{@name}` … `{/name}`, `[label]{@name /}` or `[text]{@name}`"],
+  "colon-directive": [
+    "a colon directive",
+    "`{@name}` … `{/name}`, `[label]{@name /}` or `[text]{@name}`",
+  ],
   "element-name": [
     "a name that is not an element",
     "a `div` or span with a class (`{@div .chart /}`, `[x]{.note}`), or a custom element (`{@chart-view /}`)",
@@ -34,7 +37,7 @@ export const PAIRS = {
   ],
   // Not supported: inline.
   "reference-link": ["reference link", "inline links"],
-  footnote: ["footnote", "a span, such as `[text]{.note}`"],
+  "caret-footnote": ["footnote", "a span, such as `[text]{.note}`"],
   "bare-url": ["bare URL", "`<https://…>` or `[text](url)`"],
   "relative-autolink": ["relative autolink", "`[About](/about)`"],
   "named-reference": [
@@ -47,7 +50,7 @@ export const PAIRS = {
   "single-tilde": ["`~single~` strikethrough", "`~~text~~`"],
   "math-delimiter": ["math delimiters other than `$…$` in a line", "`$x$`, or a `$$` block"],
   "inline-attributes": ["attributes after inline text", "`[text]{.x}`"],
-  jsx: ["JSX", "`{@name}` elements, `${…}`"],
+  "jsx-component": ["JSX component", "`{@name}` elements, `${…}`"],
   // A construct's own.
   "duplicate-id": ["id already used earlier", "a different id"],
   "element-close": [

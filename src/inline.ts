@@ -406,7 +406,7 @@ class InlinePass {
   referenceDefinition(): void {
     const m = /^\[(?:[^\]\\]|\\.)+\]:/.exec(this.text);
     if (!m) return;
-    if (m[0][1] === "^") this.report("footnote", 0, m[0].length, "footnote definition");
+    if (m[0][1] === "^") this.report("caret-footnote", 0, m[0].length, "footnote definition");
     else this.report("reference-link", 0, m[0].length, "reference definition");
   }
 
@@ -560,7 +560,7 @@ class InlinePass {
     if (m && t + m[0].length <= to) {
       const e = t + m[0].length;
       // A PascalCase tag is a JSX component; `<DIV>` is still HTML.
-      this.report(/^<\/?[A-Z][a-z]/.test(m[0]) ? "jsx" : "raw-html", t, e);
+      this.report(/^<\/?[A-Z][a-z]/.test(m[0]) ? "jsx-component" : "raw-html", t, e);
       this.plain(list, t, e);
       return e;
     }
@@ -755,7 +755,12 @@ class InlinePass {
     // lets one interrupt a paragraph, or sit inside another.
     const definition = text[t + 1] === ":";
     if (text[at + 1] === "^" && t > at + 2 && (!definition || at > 0)) {
-      this.report("footnote", at, t + 1, `footnote ${definition ? "definition" : "reference"}`);
+      this.report(
+        "caret-footnote",
+        at,
+        t + 1,
+        `footnote ${definition ? "definition" : "reference"}`,
+      );
     } else if (text[t + 1] === "[") {
       const e = text.indexOf("]", t + 2);
       if (e >= 0 && e < to && !text.slice(t + 2, e).includes("[")) {
@@ -983,7 +988,7 @@ class InlinePass {
       }
     }
     if (!found) return false;
-    this.report("directive", t, j, `colon directive \`${text.slice(t, n)}${m[0]}\``);
+    this.report("colon-directive", t, j, `colon directive \`${text.slice(t, n)}${m[0]}\``);
     this.plain(list, t, j);
     this.directiveEnd = j;
     return true;

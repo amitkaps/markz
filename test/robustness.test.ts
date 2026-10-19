@@ -109,7 +109,7 @@ describe.each(stress.map((f) => [f.meta["source"], f.examples] as const))(
         expectTree(doc);
         // GitHub links more than micromark in places, so only a missed URL or footnote fails.
         expect(unwarned("bare-url", markdown, doc, true)).toBe(null);
-        expect(unwarned("footnote", markdown, doc, true)).toBe(null);
+        expect(unwarned("caret-footnote", markdown, doc, true)).toBe(null);
       },
     );
   },
