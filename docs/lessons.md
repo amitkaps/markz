@@ -75,6 +75,10 @@ This keeps what should shape the next change.
   passed, so nothing is scanned twice.
 - **Real documents catch what examples don't.** Agent-written and human-written docs, read as
   written and after formatting, check that formatting never changes meaning.
+- **Joining a paragraph's lines isn't a change in meaning.** With `proseWrap: "never"`, oxfmt joins
+  a paragraph's lines, and the documents test read the newline it replaced as a difference, in 32
+  documents. A soft line break is whitespace to HTML, so the test now sets aside any run of
+  whitespace, not only runs of spaces. A hard break is still `<br />`, so it still counts.
 
 ## Speed
 

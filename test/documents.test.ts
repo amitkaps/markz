@@ -10,7 +10,8 @@
  *
  * Formatting must not change what a document means. That holds for the common variant always,
  * and for the whole document when markz cut nothing in it. They are compared as HTML, with the
- * code inside fences and runs of spaces set aside, which oxfmt rewrites and HTML ignores. A
+ * code inside fences and runs of whitespace set aside, which oxfmt rewrites and HTML ignores, like
+ * the line breaks inside a paragraph that it joins. A
  * document with cut forms is left out of that last check whole. oxfmt rewrites some cut forms
  * into what the dialect keeps (`*a*` to `_a_`), which is the point of the cut.
  *
@@ -39,7 +40,7 @@ const commonFormatted = format(
 const meaning = (markdown: string) =>
   html(parse(markdown))
     .replace(/(<pre><code[^>]*>)[\s\S]*?(<\/code><\/pre>)/g, "$1$2")
-    .replace(/ {2,}/g, " ");
+    .replace(/\s+/g, " ");
 
 describe.each(all)("$key", ({ key, text }) => {
   const doc = parse(text);
