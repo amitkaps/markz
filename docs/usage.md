@@ -84,28 +84,22 @@ style it, is yours to decide.
 
 ## Keep a poem's line breaks
 
-A poem or a quote with its own line breaks can end each line with `\`, the language's only
-hard break. `html()` writes a `<br />` there, which shows wherever the HTML goes.
-
-On a site, a class and one CSS rule do the same without the `\` on every line:
+End each line of a poem or a quote with `\`, the language's only hard break. `html()` writes a
+`<br />` there, which shows wherever the HTML goes:
 
 ```md
-{.verse}
-
-Moko kahan dhundhe re bande
+Moko kahan dhundhe re bande\
 Main to tere paas mein
 ```
 
-```css
-.verse {
-  white-space: pre-line;
-}
-```
+The `\` is also what keeps the lines apart in the source. A formatter set to
+`proseWrap: "never"` joins a paragraph's lines into one, and `"always"` rewraps them, but neither
+moves a line past a hard break.
 
-`html()` writes `<p class="verse">` and keeps the paragraph's newlines, as it does for every
-paragraph. The class means nothing to markz, and the breaks show only where that CSS applies.
-In a feed, an email or a preview without it, the lines run together. `html()` never adds a class
-for styling, so this one is the author's choice.
+A class with `white-space: pre-line` shows a paragraph's own newlines without the `\`, but only
+where that CSS applies and only while nothing reflows the source. In a feed, an email or a
+preview, or after a formatter has joined the lines, the poem runs together. `html()` never adds
+a class for styling, so the `\` is the form that holds.
 
 ## For agents
 
