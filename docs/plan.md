@@ -6,7 +6,7 @@ release notes, the code's `@prose`, the tests and [lessons](lessons.md).
 ## Where it is
 
 markz parses its dialect to a flat tree and renders it to HTML, with a warning for every input
-that doesn't do what it looks like. The latest release is 0.5.0, on npm as `@amitkaps/markz`,
+that doesn't do what it looks like. The latest release is 0.6.0, on npm as `@amitkaps/markz`,
 and its docs are at [markz.amitkaps.com](https://markz.amitkaps.com).
 
 ### 0.6.0
