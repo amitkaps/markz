@@ -7,6 +7,7 @@
  * place here.
  */
 import { defineConfig } from "vite-plus";
+import { craftz } from "@amitkaps/craftz";
 import { cloudflare } from "@cloudflare/vite-plugin";
 
 const generated = ["dist/**"];
@@ -25,10 +26,9 @@ if (process.env["SEED"] === "random")
   console.log(`SEARCH=${process.env["SEARCH"] ?? 1} SEED=${seed}`);
 
 export default defineConfig({
-  // The site: `vp build` hands the folder `prose build` writes to Cloudflare, assets only, for
-  // `cf deploy --prebuilt`. It's ship's prose site: https://ship.amitkaps.com/docs/standard.md
-  publicDir: ".prose",
-  plugins: [cloudflare({ assetsOnly: true })],
+  // craftz() sets the format and lint rules, and the site: `vp build` hands the folder
+  // `prose build` writes to Cloudflare, assets only.
+  plugins: [craftz(), cloudflare({ assetsOnly: true })],
 
   // tsdown — `vp pack`. ESM only, with declarations. The code ships readable but without its
   // comments, keeping license comments and `@__PURE__` annotations, and with no sourcemaps
@@ -47,16 +47,9 @@ export default defineConfig({
     publint: { strict: true },
   },
 
-  // Oxfmt — `vp fmt` / `vp check`.
-  fmt: { proseWrap: "never", ignorePatterns: [...generated, ...vendored, ...site] },
-
-  // Oxlint — `vp lint` / `vp check`.
-  lint: {
-    plugins: ["typescript", "unicorn", "import"],
-    categories: { correctness: "error" },
-    options: { typeAware: true, typeCheck: true },
-    ignorePatterns: [...generated, ...site],
-  },
+  // Oxfmt and Oxlint — `vp check`. What they leave alone, beside the rules craftz() sets.
+  fmt: { ignorePatterns: [...generated, ...vendored, ...site] },
+  lint: { ignorePatterns: [...generated, ...site] },
 
   // Vitest — `vp test`. The linear-time tests measure time, so they run last, on their own:
   // alongside the fuzzer and the edge cases, a busy CPU can make a linear pattern look slow.
