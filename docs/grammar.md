@@ -1,40 +1,20 @@
 # Grammar
 
-What markz reads, stated: every construct of [`syntax.md`](syntax.md), by its id, with its
-productions and the side rules they can't state. `syntax.md` explains the dialect and this page
-states it. The tests read it with markz itself, hold markz to it at every construct's edges, and
-generate documents from it.
+What markz reads, stated: every construct of [`syntax.md`](syntax.md), by its id, with its productions and the side rules they can't state. `syntax.md` explains the dialect and this page states it. The tests read it with markz itself, hold markz to it at every construct's edges, and generate documents from it.
 
-The productions describe what markz accepts, not how it reads it. On their own they are
-ambiguous, as every Markdown grammar is, and the side rules settle each choice: which block a line
-opens, what closes a run, how far a container's prefix reaches. The parser is written by hand as
-the one reading of both ([Design](design.md#parser-foundation)). A form the dialect cuts has no
-production here. It is a Not supported row in `syntax.md`, keyed by its warning code.
+The productions describe what markz accepts, not how it reads it. On their own they are ambiguous, as every Markdown grammar is, and the side rules settle each choice: which block a line opens, what closes a run, how far a container's prefix reaches. The parser is written by hand as the one reading of both ([Design](design.md#parser-foundation)). A form the dialect cuts has no production here. It is a Not supported row in `syntax.md`, keyed by its warning code.
 
 ## Reading it
 
-- **Notation.** The W3C EBNF of the XML spec, kept small. It has `name ::= expression`, `|` for
-  alternatives, juxtaposition for sequence, `?`, `*` and `+`, and parentheses. A literal is
-  `'literal'` or `"literal"`, and `#xA` is a character by code point. `[a-z]` or `[^…]` is a
-  character class, which may hold `#x…` too.
-- **Constructs.** Each has the id `syntax.md` gives it, on the `{#id}` line above its heading. It
-  sits under the same part, in the same order. Its first production is named by its id.
-- **Origins.** The line under each heading names the earliest layer that defines the construct:
-  CommonMark, GFM (which extends it), djot, pandoc, GitHub, or markz's own. A construct from
-  CommonMark or GFM reads as micromark with GFM does, except where a side rule or a Not supported
-  row says otherwise, and only those are compared with it.
-- **Side rules.** Listed by name under the productions. An example that tries an ambiguous edge
-  names the rule that settles it (`example 17 ambiguous closing-hashes`), and so does
-  [`test/harness/cases.ts`](../test/harness/cases.ts) where markz and the productions part. Every
-  side rule is held by a test: a settlement there, a warning, an example labelled with it, or,
-  for a CommonMark or GFM rule that decides the HTML, the oracle.
-- **Checked.** Every name is defined, every production is reachable from `document`, and each
-  side rule is named once.
+- **Notation.** The W3C EBNF of the XML spec, kept small. It has `name ::= expression`, `|` for alternatives, juxtaposition for sequence, `?`, `*` and `+`, and parentheses. A literal is `'literal'` or `"literal"`, and `#xA` is a character by code point. `[a-z]` or `[^…]` is a character class, which may hold `#x…` too.
+- **Constructs.** Each has the id `syntax.md` gives it, on the `{#id}` line above its heading. It sits under the same part, in the same order. Its first production is named by its id.
+- **Origins.** The line under each heading names the earliest layer that defines the construct: CommonMark, GFM (which extends it), djot, pandoc, GitHub, or markz's own. A construct from CommonMark or GFM reads as micromark with GFM does, except where a side rule or a Not supported row says otherwise, and only those are compared with it.
+- **Side rules.** Listed by name under the productions. An example that tries an ambiguous edge names the rule that settles it (`example 17 ambiguous closing-hashes`), and so does [`test/harness/cases.ts`](../test/harness/cases.ts) where markz and the productions part. Every side rule is held by a test: a settlement there, a warning, an example labelled with it, or, for a CommonMark or GFM rule that decides the HTML, the oracle.
+- **Checked.** Every name is defined, every production is reachable from `document`, and each side rule is named once.
 
 ## Document
 
-What holds the constructs together: the order of the parts, what a line and a character are, and
-the two rules of precedence, one per pass.
+What holds the constructs together: the order of the parts, what a line and a character are, and the two rules of precedence, one per pass.
 
 ```ebnf
 document ::= metadata? blank-line* (block blank-line*)*
@@ -124,21 +104,18 @@ heading-marker ::= '#' '#'? '#'? '#'? '#'? '#'?
 - `closing-hashes`: A run of `#`s ends the heading only after a space and at the end of the line, so `# b#` keeps its `#`, as does an escaped `\#`.
 - `heading-id`: Every heading gets an id as it closes. It is the `id` of its block attributes, or else the slug of its plain text numbered past every id a heading, element or span has already used.
 
-The slug is GitHub's, so a link to a heading works on GitHub too. No id depends on a later one,
-so none changes once it is written. An explicit id that is already taken is kept by both, and the
-later one gets the warning `duplicate-id` (`attribute-id`).
+The slug is GitHub's, so a link to a heading works on GitHub too. No id depends on a later one, so none changes once it is written. An explicit id that is already taken is kept by both, and the later one gets the warning `duplicate-id` (`attribute-id`).
 
-| Step | What happens                                                                                                                                                                                                                                                                                                 |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1    | Take the heading's plain text: text and inline-code values, with escapes and numeric references decoded, and `\ ` as a space. Link text counts. URLs, image alt text, math and expressions don't.                                                                                                            |
-| 2    | Lowercase it.                                                                                                                                                                                                                                                                                                |
-| 3    | Remove every character that isn't alphabetic, a mark, a decimal digit, a connector such as `_`, a space or `-`. Letters in any script stay, as do symbols Unicode counts as alphabetic (`Ⓐ`). Other numbers (`½`, `²`), other whitespace and other symbols go. There is no NFKC normalization, as on GitHub. |
-| 4    | Turn each space into `-`, one for one. Runs aren't collapsed and nothing is trimmed, so `a - b` gives `a---b`.                                                                                                                                                                                               |
-| 5    | If nothing is left, use `section`.                                                                                                                                                                                                                                                                           |
-| 6    | If the id is taken, explicit or generated, try `-1`, `-2`, … until one is free.                                                                                                                                                                                                                              |
+| Step | What happens |
+| --- | --- |
+| 1 | Take the heading's plain text: text and inline-code values, with escapes and numeric references decoded, and `\ ` as a space. Link text counts. URLs, image alt text, math and expressions don't. |
+| 2 | Lowercase it. |
+| 3 | Remove every character that isn't alphabetic, a mark, a decimal digit, a connector such as `_`, a space or `-`. Letters in any script stay, as do symbols Unicode counts as alphabetic (`Ⓐ`). Other numbers (`½`, `²`), other whitespace and other symbols go. There is no NFKC normalization, as on GitHub. |
+| 4 | Turn each space into `-`, one for one. Runs aren't collapsed and nothing is trimmed, so `a - b` gives `a---b`. |
+| 5 | If nothing is left, use `section`. |
+| 6 | If the id is taken, explicit or generated, try `-1`, `-2`, … until one is free. |
 
-A heading whose text looks like a suffix keeps it, and a later repeat goes past it: `# foo-1`,
-`# foo`, `# foo` give `foo-1`, `foo` and `foo-2`.
+A heading whose text looks like a suffix keeps it, and a later repeat goes past it: `# foo-1`, `# foo`, `# foo` give `foo-1`, `foo` and `foo-2`.
 
 {#blockquote}
 

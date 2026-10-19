@@ -1,9 +1,6 @@
 # Development
 
-How to work on markz itself: build it, test it, release it and deploy its site. What every
-repository shares, like the toolchain, CI, the Worker's settings and releases, is in
-[ship's standard](https://ship.amitkaps.com/docs/standard.md), and isn't repeated here. The rules for changing it are in
-[AGENTS.md](../AGENTS.md).
+How to work on markz itself: build it, test it, release it and deploy its site. What every repository shares, like the toolchain, CI, the Worker's settings and releases, is in [ship's standard](https://ship.amitkaps.com/docs/standard.md), and isn't repeated here. The rules for changing it are in [AGENTS.md](../AGENTS.md).
 
 ## Build and test
 
@@ -25,57 +22,32 @@ pnpm prose build       # the site, into .prose/
 pnpm vendor            # refreshes the vendored test inputs
 ```
 
-Each script is one word, named for the question it answers. Two scripts may run the same file
-(`hotspots` is `speed.ts --profile`), and a variant of one question is a flag. How the tests are organised is in
-[test/README.md](../test/README.md), and why is in [Quality](quality.md#how-markz-is-tested).
+Each script is one word, named for the question it answers. Two scripts may run the same file (`hotspots` is `speed.ts --profile`), and a variant of one question is a flag. How the tests are organised is in [test/README.md](../test/README.md), and why is in [Quality](quality.md#how-markz-is-tested).
 
 ## Fuzz
 
-`pnpm test` searches each construct from one fixed seed, and its cases reach every choice in the
-grammar. `pnpm fuzz` searches fifty times as far from a new seed, so it finds what a fixed search
-misses. It isn't a CI check, since a new seed can fail on a case no pull request caused.
+`pnpm test` searches each construct from one fixed seed, and its cases reach every choice in the grammar. `pnpm fuzz` searches fifty times as far from a new seed, so it finds what a fixed search misses. It isn't a CI check, since a new seed can fail on a case no pull request caused.
 
-Run it before a release, and after a change to `docs/grammar.md`, `test/harness/cases.ts` or a
-parser pass. The `fuzz` workflow runs it on GitHub on demand, with `gh workflow run fuzz` or from the
-Actions tab. `pnpm fuzz` prints its seed first, and each cloud run's summary records its
-commit, seed and result, so the Actions history is the log of what was searched. A failure also
-lists each failing test with its cases, and the run keeps the whole log.
+Run it before a release, and after a change to `docs/grammar.md`, `test/harness/cases.ts` or a parser pass. The `fuzz` workflow runs it on GitHub on demand, with `gh workflow run fuzz` or from the Actions tab. `pnpm fuzz` prints its seed first, and each cloud run's summary records its commit, seed and result, so the Actions history is the log of what was searched. A failure also lists each failing test with its cases, and the run keeps the whole log.
 
-The log is for replaying, not for picking seeds. A seed searches different cases once the
-grammar or the generator changes, so a seed that passed is no reason to skip it, or to run it
-again.
+The log is for replaying, not for picking seeds. A seed searches different cases once the grammar or the generator changes, so a seed that passed is no reason to skip it, or to run it again.
 
-When it finds a case, settle it as any other, then add its shortest form to `FOUND` in
-`test/harness/cases.ts`, so `pnpm test` judges it on every run.
+When it finds a case, settle it as any other, then add its shortest form to `FOUND` in `test/harness/cases.ts`, so `pnpm test` judges it on every run.
 
 ## The site
 
-[markz.amitkaps.com](https://markz.amitkaps.com) is this repository read by
-[prose](https://prose.amitkaps.com), plus the Quality page. Neither is part of the package, and
-the site has no code of its own.
+[markz.amitkaps.com](https://markz.amitkaps.com) is this repository read by [prose](https://prose.amitkaps.com), plus the Quality page. Neither is part of the package, and the site has no code of its own.
 
-`pnpm prose build` writes the repository's pages, and `pnpm quality` then writes the Quality
-report beside them. The root `README.md` is the home page. The bar links the docs in `docs/`, in the order of the
-`nav` list in [docs/README.md](README.md). `pnpm verify` runs the checks, the tests and the
-build, then builds both. CI runs it on every pull request, so a change that breaks the site can't
-merge.
+`pnpm prose build` writes the repository's pages, and `pnpm quality` then writes the Quality report beside them. The root `README.md` is the home page. The bar links the docs in `docs/`, in the order of the `nav` list in [docs/README.md](README.md). `pnpm verify` runs the checks, the tests and the build, then builds both. CI runs it on every pull request, so a change that breaks the site can't merge.
 
-Cloudflare builds the site from `main` and serves it from a Worker with static assets, set up in
-[cloudflare.config.ts](../cloudflare.config.ts). `verify` ends with `vp build`, which hands
-`.prose` to Cloudflare, and `ship` runs `cf deploy --prebuilt` on it. The `markz` Worker has the build settings every Worker has, in
-[ship's standard](https://ship.amitkaps.com/docs/standard.md#cloudflare), so every merge deploys it.
+Cloudflare builds the site from `main` and serves it from a Worker with static assets, set up in [cloudflare.config.ts](../cloudflare.config.ts). `verify` ends with `vp build`, which hands `.prose` to Cloudflare, and `ship` runs `cf deploy --prebuilt` on it. The `markz` Worker has the build settings every Worker has, in [ship's standard](https://ship.amitkaps.com/docs/standard.md#cloudflare), so every merge deploys it.
 
 ## Release
 
-markz releases the way every package does, as [ship's standard](https://ship.amitkaps.com/docs/standard.md#releases)
-sets out. First run the `fuzz` workflow on `main` (`gh workflow run fuzz`). Then, from ship, open
-the pull request that bumps `version`. Its description goes above the generated notes, like what
-to change in a breaking release.
+markz releases the way every package does, as [ship's standard](https://ship.amitkaps.com/docs/standard.md#releases) sets out. First run the `fuzz` workflow on `main` (`gh workflow run fuzz`). Then, from ship, open the pull request that bumps `version`. Its description goes above the generated notes, like what to change in a breaking release.
 
 ```sh
 pnpm release markz 0.5.0 --notes "What to change when you upgrade …"
 ```
 
-Merging it is the release. The `release` workflow runs `verify` and packs it, stages it on npm
-for a maintainer to approve, then tags the commit and publishes the GitHub release. The GitHub release's notes are generated from the pull requests' labels
-(`.github/release.yml`), so there is no changelog file to keep. How and why is in [Design](design.md#package).
+Merging it is the release. The `release` workflow runs `verify` and packs it, stages it on npm for a maintainer to approve, then tags the commit and publishes the GitHub release. The GitHub release's notes are generated from the pull requests' labels (`.github/release.yml`), so there is no changelog file to keep. How and why is in [Design](design.md#package).
