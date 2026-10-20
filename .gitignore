@@ -17,6 +17,7 @@ node_modules
 
 # Cloudflare's Vite plugin (`vp build`), which `pnpm ship` uploads
 /.cloudflare
+/.wrangler
 
 # OS
 .DS_Store
