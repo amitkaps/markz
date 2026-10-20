@@ -1,6 +1,6 @@
 # Development
 
-How to work on markz itself: build it, test it, release it and deploy its site. What every repository shares, like the toolchain, CI, the Worker's settings and releases, is in [ship's standard](https://ship.amitkaps.com/docs/standard.md), and isn't repeated here. The rules for changing it are in [AGENTS.md](../AGENTS.md).
+How to work on markz itself: build it, test it, release it and deploy its site. What every repository shares, like the toolchain, CI, the Worker's settings and releases, is in [craftz's rules](https://craftz.amitkaps.com/docs/rules.md), and isn't repeated here. The rules for changing it are in [AGENTS.md](../AGENTS.md).
 
 ## Build and test
 
@@ -40,11 +40,11 @@ When it finds a case, settle it as any other, then add its shortest form to `FOU
 
 `pnpm prose build` writes the repository's pages, and `pnpm quality` then writes the Quality report beside them. The root `README.md` is the home page. The bar links the docs in `docs/`, in the order of the `nav` list in [docs/README.md](README.md). `pnpm verify` runs the checks, the tests and the build, then builds both. CI runs it on every pull request, so a change that breaks the site can't merge.
 
-Cloudflare builds the site from `main` and serves it from a Worker with static assets, set up in [cloudflare.config.ts](../cloudflare.config.ts). `verify` ends with `vp build`, which hands `.prose` to Cloudflare, and `ship` runs `cf deploy --prebuilt` on it. The `markz` Worker has the build settings every Worker has, in [ship's standard](https://ship.amitkaps.com/docs/standard.md#cloudflare), so every merge deploys it.
+Cloudflare builds the site from `main` and serves it from a Worker with static assets, set up in [cloudflare.config.ts](../cloudflare.config.ts). `verify` ends with `vp build`, which hands `.prose` to Cloudflare, and `ship` runs `cf deploy --prebuilt` on it. The `markz` Worker has the build settings every Worker has, in [craftz's rules](https://craftz.amitkaps.com/docs/rules.md#cloudflare), so every merge deploys it.
 
 ## Release
 
-markz releases the way every package does, as [ship's standard](https://ship.amitkaps.com/docs/standard.md#releases) sets out. First run the `fuzz` workflow on `main` (`gh workflow run fuzz`). Then, from ship, open the pull request that bumps `version`. Its description goes above the generated notes, like what to change in a breaking release.
+markz releases the way every package does, as [craftz's rules](https://craftz.amitkaps.com/docs/rules.md#releases) sets out. First run the `fuzz` workflow on `main` (`gh workflow run fuzz`). Then, from craftz, `pnpm release markz X.Y.Z` opens the pull request that bumps `version`. Its description goes above the generated notes, like what to change in a breaking release.
 
 ```sh
 pnpm release markz 0.5.0 --notes "What to change when you upgrade …"

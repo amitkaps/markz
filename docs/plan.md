@@ -1,52 +1,20 @@
 # Plan
 
-Where markz is and what comes next. Finished work gets a line or two. The detail lives in the release notes, the code's `@prose`, the tests and [lessons](lessons.md).
-
-## Where it is
-
-markz parses its dialect to a flat tree and renders it to HTML, with a warning for every input that doesn't do what it looks like. The latest release is 0.6.0, on npm as `@amitkaps/markz`, and its docs are at [markz.amitkaps.com](https://markz.amitkaps.com).
-
-### 0.6.0
-
-- **Codes name the form.** `directive`, `footnote` and `jsx` named a whole construct, though markz keeps another form of each. They're `colon-directive`, `caret-footnote` and `jsx-component` now, and a cut form's code names the form ([syntax](syntax.md#not-supported)).
-
-### 0.5.0
-
-- **Blank lines around elements.** An element or attribute line beside text gets `element-blank-lines`, which replaces `element-lazy-line`, since a formatter that puts each paragraph on one line would join them. So a repository's docs can use oxfmt's `proseWrap: "never"` ([syntax](syntax.md#element-blank-lines)).
-
-### 0.4.3
-
-- **The warning codes as a list.** `WARNINGS` gives every code's message and what to write instead, frozen, so a tool can say what a code asks for without parsing anything. Each code has an id in Syntax, like `syntax.md#raw-html`, and a test holds the ids to the codes ([reference](reference.md#warnings)).
-
-### 0.4.2
-
-- **One set of ids.** Headings, elements and spans share their ids, so a heading's generated id is numbered past an earlier one, and a `#id` already taken gets `duplicate-id` ([syntax](syntax.md#duplicate-id)).
-
-### 0.4.1
-
-- **Metadata lists that wrap.** A list can continue on indented lines after its key, as oxfmt writes a long one, and may end with a comma.
-
-### 0.4.0
-
-- **No footguns.** Every input does what it looks like, or gets a warning that says what to write. Smart punctuation went, metadata keys are flat, and a metadata value is kept as written ([syntax](syntax.md#writing-safely)).
-
-### 0.3.0
-
-- **TypeScript 7, and a smaller package.** It ships without comments, and every export is documented ([reference](reference.md)).
-- **The docs as the site.** The README is the home page, the docs are read in place, and the site deploys from Cloudflare's Git build.
-- **More warnings.** Unclosed blocks, and an element closed by the wrong name.
-
-### 0.2.0
-
-- **`headings(doc)`, and the usage and reference pages.** The site is built with prose, from `docs/`.
-
-### 0.1.0
-
-- **The dialect, and the parser.** A flat tree, block and inline passes, warning codes, and the grammar. Each construct is tested against the suites it borrows from, like micromark's, GFM's and the yaml-test-suite ([quality](quality.md)).
+markz parses its dialect to a flat tree and renders it to HTML, with a warning for every input that doesn't do what it looks like. 0.6.0 is on npm as `@amitkaps/markz`, and its docs are at [markz.amitkaps.com](https://markz.amitkaps.com). What each release changed is in its [notes on GitHub](https://github.com/amitkaps/markz/releases). This plan says what's next, in order, and what works now.
 
 ## Next, in order
 
-Nothing is queued. The ideas below wait for a use that needs them.
+Nothing is queued. The ideas under Later wait for a use that needs them.
+
+## Where it is
+
+- **The dialect and the parser.** A flat tree from a block pass and an inline pass. Each construct is tested against the suites it borrows from, like micromark's, GFM's and the yaml-test-suite ([quality](quality.md)).
+- **No footguns.** Every input does what it looks like, or gets a warning that says what to write. Smart punctuation went, metadata keys are flat, and a metadata value is kept as written ([syntax](syntax.md#writing-safely)).
+- **Warnings by name.** `WARNINGS` gives every code's message and what to write instead, and each code has an id in Syntax that a test holds to it. A cut form's code names the form, like `colon-directive` ([reference](reference.md#warnings)).
+- **Ids.** Headings, elements and spans share one set, so a heading's id is numbered past an earlier one, and a `#id` already taken gets `duplicate-id` ([syntax](syntax.md#duplicate-id)).
+- **Formatter-friendly.** Metadata lists can wrap onto indented lines, as oxfmt writes them. An element beside text gets `element-blank-lines`, so docs can use `proseWrap: "never"` ([syntax](syntax.md#element-blank-lines)).
+- **The package.** TypeScript 7, shipped without comments, with every export documented ([reference](reference.md)).
+- **The site.** The README is the home page, and the docs are read in place by prose. Cloudflare's Git build deploys it, on craftz's rules.
 
 ## Later
 
