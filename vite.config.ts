@@ -30,6 +30,9 @@ export default defineConfig({
   // `prose build` writes to Cloudflare, assets only.
   plugins: [craftz(), cloudflare({ assetsOnly: true })],
 
+  // The site is the folder `prose build` writes.
+  publicDir: ".prose",
+
   // tsdown — `vp pack`. ESM only, with declarations. The code ships readable but without its
   // comments, keeping license comments and `@__PURE__` annotations, and with no sourcemaps
   // (design: Package). The `/*!` banner keeps the license with the code when a consumer bundles it.
