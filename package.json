@@ -38,14 +38,14 @@
     "vendor": "node test/vendor.ts",
     "quality": "node test/quality/quality.ts",
     "prose": "prose",
-    "verify": "pnpm check && pnpm prose check && pnpm test && pnpm build && pnpm size && pnpm prose build && pnpm quality && vp build",
+    "verify": "pnpm check && pnpm prose check && pnpm craftz check && pnpm test && pnpm build && pnpm size && pnpm prose build && pnpm quality && vp build",
     "ship": "craftz deploy",
     "pr": "craftz pr",
     "gone": "craftz gone",
     "craftz": "craftz"
   },
   "devDependencies": {
-    "@amitkaps/craftz": "^0.1.2",
+    "@amitkaps/craftz": "^0.3.0",
     "@amitkaps/prose": "^0.8.0",
     "@cloudflare/vite-plugin": "2.0.0-beta.v.1",
     "@types/node": "^26.6.5",
