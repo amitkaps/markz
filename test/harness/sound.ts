@@ -7,13 +7,14 @@
  * markz never throws, and it builds a valid tree whose every warning lies inside the source
  * under a known code. `html()` gives the same string for the same input, and the same page
  * whichever line endings the source uses. `walk` reaches every node, and `textContent` and
- * `position` answer for any node and offset.
+ * `position` answer for any node and offset. `ids` lists exactly the ids `html()` writes, in
+ * order, and a heading's label is never `null`.
  *
  * The HTML is safe. It has no element that runs script, no event-handler attribute and no
  * `javascript:` URL. The exception is a ` ```=html ` raw block, which is the author's to write.
  */
 import { expect } from "vite-plus/test";
-import { html, parse, position, textContent, walk } from "../../src/index";
+import { headings, html, ids, parse, position, textContent, walk } from "../../src/index";
 import { WARNINGS } from "../../src/warnings";
 import { expectTree } from "./tree";
 
@@ -30,7 +31,12 @@ export function expectSound(markdown: string): void {
   // CRLF, LF and a lone CR each end a line, so which the source uses changes nothing but them.
   const lf = (text: string) => text.replace(/\r\n?/g, "\n");
   expect(lf(html(lf(markdown)))).toBe(lf(out));
-  if (!markdown.includes("=html")) expectSafe(out);
+  if (!markdown.includes("=html")) {
+    expectSafe(out);
+    // A raw block can write an id of its own, which is no id of markz's.
+    expect(ids(doc).map((i) => i.id)).toEqual(writtenIds(out));
+  }
+  for (const h of headings(doc)) expect(typeof h.label).toBe("string");
 
   let nodes = 0;
   walk(doc, { enter: () => void nodes++ });
@@ -46,6 +52,16 @@ export function expectSound(markdown: string): void {
     expect(column).toBeLessThanOrEqual(lines[line - 1]!.length);
   }
 }
+
+/** The ids in `html()`'s output, unescaped, in the order it writes them. */
+export const writtenIds = (out: string) =>
+  [...out.matchAll(/ id="([^"]+)"/g)].map((m) =>
+    m[1]!
+      .replace(/&quot;/g, '"')
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&"),
+  );
 
 const UNSAFE_TAG = /^(?:script|iframe|object|embed|style|frame|frameset|base|meta|link|form)$/i;
 

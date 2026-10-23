@@ -11,6 +11,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import { TIERS, documents } from "../test/harness/corpus";
 import { examples } from "../test/harness/examples";
+import { writtenIds } from "../test/harness/sound";
 import { headings, html, ids, parse } from "./index";
 
 describe("ids", () => {
@@ -110,16 +111,6 @@ describe("headings", () => {
   });
 });
 
-/** The ids in `html()`'s output, unescaped, in the order it writes them. */
-const written = (markup: string) =>
-  [...markup.matchAll(/ id="([^"]+)"/g)].map((m) =>
-    m[1]!
-      .replace(/&quot;/g, '"')
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
-      .replace(/&amp;/g, "&"),
-  );
-
 const sources = [
   ...TIERS.flatMap((tier) => [...documents(tier)].map(([name, text]) => [`${tier}/${name}`, text])),
   ...examples.map((e) => [e.id, e.markdown]),
@@ -128,6 +119,6 @@ const sources = [
 describe("every id html() writes", () => {
   it.each(sources)("%s", (_, source) => {
     const doc = parse(source!);
-    expect(ids(doc).map((i) => i.id)).toEqual(written(html(doc)));
+    expect(ids(doc).map((i) => i.id)).toEqual(writtenIds(html(doc)));
   });
 });
