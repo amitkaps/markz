@@ -65,8 +65,14 @@ describe("ids", () => {
     expect(ids(doc).map((i) => i.label)).toEqual(["a", "b"]);
   });
 
-  it("leaves out an id html() drops, and an empty one", () => {
-    expect(ids(parse("{#javascript:x}\na\n\n{id}\nb\n"))).toEqual([]);
+  it("leaves out an empty id, which is no target", () => {
+    expect(ids(parse("{id}\na\n"))).toEqual([]);
+  });
+
+  it("lists an id that reads like a URL, on a span as on a heading, since it is never followed", () => {
+    const doc = parse("{#javascript:a}\n# Head\n\n[b]{#javascript:b}\n");
+    expect(ids(doc).map((i) => i.id)).toEqual(["javascript:a", "javascript:b"]);
+    expect(html(doc)).toContain('<span id="javascript:b">b</span>');
   });
 
   it("is empty for a document with no ids", () => {

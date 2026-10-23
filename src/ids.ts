@@ -8,7 +8,7 @@
  * The ids are all claimed while parsing (grammar: attributes; `attribute-id`), so this is a walk
  * that reads them back in source order, a block's before the spans inside it. An id is listed
  * once for each node that carries it, so a `duplicate-id` shows twice. The id `html()` writes is
- * an item's last, and an id it drops (`html()`'s Attributes) isn't listed.
+ * an item's last.
  *
  * # Labels
  *
@@ -27,7 +27,6 @@
  * harness.
  */
 import type { Document, NodeId } from "./ast";
-import { unsafe } from "./html";
 import { textContent, walk } from "./walk";
 
 /** An id `html()` writes, on its node, with the node's label. */
@@ -52,8 +51,7 @@ export function ids(doc: Document): Id[] {
       let written = true;
       if (type === "heading") ({ id, written } = doc.data(node, "heading"));
       else {
-        const item = doc.attributes(node)?.items.findLast((a) => a.key === "id");
-        if (item && !unsafe(item.value)) id = item.value;
+        id = doc.attributes(node)?.items.findLast((a) => a.key === "id")?.value;
       }
       if (id) out.push({ id, node, written, label: label(doc, node) });
       return true;
