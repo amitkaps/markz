@@ -127,6 +127,19 @@ The package exports `parse`, `html`, `walk`, `textContent`, `ids`, `headings` an
 
 `ids` reads back every id `html()` writes, for a link checker, and `headings` is its subset on headings, for a consumer's outline. Neither is part of `html()`: depth, nesting and numbering are choices, and markz has none.
 
+### When markz exports a reader
+
+markz exports a reader when the answer depends on markz's own rules. Where the tree already holds the answer, `walk` is the API.
+
+`ids` passes that test. Which ids `html()` writes depends on how a heading's words become an id, the `-1` on a repeat, an item's last id winning, and metadata, comments and raw blocks writing nothing. A caller who walked the tree for ids would copy those rules, and the copy would drift.
+
+Links don't pass it. Each link and image node carries its `destination` and `expressions`, so a caller gets every link from `walk` in a few lines, and a `links()` would only wrap it. What a link points to differs by tool: a repository path, a site path, a GitHub URL. That resolving belongs to each tool, and a markz function wouldn't remove it.
+
+Two things would reopen it:
+
+- **Tools disagree about which links exist,** such as one counting a destination holding `${…}`, or an unsafe one `html()` writes empty, and another not. A `links()` promising every `href` `html()` writes would settle it, as `ids` does for ids.
+- **A tool needs to change a link, not just read it,** such as rewriting a relative link to point at GitHub, which today means editing rendered HTML. That needs a way to rewrite a destination before or during `html()`, a separate design that waits for a second tool to need it.
+
 ## HTML output
 
 `html()` is part of the package. It is a fold over the AST, and works the same in Node, Workers and the browser, because it builds a string and never touches the DOM.
