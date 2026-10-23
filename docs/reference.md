@@ -26,11 +26,11 @@ The text of a node as a reader sees it on the rendered page: escapes decoded, co
 
 ### `ids(doc): Id[]`
 
-Every id `html()` writes, in source order, as `{ id, node, written, text }`. Each is something a link to `#${id}` lands on: a heading, or anything with a `{#id}`. `written` says whether `{#id}` set it, rather than a heading's words. `text` is the node's own, like a span's label, which can be a name and not the id. An id taken twice is listed twice, as `html()` writes it twice.
+Every id `html()` writes, in source order, as `{ id, node, written, label }`. Each is something a link to `#${id}` lands on: a heading, or anything with a `{#id}`. `written` says whether `{#id}` set it, rather than a heading's words. `label` is what a link to it could show: a heading's words, the text of a link, span or leaf element, or an image's alt. It can be a name and not the id. Any other block has contents, not a label, so its `label` is `null`, and `textContent(doc, node)` reads the contents. An id taken twice is listed twice, as `html()` writes it twice.
 
 ### `headings(doc): Heading[]`
 
-The ids on headings, wherever they sit, each with its depth, as `{ id, node, written, text, depth }`. The `id` is the one `html()` writes, so `#${id}` links to it. It is a flat list: nesting it, numbering it or keeping only some depths is yours to do, which is why `html()` writes no table of contents.
+The ids on headings, wherever they sit, each with its depth, as `{ id, node, written, label, depth }`, where `label` is always the heading's words. The `id` is the one `html()` writes, so `#${id}` links to it. It is a flat list: nesting it, numbering it or keeping only some depths is yours to do, which is why `html()` writes no table of contents.
 
 ### `position(source): (offset) => { line, column }`
 

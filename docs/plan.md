@@ -13,7 +13,7 @@ Nothing is queued. The ideas under Later wait for a use that needs them.
 - **Warnings by name.** `WARNINGS` gives every code's message and what to write instead, and each code has an id in Syntax that a test holds to it. A cut form's code names the form, like `colon-directive` ([reference](reference.md#warnings)).
 - **Ids.** Headings, elements and spans share one set, so a heading's id is numbered past an earlier one, and a `#id` already taken gets `duplicate-id` ([syntax](syntax.md#duplicate-id)). `ids(doc)` lists every id `html()` writes, for a link checker, and `headings` is its subset on headings ([reference](reference.md#idsdoc-id)).
 - **Formatter-friendly.** Metadata lists can wrap onto indented lines, as oxfmt writes them. An element beside text gets `element-blank-lines`, so docs can use `proseWrap: "never"` ([syntax](syntax.md#element-blank-lines)).
-- **The package.** TypeScript 7, shipped without comments, with every export documented ([reference](reference.md)).
+- **The package.** TypeScript 7, shipped without comments, with every export documented ([reference](reference.md)). It is 19.4 KB gzipped of its 20 KB budget, so the next feature makes room before it fits ([design](design.md#performance-and-size)).
 - **The site.** The README is the home page, and the docs are read in place by prose. Cloudflare's Git build deploys it, on craftz's rules.
 
 ## Later
