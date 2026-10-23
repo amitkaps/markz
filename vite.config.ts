@@ -25,8 +25,7 @@ if (process.env["SEED"] === "random")
   console.log(`SEARCH=${process.env["SEARCH"] ?? 1} SEED=${seed}`);
 
 export default defineConfig({
-  // craftz() sets the format and lint rules, and the site: `vp build` hands the folder
-  // `prose build` writes to Cloudflare, assets only.
+  // craftz() sets the format and lint rules.
   plugins: [craftz()],
 
   // tsdown — `vp pack`. ESM only, with declarations. The code ships readable but without its
