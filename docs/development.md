@@ -40,7 +40,7 @@ When it finds a case, settle it as any other, then add its shortest form to `FOU
 
 `pnpm prose build` writes the repository's pages, and `pnpm quality` then writes the Quality report beside them. The root `README.md` is the home page. The bar links the docs in `docs/`, in the order of the `nav` list in [docs/README.md](README.md). `pnpm verify` runs the checks, the tests and the build, then builds both. CI runs it on every pull request, so a change that breaks the site can't merge.
 
-Cloudflare builds the site from `main` and serves it from a Worker with static assets, set up in [cloudflare.config.ts](../cloudflare.config.ts). `verify` ends with `vp build`, which hands `.prose` to Cloudflare, and `ship` runs `cf deploy --prebuilt` on it. The `markz` Worker has the build settings every Worker has, in [craftz's rules](https://craftz.amitkaps.com/docs/rules.md#cloudflare), so every merge deploys it.
+Cloudflare builds the site from `main` and serves it from a Worker with static assets, set up in [cloudflare.config.ts](../cloudflare.config.ts). `verify` builds `.prose`, and `ship` uploads it with `craftz deploy`. The `markz` Worker has the build settings every Worker has, in [craftz's rules](https://craftz.amitkaps.com/docs/rules.md#cloudflare), so every merge deploys it.
 
 ## Release
 
