@@ -1,6 +1,6 @@
 # Plan
 
-markz parses its dialect to a flat tree and renders it to HTML, with a warning for every input that doesn't do what it looks like. 0.6.0 is on npm as `@amitkaps/markz`, and its docs are at [markz.amitkaps.com](https://markz.amitkaps.com). What each release changed is in its [notes on GitHub](https://github.com/amitkaps/markz/releases). This plan says what's next, in order, and what works now.
+markz parses its dialect to a flat tree and renders it to HTML, with a warning for every input that doesn't do what it looks like. 0.7.0 is on npm as `@amitkaps/markz`, and its docs are at [markz.amitkaps.com](https://markz.amitkaps.com). What each release changed is in its [notes on GitHub](https://github.com/amitkaps/markz/releases). This plan says what's next, in order, and what works now.
 
 ## Next, in order
 
