@@ -9,4 +9,4 @@ The whole package. [`index.ts`](index.ts) is the only public entry point. Everyt
 - [`attributes.ts`](attributes.ts), [`expression.ts`](expression.ts) and [`chars.ts`](chars.ts): scanners both passes share.
 - [`elements.ts`](elements.ts): the names an element may have, which both passes and `html()` check.
 - [`html.ts`](html.ts): the HTML fold.
-- [`walk.ts`](walk.ts) and [`position.ts`](position.ts): the utilities consumers fold and report with, `walk`, `textContent`, `headings` and `position`.
+- [`walk.ts`](walk.ts), [`ids.ts`](ids.ts) and [`position.ts`](position.ts): the utilities consumers fold and report with, `walk`, `textContent`, `ids`, `headings` and `position`.

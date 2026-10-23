@@ -1,13 +1,12 @@
 /** @prose
  * # Walking a tree
  *
- * What `walk`, `textContent`, `headings` and `position` promise. The tests cover the order `walk`
- * visits in, what skipping does, and that it survives nesting too deep to recurse. They also
- * cover what text a node reads as, which headings the outline lists with what ids, and how
- * offsets become lines and columns across every line ending.
+ * What `walk`, `textContent` and `position` promise. The tests cover the order `walk` visits
+ * in, what skipping does, and that it survives nesting too deep to recurse. They also cover what
+ * text a node reads as, and how offsets become lines and columns across every line ending.
  */
 import { describe, expect, it } from "vite-plus/test";
-import { headings, html, parse, position, textContent, walk, type NodeId } from "./index";
+import { html, parse, position, textContent, walk, type NodeId } from "./index";
 
 describe("walk", () => {
   it("enters before the children and exits after them", () => {
@@ -85,36 +84,6 @@ describe("textContent", () => {
       .replace(/<[^>]*>/g, "")
       .replace(/\n/g, "");
     expect(textContent(parse(source)).replace(/\n/g, "")).toBe(text);
-  });
-});
-
-describe("headings", () => {
-  it("lists every heading in source order, with the depth, id and text html() gives it", () => {
-    const source = "# One _a_\n\ntext\n\n## Two\n\n{#custom}\n### Three `b`\n";
-    const doc = parse(source);
-    const list = headings(doc);
-    expect(list.map(({ depth, id, text }) => ({ depth, id, text }))).toEqual([
-      { depth: 1, id: "one-a", text: "One a" },
-      { depth: 2, id: "two", text: "Two" },
-      { depth: 3, id: "custom", text: "Three b" },
-    ]);
-    for (const { id } of list) expect(html(doc)).toContain(`id="${id}"`);
-  });
-
-  it("finds a heading inside a blockquote, a list item or an element", () => {
-    const doc = parse("> # Quoted\n\n- ## Listed\n\n{@section}\n### Inside\n{/section}\n");
-    expect(headings(doc).map((h) => h.text)).toEqual(["Quoted", "Listed", "Inside"]);
-  });
-
-  it("gives each heading's node, so its range is in the source", () => {
-    const source = "intro\n\n## Here\n";
-    const doc = parse(source);
-    const [h] = headings(doc);
-    expect(source.slice(doc.start(h!.node), doc.end(h!.node))).toBe("## Here");
-  });
-
-  it("is empty for a document with no headings, and a `#` in code is not one", () => {
-    expect(headings(parse("a\n\n```\n# no\n```\n"))).toEqual([]);
   });
 });
 

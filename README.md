@@ -11,7 +11,7 @@ const doc = parse(markdown); // a read-only, source-mapped tree
 console.log(doc.warnings); // what it didn't read, and what to write instead
 ```
 
-The whole API is six functions (`parse`, `html`, `walk`, `textContent`, `headings` and `position`), the read-only `Document` and the frozen list of warning codes, in [Reference](docs/reference.md). None of them takes options.
+The whole API is seven functions (`parse`, `html`, `walk`, `textContent`, `ids`, `headings` and `position`), the read-only `Document` and the frozen list of warning codes, in [Reference](docs/reference.md). None of them takes options.
 
 ## Install
 

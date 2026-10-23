@@ -13,7 +13,7 @@ const source = "# Hi\n\n> a _b_\n";
 
 function build() {
   const b = new Builder(source);
-  const heading = b.open("heading", 0, { depth: 1, id: "hi", idExplicit: false });
+  const heading = b.open("heading", 0, { depth: 1, id: "hi", written: false });
   b.leaf("text", 2, 4, { value: "Hi" });
   b.close(4);
   const quote = b.open("blockquote", 6);
@@ -52,7 +52,7 @@ describe("Builder and Document", () => {
 
   it("reads side-table data only as the node’s own type", () => {
     const { doc, heading, quote } = build();
-    expect(doc.data(heading, "heading")).toEqual({ depth: 1, id: "hi", idExplicit: false });
+    expect(doc.data(heading, "heading")).toEqual({ depth: 1, id: "hi", written: false });
     expect(() => doc.data(quote, "heading")).toThrow(TypeError);
     expect(doc.attributes(heading)).toBeUndefined();
   });

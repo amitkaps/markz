@@ -123,9 +123,9 @@ Deciding whether a half-typed opener (`hello *`) shows or vanishes, and avoiding
 
 ## Public API
 
-The package exports `parse`, `html`, `walk`, `textContent`, `headings` and `position`, the read-only `Document` with `NONE` for "no node", and the types around them. [Reference](reference.md) lists each one. Nothing takes an options object.
+The package exports `parse`, `html`, `walk`, `textContent`, `ids`, `headings` and `position`, the read-only `Document` with `NONE` for "no node", and the types around them. [Reference](reference.md) lists each one. Nothing takes an options object.
 
-`headings` is the one helper that reads the tree for a consumer's outline, and it is not part of `html()`: depth, nesting and numbering are choices, and markz has none.
+`ids` reads back every id `html()` writes, for a link checker, and `headings` is its subset on headings, for a consumer's outline. Neither is part of `html()`: depth, nesting and numbering are choices, and markz has none.
 
 ## HTML output
 

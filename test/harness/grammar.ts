@@ -53,11 +53,11 @@ export const CONSTRUCTS: Construct[] = [];
   for (const node of doc.children(doc.root)) {
     const type = doc.type(node);
     if (type === "heading") {
-      const { depth, id, idExplicit } = doc.data(node, "heading");
+      const { depth, id, written } = doc.data(node, "heading");
       if (depth === 2) {
         part = textContent(doc, node);
         current = part === "Document" ? DOCUMENT : null;
-      } else if (depth === 3 && idExplicit) {
+      } else if (depth === 3 && written) {
         if (!PARTS.includes(part)) throw new Error(`grammar.md: ${id} is under ${part}`);
         const c = { id, part: part as ConstructPart, grammar: "", rules: {} } as Construct;
         CONSTRUCTS.push(c);
