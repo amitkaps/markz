@@ -1,9 +1,9 @@
 # Reference
 
-Everything `@amitkaps/markz` exports: six functions, the read-only `Document` they work on, the list of warning codes and the types of what it holds. None of them takes options. What to do with them is in [Usage](usage.md), and why they are shaped this way is in [Design](design.md).
+Everything `@amitkaps/markz` exports: seven functions, the read-only `Document` they work on, the list of warning codes and the types of what it holds. None of them takes options. What to do with them is in [Usage](usage.md), and why they are shaped this way is in [Design](design.md).
 
 ```ts
-import { parse, html, walk, textContent, headings, position } from "@amitkaps/markz";
+import { parse, html, walk, textContent, ids, headings, position } from "@amitkaps/markz";
 ```
 
 ## Functions
@@ -24,9 +24,13 @@ Visits `from` and everything under it, depth first, in source order. `from` is t
 
 The text of a node as a reader sees it on the rendered page: escapes decoded, code and math as written, images left out. The node is the root by default. For the source text of a node, use `doc.source.slice(doc.start(node), doc.end(node))`.
 
+### `ids(doc): Id[]`
+
+Every id `html()` writes, in source order, as `{ id, node, written, text }`. Each is something a link to `#${id}` lands on: a heading, or anything with a `{#id}`. `written` says whether `{#id}` set it, rather than a heading's words. `text` is the node's own, like a span's label, which can be a name and not the id. An id taken twice is listed twice, as `html()` writes it twice.
+
 ### `headings(doc): Heading[]`
 
-Every heading in source order, wherever it sits, as `{ node, depth, id, text }`. The `id` is the one `html()` writes, so `#${id}` links to it. It is a flat list: nesting it, numbering it or keeping only some depths is yours to do, which is why `html()` writes no table of contents.
+The ids on headings, wherever they sit, each with its depth, as `{ id, node, written, text, depth }`. The `id` is the one `html()` writes, so `#${id}` links to it. It is a flat list: nesting it, numbering it or keeping only some depths is yours to do, which is why `html()` writes no table of contents.
 
 ### `position(source): (offset) => { line, column }`
 
@@ -64,7 +68,7 @@ Every node has a type, a range and links to its parent and children. The kind sa
 | `document` | root |  |
 | `metadata` | block | `value` (the object, with flat keys), `range` (the lines between the fences) |
 | `comment` | block |  |
-| `heading` | block | `depth` (1 to 6), `id`, `idExplicit` (whether `{#id}` set it) |
+| `heading` | block | `depth` (1 to 6), `id`, `written` (whether `{#id}` set it) |
 | `paragraph` | block |  |
 | `blockquote` | block |  |
 | `list` | block | `ordered`, `start`, `tight` |

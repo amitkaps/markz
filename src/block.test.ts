@@ -91,7 +91,7 @@ describe("attributes", () => {
   it("decorate the next block, across blank lines", () => {
     const doc = parsed("{#pricing .center}\n\n## Pricing\n");
     const heading = first(doc, "heading");
-    expect(doc.data(heading, "heading")).toEqual({ depth: 2, id: "pricing", idExplicit: true });
+    expect(doc.data(heading, "heading")).toEqual({ depth: 2, id: "pricing", written: true });
     expect(html(doc)).toBe('<h2 id="pricing" class="center">Pricing</h2>\n');
   });
 });

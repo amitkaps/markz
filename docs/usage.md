@@ -74,6 +74,26 @@ const contents = headings(parse(markdown))
 
 markz doesn't put a contents list in `html()`. How deep to go, and whether to nest, number or style it, is yours to decide.
 
+## Check links within a page
+
+`ids` gives every id `html()` writes, on headings and on anything with a `{#id}`, so a link to `#id` can be checked before the page is built:
+
+```ts
+import { ids, parse, walk } from "@amitkaps/markz";
+
+const doc = parse(markdown);
+const targets = new Set(ids(doc).map((i) => i.id));
+walk(doc, {
+  enter(node) {
+    if (doc.type(node) !== "link") return;
+    const { destination } = doc.data(node, "link");
+    if (destination.startsWith("#") && !targets.has(destination.slice(1))) {
+      console.warn(`no #${destination.slice(1)} on this page`);
+    }
+  },
+});
+```
+
 ## Keep a poem's line breaks
 
 End each line of a poem or a quote with `\`, the language's only hard break. `html()` writes a `<br />` there, which shows wherever the HTML goes:

@@ -577,7 +577,7 @@ class BlockParser {
       this.report("trailing-heading-attributes", brace, to);
     }
     const explicit = attributes?.items.findLast((a) => a.key === "id");
-    const data = { depth: depth as 1 | 2 | 3 | 4 | 5 | 6, id: "", idExplicit: !!explicit };
+    const data = { depth: depth as 1 | 2 | 3 | 4 | 5 | 6, id: "", written: !!explicit };
     const node = this.b.open("heading", at, data);
     // Before the text, so the heading claims its id ahead of any span inside it.
     if (attributes) this.b.setAttributes(node, attributes);

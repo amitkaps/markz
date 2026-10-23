@@ -107,7 +107,7 @@ function shared(doc: Document, node: NodeId): boolean {
   if (
     OWN.has(type) ||
     doc.attributes(node) ||
-    (type === "heading" && doc.data(node, "heading").idExplicit) ||
+    (type === "heading" && doc.data(node, "heading").written) ||
     (type === "listItem" && doc.data(node, "listItem").checked !== null)
   ) {
     return false;

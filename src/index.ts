@@ -10,7 +10,8 @@
  */
 export { parse } from "./parse";
 export { html } from "./html";
-export { walk, textContent, headings, type Heading, type Visitor } from "./walk";
+export { walk, textContent, type Visitor } from "./walk";
+export { ids, headings, type Id, type Heading } from "./ids";
 export { position, type Position } from "./position";
 export { Document, NONE } from "./ast";
 export { WARNINGS, type WarningCode, type WarningText } from "./warnings";

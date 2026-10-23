@@ -320,7 +320,7 @@ const SAFE_URL = /^[!#$&-;=?-Z_a-z~]*$/;
 // An empty title (`[a](b "")`) writes none, as micromark and cmark do.
 const titled = (title: string | null) => (title ? ` title="${escape(title)}"` : "");
 
-function unsafe(value: string, image = true): boolean {
+export function unsafe(value: string, image = true): boolean {
   // Browsers ignore whitespace and control characters inside a scheme.
   // eslint-disable-next-line no-control-regex
   const v = value.replace(/[\u0000- ]/g, "").toLowerCase();

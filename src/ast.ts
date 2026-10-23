@@ -75,7 +75,7 @@ export interface Range {
 export interface NodeData {
   /** The object, and the range of the lines between the `---` fences. */
   metadata: { value: MetadataObject; range: Range };
-  heading: { depth: 1 | 2 | 3 | 4 | 5 | 6; id: string; idExplicit: boolean };
+  heading: { depth: 1 | 2 | 3 | 4 | 5 | 6; id: string; written: boolean };
   /** Decoded text; the node's range covers the raw characters. */
   text: { value: string };
   link: Destination & { autolink: boolean };
