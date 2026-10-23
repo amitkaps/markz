@@ -155,7 +155,7 @@ The parser decides whether a name is an element and warns when it isn't, and the
   - pass the output through the platform Sanitizer (below).
 - **Everything else is safe by construction.** Outside raw blocks, unsafe values can reach the output only through URLs and attributes, and `html()` handles both:
   - It drops event-handler attributes (`on*`).
-  - A URL with an unsafe scheme is written empty, and an attribute value with one is dropped. The unsafe schemes are `javascript:`, `vbscript:`, and `data:` other than a raster image.
+  - A URL with an unsafe scheme is written empty, and an attribute value with one is dropped. The unsafe schemes are `javascript:`, `vbscript:`, and `data:` other than a raster image. An id is never followed as a URL, so it is written as it is.
   - `style` and other attributes pass through, since limited styling is the point of attributes.
 - The AST keeps everything verbatim and makes no safety promise. A consumer building its own output owns its policy.
 - markz ships no sanitizer. In the browser, a host that wants defence in depth passes `html()`'s output to the platform's HTML Sanitizer API (`Element.setHTML()`). Chrome 146 and Firefox 148 ship it and Safari doesn't yet, so feature-detect it and fall back to DOMPurify.

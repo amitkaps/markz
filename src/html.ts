@@ -269,8 +269,9 @@ const tag = (name: string, inline: boolean) =>
  * a boolean attribute is on whenever it is present.
  *
  * Event handlers (`on*`) are dropped, and so is any value with an unsafe scheme. Those are
- * `javascript:`, `vbscript:`, and `data:` other than a raster image (design: Security). A
- * heading's id comes from its data, so an `id` item is skipped there.
+ * `javascript:`, `vbscript:`, and `data:` other than a raster image (design: Security). An id is
+ * never followed as a URL, so it is written as it is, on a span as on a heading. A heading's id
+ * comes from its data, so an `id` item is skipped there.
  */
 function attributes(a: Attributes | undefined, skipId = false): string {
   if (!a) return "";
@@ -283,7 +284,7 @@ function attributes(a: Attributes | undefined, skipId = false): string {
   }
   let out = cls.length > 0 ? ` class="${escape(cls.join(" "))}"` : "";
   for (const [key, value] of other) {
-    if (/^on/i.test(key) || unsafe(value ?? "")) continue;
+    if (/^on/i.test(key) || (key !== "id" && unsafe(value ?? ""))) continue;
     out += value === null ? ` ${key}` : ` ${key}="${escape(value)}"`;
   }
   return out;
@@ -320,7 +321,7 @@ const SAFE_URL = /^[!#$&-;=?-Z_a-z~]*$/;
 // An empty title (`[a](b "")`) writes none, as micromark and cmark do.
 const titled = (title: string | null) => (title ? ` title="${escape(title)}"` : "");
 
-export function unsafe(value: string, image = true): boolean {
+function unsafe(value: string, image = true): boolean {
   // Browsers ignore whitespace and control characters inside a scheme.
   // eslint-disable-next-line no-control-regex
   const v = value.replace(/[\u0000- ]/g, "").toLowerCase();
