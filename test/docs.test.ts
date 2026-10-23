@@ -67,6 +67,10 @@ describe("docs/reference.md", () => {
     expect(missing(Object.keys(markz))).toEqual([]);
   });
 
+  it("names every export of the rules", async () => {
+    expect(missing(Object.keys(await import("../src/rules")))).toEqual([]);
+  });
+
   it("names every member of a Document", () => {
     const members = Object.getOwnPropertyNames(markz.Document.prototype).filter(
       (name) => name !== "constructor",

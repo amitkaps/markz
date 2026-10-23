@@ -6,6 +6,7 @@
  * library with tsdown. `@amitkaps/prose` is a CLI now (`pnpm prose`), not a plugin, so it has no
  * place here.
  */
+import { readFileSync } from "node:fs";
 import { defineConfig } from "vite-plus";
 import { craftz } from "@amitkaps/craftz";
 
@@ -24,6 +25,18 @@ const seed =
 if (process.env["SEED"] === "random")
   console.log(`SEARCH=${process.env["SEARCH"] ?? 1} SEED=${seed}`);
 
+// A doc imported with `?raw`, as its text, which Vite does in the tests and tsdown doesn't. The
+// rules subpath bundles its usage doc this way.
+const raw = {
+  name: "raw",
+  load(id: string) {
+    if (id.endsWith("?raw")) {
+      return `export default ${JSON.stringify(readFileSync(id.slice(0, -4), "utf8"))};`;
+    }
+    return null;
+  },
+};
+
 export default defineConfig({
   // craftz() sets the format and lint rules.
   plugins: [craftz()],
@@ -33,7 +46,7 @@ export default defineConfig({
   // (design: Package). The `/*!` banner keeps the license with the code when a consumer bundles it.
   // publint checks the package's `exports`, `files` and types, and fails the build on a problem.
   pack: {
-    entry: ["src/index.ts"],
+    entry: ["src/index.ts", "src/rules.ts", "src/cli.ts"],
     format: ["esm"],
     // The browsers the standard names, and the Node markz is built on, since it runs in both.
     target: ["chrome142", "edge142", "firefox153", "safari18.6", "ios18.6", "node26"],
@@ -43,6 +56,7 @@ export default defineConfig({
     banner: { js: "/*! @amitkaps/markz · MIT License · https://github.com/amitkaps/markz */" },
     outputOptions: { comments: { legal: true, annotation: true, jsdoc: false } },
     publint: { strict: true },
+    plugins: [raw],
   },
 
   // Oxfmt and Oxlint — `vp check`. What they leave alone, beside the rules craftz() sets.

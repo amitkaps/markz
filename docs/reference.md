@@ -1,6 +1,6 @@
 # Reference
 
-Everything `@amitkaps/markz` exports: seven functions, the read-only `Document` they work on, the list of warning codes and the types of what it holds. None of them takes options. What to do with them is in [Usage](usage.md), and why they are shaped this way is in [Design](design.md).
+Everything `@amitkaps/markz` exports: seven functions, the read-only `Document` they work on, the list of warning codes and the types of what it holds. None of them takes options. The [rules](#rules) are a second entry, for Node. What to do with them is in [Usage](usage.md), and why they are shaped this way is in [Design](design.md).
 
 ```ts
 import { parse, html, walk, textContent, ids, headings, position } from "@amitkaps/markz";
@@ -110,3 +110,41 @@ WARNINGS["reference-link"]; // { message: "reference link", instead: "inline lin
 ## Types
 
 Exported for TypeScript: `Document`, `NodeId`, `NodeType`, `NodeData`, `DataType`, `Heading`, `Visitor`, `Position`, `Warning`, `WarningCode`, `Range`, `Attribute`, `Attributes`, `Destination`, `Align`, `MetadataObject`, `MetadataValue` and `MetadataScalar`.
+
+## Rules
+
+`@amitkaps/markz/rules` reads, prints and composes a tool's rules, and formats its findings, for Node. It bundles markz's own rules, so the browser bundle doesn't change. What a rule is, and how each tool writes them, is in [Usage: For agents](usage.md#for-agents).
+
+```ts
+import { compose, finding, markz, printOne, printRules, readRules } from "@amitkaps/markz/rules";
+```
+
+### `readRules(source, url): Rule[]`
+
+The rules in a doc, in order, as `{ id, label, text, group, url, links }`. A rule is a list item that opens with a span holding its id, under a heading for its group, the nearest one above it. `label` is the span's text, and `text` is the rest of the item's first paragraph, as Markdown, without a leading `:`. Every link in it is resolved against `url`, the doc's address, and `links` lists them.
+
+### `markz: Rules`
+
+markz's rules, from Usage, and its codes, each `{ code, level, message, instead, url }`, with the level `warning`. A rule serves each code it links to.
+
+### `compose(...sets): Rules[]`
+
+The sets in order, each `{ tool, rules, codes }`, a tool's after those of the packages it builds on. It throws when an id, a rule's or a code's, is in two of them, since `printOne` searches them all.
+
+### `printRules(sets): string`
+
+Every rule under its group's heading, each with the codes that check it, as `markz rules` prints them. With more than one set, each opens with its tool's name.
+
+### `printOne(sets, id): string | undefined`
+
+One rule, or one code with the rule it serves, as `markz rules <id>` prints it. It's `undefined` when no set states `id`.
+
+### `codesOf(sets, rule): Code[]`
+
+The codes in any set that a rule links to, in the order it links them.
+
+### `finding(f): string`
+
+One finding as a line, `<tool>: <level>: <file>:<line>:<col>: <code>: <message>; write <instead>; held: <reason>`. Only `tool`, `level` and `message` are required, and a part left out is dropped. The line and column count from 1, as editors do. `level` is a `Level`: an `error` always fails, a `warning` fails a check unless the rule is held, and a `note` never fails.
+
+Exported for TypeScript: `Rule`, `Code`, `Rules`, `Finding` and `Level`.
