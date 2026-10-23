@@ -1,9 +1,10 @@
 # @prose
 # # CI
 #
-# Checks every pull request and every push to `main` with `pnpm run verify`, the same script
-# Cloudflare runs before each deploy. It doesn't deploy. The Worker's Git integration does
-# that. The job is named `ci`, the check that branch protection requires.
+# Checks every pull request and every push to `main` with `pnpm run verify`, the script a
+# site's deploy and a package's release run first too. It doesn't deploy or release, and it's
+# the same in every repository, so what a repository adds goes in `verify`. The job is named
+# `ci`, the check that branch protection requires.
 name: CI
 
 on:
@@ -25,15 +26,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      # Reads the pnpm version from package.json's `packageManager`.
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
-          node-version: 26
+          node-version-file: package.json
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
 
-      # The same script Cloudflare runs before each deploy: check, test, build with publint, the
-      # size budget, then the site. arethetypeswrong was ruled out, since it checks for old Node
-      # resolution that markz, ESM only on Node 26, doesn't support.
-      - run: pnpm run verify
+      - name: Verify
+        run: pnpm run verify
