@@ -44,10 +44,12 @@ Cloudflare builds the site from `main` and serves it from a Worker with static a
 
 ## Release
 
-markz releases the way every package does, as [craftz's rules](https://craftz.amitkaps.com/docs/rules.md#releases) sets out. First run the `fuzz` workflow on `main` (`gh workflow run fuzz`). Then, from craftz, `pnpm release markz X.Y.Z` opens the pull request that bumps `version`. Its description goes above the generated notes, like what to change in a breaking release.
+markz releases the way every package does, as [craftz's rules](https://craftz.amitkaps.com/docs/rules.md#releases) sets out. First run the `fuzz` workflow on `main` (`gh workflow run fuzz`). Then, from this folder, `pnpm craftz release X.Y.Z` opens the pull request that bumps `version`. Its description goes above the generated notes, like what to change in a breaking release.
 
 ```sh
-pnpm release markz 0.5.0 --notes "What to change when you upgrade …"
+pnpm craftz release 0.8.0 --notes "What to change when you upgrade …"
 ```
+
+A minor or major release also moves the CDN link in the README and [usage](usage.md#in-the-browser), like `markz@0.8`, since a test holds it to `version`. Push it to the release's pull request with `pnpm pr "vX.Y.Z" --label internal`.
 
 Merging it is the release. The `release` workflow runs `verify` and packs it, stages it on npm for a maintainer to approve, then tags the commit and publishes the GitHub release. The GitHub release's notes are generated from the pull requests' labels (`.github/release.yml`), so there is no changelog file to keep. How and why is in [Design](design.md#package).
