@@ -8,7 +8,6 @@
  */
 import { defineConfig } from "vite-plus";
 import { craftz } from "@amitkaps/craftz";
-import { cloudflare } from "@cloudflare/vite-plugin";
 
 const generated = ["dist/**"];
 const vendored = ["test/examples/upstream/**/*.md", "test/documents/**"];
@@ -28,10 +27,7 @@ if (process.env["SEED"] === "random")
 export default defineConfig({
   // craftz() sets the format and lint rules, and the site: `vp build` hands the folder
   // `prose build` writes to Cloudflare, assets only.
-  plugins: [craftz(), cloudflare({ assetsOnly: true })],
-
-  // The site is the folder `prose build` writes.
-  publicDir: ".prose",
+  plugins: [craftz()],
 
   // tsdown — `vp pack`. ESM only, with declarations. The code ships readable but without its
   // comments, keeping license comments and `@__PURE__` annotations, and with no sourcemaps
