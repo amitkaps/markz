@@ -61,14 +61,14 @@ doc.metadata?.["deploy.name"]; // a `.` is part of the key, as YAML reads it
 
 ## Build a table of contents
 
-`headings` gives each heading's depth, text and id, and the `id` is the one `html()` writes, so a link to it lands on the heading:
+`headings` gives each heading's depth, label and id, and the `id` is the one `html()` writes, so a link to it lands on the heading:
 
 ```ts
 import { headings, parse } from "@amitkaps/markz";
 
 const contents = headings(parse(markdown))
   .filter((h) => h.depth <= 3)
-  .map((h) => `${"  ".repeat(h.depth - 1)}- [${h.text}](#${h.id})`)
+  .map((h) => `${"  ".repeat(h.depth - 1)}- [${h.label}](#${h.id})`)
   .join("\n");
 ```
 
