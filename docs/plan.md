@@ -4,7 +4,18 @@ markz parses its dialect to a flat tree and renders it to HTML, with a warning f
 
 ## Next, in order
 
-Nothing is queued. The ideas under Later wait for a use that needs them.
+- [ ] **`ids(doc)`, every id `html()` writes.** Each is what a link can land on, so the list is what prose's rules reader and a link checker need. Each id comes with its node, its text and whether it was `written` as `{#id}` or made from a heading's words, in source order:
+
+  ```ts
+  interface Id {
+    id: string;
+    node: NodeId;
+    written: boolean;
+    text: string;
+  }
+  ```
+
+  The text is the node's own, a span's label or a heading's words, since a label can be a name and not the id. `headings` becomes the subset on headings, with `depth`, and `idExplicit` is renamed `written`, so the two say it the same way. The ids are all claimed while parsing, so it's a walk, not a new pass. A test holds it to the `id="…"` that `html()` writes for every document in the harness, which also settles whether ids markz makes for itself, like a footnote's, belong in it. It's a release of its own, which prose then bundles.
 
 ## Where it is
 
