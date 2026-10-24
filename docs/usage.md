@@ -109,13 +109,19 @@ A class with `white-space: pre-line` shows a paragraph's own newlines without th
 
 ## On the command line
 
-The package has a `markz` command, which runs in Node:
+The package has a `markz` command, which runs in Node. Each command is stated once, here, with how it's run and what it does, and `markz help` prints them from the version installed:
+
+- [`markz check <files>`]{#check}: prints every warning in the files, one line each, and fails on any.
+- [`markz html [file]`]{#html}: writes a document's HTML, with its warnings on stderr.
+- [`markz rules [id]`]{#rules}: prints the rules, or one rule or code by its id.
+- [`markz help [command]`]{#help}: lists the commands, or prints what one does.
 
 ```sh
 pnpm markz check docs/*.md      # every warning, one line each, and fails on any
 pnpm markz html README.md       # the HTML, with warnings on stderr
 pnpm markz rules                # the rules below, as raw text
 pnpm markz rules star-emphasis  # one code, with the rule it serves
+pnpm markz help                 # the commands above
 ```
 
 `check` prints a line for each warning, in the form every tool built on markz uses:

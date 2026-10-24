@@ -125,7 +125,7 @@ Deciding whether a half-typed opener (`hello *`) shows or vanishes, and avoiding
 
 The package exports `parse`, `html`, `walk`, `textContent`, `ids`, `headings` and `position`, the read-only `Document` with `NONE` for "no node", and the types around them. [Reference](reference.md) lists each one. Nothing takes an options object.
 
-`@amitkaps/markz/rules` is a second entry, for Node. It reads, composes and prints a tool's rules, and formats its findings ([reference](reference.md#rules)). It's apart so the browser bundle and its budget don't change, and the `markz` command runs on it.
+`@amitkaps/markz/rules` is a second entry, for Node. It reads, composes and prints a tool's rules, reads and prints its commands, and formats its findings ([reference](reference.md#rules)). It's apart so the browser bundle and its budget don't change, and the `markz` command runs on it.
 
 `ids` reads back every id `html()` writes, for a link checker, and `headings` is its subset on headings, for a consumer's outline. Neither is part of `html()`: depth, nesting and numbering are choices, and markz has none.
 

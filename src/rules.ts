@@ -12,6 +12,15 @@
  * code when it links to the code's page, so the doc holds the map, and `WARNINGS` stays as small
  * as the browser needs it ([usage](../docs/usage.md#for-agents)).
  *
+ * A doc can hold more than rules, so `within` names the heading to read under, and the list items
+ * outside it are left alone.
+ *
+ * # Commands
+ *
+ * A tool's commands are stated the same way, each a list item whose span shows how it's run, like
+ * ``[`markz check <files>`]{#check}: ``. `readCommands` reads them, and `printHelp` lists them or
+ * prints one's section of the doc, so a tool's help is its docs.
+ *
  * # Composing
  *
  * A tool's rules come after those of the packages it builds on, so pagez prints markz's rules
@@ -52,12 +61,19 @@ export interface Rules {
   codes: Code[];
 }
 
-/** The rules in a doc, in order. Relative links are resolved against `url`, the doc's address. */
-export function readRules(source: string, url: string): Rule[] {
+/** The rules in a doc, in order. Relative links are resolved against `url`, the doc's address.
+ *  With `within`, a heading's id, only the items under that heading are read. */
+export function readRules(source: string, url: string, within?: string): Rule[] {
   const doc = parse(source);
   const outline = headings(doc);
+  const under = outline.findIndex((h) => h.id === within);
+  const from = under < 0 ? 0 : doc.start(outline[under]!.node);
+  const end = outline.slice(under + 1).find((h) => h.depth <= (outline[under]?.depth ?? 0));
+  const to = under < 0 ? source.length : end ? doc.start(end.node) : source.length;
+  if (within !== undefined && under < 0) throw new Error(`no heading \`${within}\` to read under`);
   const out: Rule[] = [];
   for (const { id, node, written, label } of ids(doc)) {
+    if (doc.start(node) < from || doc.start(node) >= to) continue;
     const paragraph = doc.parent(node);
     const item = doc.parent(paragraph);
     if (
@@ -98,6 +114,59 @@ export function readRules(source: string, url: string): Rule[] {
   return out;
 }
 
+/** A tool's commands, from its usage doc, with the doc they're read from. */
+export interface Commands {
+  tool: string;
+  commands: Rule[];
+  source: string;
+  url: string;
+}
+
+/** A tool's commands, read as rules are, from the list items under `within` or the whole doc. */
+export function readCommands(tool: string, source: string, url: string, within?: string): Commands {
+  return { tool, commands: readRules(source, url, within), source, url };
+}
+
+/** Every command with how it's run and what it does, or with `name`, the section of the doc that
+ *  states that command, its links resolved. `undefined` when no command is `name`. */
+export function printHelp(
+  { tool, commands, source, url }: Commands,
+  name?: string,
+): string | undefined {
+  if (name === undefined) {
+    const lines = commands.map((c) => `  ${c.label}\n      ${c.text}`);
+    return `Usage: ${tool} <command>, and ${tool} help <command> says more\n\n${lines.join("\n")}\n`;
+  }
+  const command = commands.find((c) => c.id === name);
+  if (!command) return undefined;
+  const doc = parse(source);
+  const at = doc.start(ids(doc).find((i) => i.id === name)!.node);
+  const starts = headings(doc).map((h) => doc.start(h.node));
+  const from = starts.findLast((s) => s < at) ?? 0;
+  const to = starts.find((s) => s > at) ?? source.length;
+  return `${resolve(source.slice(from, to).trimEnd(), url)}\n\n${command.url}\n`;
+}
+
+// Markdown with each link's and image's destination resolved against `url`.
+function resolve(source: string, url: string): string {
+  const doc = parse(source);
+  let out = "";
+  let at = 0;
+  walk(doc, {
+    enter(node) {
+      const type = doc.type(node);
+      if (type !== "link" && type !== "image") return true;
+      const { destination } = doc.data(node, type);
+      const written = source.slice(doc.start(node), doc.end(node));
+      out += source.slice(at, doc.start(node));
+      out += written.replace(`](${destination}`, `](${new URL(destination, url).href}`);
+      at = doc.end(node);
+      return false;
+    },
+  });
+  return out + source.slice(at);
+}
+
 /** The sets in order, after checking that no id is stated twice across them. */
 export function compose(...sets: Rules[]): Rules[] {
   const seen = new Map<string, string>();
@@ -116,7 +185,7 @@ const SITE = "https://markz.amitkaps.com/docs/";
 /** markz's own rules, from its usage doc, and its codes, each a warning. */
 export const markz: Rules = {
   tool: "markz",
-  rules: readRules(usage, `${SITE}usage.md`),
+  rules: readRules(usage, `${SITE}usage.md`, "for-agents"),
   codes: Object.entries(WARNINGS).map(([code, { message, instead }]) => ({
     code,
     level: "warning",
@@ -125,6 +194,14 @@ export const markz: Rules = {
     url: `${SITE}syntax.md#${code}`,
   })),
 };
+
+/** markz's own commands, from its usage doc. */
+export const commands: Commands = readCommands(
+  "markz",
+  usage,
+  `${SITE}usage.md`,
+  "on-the-command-line",
+);
 
 /** The codes in any set that a rule links to, in the order it links them. */
 export function codesOf(sets: Rules[], rule: Rule): Code[] {

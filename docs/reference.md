@@ -113,19 +113,40 @@ Exported for TypeScript: `Document`, `NodeId`, `NodeType`, `NodeData`, `DataType
 
 ## Rules
 
-`@amitkaps/markz/rules` reads, prints and composes a tool's rules, and formats its findings, for Node. It bundles markz's own rules, so the browser bundle doesn't change. What a rule is, and how each tool writes them, is in [Usage: For agents](usage.md#for-agents).
+`@amitkaps/markz/rules` reads, prints and composes a tool's rules, reads and prints its commands, and formats its findings, for Node. It bundles markz's own rules, so the browser bundle doesn't change. What a rule is, and how each tool writes them, is in [Usage: For agents](usage.md#for-agents).
 
 ```ts
-import { compose, finding, markz, printOne, printRules, readRules } from "@amitkaps/markz/rules";
+import {
+  compose,
+  finding,
+  markz,
+  printHelp,
+  printOne,
+  printRules,
+  readCommands,
+  readRules,
+} from "@amitkaps/markz/rules";
 ```
 
-### `readRules(source, url): Rule[]`
+### `readRules(source, url, within?): Rule[]`
 
-The rules in a doc, in order, as `{ id, label, text, group, url, links }`. A rule is a list item that opens with a span holding its id, under a heading for its group, the nearest one above it. `label` is the span's text, and `text` is the rest of the item's first paragraph, as Markdown, without a leading `:`. Every link in it is resolved against `url`, the doc's address, and `links` lists them.
+The rules in a doc, in order, as `{ id, label, text, group, url, links }`. A rule is a list item that opens with a span holding its id, under a heading for its group, the nearest one above it. `label` is the span's text, and `text` is the rest of the item's first paragraph, as Markdown, without a leading `:`. Every link in it is resolved against `url`, the doc's address, and `links` lists them. With `within`, a heading's id, only the items under that heading and its subheadings are read, so a doc can state its commands apart from its rules. It throws when no heading has that id.
 
 ### `markz: Rules`
 
 markz's rules, from Usage, and its codes, each `{ code, level, message, instead, url }`, with the level `warning`. A rule serves each code it links to.
+
+### `readCommands(tool, source, url, within?): Commands`
+
+A tool's commands, as `{ tool, commands, source, url }`. Each command is read as a rule is, a list item whose span shows how it's run, like ``[`markz check <files>`]{#check}: ``, and whose text says what it does.
+
+### `printHelp(commands, name?): string | undefined`
+
+Every command, with how it's run and what it does, as `markz help` prints them. With `name`, the section of the doc that states that command, its links resolved, then its address. It's `undefined` when no command is `name`.
+
+### `commands: Commands`
+
+markz's own commands, from Usage.
 
 ### `compose(...sets): Rules[]`
 
@@ -147,4 +168,4 @@ The codes in any set that a rule links to, in the order it links them.
 
 One finding as a line, `<tool>: <level>: <file>:<line>:<col>: <code>: <message>; write <instead>; held: <reason>`. Only `tool`, `level` and `message` are required, and a part left out is dropped. The line and column count from 1, as editors do. `level` is a `Level`: an `error` always fails, a `warning` fails a check unless the rule is held, and a `note` never fails.
 
-Exported for TypeScript: `Rule`, `Code`, `Rules`, `Finding` and `Level`.
+Exported for TypeScript: `Rule`, `Code`, `Rules`, `Commands`, `Finding` and `Level`.
