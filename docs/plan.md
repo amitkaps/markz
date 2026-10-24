@@ -4,7 +4,9 @@ markz parses its dialect to a flat tree and renders it to HTML, with a warning f
 
 ## Next, in order
 
-- [ ] **Release 0.8.0.** Then prose, pagez and craftz read their rules with `@amitkaps/markz/rules`, compose markz's with their own, and print findings in its line, each in its own plan. pagez states `element-name` as a rule, which is a markz code, so it renames its rule first, since `compose` fails on an id stated twice.
+- [x] **Release 0.8.0.** prose, pagez and craftz read their rules with `@amitkaps/markz/rules`.
+- [x] **Commands, stated once.** `readCommands` and `printHelp` read a tool's commands from its usage and print its help, and `readRules` reads under one heading, so a doc's commands aren't read as its rules. markz states its own commands, and `markz help` prints them.
+- [ ] **Release 0.9.0.** Then prose and pagez state their commands and print `help` with it, and craftz moves its own to it, each in its own plan.
 
 ## Where it is
 
@@ -12,7 +14,7 @@ markz parses its dialect to a flat tree and renders it to HTML, with a warning f
 - **No footguns.** Every input does what it looks like, or gets a warning that says what to write. Smart punctuation went, metadata keys are flat, and a metadata value is kept as written ([syntax](syntax.md#writing-safely)).
 - **Warnings by name.** `WARNINGS` gives every code's message and what to write instead, and each code has an id in Syntax that a test holds to it. A cut form's code names the form, like `colon-directive` ([reference](reference.md#warnings)).
 - **Rules that say what to write.** Each code is linked from one rule, worded once in [usage](usage.md#for-agents) as a list item that opens with its id. `@amitkaps/markz/rules` reads a tool's rules with `ids`, composes them with markz's, prints them, and formats every finding as `<tool>: <level>: <file>:<line>:<col>: <code>: <message>; write <instead>`. A test holds the codes and the rules to each other ([reference](reference.md#rules)).
-- **A command line.** `markz check <files>` prints each warning in that line and fails on one, `markz html [file]` writes a document's HTML, and `markz rules [id]` prints the rules ([usage](usage.md#on-the-command-line)).
+- **A command line.** `markz check <files>` prints each warning in that line and fails on one, `markz html [file]` writes a document's HTML, `markz rules [id]` prints the rules, and `markz help` the commands. Each is stated once in [usage](usage.md#on-the-command-line), and a test holds cli.ts to it.
 - **Ids.** Headings, elements and spans share one set, so a heading's id is numbered past an earlier one, and a `#id` already taken gets `duplicate-id` ([syntax](syntax.md#duplicate-id)). `ids(doc)` lists every id `html()` writes, for a link checker, and `headings` is its subset on headings ([reference](reference.md#idsdoc-id)).
 - **Formatter-friendly.** Metadata lists can wrap onto indented lines, as oxfmt writes them. An element beside text gets `element-blank-lines`, so docs can use `proseWrap: "never"` ([syntax](syntax.md#element-blank-lines)).
 - **The package.** TypeScript 7, shipped without comments, with every export documented ([reference](reference.md)). It is 19.4 KB gzipped of its 20 KB budget, so the next feature makes room before it fits ([design](design.md#performance-and-size)).

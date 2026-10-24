@@ -3,8 +3,10 @@
  * # `markz`
  *
  * The command, for Node: `markz check <files>` prints every warning and fails on one,
- * `markz html [file]` writes a document's HTML, and `markz rules [id]` prints the rules
- * ([usage](../docs/usage.md#on-the-command-line)). Each finding is one line, which
+ * `markz html [file]` writes a document's HTML, `markz rules [id]` prints the rules, and
+ * `markz help [command]` prints the commands. Each is stated once, in
+ * [usage](../docs/usage.md#on-the-command-line), which `help` prints from, and a test holds each
+ * command below to it. Each finding is one line, which
  * [rules.ts](rules.ts) formats for every tool.
  *
  * `html` is a build, so it prints its warnings on stderr and carries on, while `check` fails on
@@ -12,7 +14,7 @@
  */
 import { readFileSync } from "node:fs";
 import { html, parse, position } from "./index";
-import { finding, markz, printOne, printRules } from "./rules";
+import { commands, finding, markz, printHelp, printOne, printRules } from "./rules";
 
 const say = (line: string) => process.stderr.write(`${line}\n`);
 
@@ -64,13 +66,22 @@ switch (command) {
     }
     break;
   }
+  case "help": {
+    const printed = printHelp(commands, args[0]);
+    if (printed) process.stdout.write(printed);
+    else {
+      say(finding({ tool: "markz", level: "error", message: `no command \`${args[0]}\`` }));
+      process.exitCode = 1;
+    }
+    break;
+  }
   default:
     say(
       finding({
         tool: "markz",
         level: "error",
         message: command ? `no command \`${command}\`` : "no command",
-        instead: "`markz check <files>`, `markz html [file]` or `markz rules [id]`",
+        instead: "a command `markz help` lists",
       }),
     );
     process.exitCode = 1;
