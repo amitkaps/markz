@@ -26,6 +26,7 @@ import { EDGES, edges } from "../harness/cases";
 import { documents } from "../harness/corpus";
 import { check, examples } from "../harness/examples";
 import { search } from "../harness/generate";
+import { keptEdges } from "../harness/kept";
 import { CONSTRUCTS } from "../harness/grammar";
 import { normalize } from "../harness/oracle";
 import { retained, time, warm } from "../harness/speed";
@@ -125,9 +126,10 @@ export function conformance(): Row[] {
 
 export function constructEdges(): Record<string, Edges> {
   const { runs, seed } = search(8);
+  const kept = keptEdges(runs, seed);
   return Object.fromEntries(
     CONSTRUCTS.map(({ id }) => {
-      const { unsettled, missed: _, ...reached } = edges(id, runs, seed);
+      const { unsettled, missed: _, ...reached } = kept?.[id] ?? edges(id, runs, seed);
       return [id, { ...reached, unsettled: unsettled.length, none: EDGES[id] ?? {} }];
     }),
   );

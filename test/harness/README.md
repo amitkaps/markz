@@ -8,6 +8,7 @@ What the checks in [`../`](../) and the Quality page read and judge with. No tes
 - [`examples.ts`](examples.ts): every example markz is held to, upstream and its own, filed under a construct id or a Not supported row's warning code, and `check`, which gives each its status.
 - [`oracle.ts`](oracle.ts): micromark with GFM and frontmatter, the normalization, `yaml` for metadata, github-slugger for heading ids and the math extension's spans.
 - [`cases.ts`](cases.ts): every construct at its edges. Cases written from its productions, and their one-character neighbours, must be read as the grammar reads them, or be settled by a named side rule or a Not supported row. It also lists the side rules the oracle or the judge holds, so every side rule is held by something.
+- [`kept.ts`](kept.ts): what the edge search reached, kept by `constructs.test.ts` so the Quality page doesn't search again.
 - [`generate.ts`](generate.ts): fast-check arbitraries. Documents written from the grammar's productions, optionally only those of chosen origins; noise from Markdown's characters and the ones that trouble offsets; known examples with a few random edits; and how far a search goes.
 - [`sound.ts`](sound.ts) and [`tree.ts`](tree.ts): what every document must satisfy, whatever the input, and the tree invariants among it.
 - [`corpus.ts`](corpus.ts): the real documents in [`../documents/`](../documents/) by tier, and the variants built from them: common, formatted and repeated to a size. `pnpm speed` and the Quality page time them.
