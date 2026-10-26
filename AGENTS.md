@@ -1,6 +1,6 @@
 # Agents
 
-How to work in this repository: craftz's and prose's rules, which every repository shares, then what markz is, its commands and its workflow. Read [README.md](README.md) and [docs/design.md](docs/design.md) first.
+How to work in this repository: craftz's and prose's rules, which every repository shares, then what markz is and its commands. Read [README.md](README.md) and [docs/design.md](docs/design.md) first.
 
 ## craftz
 
@@ -58,7 +58,3 @@ pnpm vendor            # refreshes the vendored test inputs
 ```
 
 The site (markz.amitkaps.com) is the repository read by `prose build`, plus the Quality page that `pnpm quality` writes beside it. Neither is part of the package, and the site has no code of its own. CI builds both, and Cloudflare deploys the folder from `main`. Each script is one word, named for the question it answers. Two scripts may run the same file (`hotspots` is `speed.ts --profile`), and a variant of one question is a flag.
-
-## Workflow
-
-Each pull request gets one label, which files it in the release notes (`.github/release.yml`): `breaking`, `added`, `fixed`, `improved`, `docs`, or `internal` for tests, tooling, site and lessons. Its title is what the notes show, so a user-facing one is written for a reader of the package. Branch, commit, push, `gh pr create`, then `gh pr merge --auto --squash`. Run `pnpm check` and `pnpm test` first, and `pnpm build` too after a dependency bump.
