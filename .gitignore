@@ -25,3 +25,6 @@ Thumbs.db
 
 # Vite
 vite.config.ts.timestamp-*
+
+# Written by prose outline
+outline.md
