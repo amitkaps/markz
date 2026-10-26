@@ -16,18 +16,25 @@
  * grammar can't write, ambiguous and unclosed, are its own hand-written examples. It has one of
  * each, or says why it can't (`EDGES`).
  */
-import { describe, expect, it } from "vite-plus/test";
+import { afterAll, describe, expect, it } from "vite-plus/test";
 import { parse } from "../src/index";
-import { EDGES, edges } from "./harness/cases";
+import { EDGES, edges, type Reached } from "./harness/cases";
 import { check, examples, type Example } from "./harness/examples";
 import { search } from "./harness/generate";
 import { CONSTRUCTS } from "./harness/grammar";
+import { keepEdges } from "./harness/kept";
 import { rows } from "./harness/syntax";
 import { expectTree } from "./harness/tree";
 
 const { runs, seed } = search(8);
 // A longer search needs longer than a minute: link and element cases are the slowest to judge.
 const timeout = Math.max(60_000, runs * 1000);
+
+// Kept for the Quality page once every construct has searched (`harness/kept.ts`).
+const reachedBy: Record<string, Reached> = {};
+afterAll(() => {
+  if (Object.keys(reachedBy).length === CONSTRUCTS.length) keepEdges(runs, seed, reachedBy);
+});
 
 const label = (e: Example) =>
   e.source === "markz"
@@ -58,6 +65,7 @@ describe.each(CONSTRUCTS.map((c) => c.id))("%s", (id) => {
     "is read as the grammar reads it at its edges, or a side rule says why not",
     () => {
       const reached = edges(id, runs, seed);
+      reachedBy[id] = reached;
       // The shortest cases show a cause most plainly, and the search settings replay them.
       const shortest = [...reached.unsettled].sort((a, b) => a.length - b.length).slice(0, 10);
       const replay = `SEARCH=${process.env["SEARCH"] ?? 1} SEED=${seed}`;

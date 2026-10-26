@@ -29,6 +29,7 @@ What building markz taught, and what could still be better. The build itself is 
 - **A warning says what not to write.** An agent asked to write markz needed the form to write, which was scattered over Syntax. So each code is linked from one rule that says it, and a code can't ship without one.
 - **A doc holds more than one kind of list.** Stating markz's commands in usage the way its rules are would have made each command a rule too, since `readRules` read every list item that opens with an id. Reading under one heading keeps them apart, so a tool states its rules and its commands in the same doc, and the reader still keeps no regex for its layout.
 - **Read a doc with the parser.** The harness read Syntax a line at a time, keeping track of fences by hand. Read with `ids`, it finds the same constructs, rows and codes in half the code, and a sample in a fence can't pass for the page.
+- **Verify ran the slowest search twice.** The Quality page searched every construct's edges again, with the same seed and runs as `pnpm test`, which was 11 of its 16 seconds. The test now keeps what it reached, and the page reads it ([kept.ts](../test/harness/kept.ts)). The timing tests had grown too. A fix for a noisy build machine had made them warm each size with a full timed run, so they took 27 seconds. One warm-up pass and the best of three take 11, with the same headroom under the limit. Time each step of `verify` before deciding a slow one is the tests.
 
 ## Speed
 
