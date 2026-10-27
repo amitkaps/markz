@@ -341,51 +341,57 @@ The inline elements are those Markdown has no syntax for and that can't run code
 
 ## Not supported
 
-Each of these stays literal text and adds a warning over exactly its characters. The warning's `code` is the table's first column, and its `instead` is the "Write instead" column. A code names the form markz cuts, not the construct, since markz keeps another form of most of them. So it's `reference-link`, not `link`, and `colon-directive`, since `{@name}` is a directive too. The Why column says what each would cost. Two look-alikes are ordinary prose, so they stay text with no warning: a lone `[x]` and a bare `{…}`.
+Each of these stays literal text and adds a warning over exactly its characters. The warning's `code` is the table's first column, and its `instead` is the "Write instead" column. A code names the form markz cuts, not the construct, since markz keeps another form of most of them. So it's `reference-link`, not `link`, and `colon-directive`, since `{@name}` is a directive too. The rows are grouped by the main reason for the cut, and the Why column adds what is particular to each row. Two look-alikes are ordinary prose, so they stay text with no warning: a lone `[x]` and a bare `{…}`.
 
-### Metadata forms
+### One way to write it
 
-{.cuts}
-
-| Code                              | Syntax                | Write instead          | Why         |
-| --------------------------------- | --------------------- | ---------------------- | ----------- |
-| [`toml-metadata`]{#toml-metadata} | TOML metadata (`+++`) | a `---` metadata block | One format. |
-
-### Block forms
+markz already has a form for each of these, and keeping one way means one thing to read and one to warn about.
 
 {.cuts}
 
 | Code | Syntax | Write instead | Why |
 | --- | --- | --- | --- |
-| [`raw-html`]{#raw-html} | Raw HTML blocks and inline tags | a ` ```=html ` raw block, or elements and attributes | Seven HTML-block kinds and a tag grammar. HTML stays possible, but only where it's marked. |
+| [`toml-metadata`]{#toml-metadata} | TOML metadata (`+++`) | a `---` metadata block | One format. |
 | [`setext-heading`]{#setext-heading} | Setext headings (`Title` over `===` or `---`) | `# Title` | A second heading form. |
-| [`indented-code`]{#indented-code} | Indented code blocks | fenced code | Indentation meaning code is what makes list indentation hard. The indented line is paragraph text, and never a heading or list inside it. |
 | [`tilde-fence`]{#tilde-fence} | `~~~` fences | a longer backtick fence | One fence character. |
 | [`rule-marker`]{#rule-marker} | `___`, `* * *` rules | `---` | One marker. |
-| [`trailing-heading-attributes`]{#trailing-heading-attributes} | Trailing heading attributes (`## Title {#id}`) | `{#id}` on the line above | A `{` after a word is text, so this `{…}` would belong to the word "Title". |
-| [`multiline-attributes`]{#multiline-attributes} | Multi-line attributes | one line | One line keeps a `{…}` plain to see. |
-| [`colon-directive`]{#colon-directive} | Colon directives (`:::name` … `:::`, `::name[label]`, `:name[text]`) | `{@name}` … `{/name}`, `[label]{@name /}` or `[text]{@name}` | One extension syntax. `{…}` already holds the attributes, and `@name` in it makes the element, so colons were a second way. |
-| [`element-name`]{#element-name} | Element names that aren't elements (`{@chart /}`, `{@note}`, `[x]{@note}`) | a `div` or span with a class (`{@div .chart /}`, `[x]{.note}`), or a custom element (`{@chart-view /}`) | The name is the element it writes, so there is one way to add a class and a name can never be `script`. |
-| [`lazy-line`]{#lazy-line} | Lazy continuation lines (a quoted or listed paragraph continuing without `>` or indentation) | `>` on every line, or indent to the item's content column | Lazy lines are the main reason CommonMark's block structure depends on context. Formatters already write them out in full. |
+| [`colon-directive`]{#colon-directive} | Colon directives (`:::name` … `:::`, `::name[label]`, `:name[text]`) | `{@name}` … `{/name}`, `[label]{@name /}` or `[text]{@name}` | `{…}` already holds the attributes, and `@name` in it makes the element. |
+| [`trailing-spaces`]{#trailing-spaces} | Two trailing spaces as a line break | `\` at end of line | Invisible syntax. |
+| [`underscore-strong`]{#underscore-strong} | `__strong__` | `**strong**` | Formatters rewrite it. |
+| [`star-emphasis`]{#star-emphasis} | `*emphasis*`, except inside `_…_` or touching a letter ([Emphasis](#emphasis)) | `_emphasis_` | The source of most emphasis edge cases. Formatters rewrite it. |
+| [`single-tilde`]{#single-tilde} | `~single~` strikethrough | `~~text~~` | Formatters rewrite it. |
+| [`math-delimiter`]{#math-delimiter} | Other math delimiters: `$$x$$` inside a line of text, ``$`x`$`` | `$x$`, or a `$$` block | Under the `$x$` rule, `$$x$$` would lose a dollar at each end with no report. |
+| [`named-reference`]{#named-reference} | Named character references (`&copy;`, `&amp;`, `&nbsp;`) | the character itself (`©`, `&`), or `\ ` for a non-breaking space | Files are UTF-8, `html()` escapes `&` and `<` itself, and the 2,125 names cost about 12 KB gzip. |
 
-### Inline forms
+### Parsing stays simple
+
+Each of these needs a grammar of its own, the context around a line, text already read or the whole document. Leaving them out keeps the parser small, and keeps it local so a document can stream.
 
 {.cuts}
 
 | Code | Syntax | Write instead | Why |
 | --- | --- | --- | --- |
-| [`reference-link`]{#reference-link} | Reference links: `[x][y]`, `[x][]`, `[y]: url` | inline links | A link can't be resolved until the whole document is read, which breaks local parsing and streaming. |
-| [`caret-footnote`]{#caret-footnote} | Footnotes (`[^label]`, `[^label]: text`) | a span, such as `[text]{.note}` | A reference can't be resolved until the whole document is read, as with reference links. |
-| [`bare-url`]{#bare-url} | Bare URLs (`https://…`, `www.…`, `me@example.com`) | `<https://…>` or `[text](url)` | GFM's largest construct, and the only one that has to look back at text already emitted: an email is known only at its `@`, and trailing punctuation is trimmed afterwards. |
-| [`relative-autolink`]{#relative-autolink} | Relative autolinks (`</docs/intro>`) | `[About](/about)` | An autolink needs a scheme, and `</about>` is a closing HTML tag, reported as raw HTML. A link should have real text. |
-| [`named-reference`]{#named-reference} | Named character references (`&copy;`, `&amp;`, `&nbsp;`) | the character itself (`©`, `&`), or `\ ` for a non-breaking space | Files are UTF-8, `html()` escapes `&` and `<` itself, and the table of 2,125 names is about 12 KB gzip. |
-| [`trailing-spaces`]{#trailing-spaces} | Two trailing spaces as a line break | `\` at end of line | Invisible syntax. |
-| [`underscore-strong`]{#underscore-strong} | `__strong__` | `**strong**` | One marker. Formatters rewrite it. |
-| [`star-emphasis`]{#star-emphasis} | `*emphasis*`, except inside `_…_` or touching a letter ([Emphasis](#emphasis)) | `_emphasis_` | One marker, and the source of most emphasis edge cases. Formatters rewrite it. |
-| [`single-tilde`]{#single-tilde} | `~single~` strikethrough | `~~text~~` | One marker. Formatters rewrite it. |
-| [`math-delimiter`]{#math-delimiter} | Other math delimiters: `$$x$$` inside a line of text, ``$`x`$`` | `$x$`, or a `$$` block | One way each: `$x$` in a line, and `$$` for a block, fenced or alone on its line. Read by the `$x$` rule, `$$x$$` would lose a dollar at each end with no report. |
-| [`inline-attributes`]{#inline-attributes} | Attributes after words, inline code or emphasis (`word{.x}`, `_x_{.x}`) | `[text]{.x}` | The brackets mark where a span starts, so one way. Keeping `{` special only after a `)` or `]` means braces in prose are plain text. |
-| [`jsx-component`]{#jsx-component} | MDX: JSX (a capitalised tag, `<Chart />`) and bare `{…}` expressions | `{@name}` elements, `${…}` | A `{` is only attributes where the rules above say so. Any other brace is prose, so a bare `{…}` stays text without a report. |
+| [`indented-code`]{#indented-code} | Indented code blocks | fenced code | It's what makes list indentation hard. The indented line stays paragraph text. |
+| [`lazy-line`]{#lazy-line} | Lazy continuation lines (a quoted or listed paragraph continuing without `>` or indentation) | `>` on every line, or indent to the item's content column | The main reason CommonMark's block structure depends on context. Formatters write them out in full. |
+| [`raw-html`]{#raw-html} | Raw HTML blocks and inline tags | a ` ```=html ` raw block, or elements and attributes | Seven HTML-block kinds and a tag grammar. HTML stays possible where it's marked. |
+| [`jsx-component`]{#jsx-component} | JSX components (a capitalised tag, `<Chart />`) | `{@name}` elements, `${…}` | A second component syntax beside `{@name}`, read by the same tag grammar as raw HTML. |
+| [`reference-link`]{#reference-link} | Reference links: `[x][y]`, `[x][]`, `[y]: url` | inline links | A link resolves only once the whole document is read. |
+| [`caret-footnote`]{#caret-footnote} | Footnotes (`[^label]`, `[^label]: text`) | a span, such as `[text]{.note}` | A reference resolves only once the whole document is read, as with reference links. |
+| [`bare-url`]{#bare-url} | Bare URLs (`https://…`, `www.…`, `me@example.com`) | `<https://…>` or `[text](url)` | GFM's largest construct, and it looks back at text already emitted. An email is known only at its `@`, and trailing punctuation is trimmed afterwards. |
+| [`relative-autolink`]{#relative-autolink} | Relative autolinks (`</docs/intro>`) | `[About](/about)` | `</about>` is a closing HTML tag, and a link should have real text. |
+
+### Braces stay prose
+
+A `{` holds attributes, an element or an expression only where the rules say so, and an element's name is the HTML element it writes. Any other brace is ordinary prose.
+
+{.cuts}
+
+| Code | Syntax | Write instead | Why |
+| --- | --- | --- | --- |
+| [`inline-attributes`]{#inline-attributes} | Attributes after words, inline code or emphasis (`word{.x}`, `_x_{.x}`) | `[text]{.x}` | The brackets mark where a span starts, so `{` is special only after a `)` or `]`. |
+| [`trailing-heading-attributes`]{#trailing-heading-attributes} | Trailing heading attributes (`## Title {#id}`) | `{#id}` on the line above | This `{…}` would belong to the word "Title". |
+| [`multiline-attributes`]{#multiline-attributes} | Multi-line attributes | one line | One line keeps a `{…}` plain to see. |
+| [`element-name`]{#element-name} | Element names that aren't elements (`{@chart /}`, `{@note}`, `[x]{@note}`) | a `div` or span with a class (`{@div .chart /}`, `[x]{.note}`), or a custom element (`{@chart-view /}`) | One way to add a class, and a name can never be `script`. |
 
 ## Formatters
 
