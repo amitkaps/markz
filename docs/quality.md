@@ -36,7 +36,7 @@ The report runs the same code as `pnpm test`, so it can't disagree with the test
   - math, including `$` used as currency
   - expressions: nesting, strings, comments, escapes, and emphasis inside `${…}`; malformed JavaScript that still closes; the regex-literal limit
   - attributes: the three placements, text fallbacks such as `{a, b}`, and oxfmt's blank line before headings
-- **Formatters:** what [Syntax](syntax.md#formatters) says formatters do is run through Prettier and oxfmt. Each rewrite in its table must happen and read without a warning, and each cut form it says they leave alone must still warn. What they do to every Not supported example is a snapshot, so a formatter release that changes one is seen.
+- **Formatters:** what [Syntax](syntax.md#formatters) says formatters do is run through Prettier and oxfmt. Each row of its table is one claim, under a rule that exists, and the formatted text must be what the row says and read without a warning. Each cut form it says they leave alone must still warn. What they do to every Not supported example is a snapshot, so a formatter release that changes one is seen.
 - **No backtracking:** every adversarial pattern (unclosed openers, deep nesting, long repeats) takes less than eight times as long at four times the size, where quadratic work would take sixteen.
 - **Heading ids:** a case for each step of the grammar's `heading-id` rule, and a reused explicit id producing a warning. Apostrophes and quotes are tested too, since they slug the same straight or curled (`Don't` and `Don’t` both give `dont`).
 - **Offsets** are asserted against known source, never against rendered output. This includes escapes, numeric references, astral characters, CRLF and nested containers.
