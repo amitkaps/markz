@@ -8,7 +8,6 @@
  */
 import { readFileSync } from "node:fs";
 import { defineConfig } from "vite-plus";
-import { craftz } from "@amitkaps/craftz";
 
 const generated = ["dist/**"];
 const vendored = ["test/examples/upstream/**/*.md", "test/documents/**"];
@@ -39,8 +38,6 @@ const raw = {
 
 export default defineConfig({
   // craftz() sets the format and lint rules.
-  plugins: [craftz()],
-
   // tsdown — `vp pack`. ESM only, with declarations. The code ships readable but without its
   // comments, keeping license comments and `@__PURE__` annotations, and with no sourcemaps
   // (design: Package). The `/*!` banner keeps the license with the code when a consumer bundles it.
@@ -49,7 +46,7 @@ export default defineConfig({
     entry: ["src/index.ts", "src/rules.ts", "src/cli.ts"],
     format: ["esm"],
     // The browsers the standard names, and the Node markz is built on, since it runs in both.
-    target: ["chrome142", "edge142", "firefox153", "safari18.6", "ios18.6", "node26"],
+    target: ["chrome142", "edge142", "firefox153", "safari18.6", "ios18.6", "node26.12.1"],
     dts: { generator: "oxc" },
     clean: true,
     fixedExtension: false,
@@ -57,11 +54,17 @@ export default defineConfig({
     outputOptions: { comments: { legal: true, annotation: true, jsdoc: false } },
     publint: { strict: true },
     plugins: [raw],
+    platform: "neutral",
   },
 
-  // Oxfmt and Oxlint — `vp check`. What they leave alone, beside the rules craftz() sets.
-  fmt: { ignorePatterns: [...generated, ...vendored, ...site] },
-  lint: { ignorePatterns: [...generated, ...site] },
+  // Oxfmt and Oxlint — `vp check`. What they leave alone, beside what craftz's rules set.
+  fmt: { ignorePatterns: [...generated, ...vendored, ...site], proseWrap: "never" },
+  lint: {
+    ignorePatterns: [...generated, ...site],
+    plugins: ["typescript", "unicorn", "import"],
+    categories: { correctness: "error" },
+    options: { typeAware: true, typeCheck: true },
+  },
 
   // Vitest — `vp test`. The linear-time tests measure time, so they run last, on their own:
   // alongside the fuzzer and the edge cases, a busy CPU can make a linear pattern look slow.
@@ -81,5 +84,21 @@ export default defineConfig({
       },
       { extends: true, test: { name: "timing", include: [timing], sequence: { groupOrder: 1 } } },
     ],
+  },
+
+  /** @prose
+   * # Verify
+   *
+   * `verify` runs `all`, whose tasks run side by side, as
+   * [craftz's rules](https://craftz.amitkaps.com/docs/rules.md#scripts-verify) say. `size`
+   * bundles `src/` itself, so it runs beside them. The Quality page reads the edges `test` kept
+   * and is written into the site, so `report` waits for both.
+   */
+  run: {
+    cache: false,
+    tasks: {
+      report: { command: "pnpm quality", dependsOn: ["test", "site"] },
+      all: { command: "true", dependsOn: ["check", "test", "build", "size", "site", "report"] },
+    },
   },
 });
