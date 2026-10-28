@@ -452,6 +452,17 @@ __b__
 *b*
 ```
 
+## triple-emphasis
+
+```example 655
+***a*** and ___b___
+.
+<p>***a*** and ___b___</p>
+.
+***a***
+___b___
+```
+
 ## single-tilde
 
 ```example 141

@@ -264,7 +264,7 @@ A framework can map names to its own components (`call-out` to `CallOut`) and at
 `_emphasis_`, `**strong**` and `~~strikethrough~~`.
 
 - `_` never works inside a word, so `snake_case_name` stays text. `**` may sit inside a word.
-- `***`, `____` and `~~~` are text. Nest with two markers, as `_**both**_`.
+- `***both***` and `___both___` stay text, with a warning. Nest with two markers, as `_**both**_`. Other runs, like `____` and `~~~`, are text.
 - `*emphasis*` is read only where formatters write it: inside `_…_`, or touching a letter (`a*b*c`). Anywhere else it stays text, with a warning.
 - `*` and `**` between two digits are text, so `2*3*4` and `2**10` stay arithmetic.
 
@@ -359,6 +359,7 @@ markz already has a form for each of these, and keeping one way means one thing 
 | [`trailing-spaces`]{#trailing-spaces} | Two trailing spaces as a line break | `\` at end of line | Invisible syntax. |
 | [`underscore-strong`]{#underscore-strong} | `__strong__` | `**strong**` | Formatters rewrite it. |
 | [`star-emphasis`]{#star-emphasis} | `*emphasis*`, except inside `_…_` or touching a letter ([Emphasis](#emphasis)) | `_emphasis_` | The source of most emphasis edge cases. Formatters rewrite it. |
+| [`triple-emphasis`]{#triple-emphasis} | `***both***`, `___both___` | `_**both**_` | Runs never split, so one run can't be both. |
 | [`single-tilde`]{#single-tilde} | `~single~` strikethrough | `~~text~~` | One strikethrough form. |
 | [`math-delimiter`]{#math-delimiter} | Other math delimiters: `$$x$$` inside a line of text, ``$`x`$`` | `$x$`, or a `$$` block | Under the `$x$` rule, `$$x$$` would lose a dollar at each end with no report. |
 | [`named-reference`]{#named-reference} | Named character references (`&copy;`, `&amp;`, `&nbsp;`) | the character itself (`©`, `&`), or `\ ` for a non-breaking space | Files are UTF-8, `html()` escapes `&` and `<` itself, and the 2,125 names cost about 12 KB gzip. |

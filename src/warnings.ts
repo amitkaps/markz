@@ -47,6 +47,7 @@ export const PAIRS = {
   "trailing-spaces": ["two trailing spaces as a line break", "`\\` at end of line"],
   "underscore-strong": ["`__strong__`", "`**strong**`"],
   "star-emphasis": ["`*emphasis*`", "`_emphasis_`"],
+  "triple-emphasis": ["`***both***` or `___both___`", "`_**both**_`"],
   "single-tilde": ["`~single~` strikethrough", "`~~text~~`"],
   "math-delimiter": ["math delimiters other than `$…$` in a line", "`$x$`, or a `$$` block"],
   "inline-attributes": ["attributes after inline text", "`[text]{.x}`"],

@@ -301,7 +301,7 @@ strikethrough ::= '~~' inline '~~'
 ```
 
 - `flanking`: A run can't open before whitespace, or before punctuation that follows a letter, and the mirror image for closing. `_` never opens or closes inside a word.
-- `nearest-opener`: A closer takes the nearest open run of its own kind and length. Runs never split, so `***`, `____` and `~~~` are text.
+- `nearest-opener`: A closer takes the nearest open run of its own kind and length. Runs never split, so `***`, `____` and `~~~` are text. A `***` or `___` pair is the `triple-emphasis` cut.
 - `emphasis-brackets`: A run opened before a `[` can't close before its `]`.
 - `star-places`: `*` emphasis only inside `_…_`, or touching a letter or digit. Anywhere else a `*…*` pair is the `star-emphasis` cut.
 - `star-digits`: A `*` or `**` run with a digit on each side is text, so `2*3*4` and `2**10` are arithmetic.

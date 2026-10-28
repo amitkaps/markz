@@ -13,6 +13,7 @@ exports[`oxfmt > changes the Not supported examples as before 1`] = `
   "trailing-spaces: "a\\t  \\nb" → "a b\\n" (no warning)",
   "underscore-strong: "__b__" → "**b**\\n" (no warning)",
   "star-emphasis: "*a* and *b*" → "_a_ and _b_\\n" (no warning)",
+  "triple-emphasis: "***a*** and ___b___" → "_**a**_ and _**b**_\\n" (no warning)",
   "toml-metadata: "+++\\ntitle = \\"x\\"\\n+++\\n# t" → "+++\\ntitle = \\"x\\"\\n+++\\n\\n# t\\n" (toml-metadata)",
 ]
 `;
@@ -31,6 +32,7 @@ exports[`prettier > changes the Not supported examples as before 1`] = `
   "trailing-spaces: "a\\t  \\nb" → "a b\\n" (no warning)",
   "underscore-strong: "__b__" → "**b**\\n" (no warning)",
   "star-emphasis: "*a* and *b*" → "_a_ and _b_\\n" (no warning)",
+  "triple-emphasis: "***a*** and ___b___" → "_**a**_ and _**b**_\\n" (no warning)",
   "toml-metadata: "+++\\ntitle = \\"x\\"\\n+++\\n# t" → "+++\\ntitle = \\"x\\"\\n+++\\n\\n# t\\n" (toml-metadata)",
 ]
 `;
