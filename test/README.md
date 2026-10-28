@@ -12,7 +12,7 @@ The checks:
 - [`constructs.test.ts`](constructs.test.ts): each construct in its own `describe`, held to its upstream examples, its own examples by edge, and the cases generated at its edges. Each Not supported row is held to its examples.
 - [`robustness.test.ts`](robustness.test.ts): noise, mutated examples and documents written from the grammar, each held to being sound, and the CommonMark and GFM ones to the oracle. The upstream sweeps are held to finishing, a valid tree and a warning for every bare URL GFM links.
 - [`documents.test.ts`](documents.test.ts): each real document, sound as written and formatted, its common blocks as micromark reads them, meaning the same after oxfmt, and warning as its snapshot in [`__snapshots__/`](__snapshots__/) says.
-- [`formatters.test.ts`](formatters.test.ts): what [Syntax: Formatters](../docs/syntax.md#formatters) says formatters do, held to Prettier and oxfmt. Each rewrite in its table happens, each cut form it says they leave alone still warns, and what they do to every Not supported example is a snapshot.
+- [`formatters.test.ts`](formatters.test.ts): what [Syntax: Formatters](../docs/syntax.md#formatters) says formatters do, held to Prettier and oxfmt. Each row of its table holds, each cut form it says they leave alone still warns, and what they do to every Not supported example is a snapshot.
 - [`docs.test.ts`](docs.test.ts): each page in [`docs/`](../docs/) read without a warning, and its relative links going to files that exist.
 - [`complexity.test.ts`](complexity.test.ts): every adversarial pattern, and a multi-megabyte document, held to linear time. It runs last, on its own.
 

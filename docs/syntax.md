@@ -396,26 +396,40 @@ A `{` holds attributes, an element or an expression only where the rules say so,
 
 ## Formatters
 
-markz reads what Markdown formatters write, so formatting a document never changes what it means. The formatters are Prettier and oxfmt, with `proseWrap: "never"`, and the tests run both on what this section says. A formatter rewrites several forms into one. markz reads the form it writes without a warning, and the form it replaces is either read the same or warned on until it's formatted.
+markz reads what Markdown formatters write, so formatting a document markz reads without a warning never changes what it means. The formatters are Prettier and oxfmt, with `proseWrap: "never"`, and the tests run both on every row below.
 
-| A formatter rewrites               | to                                 |
-| ---------------------------------- | ---------------------------------- |
-| `*em*`, `__strong__`, `***both***` | `_em_`, `**strong**`, `_**both**_` |
-| `~~~` fences                       | ` ``` ` fences                     |
-| `## Title ##`                      | `## Title`                         |
-| `___`, and `***` after line one    | `---`                              |
+Each row is one thing a formatter does, under the rule that decides how markz reads it. `⏎` is a line ending. Formatted is what both formatters write, or _as written_ when they leave it, or _read the same_ when they write different text that markz reads one way. Formatted text never warns, and a cut form that warns as written is fixed by formatting.
 
-Some of what formatters write is read on purpose:
+| Rule | Written | Formatted |
+| --- | --- | --- |
+| [`star-emphasis`](#star-emphasis) | `*em*` | `_em_` |
+| [`triple-emphasis`](#triple-emphasis) | `***both***` | `_**both**_` |
+| [`triple-emphasis`](#triple-emphasis) | `___both___` | `_**both**_` |
+| [`underscore-strong`](#underscore-strong) | `__strong__` | `**strong**` |
+| [`tilde-fence`](#tilde-fence) | `~~~⏎x⏎~~~` | ` ```⏎x⏎``` ` |
+| [`rule-marker`](#rule-marker) | `a⏎⏎___` | `a⏎⏎---` |
+| [`lazy-line`](#lazy-line) | `> a⏎b` | `> a b` |
+| [`lazy-line`](#lazy-line) | `- a⏎b` | `- a b` |
+| [`multiline-attributes`](#multiline-attributes) | `{.a⏎.b}⏎# x` | `{.a .b}⏎⏎# x` |
+| `closing-hashes` | `## Title ##` | `## Title` |
+| [`thematic-break`](#thematic-break) | `a⏎⏎***` | `a⏎⏎---` |
+| [`thematic-break`](#thematic-break) | `***⏎⏎a` | read the same |
+| `same-marker` | `- a⏎- b⏎⏎* c⏎* d` | as written |
+| `same-marker` | `1. a⏎1. b⏎⏎1) c⏎1) d` | as written |
+| `star-places` | `_a *b* c_` | as written |
+| `star-places` | `a*b*c` | as written |
+| `attribute-line` | `{#x}⏎## H` | `{#x}⏎⏎## H` |
+| [`metadata`](#metadata) | `---⏎title: 'a'⏎---` | `---⏎title: "a"⏎---` |
+| `metadata-wrap` | `---⏎nav: [aaaaaaaaaaaaaaaaaaaa, bbbbbbbbbbbbbbbbbbbbbbbbb, cccccccccccccccccccccccc, dddddddddd]⏎---` | read the same |
+| [`element-blank-lines`](#element-blank-lines) | `a⏎{@div /}⏎b` | `a {@div /} b` |
+| [`element-blank-lines`](#element-blank-lines) | `- a⏎{@div /}` | `- a {@div /}` |
+| [`element-blank-lines`](#element-blank-lines) | `> a⏎{@div /}` | `> a {@div /}` |
 
-- **List markers.** Two lists in a row are kept apart by switching the marker, `-` then `*`, or `1.` then `1)`. So markz reads every bullet and number marker.
-- **`*` emphasis** inside `_…_` or touching a letter, where `_` can't work.
-- **`***` on a document's first line,** where `---` would open metadata.
-- **A blank line** between a `{…}` line and the heading after it.
-- **Either quote style** in metadata, whichever the formatter is set to.
-
-A formatter also writes a lazy line out in full, and joins a multi-line `{…}` onto one line, which markz then reads. It leaves the other cut forms alone, and for those markz's warning is the only signal. They are [`setext-heading`](#setext-heading), [`indented-code`](#indented-code), [`trailing-spaces`](#trailing-spaces), [`single-tilde`](#single-tilde), [`named-reference`](#named-reference), [`bare-url`](#bare-url), [`reference-link`](#reference-link) and [`raw-html`](#raw-html). The one exception is a tab before the two spaces, which a formatter reads as a plain line ending and joins away, with the break.
+Some of what formatters write is read on purpose. They keep two lists in a row apart by switching the marker, so markz reads every bullet and number marker. They write `*` emphasis where `_` can't work, and `***` on a first line, where `---` would open metadata. They put a blank line between a `{…}` line and the heading after it, and quote metadata values the way they're set to.
 
 A formatter doesn't know elements, so it reads an element or attribute line as paragraph text. Beside other text, a formatter that puts each paragraph on one line joins them, and markz then reads the line as text. Straight after a list, a quote or a table, the line continues the list item, the quote or the table to the formatter, which moves it in. That is why markz warns (`element-blank-lines`) when the blank line on either side is missing.
+
+Formatters leave the other cut forms alone, and for those markz's warning is the only signal. They are [`setext-heading`](#setext-heading), [`indented-code`](#indented-code), [`trailing-spaces`](#trailing-spaces), [`single-tilde`](#single-tilde), [`named-reference`](#named-reference), [`bare-url`](#bare-url), [`reference-link`](#reference-link) and [`raw-html`](#raw-html). The one exception is a tab before the two spaces, which a formatter reads as a plain line ending and joins away, with the break.
 
 ## Grammar
 
