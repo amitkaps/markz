@@ -1,0 +1,36 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`oxfmt > changes the Not supported examples as before 1`] = `
+[
+  "tilde-fence: "~~~\\nx\\n~~~" → "\`\`\`\\nx\\n\`\`\`\\n" (no warning)",
+  "rule-marker: "___\\n\\n* * *" → "***\\n\\n---\\n" (no warning)",
+  "element-name: "{@note}\\n- a _b_\\n{/note}" → "{@note}\\n\\n- a _b_ {/note}\\n" (element-name)",
+  "multiline-attributes: "{.a\\n.b}\\n# x" → "{.a .b}\\n\\n# x\\n" (no warning)",
+  "lazy-line: "> a\\nb" → "> a b\\n" (no warning)",
+  "lazy-line: "- a\\nb" → "- a b\\n" (no warning)",
+  "lazy-line: "> a\\n\`\`\`b\`c" → "> a\\n> \`\`\`b\`c\\n" (no warning)",
+  "caret-footnote: "Wow![^1]\\n[^1]: a note that interrupts the paragraph" → "Wow![^1]\\n\\n[^1]: a note that interrupts the paragraph\\n" (caret-footnote)",
+  "trailing-spaces: "a\\t  \\nb" → "a b\\n" (no warning)",
+  "underscore-strong: "__b__" → "**b**\\n" (no warning)",
+  "star-emphasis: "*a* and *b*" → "_a_ and _b_\\n" (no warning)",
+  "toml-metadata: "+++\\ntitle = \\"x\\"\\n+++\\n# t" → "+++\\ntitle = \\"x\\"\\n+++\\n\\n# t\\n" (toml-metadata)",
+]
+`;
+
+exports[`prettier > changes the Not supported examples as before 1`] = `
+[
+  "tilde-fence: "~~~\\nx\\n~~~" → "\`\`\`\\nx\\n\`\`\`\\n" (no warning)",
+  "rule-marker: "___\\n\\n* * *" → "---\\n\\n---\\n" (no warning)",
+  "colon-directive: ":::note\\nBody\\n:::" → ":::note Body :::\\n" (colon-directive)",
+  "element-name: "{@note}\\n- a _b_\\n{/note}" → "{@note}\\n\\n- a _b_ {/note}\\n" (element-name)",
+  "multiline-attributes: "{.a\\n.b}\\n# x" → "{.a .b}\\n\\n# x\\n" (no warning)",
+  "lazy-line: "> a\\nb" → "> a b\\n" (no warning)",
+  "lazy-line: "- a\\nb" → "- a b\\n" (no warning)",
+  "lazy-line: "> a\\n\`\`\`b\`c" → "> a \`\`\`b\`c\\n" (no warning)",
+  "caret-footnote: "Wow![^1]\\n[^1]: a note that interrupts the paragraph" → "Wow![^1]\\n\\n[^1]: a note that interrupts the paragraph\\n" (caret-footnote)",
+  "trailing-spaces: "a\\t  \\nb" → "a b\\n" (no warning)",
+  "underscore-strong: "__b__" → "**b**\\n" (no warning)",
+  "star-emphasis: "*a* and *b*" → "_a_ and _b_\\n" (no warning)",
+  "toml-metadata: "+++\\ntitle = \\"x\\"\\n+++\\n# t" → "+++\\ntitle = \\"x\\"\\n+++\\n\\n# t\\n" (toml-metadata)",
+]
+`;
