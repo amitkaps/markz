@@ -12,6 +12,7 @@ What the checks in [`../`](../) and the Quality page read and judge with. No tes
 - [`generate.ts`](generate.ts): fast-check arbitraries. Documents written from the grammar's productions, optionally only those of chosen origins; noise from Markdown's characters and the ones that trouble offsets; known examples with a few random edits; and how far a search goes.
 - [`sound.ts`](sound.ts) and [`tree.ts`](tree.ts): what every document must satisfy, whatever the input, and the tree invariants among it.
 - [`corpus.ts`](corpus.ts): the real documents in [`../documents/`](../documents/) by tier, and the variants built from them: common, formatted and repeated to a size. `pnpm speed` and the Quality page time them.
+- [`formatters.ts`](formatters.ts): oxfmt and Prettier, each run on many documents at once, set as craftz sets this repository's formatter.
 - [`node.ts`](node.ts): lets a plain Node script load `src/` and the harness, which Vite otherwise resolves.
 - [`speed.ts`](speed.ts): warm-up, timed passes, one version against another and retained memory, for `pnpm speed`, `pnpm size` and the Quality page's Size and Speed.
 - [`profile.ts`](profile.ts): a warm CPU profile and its table of self time by area and function, for `pnpm hotspots`.

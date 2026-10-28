@@ -359,7 +359,7 @@ markz already has a form for each of these, and keeping one way means one thing 
 | [`trailing-spaces`]{#trailing-spaces} | Two trailing spaces as a line break | `\` at end of line | Invisible syntax. |
 | [`underscore-strong`]{#underscore-strong} | `__strong__` | `**strong**` | Formatters rewrite it. |
 | [`star-emphasis`]{#star-emphasis} | `*emphasis*`, except inside `_…_` or touching a letter ([Emphasis](#emphasis)) | `_emphasis_` | The source of most emphasis edge cases. Formatters rewrite it. |
-| [`single-tilde`]{#single-tilde} | `~single~` strikethrough | `~~text~~` | Formatters rewrite it. |
+| [`single-tilde`]{#single-tilde} | `~single~` strikethrough | `~~text~~` | One strikethrough form. |
 | [`math-delimiter`]{#math-delimiter} | Other math delimiters: `$$x$$` inside a line of text, ``$`x`$`` | `$x$`, or a `$$` block | Under the `$x$` rule, `$$x$$` would lose a dollar at each end with no report. |
 | [`named-reference`]{#named-reference} | Named character references (`&copy;`, `&amp;`, `&nbsp;`) | the character itself (`©`, `&`), or `\ ` for a non-breaking space | Files are UTF-8, `html()` escapes `&` and `<` itself, and the 2,125 names cost about 12 KB gzip. |
 
@@ -395,12 +395,11 @@ A `{` holds attributes, an element or an expression only where the rules say so,
 
 ## Formatters
 
-markz reads what Markdown formatters write, so formatting a document never changes what it means. A formatter rewrites several forms into one, and markz reads both sides.
+markz reads what Markdown formatters write, so formatting a document never changes what it means. The formatters are Prettier and oxfmt, with `proseWrap: "never"`, and the tests run both on what this section says. A formatter rewrites several forms into one. markz reads the form it writes without a warning, and the form it replaces is either read the same or warned on until it's formatted.
 
 | A formatter rewrites               | to                                 |
 | ---------------------------------- | ---------------------------------- |
 | `*em*`, `__strong__`, `***both***` | `_em_`, `**strong**`, `_**both**_` |
-| `~one~`                            | `~~one~~`                          |
 | `~~~` fences                       | ` ``` ` fences                     |
 | `## Title ##`                      | `## Title`                         |
 | `___`, and `***` after line one    | `---`                              |
@@ -413,7 +412,7 @@ Some of what formatters write is read on purpose:
 - **A blank line** between a `{…}` line and the heading after it.
 - **Either quote style** in metadata, whichever the formatter is set to.
 
-Formatters leave the cut forms alone (setext headings, indented code, two-space breaks, named references, bare URLs, reference links and raw HTML). For those, markz's warning is the only signal.
+A formatter also writes a lazy line out in full, and joins a multi-line `{…}` onto one line, which markz then reads. It leaves the other cut forms alone, and for those markz's warning is the only signal. They are [`setext-heading`](#setext-heading), [`indented-code`](#indented-code), [`trailing-spaces`](#trailing-spaces), [`single-tilde`](#single-tilde), [`named-reference`](#named-reference), [`bare-url`](#bare-url), [`reference-link`](#reference-link) and [`raw-html`](#raw-html). The one exception is a tab before the two spaces, which a formatter reads as a plain line ending and joins away, with the break.
 
 A formatter doesn't know elements, so it reads an element or attribute line as paragraph text. Beside other text, a formatter that puts each paragraph on one line joins them, and markz then reads the line as text. Straight after a list, a quote or a table, the line continues the list item, the quote or the table to the formatter, which moves it in. That is why markz warns (`element-blank-lines`) when the blank line on either side is missing.
 
