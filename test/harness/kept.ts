@@ -3,7 +3,7 @@
  *
  * The edge search is the slowest part of `pnpm test`, and the Quality page shows what it reached.
  * So `constructs.test.ts` keeps each construct's result in a file, and the page reads it rather
- * than searching again. `verify` runs the tests before the page, so the file is there.
+ * than searching again. `verify` runs the page after the tests, so the file is there.
  *
  * The file names the search's runs and seed, and a hash of `src/`, `test/` and `docs/`. One from
  * another search or other files isn't read, and the page searches for itself, so `pnpm quality`

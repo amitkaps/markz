@@ -8,16 +8,20 @@
  * `pnpm run ship`, which uploads it with `craftz deploy`. This file names the domain, so a deploy
  * can't drop it. The steps are in [development](docs/development.md#the-site).
  */
-import { site } from "@amitkaps/craftz/cloudflare";
 
-export default site({
-  name: "markz",
-  domains: ["markz.amitkaps.com"],
-  assets: {
-    directory: ".prose",
-    // Serve the site's own 404.html for any missing address.
-    notFoundHandling: "404-page",
-    // Serve /src/html.ts from src/html.ts.html, with no redirect.
-    htmlHandling: "auto-trailing-slash",
+export default {
+  worker: {
+    name: "markz",
+    domains: ["markz.amitkaps.com"],
+    assets: {
+      directory: ".prose",
+      // Serve the site's own 404.html for any missing address.
+      notFoundHandling: "404-page",
+      // Serve /src/html.ts from src/html.ts.html, with no redirect.
+      htmlHandling: "auto-trailing-slash",
+    },
+    compatibilityDate: "2026-10-19",
+    workersDev: false,
+    previewUrls: false,
   },
-});
+};
