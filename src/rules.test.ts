@@ -51,7 +51,7 @@ describe("markz's rules", () => {
     const printed = printRules([markz]);
     expect(printed).toMatch(/^## Metadata\n\n- `metadata-block`: /);
     expect(printed).toContain(
-      "\n  Checked by `star-emphasis`, `underscore-strong` and `single-tilde`.\n",
+      "\n  Checked by `star-emphasis`, `underscore-strong`, `triple-emphasis` and `single-tilde`.\n",
     );
   });
 });

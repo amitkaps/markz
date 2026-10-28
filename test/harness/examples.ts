@@ -166,10 +166,13 @@ export const listed: Record<string, string> = {
   // Emphasis that needs a delimiter run split (`****`, `__foo_`), which markz doesn't do.
   ...Object.fromEntries(
     [
-      408, 409, 413, 414, 415, 416, 417, 426, 427, 430, 431, 442, 443, 444, 445, 446, 447, 454, 455,
-      456, 457, 458, 459, 464, 465, 466, 467, 468,
+      408, 409, 413, 414, 415, 417, 426, 427, 430, 431, 442, 443, 444, 445, 446, 447, 454, 455, 456,
+      457, 458, 459, 464, 465, 466, 468,
     ].map((n) => [`commonmark:${n}`, "emphasis"]),
   ),
+  // A `***` or `___` pair, which one run would have to split to read.
+  "commonmark:416": "triple-emphasis",
+  "commonmark:467": "triple-emphasis",
   // A run opened before a `[` can't close inside the brackets, even when they make no link.
   "commonmark:523": "emphasis",
   // A `*` between two digits is arithmetic, not emphasis (`5*6*78`).

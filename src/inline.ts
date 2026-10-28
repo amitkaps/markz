@@ -92,8 +92,8 @@ interface List {
  * # Emphasis kinds
  *
  * A delimiter run's kind is its character and length. `_`, `**` and `~~` are the dialect's;
- * `*` is accepted where formatters write it (grammar: `star-places`); `__` and `~` are rejected
- * forms that are matched only to be reported. Runs of any other length are plain text.
+ * `*` is accepted where formatters write it (grammar: `star-places`); `__`, `~`, `***` and `___`
+ * are rejected forms that are matched only to be reported. Runs of any other length are plain text.
  */
 const KINDS: Record<string, NodeType> = {
   _1: "emphasis",
@@ -105,6 +105,8 @@ const REJECTED: Record<string, WarningCode> = {
   _2: "underscore-strong",
   "~1": "single-tilde",
   "*1": "star-emphasis",
+  "*3": "triple-emphasis",
+  _3: "triple-emphasis",
 };
 
 const isSpace = (c: string | undefined) => c === undefined || /\s/.test(c);
@@ -593,8 +595,8 @@ class InlinePass {
    * so nothing is read twice.
    *
    * `*` is kept only in `star-places`, where formatters write it, and never between two digits
-   * (`star-digits`). Anywhere else a `*` pair, like a `__` or `~` pair, stays text and is
-   * reported.
+   * (`star-digits`). Anywhere else a `*` pair, like a `__`, `~`, `***` or `___` pair, stays text
+   * and is reported.
    */
   delimiter(list: List, t: number, from: number, to: number): number {
     const { text } = this;

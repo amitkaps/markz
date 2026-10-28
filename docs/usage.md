@@ -158,7 +158,7 @@ Each rule is a list item that opens with its id, under a heading for its group. 
 
 ### Inline
 
-- [`emphasis-underscore`]{#emphasis-underscore}: Write `_emphasis_` and `**strong**`, never `*emphasis*` or `__strong__` ([`star-emphasis`](syntax.md#star-emphasis), [`underscore-strong`](syntax.md#underscore-strong)). Strike through with `~~text~~` ([`single-tilde`](syntax.md#single-tilde)).
+- [`emphasis-underscore`]{#emphasis-underscore}: Write `_emphasis_` and `**strong**`, never `*emphasis*` or `__strong__` ([`star-emphasis`](syntax.md#star-emphasis), [`underscore-strong`](syntax.md#underscore-strong)). Nest them for both, as `_**both**_` ([`triple-emphasis`](syntax.md#triple-emphasis)). Strike through with `~~text~~` ([`single-tilde`](syntax.md#single-tilde)).
 - [`link-inline`]{#link-inline}: Write a link as `[text](url)`, with its URL in place ([`reference-link`](syntax.md#reference-link)). A bare URL goes in `<https://…>` ([`bare-url`](syntax.md#bare-url)), and a relative one needs text, as `[About](/about)` ([`relative-autolink`](syntax.md#relative-autolink)).
 - [`note-span`]{#note-span}: Write a note as a span, like `[text]{.note}`, since there are no footnotes ([`caret-footnote`](syntax.md#caret-footnote)).
 - [`character-itself`]{#character-itself}: Write a character itself, like `©`, not `&copy;`, and `\ ` for a non-breaking space ([`named-reference`](syntax.md#named-reference)).
