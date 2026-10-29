@@ -65,6 +65,7 @@ export default defineConfig({
     plugins: ["typescript", "unicorn", "import"],
     categories: { correctness: "error" },
     options: { typeAware: true, typeCheck: true },
+    rules: { "no-empty": "error" },
   },
 
   // Vitest — `vp test`. The linear-time tests measure time, so they run last, on their own:
