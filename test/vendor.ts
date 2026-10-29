@@ -337,7 +337,9 @@ function yamlSuite(dir: string, dropped: string[]): Vendored[] {
             : Array.isArray(value)
               ? "sequence"
               : "mapping";
-      } catch {}
+      } catch {
+        // YAML the parser rejects keeps the shape "error", and is kept as a case.
+      }
       if (shape !== "mapping" && shape !== "error") {
         dropped.push(`${label} ${name}: a ${shape}, not a mapping`);
         continue;
