@@ -10,9 +10,9 @@ The rule is [Write the spec first](https://craftz.amitkaps.com/docs/rules.md#wri
 
 - **The grammar is the judge, and it can be wrong.** Generating every one-character edit of each construct found as many mistakes in the grammar as in the parser. A disagreement is settled by naming the side rule that decides it and testing that rule narrowly, never by widening a check.
 
-## Set the limits first
+## Draw the boundaries first
 
-The rule is [Set the limits first](https://craftz.amitkaps.com/docs/rules.md#set-the-limits-first). `pnpm size` fails above 20 KB, and `test/complexity.test.ts` holds linear time ([Design](design.md#performance-and-size)).
+The rule is [Draw the boundaries first](https://craftz.amitkaps.com/docs/rules.md#draw-the-boundaries-first). [Not supported](syntax.md#not-supported) lists what the dialect cuts, `pnpm size` fails above 20 KB, and `test/complexity.test.ts` holds linear time ([Design](design.md#performance-and-size)).
 
 - **The budget decided the design.** A general parser with GFM and extensions leaves almost no room under 20 KB, so markz parses for itself. Dropping named entities removes a 12 KB table from every build. Allowlists and messages are most of what features add.
 - **Linear time needs its own tests.** Before adversarial patterns were timed, 23 of 51 were quadratic. The common fix is a scan that fails remembering where, and settling every opener it passed, so nothing is scanned twice.
