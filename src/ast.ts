@@ -257,7 +257,7 @@ export interface Store {
  *
  * `finish` closes the root at the end of the source and copies each array down to its nodes. A
  * view would keep the whole guess alive, which on real documents is several times the nodes
- * ([Lessons](../docs/lessons.md#size)).
+ * ([Lessons](../docs/lessons.md#measure-before-changing)).
  */
 type DataArgs<K extends NodeType> = K extends DataType ? [data: NodeData[K]] : [];
 
