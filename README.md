@@ -70,7 +70,7 @@ markz reads its language, not every Markdown in the wild. Pasted or generated Ma
 - [Grammar](docs/grammar.md): the language in EBNF, with the side rules that settle each choice.
 - [Design](docs/design.md): the tree, source offsets, the parser, HTML and security.
 - [Quality](docs/quality.md): how markz is tested, and how to read the report of conformance, size and speed on each commit.
-- [Lessons](docs/lessons.md): what building it taught, and what could be better.
+- [Lessons](docs/lessons.md): what building it taught.
 - [Development](docs/development.md): build, test, release and deploy the site.
 
 markz builds on CommonMark and GFM, takes its cuts and attribute syntax from djot and its math from pandoc and GitHub, and uses micromark as the oracle its tests check against.

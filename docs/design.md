@@ -64,6 +64,14 @@ Rules:
 
 `position(source)` builds a line-start table once and converts offsets to `{ line, column }` by binary search. Lines are 1-based and columns are 0-based, as in source-map v3. A consumer that parses an extracted string, such as a comment body with its `*` gutters stripped, maps lines back to the file itself. markz only promises offsets into what it was given.
 
+## What the dialect promises
+
+markz reads the Markdown people already write, so its promises are about what other tools do to a document, and when a writer hears about a mistake.
+
+- **Other tools may differ, but must not damage.** GitHub may show `{@call-out}` as text, but it must not hide content, show a metadata error or break a heading link. A formatter may rewrite the source, but markz must read the result the same way ([Formatters](syntax.md#formatters)). An earlier aim, that every tool read a document as markz does, added rules a writer had to learn.
+- **A warning means the page can't be what was meant.** Besides the cut forms, markz warns only where the output is almost certainly a mistake. That is a block with no closing line that swallows the rest of its container, a `{` after a `]` that never closes, or a `{/name}` after a `{#name}` line. Text that could be ordinary prose gets no warning, so a clean document stays clean.
+- **Text is kept as typed.** Smart punctuation is ruled out, since it curled `--force`, `'90s` and `5'10"` wrong with no warning, and its rules don't fit in a line a writer could hold. A site that wants curly quotes adds them in its own pass over the tree.
+
 ## Parser foundation
 
 markz has its own parser. It is written for this one dialect, runs in linear time with no backtracking, and emits straight into the flat AST:

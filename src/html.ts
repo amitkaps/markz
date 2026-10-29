@@ -334,8 +334,17 @@ function unsafe(value: string, image = true): boolean {
 
 /** @prose
  * `escape` is the one place text becomes safe to write into HTML, so every string from the
- * document passes through it. The parser marks nothing as already safe. Faster versions and a
- * parser flag were measured and ruled out ([Lessons](../docs/lessons.md#speed)).
+ * document passes through it. It takes about a tenth of parse and HTML time, mostly in the test
+ * that finds nothing, since only 7% of its strings hold a character to escape.
+ *
+ * Faster versions were measured and ruled out. A loop over character codes was 25–33% slower, and
+ * `replaceAll` or a `switch` measured flat. A `search` followed by a loop won 15% alone, but lost
+ * 2–4% on whole documents.
+ *
+ * The parser marks nothing as already safe. A flag on text nodes could skip most tests, for an
+ * estimated few percent. But every place that builds text would then share the safety check, and
+ * one wrong flag would let unescaped text into the page. Merging adjacent text nodes is out too,
+ * since only 6% of text nodes have a text sibling next.
  */
 function escape(text: string): string {
   return /[&<>"]/.test(text) ? text.replace(/[&<>"]/g, (c) => ESCAPES[c]!) : text;

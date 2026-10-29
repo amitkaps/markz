@@ -79,8 +79,9 @@ export function time(
  *
  * Two versions of markz timed in one process, a pass of each in turn, with the order swapped
  * every pair. Whatever the machine does then slows both alike. Two separate runs promise no such
- * thing, and on unchanged code they have differed by 30% (lessons: Speed). The change is the
- * median of the pairs' ratios.
+ * thing, and on unchanged code they have differed by 30%
+ * ([Lessons](../../docs/lessons.md#measure-before-changing)). The change is the median of the
+ * pairs' ratios.
  *
  * The pairs in one process agree closely, but they share the process's luck with the JIT. On
  * unchanged code one construct could come out 15% apart, and a different one each run. So a
