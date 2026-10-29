@@ -193,7 +193,7 @@ A release is a merge that changes `package.json`'s version. `.github/workflows/r
 
 ## Performance and size
 
-**The budget is 20 KB gzip** for the whole package, every export bundled and minified. `pnpm size` measures it and CI fails above it. One budget covers Node, Workers and the browser, and how it shaped the design is in [Lessons](lessons.md#size).
+**The budget is 20 KB gzip** for the whole package, every export bundled and minified. `pnpm size` measures it and CI fails above it. One budget covers Node, Workers and the browser, and how it shaped the design is in [Lessons](lessons.md#draw-the-boundaries-first).
 
 **Speed is a property of the design** before it is a number: one pass over the source, linear time, no backtracking, and a flat tree of typed arrays with offsets into the source. `test/complexity.test.ts` holds linear time on adversarial patterns and a multi-megabyte document, and is the only timing CI gates on.
 

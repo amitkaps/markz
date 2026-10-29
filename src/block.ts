@@ -612,7 +612,7 @@ class BlockParser {
    * lines are the source as it is, one after another and split by `\n`. Otherwise a container
    * prefix, an indent, a tab or another line ending sits inside, and the lines are joined once.
    * Either way the value is a flat string, not a rope of a piece per line
-   * ([Lessons](../docs/lessons.md#size)).
+   * ([Lessons](../docs/lessons.md#measure-before-changing)).
    */
   openFence(kind: "fence" | "math", at: number, indent: number, ticks: number, info: string): void {
     const attributes = this.enter(false);
