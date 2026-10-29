@@ -55,6 +55,7 @@ export default defineConfig({
     publint: { strict: true },
     plugins: [raw],
     platform: "neutral",
+    deps: { neverBundle: [/^node:/] },
   },
 
   // Oxfmt and Oxlint — `vp check`. What they leave alone, beside what craftz's rules set.
