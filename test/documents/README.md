@@ -16,20 +16,24 @@ licence, and Airflow's its notice too.
 | ------------ | ----------------------------------------------------------------- | --------- | ---------- |
 | `agents.md/` | [openai/agents.md](https://github.com/openai/agents.md) `AGENTS.md`, the format's example | `d001185` | MIT        |
 | `airflow/`   | [apache/airflow](https://github.com/apache/airflow) `AGENTS.md`   | `dc2ee91` | Apache-2.0 |
-| `deno/`      | [denoland/deno](https://github.com/denoland/deno) `CLAUDE.md`     | `a18ce33` | MIT        |
 | `next.js/`   | [vercel/next.js](https://github.com/vercel/next.js) `AGENTS.md`   | `a7d6871` | MIT        |
-| `ruff/`      | [astral-sh/ruff](https://github.com/astral-sh/ruff) `AGENTS.md`   | `0692804` | MIT        |
 
 ## public
 
-Documentation written by people, in styles markz's own docs don't have. Each folder keeps
-its project's licence.
+Writing by people, in styles markz's own docs don't have. Each folder keeps its project's
+licence. Each kind of writing brings forms the others lack, and a file that added nothing the
+rest didn't already reach was cut.
 
-| Folder       | Source                                                                             | Commit    | Licence      |
-| ------------ | ---------------------------------------------------------------------------------- | --------- | ------------ |
-| `node/`      | [nodejs/node](https://github.com/nodejs/node) `doc/api/`: six API reference pages  | `5137638` | MIT          |
-| `rust-book/` | [rust-lang/book](https://github.com/rust-lang/book) `src/`: chapters 4 to 10       | `1500248` | MIT (or Apache-2.0) |
-| `vite/`      | [vitejs/vite](https://github.com/vitejs/vite) `docs/guide/`, `docs/config/` (prefixed) | `bc598a6` | MIT          |
+| Folder           | Source                                                                                                             | Commit    | Licence             |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------ | --------- | ------------------- |
+| `craftz/`        | [amitkaps/craftz](https://github.com/amitkaps/craftz) `docs/rules.md`, written in markz's dialect                 | `31b9e01` | MIT                 |
+| `d2l-zh/`        | [d2l-ai/d2l-zh](https://github.com/d2l-ai/d2l-zh) `chapter_linear-networks/linear-regression.md`, Chinese with math | `e6b18cc` | Apache-2.0          |
+| `markdown-exit/` | [serkodev/markdown-exit](https://github.com/serkodev/markdown-exit) `README.md`                                    | `7fc593d` | MIT                 |
+| `micromark/`     | [micromark/micromark](https://github.com/micromark/micromark) `readme.md`, dense with HTML and reference links     | `6577c20` | MIT                 |
+| `node/`          | [nodejs/node](https://github.com/nodejs/node) `doc/api/url.md`, an API reference page                             | `5137638` | MIT                 |
+| `rust-blog/`     | [rust-lang/blog.rust-lang.org](https://github.com/rust-lang/blog.rust-lang.org) two `inside-rust/` posts           | `cfe9f70` | MIT (or Apache-2.0) |
+| `rust-book/`     | [rust-lang/book](https://github.com/rust-lang/book) `src/`: two chapters                                           | `1500248` | MIT (or Apache-2.0) |
+| `vite/`          | [vitejs/vite](https://github.com/vitejs/vite) `docs/guide/`: four pages (prefixed)                                 | `bc598a6` | MIT                 |
 
 ## spec
 

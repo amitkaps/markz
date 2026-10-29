@@ -6,14 +6,16 @@
  * documents answers its own question:
  *
  * - **markz**: this repository's own writing (`README.md`, `AGENTS.md` and `docs/`), read where
- *   it lives. It is the only real writing in the dialect, with its metadata, elements and math,
+ *   it lives. It uses the most of the dialect, with its metadata, elements and math,
  *   and it changes with markz.
  * - **agents**: the instructions open-source projects keep for coding agents (`AGENTS.md`,
  *   `CLAUDE.md`). It is the Markdown agents read and write most, and none of it is markz's.
  *   Its warnings show how much of that writing the dialect cuts.
- * - **public**: documentation written by people, in other styles, so no one voice speaks for
- *   Markdown in general. It is Node.js's API reference (dense links and code), the Rust book
- *   (narrative with listings) and Vite's guide (VitePress, with `:::` containers).
+ * - **public**: writing in other styles, so no one voice speaks for Markdown in general. Node.js
+ *   brings an API reference, the Rust book narrative with listings, and Vite a guide with `:::`
+ *   containers. The Rust blog brings TOML front matter and footnotes, and d2l-zh Chinese with
+ *   math. micromark and markdown-exit bring READMEs thick with HTML and reference links. craftz's
+ *   rules are a sibling's doc in the dialect, dense with spans.
  * - **spec**: the CommonMark spec's own text, which other parsers benchmark on. It is dense with
  *   edge cases, not a typical document.
  *
@@ -25,7 +27,11 @@
  * The agents, public and spec documents are vendored in `test/documents/`, pinned and never
  * edited. The markz tier is never vendored. Frozen copies of markz's docs and of the repos that
  * use it (base, prose, visdown) were dropped. They duplicated the live docs, and snapshotted
- * repos that keep changing.
+ * repos that keep changing. craftz's rules are the exception, one page pinned like any other
+ * source. It's the dialect as the repos that use markz write it, a span on every rule.
+ *
+ * Each document earns its place by reaching parser code, a construct or a warning the others
+ * don't. A file that added nothing over the rest was cut, so a run reads a third less than it did.
  *
  * Nothing here parses at run time: a variant that needs markz's reading is given the parsed
  * document, so the tests and the Quality page both pass `src/`.
