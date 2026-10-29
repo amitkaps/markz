@@ -8,7 +8,8 @@ How to work on markz itself: build it, test it, release it and deploy its site. 
 pnpm install
 pnpm check             # format, lint and types
 pnpm fix               # writes the format and lint fixes
-pnpm test
+pnpm test              # every test but the timing ones
+vp run timing          # the linear-time tests, after the rest, on a quiet CPU
 pnpm fuzz              # random constructs and robustness, a new seed each run
 pnpm build             # the package, into dist/
 pnpm dev               # the same build, on every change

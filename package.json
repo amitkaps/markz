@@ -36,7 +36,7 @@
     "build": "vp pack",
     "check": "vp check && pnpm prose check && pnpm craftz check",
     "fix": "vp check --fix",
-    "test": "vp test --run",
+    "test": "vp test --run --project tests",
     "size": "node test/size.ts",
     "fuzz": "SEARCH=${SEARCH:-50} SEED=${SEED:-random} vp test --run test/constructs.test.ts test/robustness.test.ts",
     "speed": "node test/speed.ts",

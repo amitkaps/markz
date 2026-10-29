@@ -68,6 +68,7 @@ export default defineConfig({
 
   // Vitest — `vp test`. The linear-time tests measure time, so they run last, on their own:
   // alongside the fuzzer and the edge cases, a busy CPU can make a linear pattern look slow.
+  // `pnpm test` runs the tests project, and `vp run timing` the timing one after it.
   test: {
     expect: { requireAssertions: true },
     environment: "node",
@@ -93,12 +94,21 @@ export default defineConfig({
    * [craftz's rules](https://craftz.amitkaps.com/docs/rules.md#scripts-verify) say. `size`
    * bundles `src/` itself, so it runs beside them. The Quality page reads the edges `test` kept
    * and is written into the site, so `report` waits for both.
+   *
+   * `timing` waits for `test`, so its clocks don't share the CPU with the fuzzer and the edge
+   * searches. `report` doesn't wait for it, and writes the page while it runs. That's one busy core
+   * beside the timing, which its margin of twice linear absorbs, and it takes 4 seconds off the
+   * end of `verify`.
    */
   run: {
     cache: false,
     tasks: {
+      timing: { command: "vp test --run --project timing", dependsOn: ["test"] },
       report: { command: "pnpm quality", dependsOn: ["test", "site"] },
-      all: { command: "true", dependsOn: ["check", "test", "build", "size", "site", "report"] },
+      all: {
+        command: "true",
+        dependsOn: ["check", "test", "timing", "build", "size", "site", "report"],
+      },
     },
   },
 });
