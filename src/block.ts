@@ -495,7 +495,9 @@ class BlockParser {
 
   /**
    * Whether the rest of the line would open a block, for the lazy-line check. It follows the
-   * paragraph-interruption rules, counts rejected block forms, and changes nothing.
+   * paragraph-interruption rules, counts rejected block forms, and changes nothing. It copies the
+   * rest of the line, but runs only when a line misses an open container, so an ordinary line
+   * copies nothing and needs no copy-free test.
    */
   startsBlock(): boolean {
     const { cols, next } = this.indent();
