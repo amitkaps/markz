@@ -9,7 +9,7 @@ pnpm install
 pnpm check             # format, lint and types
 pnpm fix               # writes the format and lint fixes
 pnpm test              # every test but the timing ones
-vp run timing          # the linear-time tests, after the rest, on a quiet CPU
+pnpm timing            # the linear-time tests, on their own so their clocks are fair
 pnpm fuzz              # random constructs and robustness, a new seed each run
 pnpm build             # the package, into dist/
 pnpm dev               # the same build, on every change
