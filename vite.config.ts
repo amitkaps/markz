@@ -46,7 +46,7 @@ export default defineConfig({
     entry: ["src/index.ts", "src/rules.ts", "src/cli.ts"],
     format: ["esm"],
     // The browsers the standard names, and the Node markz is built on, since it runs in both.
-    target: ["chrome142", "edge142", "firefox153", "safari18.6", "ios18.6", "node26.12.1"],
+    target: ["chrome142", "edge142", "firefox153", "safari18.6", "ios18.6", "node26.13.0"],
     dts: { generator: "oxc" },
     clean: true,
     fixedExtension: false,
