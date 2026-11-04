@@ -55,7 +55,7 @@
     "outline": "prose outline"
   },
   "devDependencies": {
-    "@amitkaps/craftz": "0.19.0",
+    "@amitkaps/craftz": "0.20.0",
     "@amitkaps/prose": "0.12.0",
     "@types/node": "26.6.6",
     "fast-check": "^4.10.2",
