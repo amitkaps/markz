@@ -55,7 +55,7 @@
     "outline": "prose outline"
   },
   "devDependencies": {
-    "@amitkaps/craftz": "0.20.0",
+    "@amitkaps/craftz": "0.21.0",
     "@amitkaps/prose": "0.12.0",
     "@types/node": "26.6.6",
     "fast-check": "^4.10.2",
@@ -68,13 +68,13 @@
     "micromark-extension-math": "^3.1.0",
     "prettier": "^3.9.10",
     "publint": "0.3.25",
-    "vite-plus": "1.4.0",
+    "vite-plus": "1.5.0",
     "yaml": "^2.9.1"
   },
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
-      "version": "12.16.1",
+      "version": "12.18.0",
       "onFail": "download"
     },
     "runtime": {
@@ -86,5 +86,5 @@
   "engines": {
     "node": ">=26.13.0"
   },
-  "packageManager": "pnpm@12.16.1"
+  "packageManager": "pnpm@12.18.0"
 }
