@@ -55,7 +55,7 @@
     "outline": "prose outline"
   },
   "devDependencies": {
-    "@amitkaps/craftz": "0.22.0",
+    "@amitkaps/craftz": "0.23.0",
     "@amitkaps/prose": "0.12.0",
     "@types/node": "26.6.6",
     "fast-check": "^4.10.2",
@@ -68,7 +68,7 @@
     "micromark-extension-math": "^3.1.0",
     "prettier": "^3.9.10",
     "publint": "0.3.25",
-    "vite-plus": "1.5.0",
+    "vite-plus": "1.5.1",
     "yaml": "^2.9.1"
   },
   "devEngines": {
