@@ -21,7 +21,7 @@ exports[`oxfmt > changes the Not supported examples as before 1`] = `
 exports[`prettier > changes the Not supported examples as before 1`] = `
 [
   "tilde-fence: "~~~\\nx\\n~~~" → "\`\`\`\\nx\\n\`\`\`\\n" (no warning)",
-  "rule-marker: "___\\n\\n* * *" → "---\\n\\n---\\n" (no warning)",
+  "rule-marker: "___\\n\\n* * *" → "***\\n\\n---\\n" (no warning)",
   "colon-directive: ":::note\\nBody\\n:::" → ":::note Body :::\\n" (colon-directive)",
   "element-name: "{@note}\\n- a _b_\\n{/note}" → "{@note}\\n\\n- a _b_ {/note}\\n" (element-name)",
   "multiline-attributes: "{.a\\n.b}\\n# x" → "{.a .b}\\n\\n# x\\n" (no warning)",

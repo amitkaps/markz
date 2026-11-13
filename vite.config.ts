@@ -46,7 +46,7 @@ export default defineConfig({
     entry: ["src/index.ts", "src/rules.ts", "src/cli.ts"],
     format: ["esm"],
     // The browsers the standard names, and the Node markz is built on, since it runs in both.
-    target: ["chrome143", "edge143", "firefox153", "safari18.6", "ios18.6", "node26.13.0"],
+    target: ["chrome148", "edge148", "firefox153", "safari18.6", "ios18.6", "node26.13.1"],
     dts: { generator: "oxc" },
     clean: true,
     fixedExtension: false,
@@ -104,14 +104,20 @@ export default defineConfig({
    * a script is named for its place in `verify`, as `report` runs `pnpm quality`.
    */
   run: {
-    cache: false,
+    cache: { scripts: false, tasks: true },
     tasks: {
-      linear: { command: "pnpm timing", dependsOn: ["test"] },
-      report: { command: "pnpm quality", dependsOn: ["test", "site"] },
+      linear: { command: "pnpm timing", dependsOn: ["tested"] },
+      report: { command: "pnpm quality", dependsOn: ["tested", "site"] },
       all: {
         command: "true",
-        dependsOn: ["check", "test", "linear", "build", "size", "site", "report"],
+        dependsOn: ["check", "tested", "linear", "built", "size", "site", "report"],
+        cache: false,
       },
+      tested: {
+        command: "pnpm run test",
+        cache: { input: [{ auto: true }, "!.prose/**", "!dist/**"] },
+      },
+      built: { command: "pnpm run build", cache: { input: [{ auto: true }, "!.prose/**"] } },
     },
   },
 });
