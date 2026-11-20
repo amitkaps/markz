@@ -129,7 +129,7 @@ function edgesOf(e: Edges): HTMLElement {
     sample != null && h("code", {}, sample.replace(/\r\n|\n/g, "⏎").replace(/\r/g, "␍")),
   ];
   const none = (["ambiguous", "unclosed"] as const).flatMap((k) =>
-    e.none[k] ? [h("p", {}, `No ${k} example. `, h("span", { class: "why" }, e.none[k]!))] : [],
+    e.none[k] ? [h("p", {}, `No ${k} example. `, h("span", { class: "why" }, e.none[k]))] : [],
   );
   return h(
     "div",
@@ -159,7 +159,7 @@ class MarkzQuality extends HTMLElement {
   #limit = new Map<string, number>();
 
   connectedCallback(): void {
-    this.#data = JSON.parse(document.getElementById("quality-data")!.textContent!) as Data;
+    this.#data = JSON.parse(document.getElementById("quality-data")!.textContent) as Data;
     for (const r of this.#data.rows) {
       const list = this.#bySection.get(r.section) ?? [];
       list.push(r);

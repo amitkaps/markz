@@ -92,7 +92,7 @@ describe("warning codes", () => {
   });
 
   it.each(rows)("row $code writes instead what the code does", (r) => {
-    expect(WARNINGS[r.code]?.instead).toBe(r.instead);
+    expect(WARNINGS[r.code].instead).toBe(r.instead);
   });
 });
 

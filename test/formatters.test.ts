@@ -61,7 +61,7 @@ const claims = [...doc.children(table!)].slice(1).map((tr) => {
   return {
     rule: code(rule!)!,
     written: code(written!)!,
-    formatted: code(formatted!) ?? textContent(doc, formatted!).trim(),
+    formatted: code(formatted!) ?? textContent(doc, formatted).trim(),
     exact: code(formatted!) !== null,
   };
 });

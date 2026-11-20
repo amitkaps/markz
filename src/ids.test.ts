@@ -118,7 +118,7 @@ const sources = [
 
 describe("every id html() writes", () => {
   it.each(sources)("%s", (_, source) => {
-    const doc = parse(source!);
+    const doc = parse(source);
     expect(ids(doc).map((i) => i.id)).toEqual(writtenIds(html(doc)));
   });
 });
