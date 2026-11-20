@@ -945,7 +945,7 @@ class InlinePass {
 
   /** Everything from `bracket` to the end of the list becomes one text item, as typed. */
   literal(list: List, bracket: Item, e: number): void {
-    const item = this.textItem(bracket.start, this.to(e), this.text.slice(bracket.at!, e));
+    const item = this.textItem(bracket.start, this.to(e), this.text.slice(bracket.at, e));
     item.prev = bracket.prev;
     if (item.prev) item.prev.next = item;
     else list.first = item;

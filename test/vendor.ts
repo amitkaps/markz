@@ -205,7 +205,7 @@ function inline(dir: string, dropped: string[]): Vendored[] {
     }
     for (const child of children(node)) visit(child, [...parents, node], title);
   };
-  visit(parseSync(file, text).program as unknown as Node, [], "");
+  visit(parseSync(file, text).program, [], "");
   return out;
 }
 
@@ -516,7 +516,7 @@ const [conformance, stress] = curate(suite, kept);
 conformance.forEach((e, i) => (e.example = i + 1));
 stress.forEach((e, i) => (e.example = i + 1));
 const commit = execFileSync("git", ["-C", dir, "rev-parse", "HEAD"], { encoding: "utf8" }).trim();
-const [title, repo, path, checks] = SUITES[suite]!;
+const [title, repo, path, checks] = SUITES[suite];
 const write = (file: string, list: Vendored[], checkedBy: string) => {
   const meta = {
     source: suite,
