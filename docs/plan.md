@@ -4,7 +4,7 @@ markz parses its dialect to a flat tree and renders it to HTML, with a warning f
 
 ## Next, in order
 
-- [ ] **Help in colour in each tool.** craftz, prose and pagez print `help` with `write`, which their usage now parses for, and craftz prints `rules` with it too. Each is a change in its own plan.
+- [ ] **Help in colour in each tool.** craftz, prose and pagez print `help` with `write`, and craftz prints `rules` with it too. Each bundles markz, so each takes 0.10.0 and releases, prose and pagez before craftz's bump takes them.
 
 ## Where it is
 
