@@ -3,8 +3,8 @@
  * # `markz`
  *
  * The command, for Node: `markz check <files>` prints every warning and fails on one,
- * `markz html [file]` writes a document's HTML, `markz rules [id]` prints the rules, and
- * `markz help [command]` prints the commands. Each is stated once, in
+ * `markz html [<file>]` writes a document's HTML, `markz rules [<id>]` prints the rules, and
+ * `markz help [<command>]` prints the commands. Each is stated once, in
  * [usage](../docs/usage.md#on-the-command-line), which `help` prints from, and a test holds each
  * command below to it. Each finding is one line, which
  * [rules.ts](rules.ts) formats for every tool.
@@ -14,7 +14,7 @@
  */
 import { readFileSync } from "node:fs";
 import { html, parse, position } from "./index";
-import { commands, finding, markz, printHelp, printOne, printRules } from "./rules";
+import { commands, finding, markz, printHelp, printOne, printRules, write } from "./rules";
 
 const say = (line: string) => process.stderr.write(`${line}\n`);
 
@@ -59,7 +59,7 @@ switch (command) {
   }
   case "rules": {
     const printed = args[0] ? printOne([markz], args[0]) : printRules([markz]);
-    if (printed) process.stdout.write(printed);
+    if (printed) write(printed);
     else {
       say(finding({ tool: "markz", level: "error", message: `markz states no \`${args[0]}\`` }));
       process.exitCode = 1;
@@ -68,7 +68,11 @@ switch (command) {
   }
   case "help": {
     const printed = printHelp(commands, args[0]);
-    if (printed) process.stdout.write(printed);
+    if (printed)
+      write(
+        printed,
+        commands.commands.map((c) => c.label),
+      );
     else {
       say(finding({ tool: "markz", level: "error", message: `no command \`${args[0]}\`` }));
       process.exitCode = 1;

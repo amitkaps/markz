@@ -28,7 +28,10 @@
  * `compose` fails on one stated twice.
  */
 import { headings, ids, parse, walk, WARNINGS } from "./index";
-import usage from "../docs/usage.md?raw";
+import { usage } from "./terminal";
+
+export { type Format, type Part, type Style, terminal, usage, write } from "./terminal";
+import usageDoc from "../docs/usage.md?raw";
 
 /** How much a finding matters. An `error` always fails, a `warning` fails `check` unless the
  *  rule is held, and a `note` never fails. */
@@ -122,20 +125,29 @@ export interface Commands {
   url: string;
 }
 
-/** A tool's commands, read as rules are, from the list items under `within` or the whole doc. */
+/** A tool's commands, read as rules are, from the list items under `within` or the whole doc.
+ *  Throws on a command whose usage doesn't parse, as `usage` says. */
 export function readCommands(tool: string, source: string, url: string, within?: string): Commands {
-  return { tool, commands: readRules(source, url, within), source, url };
+  const commands = readRules(source, url, within);
+  for (const command of commands) usage(command.label);
+  return { tool, commands, source, url };
 }
 
-/** Every command with how it's run and what it does, or with `name`, the section of the doc that
- *  states that command, its links resolved. `undefined` when no command is `name`. */
+/** Every command with how it's run and what it does, under its heading, or with `name`, the
+ *  section of the doc that states that command, with its links resolved and its spans as code.
+ *  Both are Markdown, which `write` renders for a terminal. `undefined` when no command is `name`. */
 export function printHelp(
   { tool, commands, source, url }: Commands,
   name?: string,
 ): string | undefined {
   if (name === undefined) {
-    const lines = commands.map((c) => `  ${c.label}\n      ${c.text}`);
-    return `Usage: ${tool} <command>, and ${tool} help <command> says more\n\n${lines.join("\n")}\n`;
+    let out = `Usage: \`${tool} <command>\`, and \`${tool} help <command>\` says more.\n`;
+    let group: string | undefined;
+    for (const c of commands) {
+      if (c.group !== group) out += `\n## ${(group = c.group)}\n\n`;
+      out += `- \`${c.label}\`: ${c.text}\n`;
+    }
+    return out;
   }
   const command = commands.find((c) => c.id === name);
   if (!command) return undefined;
@@ -147,7 +159,8 @@ export function printHelp(
   return `${resolve(source.slice(from, to).trimEnd(), url)}\n\n${command.url}\n`;
 }
 
-// Markdown with each link's and image's destination resolved against `url`.
+// Markdown with each link's and image's destination resolved against `url`, and each span that
+// only gives an id, like a command's, as what it holds.
 function resolve(source: string, url: string): string {
   const doc = parse(source);
   let out = "";
@@ -155,6 +168,16 @@ function resolve(source: string, url: string): string {
   walk(doc, {
     enter(node) {
       const type = doc.type(node);
+      if (type === "element") {
+        const items = doc.attributes(node)?.items ?? [];
+        const held = [...doc.children(node)];
+        if (doc.data(node, "element").kind !== "inline" || !held.length) return true;
+        if (!items.length || items.some((a) => a.key !== "id")) return true;
+        out += source.slice(at, doc.start(node));
+        out += source.slice(doc.start(held[0]!), doc.end(held.at(-1)!));
+        at = doc.end(node);
+        return false;
+      }
       if (type !== "link" && type !== "image") return true;
       const { destination } = doc.data(node, type);
       const written = source.slice(doc.start(node), doc.end(node));
@@ -185,7 +208,7 @@ const SITE = "https://markz.amitkaps.com/docs/";
 /** markz's own rules, from its usage doc, and its codes, each a warning. */
 export const markz: Rules = {
   tool: "markz",
-  rules: readRules(usage, `${SITE}usage.md`, "for-agents"),
+  rules: readRules(usageDoc, `${SITE}usage.md`, "for-agents"),
   codes: Object.entries(WARNINGS).map(([code, { message, instead }]) => ({
     code,
     level: "warning",
@@ -198,7 +221,7 @@ export const markz: Rules = {
 /** markz's own commands, from its usage doc. */
 export const commands: Commands = readCommands(
   "markz",
-  usage,
+  usageDoc,
   `${SITE}usage.md`,
   "on-the-command-line",
 );

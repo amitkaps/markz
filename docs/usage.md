@@ -112,9 +112,9 @@ A class with `white-space: pre-line` shows a paragraph's own newlines without th
 The package has a `markz` command, which runs in Node. Each command is stated once, here, with how it's run and what it does, and `markz help` prints them from the version installed:
 
 - [`markz check <files>`]{#check}: prints every warning in the files, one line each, and fails on any.
-- [`markz html [file]`]{#html}: writes a document's HTML, with its warnings on stderr.
-- [`markz rules [id]`]{#rules}: prints the rules, or one rule or code by its id.
-- [`markz help [command]`]{#help}: lists the commands, or prints what one does.
+- [`markz html [<file>]`]{#html}: writes a document's HTML, with its warnings on stderr.
+- [`markz rules [<id>]`]{#rules}: prints the rules, or one rule or code by its id.
+- [`markz help [<command>]`]{#help}: lists the commands, or prints what one does.
 
 ```sh
 pnpm markz check docs/*.md      # every warning, one line each, and fails on any
@@ -123,6 +123,8 @@ pnpm markz rules                # the rules below, as raw text
 pnpm markz rules star-emphasis  # one code, with the rule it serves
 pnpm markz help                 # the commands above
 ```
+
+In a terminal, `help` and `rules` show their Markdown in colour, without its marks, and wrap it to the window. Anywhere else, like a pipe, an agent's shell or with `NO_COLOR` set, they print the Markdown as it is.
 
 `check` prints a line for each warning, in the form every tool built on markz uses:
 

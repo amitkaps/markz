@@ -4,7 +4,7 @@ markz parses its dialect to a flat tree and renders it to HTML, with a warning f
 
 ## Next, in order
 
-- [ ] **Help that reads in a terminal.** `printHelp`'s listing groups commands under usage's headings, with each one's first sentence wrapped and no backticks. `help <command>` prints its section as text, with id spans as the command, once each tool gives a command its own heading. craftz's `printed()` turns id spans into text too, so markz owns that for both.
+- [ ] **Release 0.10.0.** Then craftz, prose and pagez write their `help` with `write`, and write each value in a usage as `<…>`, which `readCommands` now asks for. craftz's `rules` prints with it too.
 
 ## Where it is
 
