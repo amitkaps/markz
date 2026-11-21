@@ -1,10 +1,10 @@
 # Plan
 
-markz parses its dialect to a flat tree and renders it to HTML, with a warning for every input that doesn't do what it looks like. 0.9.0 is on npm as `@amitkaps/markz`, and its docs are at [markz.amitkaps.com](https://markz.amitkaps.com). What each release changed is in its [notes on GitHub](https://github.com/amitkaps/markz/releases). This plan says what's next, in order, and what works now.
+markz parses its dialect to a flat tree and renders it to HTML, with a warning for every input that doesn't do what it looks like. 0.10.0 is on npm as `@amitkaps/markz`, and its docs are at [markz.amitkaps.com](https://markz.amitkaps.com). What each release changed is in its [notes on GitHub](https://github.com/amitkaps/markz/releases). This plan says what's next, in order, and what works now.
 
 ## Next, in order
 
-- [ ] **Release 0.10.0.** Then craftz, prose and pagez write their `help` with `write`, and write each value in a usage as `<…>`, which `readCommands` now asks for. craftz's `rules` prints with it too.
+- [ ] **Help in colour in each tool.** craftz, prose and pagez print `help` with `write`, which their usage now parses for, and craftz prints `rules` with it too. Each is a change in its own plan.
 
 ## Where it is
 
