@@ -176,11 +176,11 @@ importers:
   .:
     devDependencies:
       '@amitkaps/craftz':
-        specifier: 0.28.0
-        version: 0.28.0(vite-plus@1.7.0(@types/node@26.6.6)(@vitest/ui@5.1.0)(publint@0.3.25)(yaml@2.9.1))
+        specifier: 0.29.0
+        version: 0.29.0(vite-plus@1.7.0(@types/node@26.6.6)(@vitest/ui@5.1.0)(publint@0.3.25)(yaml@2.9.1))
       '@amitkaps/prose':
-        specifier: 0.14.0
-        version: 0.14.0
+        specifier: 0.14.1
+        version: 0.14.1
       '@types/node':
         specifier: 26.6.6
         version: 26.6.6
@@ -223,15 +223,15 @@ importers:
 
 packages:
 
-  '@amitkaps/craftz@0.28.0':
-    resolution: {integrity: sha512-PIaahNsvBO3A8mNCqlyo+PgZCvwAPbO64V+sQIWa84udH47U7Ot8adU8Vw9zSWPUzh8bWq2dAngtT+I76PEkEw==}
+  '@amitkaps/craftz@0.29.0':
+    resolution: {integrity: sha512-zVTxnmpSBdt+mNSTBfQlr24RZN+s2pfAhHiR+PY5gg+4b2S4NNGGDXr6nRw0KC6h1fyeRMwq/KyW/TYUyQeWEg==}
     engines: {node: '>=26.13.1'}
     hasBin: true
     peerDependencies:
       vite-plus: ^1.7.0
 
-  '@amitkaps/prose@0.14.0':
-    resolution: {integrity: sha512-5mK1ex3kAbAVvFywaWDnRQhsYWGUgUXF4obw6dFdTr5pHjrt1uzIKn0m+bSwjyK9njUS/eZIn1ZjnvCVFSkhxg==}
+  '@amitkaps/prose@0.14.1':
+    resolution: {integrity: sha512-C7nDtaeD2+8NlBnH56LNv5szwAJZYLjpwzLq2bB3MG3Uyfhzy9bLI9GlErGm0O1LqJ2JPMPUDLVJP818eyHb4w==}
     engines: {node: '>=26.13.1'}
     hasBin: true
 
@@ -243,8 +243,8 @@ packages:
     resolution: {integrity: sha512-qehxGkRj55h/ff8EMaJ+cYhyaKlHIxqYDn682wQD7RNp9UujOQsHog2uS0r2vzr4pW+sXf90NeeayjcNaX3fFg==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/runtime@7.29.14':
-    resolution: {integrity: sha512-Y5tqevQaUAZhhj82BpYMNC1ssvLQTVAfwKdm8iy8qwmhvC2/CpcAu8OC+QEtjM7pMk7knx83u1Qj8gzkicyelw==}
+  '@babel/runtime@7.29.15':
+    resolution: {integrity: sha512-304gsbbGVmQc+cNGHzwHBlqepYdWLKj3VXCQBGt/EGcV7PUPfKI7kAUNW1FZEOCwlQiLvQjg1JEaAlRQ616h+Q==}
     engines: {node: '>=6.9.0'}
 
   '@blazediff/core@1.10.0':
@@ -1360,11 +1360,11 @@ packages:
 
 snapshots:
 
-  '@amitkaps/craftz@0.28.0(vite-plus@1.7.0(@types/node@26.6.6)(@vitest/ui@5.1.0)(publint@0.3.25)(yaml@2.9.1))':
+  '@amitkaps/craftz@0.29.0(vite-plus@1.7.0(@types/node@26.6.6)(@vitest/ui@5.1.0)(publint@0.3.25)(yaml@2.9.1))':
     dependencies:
       vite-plus: 1.7.0(@types/node@26.6.6)(@vitest/ui@5.1.0)(publint@0.3.25)(yaml@2.9.1)
 
-  '@amitkaps/prose@0.14.0': {}
+  '@amitkaps/prose@0.14.1': {}
 
   '@babel/code-frame@7.29.7':
     dependencies:
@@ -1374,7 +1374,7 @@ snapshots:
 
   '@babel/helper-validator-identifier@7.29.7': {}
 
-  '@babel/runtime@7.29.14': {}
+  '@babel/runtime@7.29.15': {}
 
   '@blazediff/core@1.10.0': {}
 
@@ -1516,7 +1516,7 @@ snapshots:
   '@testing-library/dom@10.4.2':
     dependencies:
       '@babel/code-frame': 7.29.7
-      '@babel/runtime': 7.29.14
+      '@babel/runtime': 7.29.15
       '@types/aria-query': 5.0.4
       aria-query: 5.3.0
       dom-accessibility-api: 0.5.16
