@@ -1,12 +1,10 @@
 # Plan
 
-markz parses its dialect to a flat tree and renders it to HTML, with a warning for every input that doesn't do what it looks like. 0.7.0 is on npm as `@amitkaps/markz`, and its docs are at [markz.amitkaps.com](https://markz.amitkaps.com). What each release changed is in its [notes on GitHub](https://github.com/amitkaps/markz/releases). This plan says what's next, in order, and what works now.
+markz parses its dialect to a flat tree and renders it to HTML, with a warning for every input that doesn't do what it looks like. 0.9.0 is on npm as `@amitkaps/markz`, and its docs are at [markz.amitkaps.com](https://markz.amitkaps.com). What each release changed is in its [notes on GitHub](https://github.com/amitkaps/markz/releases). This plan says what's next, in order, and what works now.
 
 ## Next, in order
 
-- [x] **Release 0.8.0.** prose, pagez and craftz read their rules with `@amitkaps/markz/rules`.
-- [x] **Commands, stated once.** `readCommands` and `printHelp` read a tool's commands from its usage and print its help, and `readRules` reads under one heading, so a doc's commands aren't read as its rules. markz states its own commands, and `markz help` prints them.
-- [ ] **Release 0.9.0.** Then prose and pagez state their commands and print `help` with it, and craftz moves its own to it, each in its own plan.
+- [ ] **Help that reads in a terminal.** `printHelp`'s listing groups commands under usage's headings, with each one's first sentence wrapped and no backticks. `help <command>` prints its section as text, with id spans as the command, once each tool gives a command its own heading. craftz's `printed()` turns id spans into text too, so markz owns that for both.
 
 ## Where it is
 
