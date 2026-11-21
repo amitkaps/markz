@@ -125,6 +125,9 @@ import {
   printRules,
   readCommands,
   readRules,
+  terminal,
+  usage,
+  write,
 } from "@amitkaps/markz/rules";
 ```
 
@@ -138,11 +141,23 @@ markz's rules, from Usage, and its codes, each `{ code, level, message, instead,
 
 ### `readCommands(tool, source, url, within?): Commands`
 
-A tool's commands, as `{ tool, commands, source, url }`. Each command is read as a rule is, a list item whose span shows how it's run, like ``[`markz check <files>`]{#check}: ``, and whose text says what it does.
+A tool's commands, as `{ tool, commands, source, url }`. Each command is read as a rule is, a list item whose span shows how it's run, like ``[`markz check <files>`]{#check}: ``, and whose text says what it does. It throws on a command whose usage doesn't parse, as `usage` says.
 
 ### `printHelp(commands, name?): string | undefined`
 
-Every command, with how it's run and what it does, as `markz help` prints them. With `name`, the section of the doc that states that command, its links resolved, then its address. It's `undefined` when no command is `name`.
+Every command, with how it's run and what it does, under its heading, as `markz help` prints them. With `name`, the section of the doc that states that command, then its address. Its links are resolved, and a span that only gives an id prints as what it holds, so a command's span is its code. Both are Markdown, which `write` renders for a terminal. It's `undefined` when no command is `name`.
+
+### `usage(label): Part[]`
+
+A command's usage in parts, each `{ kind, text }`, whose texts joined are the label. The words before anything else are the `command`. A `flag` starts with `-`, a `value` you fill in is written `<…>`, and a bare word after a flag is the `literal` it takes, like `static` in `[--site static]`. Brackets, `|`, `...` and quotes are `syntax`, and runs of spaces are `space`. It throws on any other bare word, like `[dir]`, which it can't tell from a literal, and on a bracket or a quote left open.
+
+### `write(markdown, usages?, stream?)`
+
+Writes Markdown to `stream`, `process.stdout` by default, rendered with `terminal` where `styleText` shows colour there, or as it is. So a person sees styles, and an agent, a pipe or `NO_COLOR` gets the Markdown. `usages` are the labels to read with `usage`, a tool's commands' labels for help.
+
+### `terminal(markdown, { columns, style, usages? }): string`
+
+Markdown with styles in place of its marks, wrapped to `columns` with a hanging indent. A heading is bold, code is cyan, and a list item is indented. A code span that's one of `usages` shows its command bold and cyan, its flags and literals yellow, and its values italic and magenta, with its syntax unstyled. `style` writes the styles, and with one that returns the text as it is, the result is the same text without colour.
 
 ### `commands: Commands`
 
@@ -168,4 +183,4 @@ The codes in any set that a rule links to, in the order it links them.
 
 One finding as a line, `<tool>: <level>: <file>:<line>:<col>: <code>: <message>; write <instead>; held: <reason>`. Only `tool`, `level` and `message` are required, and a part left out is dropped. The line and column count from 1, as editors do. `level` is a `Level`: an `error` always fails, a `warning` fails a check unless the rule is held, and a `note` never fails.
 
-Exported for TypeScript: `Rule`, `Code`, `Rules`, `Commands`, `Finding` and `Level`.
+Exported for TypeScript: `Rule`, `Code`, `Rules`, `Commands`, `Finding`, `Level`, `Part`, `Style` and `Format`.

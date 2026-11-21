@@ -114,7 +114,7 @@ describe("commands", () => {
     "",
     "See [syntax](syntax.md).",
     "",
-    "- [`tool go [dir]`]{#go}: goes.",
+    "- [`tool go [<dir>]`]{#go}: goes.",
     "",
     "## For agents",
     "",
@@ -128,15 +128,22 @@ describe("commands", () => {
     expect(() => readRules(doc, url, "nowhere")).toThrow("no heading `nowhere`");
   });
 
-  it("print as help, or one's section with its links resolved", () => {
+  it("print as Markdown under their headings, or one's section with its spans as code", () => {
     const tool = readCommands("tool", doc, url, "commands");
     expect(printHelp(tool)).toBe(
-      "Usage: tool <command>, and tool help <command> says more\n\n  tool go [dir]\n      goes.\n",
+      "Usage: `tool <command>`, and `tool help <command>` says more.\n\n## Commands\n\n- `tool go [<dir>]`: goes.\n",
     );
     expect(printHelp(tool, "go")).toBe(
-      "## Commands\n\nSee [syntax](https://example.com/docs/syntax.md).\n\n- [`tool go [dir]`]{#go}: goes.\n\nhttps://example.com/docs/usage.md#go\n",
+      "## Commands\n\nSee [syntax](https://example.com/docs/syntax.md).\n\n- `tool go [<dir>]`: goes.\n\nhttps://example.com/docs/usage.md#go\n",
     );
     expect(printHelp(tool, "stop")).toBeUndefined();
+  });
+
+  it("fail to read when a usage doesn't parse", () => {
+    const bare = doc.replace("[<dir>]", "[dir]");
+    expect(() => readCommands("tool", bare, url, "commands")).toThrow(
+      "`tool go [dir]`: `dir` isn't a flag's value; write `<dir>` for a value",
+    );
   });
 
   it("are the ones cli.ts runs", () => {
