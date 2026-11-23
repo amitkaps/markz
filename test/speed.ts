@@ -153,7 +153,10 @@ if (flag("--parser") >= 0) {
   console.log(`\n${relative(root, PROFILE)} opens in DevTools for the flame chart`);
 } else if (flag("--versus") >= 0) {
   // One process of `pnpm speed`: both versions over every cell, as JSON on stdout.
-  const base = await import(join(argv[flag("--versus") + 1]!, "src/index.ts"));
+  // The version to compare against has the same exports as this one.
+  const base = (await import(
+    join(argv[flag("--versus") + 1]!, "src/index.ts")
+  )) as typeof import("../src/index.ts");
   const before = (text: string) => base.html(base.parse(text));
   const cells = timed();
   const texts = cells.flatMap((c) => c.texts);
@@ -198,7 +201,7 @@ if (flag("--parser") >= 0) {
       console.error(child.stderr);
       process.exit(1);
     }
-    runs.push(JSON.parse(child.stdout));
+    runs.push(JSON.parse(child.stdout) as (typeof runs)[number]);
   }
 
   const cells = Object.keys(runs[0]!);
