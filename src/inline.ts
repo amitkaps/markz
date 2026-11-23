@@ -168,7 +168,7 @@ class InlinePass {
 
   memo(text: "t" | "s", end: number): Memo {
     const key = text + end;
-    const memos = (this.memos ??= new Map());
+    const memos = (this.memos ??= new Map<string, Memo>());
     let record = memos.get(key);
     if (!record) memos.set(key, (record = memo()));
     return record;
@@ -179,7 +179,7 @@ class InlinePass {
    * from before what it found, or after it found nothing, costs nothing.
    */
   next(token: string, t: number): number {
-    const found = (this.found ??= new Map());
+    const found = (this.found ??= new Map<string, { from: number; at: number }>());
     const last = found.get(token);
     if (last && t >= last.from && (last.at < 0 || t <= last.at)) return last.at;
     const at = this.text.indexOf(token, t);
@@ -193,9 +193,9 @@ class InlinePass {
    * later label starting at one of them closes where the scan's depth fell back below it.
    */
   labelEnd(j: number, to: number): number {
-    const labels = (this.labels ??= new Map());
+    const labels = (this.labels ??= new Map<number, Map<number, number>>());
     let closes = labels.get(to);
-    if (!closes) labels.set(to, (closes = new Map()));
+    if (!closes) labels.set(to, (closes = new Map<number, number>()));
     const known = closes.get(j);
     if (known !== undefined) return known;
     const open: number[] = [];
@@ -1193,10 +1193,13 @@ function character(code: number): string {
 
 /** Escapes and numeric references decoded, for a destination, a title or a fence's info string. */
 export function decode(text: string): string {
-  return unescape(text).replace(/&#(?:(\d{1,7})|[xX]([\da-fA-F]{1,6}));/g, (_, d, h) => {
-    const code = d ? Number(d) : parseInt(h, 16);
-    return character(code);
-  });
+  return unescape(text).replace(
+    /&#(?:(\d{1,7})|[xX]([\da-fA-F]{1,6}));/g,
+    (_, d: string | undefined, h: string | undefined) => {
+      const code = d ? Number(d) : parseInt(h ?? "", 16);
+      return character(code);
+    },
+  );
 }
 
 /**
