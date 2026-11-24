@@ -118,6 +118,7 @@ export default defineConfig({
       },
       { extends: true, test: { name: "timing", include: [timing], sequence: { groupOrder: 1 } } },
     ],
+    exclude: ["**/node_modules/**", "**/.git/**", ".claude/worktrees/**"],
   },
 
   /** @prose
