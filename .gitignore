@@ -28,3 +28,6 @@ vite.config.ts.timestamp-*
 
 # Written by prose outline
 outline.md
+
+# Agents' worktrees
+.claude/worktrees
