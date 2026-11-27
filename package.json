@@ -55,9 +55,9 @@
     "outline": "prose outline"
   },
   "devDependencies": {
-    "@amitkaps/craftz": "0.31.0",
+    "@amitkaps/craftz": "0.31.1",
     "@amitkaps/prose": "0.14.1",
-    "@types/node": "26.6.10",
+    "@types/node": "26.6.11",
     "fast-check": "^4.11.0",
     "github-slugger": "^2.0.0",
     "markdown-exit": "^2.1.3",
